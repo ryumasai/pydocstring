@@ -58,6 +58,24 @@ pub fn emit_google(doc: &Docstring, base_indent: usize) -> String {
     super::indent_lines(&out, base_indent)
 }
 
+fn emit_multiline_with_indentation(out: &mut String, text: &str, indent_level: usize) {
+    if indent_level == 0 {
+        out.push_str(text);
+    } else {
+        let mut lines = text.lines();
+        if let Some(first_line) = lines.next() {
+            out.push_str(first_line);
+            for line in lines {
+                out.push('\n');
+                if line.len() > 0 {
+                    out.push_str(&" ".repeat(indent_level));
+                    out.push_str(line);
+                }
+            }
+        }
+    }
+}
+
 /// Section header name for Google style.
 fn section_header(section: &Section) -> &str {
     match section {
@@ -138,7 +156,9 @@ fn emit_section(out: &mut String, section: &Section) {
             }
         }
         Section::FreeText { body, .. } => {
-            emit_indented_body(out, body);
+            out.push_str("    ");
+            emit_multiline_with_indentation(out, body, 4);
+            out.push('\n');
         }
     }
 }
@@ -163,7 +183,7 @@ fn emit_parameter(out: &mut String, p: &Parameter) {
     out.push(':');
     if let Some(ref desc) = p.description {
         out.push(' ');
-        out.push_str(desc);
+        emit_multiline_with_indentation(out, desc, 8);
     }
     out.push('\n');
 }
@@ -176,7 +196,7 @@ fn emit_return(out: &mut String, r: &Return) {
         out.push(':');
         if let Some(ref desc) = r.description {
             out.push(' ');
-            out.push_str(desc);
+            emit_multiline_with_indentation(out, desc, 4);
         }
     } else if let Some(ref desc) = r.description {
         out.push_str(desc);
@@ -191,7 +211,7 @@ fn emit_exception(out: &mut String, e: &ExceptionEntry) {
     out.push(':');
     if let Some(ref desc) = e.description {
         out.push(' ');
-        out.push_str(desc);
+        emit_multiline_with_indentation(out, desc, 8);
     }
     out.push('\n');
 }
@@ -208,7 +228,7 @@ fn emit_attribute(out: &mut String, a: &Attribute) {
     out.push(':');
     if let Some(ref desc) = a.description {
         out.push(' ');
-        out.push_str(desc);
+        emit_multiline_with_indentation(out, desc, 8);
     }
     out.push('\n');
 }
@@ -225,7 +245,7 @@ fn emit_method(out: &mut String, m: &Method) {
     out.push(':');
     if let Some(ref desc) = m.description {
         out.push(' ');
-        out.push_str(desc);
+        emit_multiline_with_indentation(out, desc, 8);
     }
     out.push('\n');
 }
@@ -236,7 +256,7 @@ fn emit_see_also(out: &mut String, item: &SeeAlsoEntry) {
     out.push_str(&item.names.join(", "));
     if let Some(ref desc) = item.description {
         out.push_str(": ");
-        out.push_str(desc);
+        emit_multiline_with_indentation(out, desc, 8);
     }
     out.push('\n');
 }
@@ -250,16 +270,7 @@ fn emit_reference(out: &mut String, r: &Reference) {
         out.push_str("] ");
     }
     if let Some(ref content) = r.content {
-        out.push_str(content);
+        emit_multiline_with_indentation(out, content, 8);
     }
     out.push('\n');
-}
-
-/// Indent each line of a body by 4 spaces.
-fn emit_indented_body(out: &mut String, body: &str) {
-    for line in body.lines() {
-        out.push_str("    ");
-        out.push_str(line);
-        out.push('\n');
-    }
 }

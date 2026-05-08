@@ -36,7 +36,7 @@ fn google_emit_args() {
             Parameter {
                 names: vec!["x".into()],
                 type_annotation: Some("int".into()),
-                description: Some("The value.".into()),
+                description: Some("The value.\nMore description.\n\n    blockquote\n\nlast line.".into()),
                 is_optional: false,
                 default_value: None,
             },
@@ -52,7 +52,7 @@ fn google_emit_args() {
     };
     let text = emit_google(&doc, 0);
     assert!(text.contains("Args:\n"));
-    assert!(text.contains("    x (int): The value.\n"));
+    assert!(text.contains("    x (int): The value.\n        More description.\n\n            blockquote\n\n        last line."));
     assert!(text.contains("    y (str): The name.\n"));
 }
 
@@ -251,7 +251,7 @@ fn numpy_emit_parameters() {
             Parameter {
                 names: vec!["x".into()],
                 type_annotation: Some("int".into()),
-                description: Some("The first number.".into()),
+                description: Some("The first number.\nMore description\n\n    blockquote\n\nlast line.".into()),
                 is_optional: false,
                 default_value: None,
             },
@@ -267,7 +267,7 @@ fn numpy_emit_parameters() {
     };
     let text = emit_numpy(&doc, 0);
     assert!(text.contains("Parameters\n----------\n"));
-    assert!(text.contains("x : int\n    The first number.\n"));
+    assert!(text.contains("x : int\n    The first number.\n    More description\n\n        blockquote\n\n    last line."));
     assert!(text.contains("y : int\n    The second number.\n"));
 }
 
