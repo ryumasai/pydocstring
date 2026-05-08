@@ -262,14 +262,17 @@ pub(crate) fn convert_multiline_with_indentation(text: &str) -> String {
         }
     }).min().unwrap_or(0);
     let mut lines = text.lines();
-    let first_line = lines.next().unwrap().trim_end(); // at least one line => we can safely unwrap
-    lines.map(|line| {
-        if description_indent >= line.len() { // empty line
-            &line[0..0]
-        } else {
-            line[description_indent..].trim_end()
-        }
-    }).fold(first_line.to_owned(), |a, b| a + "\n" + b)
+    if let Some(first_line) = lines.next() {
+        lines.map(|line| {
+            if description_indent >= line.len() { // empty line
+                &line[0..0]
+            } else {
+                line[description_indent..].trim_end()
+            }
+        }).fold(first_line.trim_end().to_owned(), |a, b| a + "\n" + b)
+    } else {
+        String::new()
+    }
 }
 
 
