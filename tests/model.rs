@@ -61,13 +61,30 @@ fn google_args_optional() {
 
 #[test]
 fn google_args_multiple() {
-    let parsed = parse_google("Summary.\n\nArgs:\n    x (int): First.\n    y (str): Second.");
+    let parsed = parse_google("Summary.
+        Args:
+            x (int): First.
+            y (str): Second.
+                More description.
+            z: Third.
+                More description.
+
+                .. directive:: something
+                   directive_option
+
+                continued description.");
     let doc = google_to_model(&parsed).unwrap();
     match &doc.sections[0] {
         Section::Parameters(params) => {
-            assert_eq!(params.len(), 2);
+            assert_eq!(params.len(), 3);
             assert_eq!(params[0].names, vec!["x"]);
+            assert_eq!(params[0].description.as_deref(), Some("First."));
+
             assert_eq!(params[1].names, vec!["y"]);
+            assert_eq!(params[1].description.as_deref(), Some("Second.\nMore description."));
+
+            assert_eq!(params[2].names, vec!["z"]);
+            assert_eq!(params[2].description.as_deref(), Some("Third.\nMore description.\n\n.. directive:: something\n   directive_option\n\ncontinued description."));
         }
         other => panic!("expected Parameters, got {:?}", other),
     }

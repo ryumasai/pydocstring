@@ -138,10 +138,30 @@ fn convert_section(section: &GoogleSection<'_>, source: &str) -> Section {
 }
 
 fn convert_arg(arg: &crate::parse::google::nodes::GoogleArg<'_>, source: &str) -> Parameter {
+
     Parameter {
         names: vec![arg.name().text(source).to_owned()],
         type_annotation: arg.r#type().map(|t| t.text(source).to_owned()),
-        description: arg.description().map(|t| t.text(source).to_owned()),
+        description: arg.description().map(|t| {
+            let text = t.text(source);
+            let description_indent = text.lines().skip(1).filter_map(|line| {
+                let trimmed_len = line.trim_start().len();
+                if trimmed_len == 0 {
+                    None
+                } else {
+                    Some(line.len() - trimmed_len)
+                }
+            }).min().unwrap_or(0);
+            let mut lines = text.lines();
+            let first_line = lines.next().unwrap().trim_end(); // at least one description line => we can safely unwrap
+            lines.map(|line| {
+                if description_indent >= line.len() { // empty line
+                    &line[0..0]
+                } else {
+                    line[description_indent..].trim_end()
+                }
+            }).fold(first_line.to_owned(), |a, b| a + "\n" + b)
+        }),
         is_optional: arg.optional().is_some(),
         default_value: None,
     }
