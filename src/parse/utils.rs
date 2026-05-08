@@ -473,4 +473,20 @@ mod tests {
         // Bracket at position 0 is not valid (no name before it).
         assert_eq!(find_entry_open_bracket("(int)"), None);
     }
+
+    #[test]
+    fn test_convert_multiline_with_indentation() {
+        assert_eq!(convert_multiline_with_indentation("First line.
+
+        Description line.
+        More description.
+
+            Blockquote.
+            Another.
+
+        Some text.
+
+        .. directive:: option
+           directive_option"), "First line.\n\nDescription line.\nMore description.\n\n    Blockquote.\n    Another.\n\nSome text.\n\n.. directive:: option\n   directive_option");
+    }
 }
