@@ -253,28 +253,35 @@ pub(crate) fn find_entry_open_bracket(text: &str) -> Option<usize> {
 /// Convert a multi-line description with potential leading indentation to
 /// an owned string with the leading indentation removed.
 pub(crate) fn convert_multiline_with_indentation(text: &str) -> String {
-    let description_indent = text.lines().skip(1).filter_map(|line| {
-        let trimmed_len = line.trim_start().len();
-        if trimmed_len == 0 {
-            None
-        } else {
-            Some(line.len() - trimmed_len)
-        }
-    }).min().unwrap_or(0);
+    let description_indent = text
+        .lines()
+        .skip(1)
+        .filter_map(|line| {
+            let trimmed_len = line.trim_start().len();
+            if trimmed_len == 0 {
+                None
+            } else {
+                Some(line.len() - trimmed_len)
+            }
+        })
+        .min()
+        .unwrap_or(0);
     let mut lines = text.lines();
     if let Some(first_line) = lines.next() {
-        lines.map(|line| {
-            if description_indent >= line.len() { // empty line
-                &line[0..0]
-            } else {
-                line[description_indent..].trim_end()
-            }
-        }).fold(first_line.trim_end().to_owned(), |a, b| a + "\n" + b)
+        lines
+            .map(|line| {
+                if description_indent >= line.len() {
+                    // empty line
+                    &line[0..0]
+                } else {
+                    line[description_indent..].trim_end()
+                }
+            })
+            .fold(first_line.trim_end().to_owned(), |a, b| a + "\n" + b)
     } else {
         String::new()
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -479,7 +486,9 @@ mod tests {
 
     #[test]
     fn test_convert_multiline_with_indentation() {
-        assert_eq!(convert_multiline_with_indentation("First line.
+        assert_eq!(
+            convert_multiline_with_indentation(
+                "First line.
 
         Description line.
         More description.
@@ -490,6 +499,9 @@ mod tests {
         Some text.
 
         .. directive:: option
-           directive_option"), "First line.\n\nDescription line.\nMore description.\n\n    Blockquote.\n    Another.\n\nSome text.\n\n.. directive:: option\n   directive_option");
+           directive_option"
+            ),
+            "First line.\n\nDescription line.\nMore description.\n\n    Blockquote.\n    Another.\n\nSome text.\n\n.. directive:: option\n   directive_option"
+        );
     }
 }

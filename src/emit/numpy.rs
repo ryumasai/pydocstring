@@ -280,7 +280,7 @@ fn emit_deprecation(out: &mut String, dep: &Deprecation) {
 /// Indent each line of a body by 4 spaces.
 fn emit_indented_body(out: &mut String, body: &str) {
     for line in body.lines() {
-        if line.len() > 0 {
+        if !line.is_empty() {
             out.push_str("    ");
             out.push_str(line);
         }

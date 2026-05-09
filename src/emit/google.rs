@@ -67,7 +67,7 @@ fn emit_multiline_with_indentation(out: &mut String, text: &str, indent_level: u
             out.push_str(first_line);
             for line in lines {
                 out.push('\n');
-                if line.len() > 0 {
+                if !line.is_empty() {
                     out.push_str(&" ".repeat(indent_level));
                     out.push_str(line);
                 }

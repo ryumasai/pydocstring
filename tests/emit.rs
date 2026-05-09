@@ -52,7 +52,9 @@ fn google_emit_args() {
     };
     let text = emit_google(&doc, 0);
     assert!(text.contains("Args:\n"));
-    assert!(text.contains("    x (int): The value.\n        More description.\n\n            blockquote\n\n        last line."));
+    assert!(text.contains(
+        "    x (int): The value.\n        More description.\n\n            blockquote\n\n        last line."
+    ));
     assert!(text.contains("    y (str): The name.\n"));
 }
 
@@ -267,7 +269,9 @@ fn numpy_emit_parameters() {
     };
     let text = emit_numpy(&doc, 0);
     assert!(text.contains("Parameters\n----------\n"));
-    assert!(text.contains("x : int\n    The first number.\n    More description\n\n        blockquote\n\n    last line."));
+    assert!(
+        text.contains("x : int\n    The first number.\n    More description\n\n        blockquote\n\n    last line.")
+    );
     assert!(text.contains("y : int\n    The second number.\n"));
 }
 
