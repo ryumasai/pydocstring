@@ -13,4 +13,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pydocstring_core = { package = "pydocstring", version = "0.1.13", path = "../.." }
-pyo3 = { version = "0.28", features = ["abi3-py310"] }
+pyo3 = { version = "0.28", features = ["py-clone", "abi3-py310"] }

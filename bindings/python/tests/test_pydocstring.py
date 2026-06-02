@@ -411,8 +411,8 @@ class TestSection:
 
     def test_empty_accessors(self):
         sec = pydocstring.Section(pydocstring.SectionKind.PARAMETERS, parameters=[])
-        assert sec.returns == []
-        assert sec.exceptions == []
+        assert sec.returns is None
+        assert sec.exceptions is None
         assert sec.body is None
 
 
@@ -435,6 +435,9 @@ class TestDocstringModel:
         doc = pydocstring.Docstring(summary="Brief.", sections=[sec])
         assert len(doc.sections) == 1
         assert doc.sections[0].kind == pydocstring.SectionKind.PARAMETERS
+
+        doc.sections[0].parameters[0].description = "foo"
+        assert doc.sections[0].parameters[0].description == "foo"
 
     def test_with_deprecation(self):
         dep = pydocstring.Deprecation("2.0", description="Removed.")
