@@ -1760,16 +1760,16 @@ fn build_plain_docstring_node(
 #[derive(Clone)]
 struct PyModelDeprecation {
     #[pyo3(get, set)]
-    version: String,
+    version: Py<PyString>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelDeprecation {
     #[new]
     #[pyo3(signature = (version, *, description=None))]
-    fn new(version: String, description: Option<String>) -> Self {
+    fn new(version: Py<PyString>, description: Option<Py<PyString>>) -> Self {
         Self { version, description }
     }
     fn __repr__(&self) -> String {
@@ -1781,9 +1781,15 @@ impl TryFrom<&model::Deprecation> for PyModelDeprecation {
     type Error = PyErr;
 
     fn try_from(dep: &model::Deprecation) -> Result<Self, Self::Error> {
-        Ok(Self {
-            version: dep.version.clone(),
-            description: dep.description.clone(),
+        Python::attach(|py| {
+            Ok(Self {
+                version: (&dep.version).into_pyobject(py)?.unbind(),
+                description: dep
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -1792,9 +1798,11 @@ impl TryInto<model::Deprecation> for &PyModelDeprecation {
     type Error = PyErr;
 
     fn try_into(self) -> Result<model::Deprecation, Self::Error> {
-        Ok(model::Deprecation {
-            version: self.version.clone(),
-            description: self.description.clone(),
+        Python::attach(|py| {
+            Ok(model::Deprecation {
+                version: self.version.extract(py)?,
+                description: self.description.as_ref().map(|d| d.extract(py)).transpose()?,
+            })
         })
     }
 }
@@ -1803,15 +1811,15 @@ impl TryInto<model::Deprecation> for &PyModelDeprecation {
 #[derive(Clone)]
 struct PyModelParameter {
     #[pyo3(get, set)]
-    names: Vec<String>,
+    names: Py<PyList>,
     #[pyo3(get, set)]
-    type_annotation: Option<String>,
+    type_annotation: Option<Py<PyString>>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
     #[pyo3(get, set)]
     is_optional: bool,
     #[pyo3(get, set)]
-    default_value: Option<String>,
+    default_value: Option<Py<PyString>>,
 }
 
 #[pymethods]
@@ -1819,22 +1827,29 @@ impl PyModelParameter {
     #[new]
     #[pyo3(signature = (names, *, type_annotation=None, description=None, is_optional=false, default_value=None))]
     fn new(
-        names: Vec<String>,
-        type_annotation: Option<String>,
-        description: Option<String>,
+        py: Python<'_>,
+        names: Py<PyList>,
+        type_annotation: Option<Py<PyString>>,
+        description: Option<Py<PyString>>,
         is_optional: bool,
-        default_value: Option<String>,
-    ) -> Self {
-        Self {
+        default_value: Option<Py<PyString>>,
+    ) -> PyResult<Self> {
+        if names.bind(py).into_iter().any(|n| !n.is_instance_of::<PyString>()) {
+            return Err(pyo3::exceptions::PyTypeError::new_err(
+                "Parameter names must be strings.",
+            ));
+        }
+        Ok(Self {
             names,
             type_annotation,
             description,
             is_optional,
             default_value,
-        }
+        })
     }
-    fn __repr__(&self) -> String {
-        format!("Parameter({})", self.names.join(", "))
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        ", ".into_pyobject(py)?
+            .call_method("join", (self.names.bind(py),), None)
     }
 }
 
@@ -1842,12 +1857,26 @@ impl TryFrom<&model::Parameter> for PyModelParameter {
     type Error = PyErr;
 
     fn try_from(param: &model::Parameter) -> Result<Self, Self::Error> {
-        Ok(Self {
-            names: param.names.clone(),
-            type_annotation: param.type_annotation.clone(),
-            description: param.description.clone(),
-            is_optional: param.is_optional,
-            default_value: param.default_value.clone(),
+        Python::attach(|py| {
+            Ok(Self {
+                names: (&param.names).into_pyobject(py)?.cast_into::<PyList>()?.unbind(),
+                type_annotation: param
+                    .type_annotation
+                    .as_ref()
+                    .map(|a| -> PyResult<_> { Ok(a.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                description: param
+                    .description
+                    .as_ref()
+                    .map(|a| -> PyResult<_> { Ok(a.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                is_optional: param.is_optional,
+                default_value: param
+                    .default_value
+                    .as_ref()
+                    .map(|a| -> PyResult<_> { Ok(a.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -1856,12 +1885,26 @@ impl TryInto<model::Parameter> for &PyModelParameter {
     type Error = PyErr;
 
     fn try_into(self) -> Result<model::Parameter, Self::Error> {
-        Ok(model::Parameter {
-            names: self.names.clone(),
-            type_annotation: self.type_annotation.clone(),
-            description: self.description.clone(),
-            is_optional: self.is_optional,
-            default_value: self.default_value.clone(),
+        Python::attach(|py| {
+            Ok(model::Parameter {
+                names: self.names.extract(py)?,
+                type_annotation: self
+                    .type_annotation
+                    .as_ref()
+                    .map(|a| -> PyResult<_> { a.extract(py) })
+                    .transpose()?,
+                description: self
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+                is_optional: self.is_optional,
+                default_value: self
+                    .default_value
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -1870,28 +1913,33 @@ impl TryInto<model::Parameter> for &PyModelParameter {
 #[derive(Clone)]
 struct PyModelReturn {
     #[pyo3(get, set)]
-    name: Option<String>,
+    name: Option<Py<PyString>>,
     #[pyo3(get, set)]
-    type_annotation: Option<String>,
+    type_annotation: Option<Py<PyString>>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelReturn {
     #[new]
     #[pyo3(signature = (*, name=None, type_annotation=None, description=None))]
-    fn new(name: Option<String>, type_annotation: Option<String>, description: Option<String>) -> Self {
+    fn new(
+        name: Option<Py<PyString>>,
+        type_annotation: Option<Py<PyString>>,
+        description: Option<Py<PyString>>,
+    ) -> Self {
         Self {
             name,
             type_annotation,
             description,
         }
     }
-    fn __repr__(&self) -> String {
-        self.name
-            .as_deref()
-            .map_or_else(|| "Return(...)".to_string(), |n| format!("Return({})", n))
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        self.name.as_ref().map_or_else(
+            || Ok("Return(...)".into_pyobject(py)?.into_any()),
+            |n| "Return({})".into_pyobject(py)?.call_method("format", (n,), None),
+        )
     }
 }
 
@@ -1899,10 +1947,24 @@ impl TryFrom<&model::Return> for PyModelReturn {
     type Error = PyErr;
 
     fn try_from(ret: &model::Return) -> Result<Self, Self::Error> {
-        Ok(Self {
-            name: ret.name.clone(),
-            type_annotation: ret.type_annotation.clone(),
-            description: ret.description.clone(),
+        Python::attach(|py| {
+            Ok(Self {
+                name: ret
+                    .name
+                    .as_ref()
+                    .map(|n| -> PyResult<_> { Ok(n.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                type_annotation: ret
+                    .type_annotation
+                    .as_ref()
+                    .map(|n| -> PyResult<_> { Ok(n.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                description: ret
+                    .description
+                    .as_ref()
+                    .map(|n| -> PyResult<_> { Ok(n.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -1911,10 +1973,24 @@ impl TryInto<model::Return> for &PyModelReturn {
     type Error = PyErr;
 
     fn try_into(self) -> Result<model::Return, Self::Error> {
-        Ok(model::Return {
-            name: self.name.clone(),
-            type_annotation: self.type_annotation.clone(),
-            description: self.description.clone(),
+        Python::attach(|py| {
+            Ok(model::Return {
+                name: self
+                    .name
+                    .as_ref()
+                    .map(|n| -> PyResult<_> { n.extract(py) })
+                    .transpose()?,
+                type_annotation: self
+                    .type_annotation
+                    .as_ref()
+                    .map(|n| -> PyResult<_> { n.extract(py) })
+                    .transpose()?,
+                description: self
+                    .description
+                    .as_ref()
+                    .map(|n| -> PyResult<_> { n.extract(py) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -1923,20 +1999,22 @@ impl TryInto<model::Return> for &PyModelReturn {
 #[derive(Clone)]
 struct PyModelExceptionEntry {
     #[pyo3(get, set)]
-    type_name: String,
+    type_name: Py<PyString>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelExceptionEntry {
     #[new]
     #[pyo3(signature = (type_name, *, description=None))]
-    fn new(type_name: String, description: Option<String>) -> Self {
+    fn new(type_name: Py<PyString>, description: Option<Py<PyString>>) -> Self {
         Self { type_name, description }
     }
-    fn __repr__(&self) -> String {
-        format!("ExceptionEntry({})", self.type_name)
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        "ExceptionEntry({})"
+            .into_pyobject(py)?
+            .call_method("format", (&self.type_name,), None)
     }
 }
 
@@ -1944,9 +2022,15 @@ impl TryFrom<&model::ExceptionEntry> for PyModelExceptionEntry {
     type Error = PyErr;
 
     fn try_from(exception: &model::ExceptionEntry) -> Result<Self, Self::Error> {
-        Ok(Self {
-            type_name: exception.type_name.clone(),
-            description: exception.description.clone(),
+        Python::attach(|py| {
+            Ok(Self {
+                type_name: (&exception.type_name).into_pyobject(py)?.unbind(),
+                description: exception
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -1955,9 +2039,15 @@ impl TryInto<model::ExceptionEntry> for &PyModelExceptionEntry {
     type Error = PyErr;
 
     fn try_into(self) -> Result<model::ExceptionEntry, Self::Error> {
-        Ok(model::ExceptionEntry {
-            type_name: self.type_name.clone(),
-            description: self.description.clone(),
+        Python::attach(|py| {
+            Ok(model::ExceptionEntry {
+                type_name: self.type_name.extract(py)?,
+                description: self
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -1966,20 +2056,29 @@ impl TryInto<model::ExceptionEntry> for &PyModelExceptionEntry {
 #[derive(Clone)]
 struct PyModelSeeAlsoEntry {
     #[pyo3(get, set)]
-    names: Vec<String>,
+    names: Py<PyList>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelSeeAlsoEntry {
     #[new]
     #[pyo3(signature = (names, *, description=None))]
-    fn new(names: Vec<String>, description: Option<String>) -> Self {
-        Self { names, description }
+    fn new(py: Python<'_>, names: Py<PyList>, description: Option<Py<PyString>>) -> PyResult<Self> {
+        if names.bind(py).into_iter().any(|n| !n.is_instance_of::<PyString>()) {
+            return Err(pyo3::exceptions::PyTypeError::new_err("Names must be strings."));
+        }
+        Ok(Self { names, description })
     }
-    fn __repr__(&self) -> String {
-        format!("SeeAlsoEntry({})", self.names.join(", "))
+
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let names = ", "
+            .into_pyobject(py)?
+            .call_method("join", (self.names.bind(py),), None)?;
+        "SeeAlsoEntry({})"
+            .into_pyobject(py)?
+            .call_method("format", (names,), None)
     }
 }
 
@@ -1987,9 +2086,15 @@ impl TryFrom<&model::SeeAlsoEntry> for PyModelSeeAlsoEntry {
     type Error = PyErr;
 
     fn try_from(seealso: &model::SeeAlsoEntry) -> Result<Self, Self::Error> {
-        Ok(Self {
-            names: seealso.names.clone(),
-            description: seealso.description.clone(),
+        Python::attach(|py| {
+            Ok(Self {
+                names: (&seealso.names).into_pyobject(py)?.cast_into::<PyList>()?.unbind(),
+                description: seealso
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -1998,9 +2103,15 @@ impl TryInto<model::SeeAlsoEntry> for &PyModelSeeAlsoEntry {
     type Error = PyErr;
 
     fn try_into(self) -> Result<model::SeeAlsoEntry, Self::Error> {
-        Ok(model::SeeAlsoEntry {
-            names: self.names.clone(),
-            description: self.description.clone(),
+        Python::attach(|py| {
+            Ok(model::SeeAlsoEntry {
+                names: self.names.extract(py)?,
+                description: self
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -2009,22 +2120,23 @@ impl TryInto<model::SeeAlsoEntry> for &PyModelSeeAlsoEntry {
 #[derive(Clone)]
 struct PyModelReference {
     #[pyo3(get, set)]
-    number: Option<String>,
+    number: Option<Py<PyString>>,
     #[pyo3(get, set)]
-    content: Option<String>,
+    content: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelReference {
     #[new]
     #[pyo3(signature = (*, number=None, content=None))]
-    fn new(number: Option<String>, content: Option<String>) -> Self {
+    fn new(number: Option<Py<PyString>>, content: Option<Py<PyString>>) -> Self {
         Self { number, content }
     }
-    fn __repr__(&self) -> String {
-        self.number
-            .as_deref()
-            .map_or_else(|| "Reference(...)".to_string(), |n| format!("Reference({})", n))
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        self.number.as_ref().map_or_else(
+            || Ok("Reference(...)".into_pyobject(py)?.into_any()),
+            |n| "Reference({})".into_pyobject(py)?.call_method("format", (n,), None),
+        )
     }
 }
 
@@ -2032,9 +2144,19 @@ impl TryFrom<&model::Reference> for PyModelReference {
     type Error = PyErr;
 
     fn try_from(reference: &model::Reference) -> Result<Self, Self::Error> {
-        Ok(Self {
-            number: reference.number.clone(),
-            content: reference.content.clone(),
+        Python::attach(|py| {
+            Ok(Self {
+                number: reference
+                    .number
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                content: reference
+                    .content
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -2043,9 +2165,19 @@ impl TryInto<model::Reference> for &PyModelReference {
     type Error = PyErr;
 
     fn try_into(self) -> Result<model::Reference, Self::Error> {
-        Ok(model::Reference {
-            number: self.number.clone(),
-            content: self.content.clone(),
+        Python::attach(|py| {
+            Ok(model::Reference {
+                number: self
+                    .number
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+                content: self
+                    .content
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -2054,26 +2186,28 @@ impl TryInto<model::Reference> for &PyModelReference {
 #[derive(Clone)]
 struct PyModelAttribute {
     #[pyo3(get, set)]
-    name: String,
+    name: Py<PyString>,
     #[pyo3(get, set)]
-    type_annotation: Option<String>,
+    type_annotation: Option<Py<PyString>>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelAttribute {
     #[new]
     #[pyo3(signature = (name, *, type_annotation=None, description=None))]
-    fn new(name: String, type_annotation: Option<String>, description: Option<String>) -> Self {
+    fn new(name: Py<PyString>, type_annotation: Option<Py<PyString>>, description: Option<Py<PyString>>) -> Self {
         Self {
             name,
             type_annotation,
             description,
         }
     }
-    fn __repr__(&self) -> String {
-        format!("Attribute({})", self.name)
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        "Attribute({})"
+            .into_pyobject(py)?
+            .call_method("format", (&self.name,), None)
     }
 }
 
@@ -2081,10 +2215,20 @@ impl TryFrom<&model::Attribute> for PyModelAttribute {
     type Error = PyErr;
 
     fn try_from(attribute: &model::Attribute) -> Result<Self, Self::Error> {
-        Ok(Self {
-            name: attribute.name.clone(),
-            type_annotation: attribute.type_annotation.clone(),
-            description: attribute.description.clone(),
+        Python::attach(|py| {
+            Ok(Self {
+                name: (&attribute.name).into_pyobject(py)?.unbind(),
+                type_annotation: attribute
+                    .type_annotation
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                description: attribute
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -2093,10 +2237,20 @@ impl TryInto<model::Attribute> for &PyModelAttribute {
     type Error = PyErr;
 
     fn try_into(self) -> Result<model::Attribute, Self::Error> {
-        Ok(model::Attribute {
-            name: self.name.clone(),
-            type_annotation: self.type_annotation.clone(),
-            description: self.description.clone(),
+        Python::attach(|py| {
+            Ok(model::Attribute {
+                name: self.name.extract(py)?,
+                type_annotation: self
+                    .type_annotation
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+                description: self
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -2105,26 +2259,28 @@ impl TryInto<model::Attribute> for &PyModelAttribute {
 #[derive(Clone)]
 struct PyModelMethod {
     #[pyo3(get, set)]
-    name: String,
+    name: Py<PyString>,
     #[pyo3(get, set)]
-    type_annotation: Option<String>,
+    type_annotation: Option<Py<PyString>>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelMethod {
     #[new]
     #[pyo3(signature = (name, *, type_annotation=None, description=None))]
-    fn new(name: String, type_annotation: Option<String>, description: Option<String>) -> Self {
+    fn new(name: Py<PyString>, type_annotation: Option<Py<PyString>>, description: Option<Py<PyString>>) -> Self {
         Self {
             name,
             type_annotation,
             description,
         }
     }
-    fn __repr__(&self) -> String {
-        format!("Method({})", self.name)
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        "Method({})"
+            .into_pyobject(py)?
+            .call_method("format", (&self.name,), None)
     }
 }
 
@@ -2132,10 +2288,20 @@ impl TryFrom<&model::Method> for PyModelMethod {
     type Error = PyErr;
 
     fn try_from(method: &model::Method) -> Result<Self, Self::Error> {
-        Ok(Self {
-            name: method.name.clone(),
-            type_annotation: method.type_annotation.clone(),
-            description: method.description.clone(),
+        Python::attach(|py| {
+            Ok(Self {
+                name: (&method.name).into_pyobject(py)?.unbind(),
+                type_annotation: method
+                    .type_annotation
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                description: method
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -2144,10 +2310,20 @@ impl TryInto<model::Method> for &PyModelMethod {
     type Error = PyErr;
 
     fn try_into(self) -> Result<model::Method, Self::Error> {
-        Ok(model::Method {
-            name: self.name.clone(),
-            type_annotation: self.type_annotation.clone(),
-            description: self.description.clone(),
+        Python::attach(|py| {
+            Ok(model::Method {
+                name: self.name.extract(py)?,
+                type_annotation: self
+                    .type_annotation
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+                description: self
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+            })
         })
     }
 }
@@ -2899,7 +3075,9 @@ impl PyModelDocstring {
             .into_iter()
             .any(|s| !s.is_instance_of::<PyModelSection>())
         {
-            return Err(pyo3::exceptions::PyTypeError::new_err("Docstring only accepts Sections in the 'sections' argument.".to_string()));
+            return Err(pyo3::exceptions::PyTypeError::new_err(
+                "Docstring only accepts Sections in the 'sections' argument.".to_string(),
+            ));
         }
         Ok(())
     }
