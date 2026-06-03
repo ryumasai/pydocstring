@@ -1,4 +1,6 @@
+use pyo3::PyClass;
 use pyo3::prelude::*;
+use pyo3::types::{PyList, PyString};
 
 use pydocstring_core::model;
 use pydocstring_core::parse::google;
@@ -10,6 +12,9 @@ use pydocstring_core::parse::plain::nodes as pn;
 use pydocstring_core::parse::visitor::{DocstringVisitor, walk as core_walk};
 use pydocstring_core::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use pydocstring_core::text::TextRange;
+
+use std::convert::{TryFrom, TryInto};
+use std::ops::Deref;
 use std::sync::Arc;
 
 // ─── TextRange ──────────────────────────────────────────────────────────────
@@ -933,7 +938,8 @@ impl PyGoogleDocstring {
     }
     fn to_model(&self) -> PyResult<PyModelDocstring> {
         pydocstring_core::parse::google::to_model::to_model(&self.parsed)
-            .map(|doc| PyModelDocstring { inner: doc })
+            .map(|doc| PyModelDocstring::try_from(&doc))
+            .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
     }
     fn __repr__(&self) -> &'static str {
@@ -1610,7 +1616,8 @@ impl PyNumPyDocstring {
     }
     fn to_model(&self) -> PyResult<PyModelDocstring> {
         pydocstring_core::parse::numpy::to_model::to_model(&self.parsed)
-            .map(|doc| PyModelDocstring { inner: doc })
+            .map(|doc| PyModelDocstring::try_from(&doc))
+            .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
     }
     fn __repr__(&self) -> &'static str {
@@ -1697,7 +1704,8 @@ impl PyPlainDocstring {
     }
     fn to_model(&self) -> PyResult<PyModelDocstring> {
         pydocstring_core::parse::plain::to_model::to_model(&self.parsed)
-            .map(|doc| PyModelDocstring { inner: doc })
+            .map(|doc| PyModelDocstring::try_from(&doc))
+            .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
     }
     fn __repr__(&self) -> &'static str {
@@ -1748,20 +1756,19 @@ fn build_plain_docstring_node(
 // Model IR types
 // =============================================================================
 
-#[pyclass(from_py_object, name = "Deprecation")]
-#[derive(Clone)]
+#[pyclass(name = "Deprecation")]
 struct PyModelDeprecation {
     #[pyo3(get, set)]
-    version: String,
+    version: Py<PyString>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelDeprecation {
     #[new]
     #[pyo3(signature = (version, *, description=None))]
-    fn new(version: String, description: Option<String>) -> Self {
+    fn new(version: Py<PyString>, description: Option<Py<PyString>>) -> Self {
         Self { version, description }
     }
     fn __repr__(&self) -> String {
@@ -1769,19 +1776,48 @@ impl PyModelDeprecation {
     }
 }
 
-#[pyclass(from_py_object, name = "Parameter")]
-#[derive(Clone)]
+impl TryFrom<&model::Deprecation> for PyModelDeprecation {
+    type Error = PyErr;
+
+    fn try_from(dep: &model::Deprecation) -> Result<Self, Self::Error> {
+        Python::attach(|py| {
+            Ok(Self {
+                version: (&dep.version).into_pyobject(py)?.unbind(),
+                description: dep
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
+        })
+    }
+}
+
+impl TryInto<model::Deprecation> for &PyModelDeprecation {
+    type Error = PyErr;
+
+    fn try_into(self) -> Result<model::Deprecation, Self::Error> {
+        Python::attach(|py| {
+            Ok(model::Deprecation {
+                version: self.version.extract(py)?,
+                description: self.description.as_ref().map(|d| d.extract(py)).transpose()?,
+            })
+        })
+    }
+}
+
+#[pyclass(name = "Parameter")]
 struct PyModelParameter {
     #[pyo3(get, set)]
-    names: Vec<String>,
+    names: Py<PyList>,
     #[pyo3(get, set)]
-    type_annotation: Option<String>,
+    type_annotation: Option<Py<PyString>>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
     #[pyo3(get, set)]
     is_optional: bool,
     #[pyo3(get, set)]
-    default_value: Option<String>,
+    default_value: Option<Py<PyString>>,
 }
 
 #[pymethods]
@@ -1789,273 +1825,504 @@ impl PyModelParameter {
     #[new]
     #[pyo3(signature = (names, *, type_annotation=None, description=None, is_optional=false, default_value=None))]
     fn new(
-        names: Vec<String>,
-        type_annotation: Option<String>,
-        description: Option<String>,
+        py: Python<'_>,
+        names: Py<PyList>,
+        type_annotation: Option<Py<PyString>>,
+        description: Option<Py<PyString>>,
         is_optional: bool,
-        default_value: Option<String>,
-    ) -> Self {
-        Self {
+        default_value: Option<Py<PyString>>,
+    ) -> PyResult<Self> {
+        if names.bind(py).into_iter().any(|n| !n.is_instance_of::<PyString>()) {
+            return Err(pyo3::exceptions::PyTypeError::new_err(
+                "Parameter names must be strings.",
+            ));
+        }
+        Ok(Self {
             names,
             type_annotation,
             description,
             is_optional,
             default_value,
-        }
+        })
     }
-    fn __repr__(&self) -> String {
-        format!("Parameter({})", self.names.join(", "))
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        ", ".into_pyobject(py)?
+            .call_method("join", (self.names.bind(py),), None)
     }
 }
 
-#[pyclass(from_py_object, name = "Return")]
-#[derive(Clone)]
+impl TryFrom<&model::Parameter> for PyModelParameter {
+    type Error = PyErr;
+
+    fn try_from(param: &model::Parameter) -> Result<Self, Self::Error> {
+        Python::attach(|py| {
+            Ok(Self {
+                names: (&param.names).into_pyobject(py)?.cast_into::<PyList>()?.unbind(),
+                type_annotation: param
+                    .type_annotation
+                    .as_ref()
+                    .map(|a| -> PyResult<_> { Ok(a.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                description: param
+                    .description
+                    .as_ref()
+                    .map(|a| -> PyResult<_> { Ok(a.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                is_optional: param.is_optional,
+                default_value: param
+                    .default_value
+                    .as_ref()
+                    .map(|a| -> PyResult<_> { Ok(a.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
+        })
+    }
+}
+
+impl TryInto<model::Parameter> for &PyModelParameter {
+    type Error = PyErr;
+
+    fn try_into(self) -> Result<model::Parameter, Self::Error> {
+        Python::attach(|py| {
+            Ok(model::Parameter {
+                names: self.names.extract(py)?,
+                type_annotation: self
+                    .type_annotation
+                    .as_ref()
+                    .map(|a| -> PyResult<_> { a.extract(py) })
+                    .transpose()?,
+                description: self
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+                is_optional: self.is_optional,
+                default_value: self
+                    .default_value
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+            })
+        })
+    }
+}
+
+#[pyclass(name = "Return")]
 struct PyModelReturn {
     #[pyo3(get, set)]
-    name: Option<String>,
+    name: Option<Py<PyString>>,
     #[pyo3(get, set)]
-    type_annotation: Option<String>,
+    type_annotation: Option<Py<PyString>>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelReturn {
     #[new]
     #[pyo3(signature = (*, name=None, type_annotation=None, description=None))]
-    fn new(name: Option<String>, type_annotation: Option<String>, description: Option<String>) -> Self {
+    fn new(
+        name: Option<Py<PyString>>,
+        type_annotation: Option<Py<PyString>>,
+        description: Option<Py<PyString>>,
+    ) -> Self {
         Self {
             name,
             type_annotation,
             description,
         }
     }
-    fn __repr__(&self) -> String {
-        self.name
-            .as_deref()
-            .map_or_else(|| "Return(...)".to_string(), |n| format!("Return({})", n))
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        self.name.as_ref().map_or_else(
+            || Ok("Return(...)".into_pyobject(py)?.into_any()),
+            |n| "Return({})".into_pyobject(py)?.call_method("format", (n,), None),
+        )
     }
 }
 
-#[pyclass(from_py_object, name = "ExceptionEntry")]
-#[derive(Clone)]
+impl TryFrom<&model::Return> for PyModelReturn {
+    type Error = PyErr;
+
+    fn try_from(ret: &model::Return) -> Result<Self, Self::Error> {
+        Python::attach(|py| {
+            Ok(Self {
+                name: ret
+                    .name
+                    .as_ref()
+                    .map(|n| -> PyResult<_> { Ok(n.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                type_annotation: ret
+                    .type_annotation
+                    .as_ref()
+                    .map(|n| -> PyResult<_> { Ok(n.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                description: ret
+                    .description
+                    .as_ref()
+                    .map(|n| -> PyResult<_> { Ok(n.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
+        })
+    }
+}
+
+impl TryInto<model::Return> for &PyModelReturn {
+    type Error = PyErr;
+
+    fn try_into(self) -> Result<model::Return, Self::Error> {
+        Python::attach(|py| {
+            Ok(model::Return {
+                name: self
+                    .name
+                    .as_ref()
+                    .map(|n| -> PyResult<_> { n.extract(py) })
+                    .transpose()?,
+                type_annotation: self
+                    .type_annotation
+                    .as_ref()
+                    .map(|n| -> PyResult<_> { n.extract(py) })
+                    .transpose()?,
+                description: self
+                    .description
+                    .as_ref()
+                    .map(|n| -> PyResult<_> { n.extract(py) })
+                    .transpose()?,
+            })
+        })
+    }
+}
+
+#[pyclass(name = "ExceptionEntry")]
 struct PyModelExceptionEntry {
     #[pyo3(get, set)]
-    type_name: String,
+    type_name: Py<PyString>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelExceptionEntry {
     #[new]
     #[pyo3(signature = (type_name, *, description=None))]
-    fn new(type_name: String, description: Option<String>) -> Self {
+    fn new(type_name: Py<PyString>, description: Option<Py<PyString>>) -> Self {
         Self { type_name, description }
     }
-    fn __repr__(&self) -> String {
-        format!("ExceptionEntry({})", self.type_name)
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        "ExceptionEntry({})"
+            .into_pyobject(py)?
+            .call_method("format", (&self.type_name,), None)
     }
 }
 
-#[pyclass(from_py_object, name = "SeeAlsoEntry")]
-#[derive(Clone)]
+impl TryFrom<&model::ExceptionEntry> for PyModelExceptionEntry {
+    type Error = PyErr;
+
+    fn try_from(exception: &model::ExceptionEntry) -> Result<Self, Self::Error> {
+        Python::attach(|py| {
+            Ok(Self {
+                type_name: (&exception.type_name).into_pyobject(py)?.unbind(),
+                description: exception
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
+        })
+    }
+}
+
+impl TryInto<model::ExceptionEntry> for &PyModelExceptionEntry {
+    type Error = PyErr;
+
+    fn try_into(self) -> Result<model::ExceptionEntry, Self::Error> {
+        Python::attach(|py| {
+            Ok(model::ExceptionEntry {
+                type_name: self.type_name.extract(py)?,
+                description: self
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+            })
+        })
+    }
+}
+
+#[pyclass(name = "SeeAlsoEntry")]
 struct PyModelSeeAlsoEntry {
     #[pyo3(get, set)]
-    names: Vec<String>,
+    names: Py<PyList>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelSeeAlsoEntry {
     #[new]
     #[pyo3(signature = (names, *, description=None))]
-    fn new(names: Vec<String>, description: Option<String>) -> Self {
-        Self { names, description }
+    fn new(py: Python<'_>, names: Py<PyList>, description: Option<Py<PyString>>) -> PyResult<Self> {
+        if names.bind(py).into_iter().any(|n| !n.is_instance_of::<PyString>()) {
+            return Err(pyo3::exceptions::PyTypeError::new_err("Names must be strings."));
+        }
+        Ok(Self { names, description })
     }
-    fn __repr__(&self) -> String {
-        format!("SeeAlsoEntry({})", self.names.join(", "))
+
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        let names = ", "
+            .into_pyobject(py)?
+            .call_method("join", (self.names.bind(py),), None)?;
+        "SeeAlsoEntry({})"
+            .into_pyobject(py)?
+            .call_method("format", (names,), None)
     }
 }
 
-#[pyclass(from_py_object, name = "Reference")]
-#[derive(Clone)]
+impl TryFrom<&model::SeeAlsoEntry> for PyModelSeeAlsoEntry {
+    type Error = PyErr;
+
+    fn try_from(seealso: &model::SeeAlsoEntry) -> Result<Self, Self::Error> {
+        Python::attach(|py| {
+            Ok(Self {
+                names: (&seealso.names).into_pyobject(py)?.cast_into::<PyList>()?.unbind(),
+                description: seealso
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
+        })
+    }
+}
+
+impl TryInto<model::SeeAlsoEntry> for &PyModelSeeAlsoEntry {
+    type Error = PyErr;
+
+    fn try_into(self) -> Result<model::SeeAlsoEntry, Self::Error> {
+        Python::attach(|py| {
+            Ok(model::SeeAlsoEntry {
+                names: self.names.extract(py)?,
+                description: self
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+            })
+        })
+    }
+}
+
+#[pyclass(name = "Reference")]
 struct PyModelReference {
     #[pyo3(get, set)]
-    number: Option<String>,
+    number: Option<Py<PyString>>,
     #[pyo3(get, set)]
-    content: Option<String>,
+    content: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelReference {
     #[new]
     #[pyo3(signature = (*, number=None, content=None))]
-    fn new(number: Option<String>, content: Option<String>) -> Self {
+    fn new(number: Option<Py<PyString>>, content: Option<Py<PyString>>) -> Self {
         Self { number, content }
     }
-    fn __repr__(&self) -> String {
-        self.number
-            .as_deref()
-            .map_or_else(|| "Reference(...)".to_string(), |n| format!("Reference({})", n))
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        self.number.as_ref().map_or_else(
+            || Ok("Reference(...)".into_pyobject(py)?.into_any()),
+            |n| "Reference({})".into_pyobject(py)?.call_method("format", (n,), None),
+        )
     }
 }
 
-#[pyclass(from_py_object, name = "Attribute")]
-#[derive(Clone)]
+impl TryFrom<&model::Reference> for PyModelReference {
+    type Error = PyErr;
+
+    fn try_from(reference: &model::Reference) -> Result<Self, Self::Error> {
+        Python::attach(|py| {
+            Ok(Self {
+                number: reference
+                    .number
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                content: reference
+                    .content
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
+        })
+    }
+}
+
+impl TryInto<model::Reference> for &PyModelReference {
+    type Error = PyErr;
+
+    fn try_into(self) -> Result<model::Reference, Self::Error> {
+        Python::attach(|py| {
+            Ok(model::Reference {
+                number: self
+                    .number
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+                content: self
+                    .content
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+            })
+        })
+    }
+}
+
+#[pyclass(name = "Attribute")]
 struct PyModelAttribute {
     #[pyo3(get, set)]
-    name: String,
+    name: Py<PyString>,
     #[pyo3(get, set)]
-    type_annotation: Option<String>,
+    type_annotation: Option<Py<PyString>>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelAttribute {
     #[new]
     #[pyo3(signature = (name, *, type_annotation=None, description=None))]
-    fn new(name: String, type_annotation: Option<String>, description: Option<String>) -> Self {
+    fn new(name: Py<PyString>, type_annotation: Option<Py<PyString>>, description: Option<Py<PyString>>) -> Self {
         Self {
             name,
             type_annotation,
             description,
         }
     }
-    fn __repr__(&self) -> String {
-        format!("Attribute({})", self.name)
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        "Attribute({})"
+            .into_pyobject(py)?
+            .call_method("format", (&self.name,), None)
     }
 }
 
-#[pyclass(from_py_object, name = "Method")]
-#[derive(Clone)]
+impl TryFrom<&model::Attribute> for PyModelAttribute {
+    type Error = PyErr;
+
+    fn try_from(attribute: &model::Attribute) -> Result<Self, Self::Error> {
+        Python::attach(|py| {
+            Ok(Self {
+                name: (&attribute.name).into_pyobject(py)?.unbind(),
+                type_annotation: attribute
+                    .type_annotation
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                description: attribute
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
+        })
+    }
+}
+
+impl TryInto<model::Attribute> for &PyModelAttribute {
+    type Error = PyErr;
+
+    fn try_into(self) -> Result<model::Attribute, Self::Error> {
+        Python::attach(|py| {
+            Ok(model::Attribute {
+                name: self.name.extract(py)?,
+                type_annotation: self
+                    .type_annotation
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+                description: self
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+            })
+        })
+    }
+}
+
+#[pyclass(name = "Method")]
 struct PyModelMethod {
     #[pyo3(get, set)]
-    name: String,
+    name: Py<PyString>,
     #[pyo3(get, set)]
-    type_annotation: Option<String>,
+    type_annotation: Option<Py<PyString>>,
     #[pyo3(get, set)]
-    description: Option<String>,
+    description: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelMethod {
     #[new]
     #[pyo3(signature = (name, *, type_annotation=None, description=None))]
-    fn new(name: String, type_annotation: Option<String>, description: Option<String>) -> Self {
+    fn new(name: Py<PyString>, type_annotation: Option<Py<PyString>>, description: Option<Py<PyString>>) -> Self {
         Self {
             name,
             type_annotation,
             description,
         }
     }
-    fn __repr__(&self) -> String {
-        format!("Method({})", self.name)
+    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
+        "Method({})"
+            .into_pyobject(py)?
+            .call_method("format", (&self.name,), None)
     }
 }
 
-fn extract_parameters(py: Python<'_>, entries: &[Py<PyModelParameter>]) -> Vec<model::Parameter> {
-    entries
-        .iter()
-        .map(|p| {
-            let p = p.borrow(py);
-            model::Parameter {
-                names: p.names.clone(),
-                type_annotation: p.type_annotation.clone(),
-                description: p.description.clone(),
-                is_optional: p.is_optional,
-                default_value: p.default_value.clone(),
-            }
+impl TryFrom<&model::Method> for PyModelMethod {
+    type Error = PyErr;
+
+    fn try_from(method: &model::Method) -> Result<Self, Self::Error> {
+        Python::attach(|py| {
+            Ok(Self {
+                name: (&method.name).into_pyobject(py)?.unbind(),
+                type_annotation: method
+                    .type_annotation
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                description: method
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+            })
         })
-        .collect()
+    }
 }
 
-fn extract_returns(py: Python<'_>, entries: &[Py<PyModelReturn>]) -> Vec<model::Return> {
-    entries
-        .iter()
-        .map(|r| {
-            let r = r.borrow(py);
-            model::Return {
-                name: r.name.clone(),
-                type_annotation: r.type_annotation.clone(),
-                description: r.description.clone(),
-            }
-        })
-        .collect()
-}
+impl TryInto<model::Method> for &PyModelMethod {
+    type Error = PyErr;
 
-fn extract_exceptions(py: Python<'_>, entries: &[Py<PyModelExceptionEntry>]) -> Vec<model::ExceptionEntry> {
-    entries
-        .iter()
-        .map(|e| {
-            let e = e.borrow(py);
-            model::ExceptionEntry {
-                type_name: e.type_name.clone(),
-                description: e.description.clone(),
-            }
+    fn try_into(self) -> Result<model::Method, Self::Error> {
+        Python::attach(|py| {
+            Ok(model::Method {
+                name: self.name.extract(py)?,
+                type_annotation: self
+                    .type_annotation
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+                description: self
+                    .description
+                    .as_ref()
+                    .map(|d| -> PyResult<_> { d.extract(py) })
+                    .transpose()?,
+            })
         })
-        .collect()
-}
-
-fn extract_attributes(py: Python<'_>, entries: &[Py<PyModelAttribute>]) -> Vec<model::Attribute> {
-    entries
-        .iter()
-        .map(|a| {
-            let a = a.borrow(py);
-            model::Attribute {
-                name: a.name.clone(),
-                type_annotation: a.type_annotation.clone(),
-                description: a.description.clone(),
-            }
-        })
-        .collect()
-}
-
-fn extract_methods(py: Python<'_>, entries: &[Py<PyModelMethod>]) -> Vec<model::Method> {
-    entries
-        .iter()
-        .map(|m| {
-            let m = m.borrow(py);
-            model::Method {
-                name: m.name.clone(),
-                type_annotation: m.type_annotation.clone(),
-                description: m.description.clone(),
-            }
-        })
-        .collect()
-}
-
-fn extract_see_also(py: Python<'_>, entries: &[Py<PyModelSeeAlsoEntry>]) -> Vec<model::SeeAlsoEntry> {
-    entries
-        .iter()
-        .map(|s| {
-            let s = s.borrow(py);
-            model::SeeAlsoEntry {
-                names: s.names.clone(),
-                description: s.description.clone(),
-            }
-        })
-        .collect()
-}
-
-fn extract_references(py: Python<'_>, entries: &[Py<PyModelReference>]) -> Vec<model::Reference> {
-    entries
-        .iter()
-        .map(|r| {
-            let r = r.borrow(py);
-            model::Reference {
-                number: r.number.clone(),
-                content: r.content.clone(),
-            }
-        })
-        .collect()
+    }
 }
 
 // ─── SectionKind ─────────────────────────────────────────────────────────────
 
-#[pyclass(eq, eq_int, frozen, hash, from_py_object, name = "SectionKind")]
+#[pyclass(from_py_object, eq, eq_int, frozen, hash, name = "SectionKind")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum PySectionKind {
     #[pyo3(name = "PARAMETERS")]
@@ -2144,43 +2411,45 @@ impl PySectionKind {
     }
 }
 
-fn section_to_py_kind(section: &model::Section) -> PySectionKind {
+fn section_to_py_kind(section: &PyModelSection) -> PySectionKind {
     match section {
-        model::Section::Parameters(_) => PySectionKind::Parameters,
-        model::Section::KeywordParameters(_) => PySectionKind::KeywordParameters,
-        model::Section::OtherParameters(_) => PySectionKind::OtherParameters,
-        model::Section::Receives(_) => PySectionKind::Receives,
-        model::Section::Returns(_) => PySectionKind::Returns,
-        model::Section::Yields(_) => PySectionKind::Yields,
-        model::Section::Raises(_) => PySectionKind::Raises,
-        model::Section::Warns(_) => PySectionKind::Warns,
-        model::Section::Attributes(_) => PySectionKind::Attributes,
-        model::Section::Methods(_) => PySectionKind::Methods,
-        model::Section::SeeAlso(_) => PySectionKind::SeeAlso,
-        model::Section::References(_) => PySectionKind::References,
-        model::Section::FreeText { kind, .. } => match kind {
-            model::FreeSectionKind::Notes => PySectionKind::Notes,
-            model::FreeSectionKind::Examples => PySectionKind::Examples,
-            model::FreeSectionKind::Warnings => PySectionKind::Warnings,
-            model::FreeSectionKind::Todo => PySectionKind::Todo,
-            model::FreeSectionKind::Attention => PySectionKind::Attention,
-            model::FreeSectionKind::Caution => PySectionKind::Caution,
-            model::FreeSectionKind::Danger => PySectionKind::Danger,
-            model::FreeSectionKind::Error => PySectionKind::Error,
-            model::FreeSectionKind::Hint => PySectionKind::Hint,
-            model::FreeSectionKind::Important => PySectionKind::Important,
-            model::FreeSectionKind::Tip => PySectionKind::Tip,
-            model::FreeSectionKind::Unknown(_) => PySectionKind::Unknown,
-        },
+        PyModelSection::Parameters(_) => PySectionKind::Parameters,
+        PyModelSection::KeywordParameters(_) => PySectionKind::KeywordParameters,
+        PyModelSection::OtherParameters(_) => PySectionKind::OtherParameters,
+        PyModelSection::Receives(_) => PySectionKind::Receives,
+        PyModelSection::Returns(_) => PySectionKind::Returns,
+        PyModelSection::Yields(_) => PySectionKind::Yields,
+        PyModelSection::Raises(_) => PySectionKind::Raises,
+        PyModelSection::Warns(_) => PySectionKind::Warns,
+        PyModelSection::Attributes(_) => PySectionKind::Attributes,
+        PyModelSection::Methods(_) => PySectionKind::Methods,
+        PyModelSection::SeeAlso(_) => PySectionKind::SeeAlso,
+        PyModelSection::References(_) => PySectionKind::References,
+        PyModelSection::FreeText { kind, .. } => *kind,
     }
 }
 
 // ─── Model Section ───────────────────────────────────────────────────────────
 
-#[pyclass(from_py_object, name = "Section")]
-#[derive(Clone)]
-struct PyModelSection {
-    inner: model::Section,
+#[pyclass(name = "Section")]
+enum PyModelSection {
+    Parameters(Py<PyList>),
+    KeywordParameters(Py<PyList>),
+    OtherParameters(Py<PyList>),
+    Receives(Py<PyList>),
+    Returns(Py<PyList>),
+    Yields(Py<PyList>),
+    Raises(Py<PyList>),
+    Warns(Py<PyList>),
+    Attributes(Py<PyList>),
+    Methods(Py<PyList>),
+    SeeAlso(Py<PyList>),
+    References(Py<PyList>),
+    FreeText {
+        kind: PySectionKind,
+        body: Py<PyString>,
+        name: Option<Py<PyString>>,
+    },
 }
 
 #[pymethods]
@@ -2191,25 +2460,33 @@ impl PyModelSection {
     fn new(
         py: Python<'_>,
         kind: PySectionKind,
-        unknown_name: Option<String>,
-        parameters: Option<Vec<Py<PyModelParameter>>>,
-        returns: Option<Vec<Py<PyModelReturn>>>,
-        exceptions: Option<Vec<Py<PyModelExceptionEntry>>>,
-        attributes: Option<Vec<Py<PyModelAttribute>>>,
-        methods: Option<Vec<Py<PyModelMethod>>>,
-        see_also_entries: Option<Vec<Py<PyModelSeeAlsoEntry>>>,
-        references: Option<Vec<Py<PyModelReference>>>,
-        body: Option<String>,
+        unknown_name: Option<Py<PyString>>,
+        parameters: Option<Py<PyList>>,
+        returns: Option<Py<PyList>>,
+        exceptions: Option<Py<PyList>>,
+        attributes: Option<Py<PyList>>,
+        methods: Option<Py<PyList>>,
+        see_also_entries: Option<Py<PyList>>,
+        references: Option<Py<PyList>>,
+        body: Option<Py<PyString>>,
     ) -> PyResult<Self> {
         // Validate that only the relevant kwargs for this kind are supplied.
         let kind_name = py_section_kind_name(kind);
+
         macro_rules! reject {
-            ($cond:expr, $arg:literal) => {
-                if $cond {
-                    return Err(pyo3::exceptions::PyTypeError::new_err(format!(
-                        "Section(SectionKind.{}) does not accept '{}'",
-                        kind_name, $arg
-                    )));
+            ($uses:expr, $arg:ident $(, $type:ty)?) => {
+                if let Some(ref _list) = $arg {
+                    if !$uses {
+                        return Err(pyo3::exceptions::PyTypeError::new_err(format!(
+                            "Section(SectionKind.{}) does not accept '{}'",
+                            kind_name, stringify!($arg)
+                        )));
+                    } $(else if _list.bind(py).into_iter().any(|i| {!i.is_instance_of::<$type>()}) {
+                        return Err(pyo3::exceptions::PyTypeError::new_err(format!(
+                            "Section(SectionKind.{}) only accepts '{}'",
+                            kind_name, <$type>::NAME
+                        )));
+                    })?
                 }
             };
         }
@@ -2235,275 +2512,187 @@ impl PyModelSection {
             && !uses_see_also
             && !uses_references;
 
-        if !uses_parameters {
-            reject!(parameters.is_some(), "parameters");
-        }
-        if !uses_returns {
-            reject!(returns.is_some(), "returns");
-        }
-        if !uses_exceptions {
-            reject!(exceptions.is_some(), "exceptions");
-        }
-        if !uses_attributes {
-            reject!(attributes.is_some(), "attributes");
-        }
-        if !uses_methods {
-            reject!(methods.is_some(), "methods");
-        }
-        if !uses_see_also {
-            reject!(see_also_entries.is_some(), "see_also_entries");
-        }
-        if !uses_references {
-            reject!(references.is_some(), "references");
-        }
-        if !is_freetext {
-            reject!(body.is_some(), "body");
-        }
-        if !matches!(kind, PySectionKind::Unknown) {
-            reject!(unknown_name.is_some(), "unknown_name");
-        }
+        reject!(uses_parameters, parameters, PyModelParameter);
+        reject!(uses_returns, returns, PyModelReturn);
+        reject!(uses_exceptions, exceptions, PyModelExceptionEntry);
+        reject!(uses_attributes, attributes, PyModelAttribute);
+        reject!(uses_methods, methods, PyModelMethod);
+        reject!(uses_see_also, see_also_entries, PyModelSeeAlsoEntry);
+        reject!(uses_references, references, PyModelReference);
+        reject!(is_freetext, body);
+        reject!(matches!(kind, PySectionKind::Unknown), unknown_name);
 
-        let inner = match kind {
+        let ret = match kind {
             PySectionKind::Parameters => {
-                model::Section::Parameters(extract_parameters(py, &parameters.unwrap_or_default()))
+                PyModelSection::Parameters(parameters.unwrap_or_else(|| PyList::empty(py).unbind()))
             }
             PySectionKind::KeywordParameters => {
-                model::Section::KeywordParameters(extract_parameters(py, &parameters.unwrap_or_default()))
+                PyModelSection::KeywordParameters(parameters.unwrap_or_else(|| PyList::empty(py).unbind()))
             }
             PySectionKind::OtherParameters => {
-                model::Section::OtherParameters(extract_parameters(py, &parameters.unwrap_or_default()))
+                PyModelSection::OtherParameters(parameters.unwrap_or_else(|| PyList::empty(py).unbind()))
             }
             PySectionKind::Receives => {
-                model::Section::Receives(extract_parameters(py, &parameters.unwrap_or_default()))
+                PyModelSection::Receives(parameters.unwrap_or_else(|| PyList::empty(py).unbind()))
             }
-            PySectionKind::Returns => model::Section::Returns(extract_returns(py, &returns.unwrap_or_default())),
-            PySectionKind::Yields => model::Section::Yields(extract_returns(py, &returns.unwrap_or_default())),
-            PySectionKind::Raises => model::Section::Raises(extract_exceptions(py, &exceptions.unwrap_or_default())),
-            PySectionKind::Warns => model::Section::Warns(extract_exceptions(py, &exceptions.unwrap_or_default())),
+            PySectionKind::Returns => PyModelSection::Returns(returns.unwrap_or_else(|| PyList::empty(py).unbind())),
+            PySectionKind::Yields => PyModelSection::Yields(returns.unwrap_or_else(|| PyList::empty(py).unbind())),
+            PySectionKind::Raises => PyModelSection::Raises(exceptions.unwrap_or_else(|| PyList::empty(py).unbind())),
+            PySectionKind::Warns => PyModelSection::Warns(exceptions.unwrap_or_else(|| PyList::empty(py).unbind())),
             PySectionKind::Attributes => {
-                model::Section::Attributes(extract_attributes(py, &attributes.unwrap_or_default()))
+                PyModelSection::Attributes(attributes.unwrap_or_else(|| PyList::empty(py).unbind()))
             }
-            PySectionKind::Methods => model::Section::Methods(extract_methods(py, &methods.unwrap_or_default())),
+            PySectionKind::Methods => PyModelSection::Methods(methods.unwrap_or_else(|| PyList::empty(py).unbind())),
             PySectionKind::SeeAlso => {
-                model::Section::SeeAlso(extract_see_also(py, &see_also_entries.unwrap_or_default()))
+                PyModelSection::SeeAlso(see_also_entries.unwrap_or_else(|| PyList::empty(py).unbind()))
             }
             PySectionKind::References => {
-                model::Section::References(extract_references(py, &references.unwrap_or_default()))
+                PyModelSection::References(references.unwrap_or_else(|| PyList::empty(py).unbind()))
             }
-            PySectionKind::Notes => model::Section::FreeText {
-                kind: model::FreeSectionKind::Notes,
-                body: body.unwrap_or_default(),
+            PySectionKind::Notes => PyModelSection::FreeText {
+                kind,
+                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
+                name: None,
             },
-            PySectionKind::Examples => model::Section::FreeText {
-                kind: model::FreeSectionKind::Examples,
-                body: body.unwrap_or_default(),
+            PySectionKind::Examples => PyModelSection::FreeText {
+                kind,
+                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
+                name: None,
             },
-            PySectionKind::Warnings => model::Section::FreeText {
-                kind: model::FreeSectionKind::Warnings,
-                body: body.unwrap_or_default(),
+            PySectionKind::Warnings => PyModelSection::FreeText {
+                kind,
+                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
+                name: None,
             },
-            PySectionKind::Todo => model::Section::FreeText {
-                kind: model::FreeSectionKind::Todo,
-                body: body.unwrap_or_default(),
+            PySectionKind::Todo => PyModelSection::FreeText {
+                kind,
+                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
+                name: None,
             },
-            PySectionKind::Attention => model::Section::FreeText {
-                kind: model::FreeSectionKind::Attention,
-                body: body.unwrap_or_default(),
+            PySectionKind::Attention => PyModelSection::FreeText {
+                kind,
+                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
+                name: None,
             },
-            PySectionKind::Caution => model::Section::FreeText {
-                kind: model::FreeSectionKind::Caution,
-                body: body.unwrap_or_default(),
+            PySectionKind::Caution => PyModelSection::FreeText {
+                kind,
+                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
+                name: None,
             },
-            PySectionKind::Danger => model::Section::FreeText {
-                kind: model::FreeSectionKind::Danger,
-                body: body.unwrap_or_default(),
+            PySectionKind::Danger => PyModelSection::FreeText {
+                kind,
+                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
+                name: None,
             },
-            PySectionKind::Error => model::Section::FreeText {
-                kind: model::FreeSectionKind::Error,
-                body: body.unwrap_or_default(),
+            PySectionKind::Error => PyModelSection::FreeText {
+                kind,
+                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
+                name: None,
             },
-            PySectionKind::Hint => model::Section::FreeText {
-                kind: model::FreeSectionKind::Hint,
-                body: body.unwrap_or_default(),
+            PySectionKind::Hint => PyModelSection::FreeText {
+                kind,
+                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
+                name: None,
             },
-            PySectionKind::Important => model::Section::FreeText {
-                kind: model::FreeSectionKind::Important,
-                body: body.unwrap_or_default(),
+            PySectionKind::Important => PyModelSection::FreeText {
+                kind,
+                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
+                name: None,
             },
-            PySectionKind::Tip => model::Section::FreeText {
-                kind: model::FreeSectionKind::Tip,
-                body: body.unwrap_or_default(),
+            PySectionKind::Tip => PyModelSection::FreeText {
+                kind,
+                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
+                name: None,
             },
-            PySectionKind::Unknown => model::Section::FreeText {
-                kind: model::FreeSectionKind::Unknown(unknown_name.unwrap_or_default()),
-                body: body.unwrap_or_default(),
+            PySectionKind::Unknown => PyModelSection::FreeText {
+                kind,
+                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
+                name: unknown_name,
             },
         };
-        Ok(Self { inner })
+        Ok(ret)
     }
 
     #[getter]
     fn kind(&self) -> PySectionKind {
-        section_to_py_kind(&self.inner)
+        section_to_py_kind(self)
     }
 
     #[getter]
-    fn unknown_name(&self) -> Option<&str> {
-        match &self.inner {
-            model::Section::FreeText {
-                kind: model::FreeSectionKind::Unknown(name),
-                ..
-            } => Some(name.as_str()),
+    fn unknown_name<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyString>> {
+        match &self {
+            PyModelSection::FreeText {
+                kind: PySectionKind::Unknown,
+                body: _,
+                name,
+            } if name.is_some() => Some(name.as_ref().unwrap().bind(py)),
             _ => None,
         }
     }
 
     #[getter]
-    fn parameters(&self, py: Python<'_>) -> PyResult<Vec<Py<PyModelParameter>>> {
-        match &self.inner {
-            model::Section::Parameters(ps)
-            | model::Section::KeywordParameters(ps)
-            | model::Section::OtherParameters(ps)
-            | model::Section::Receives(ps) => ps
-                .iter()
-                .map(|p| {
-                    Py::new(
-                        py,
-                        PyModelParameter {
-                            names: p.names.clone(),
-                            type_annotation: p.type_annotation.clone(),
-                            description: p.description.clone(),
-                            is_optional: p.is_optional,
-                            default_value: p.default_value.clone(),
-                        },
-                    )
-                })
-                .collect(),
-            _ => Ok(vec![]),
+    fn parameters<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
+        match &self {
+            PyModelSection::Parameters(ps)
+            | PyModelSection::KeywordParameters(ps)
+            | PyModelSection::OtherParameters(ps)
+            | PyModelSection::Receives(ps) => Some(ps.bind(py)),
+            _ => None,
         }
     }
 
     #[getter]
-    fn returns(&self, py: Python<'_>) -> PyResult<Vec<Py<PyModelReturn>>> {
-        match &self.inner {
-            model::Section::Returns(rs) | model::Section::Yields(rs) => rs
-                .iter()
-                .map(|r| {
-                    Py::new(
-                        py,
-                        PyModelReturn {
-                            name: r.name.clone(),
-                            type_annotation: r.type_annotation.clone(),
-                            description: r.description.clone(),
-                        },
-                    )
-                })
-                .collect(),
-            _ => Ok(vec![]),
+    fn returns<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
+        match &self {
+            PyModelSection::Returns(rs) | PyModelSection::Yields(rs) => Some(rs.bind(py)),
+            _ => None,
         }
     }
 
     #[getter]
-    fn exceptions(&self, py: Python<'_>) -> PyResult<Vec<Py<PyModelExceptionEntry>>> {
-        match &self.inner {
-            model::Section::Raises(es) | model::Section::Warns(es) => es
-                .iter()
-                .map(|e| {
-                    Py::new(
-                        py,
-                        PyModelExceptionEntry {
-                            type_name: e.type_name.clone(),
-                            description: e.description.clone(),
-                        },
-                    )
-                })
-                .collect(),
-            _ => Ok(vec![]),
+    fn exceptions<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
+        match &self {
+            PyModelSection::Raises(es) | PyModelSection::Warns(es) => Some(es.bind(py)),
+            _ => None,
         }
     }
 
     #[getter]
-    fn attributes(&self, py: Python<'_>) -> PyResult<Vec<Py<PyModelAttribute>>> {
-        match &self.inner {
-            model::Section::Attributes(attrs) => attrs
-                .iter()
-                .map(|a| {
-                    Py::new(
-                        py,
-                        PyModelAttribute {
-                            name: a.name.clone(),
-                            type_annotation: a.type_annotation.clone(),
-                            description: a.description.clone(),
-                        },
-                    )
-                })
-                .collect(),
-            _ => Ok(vec![]),
+    fn attributes<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
+        match &self {
+            PyModelSection::Attributes(attrs) => Some(attrs.bind(py)),
+            _ => None,
         }
     }
 
     #[getter]
-    fn methods(&self, py: Python<'_>) -> PyResult<Vec<Py<PyModelMethod>>> {
-        match &self.inner {
-            model::Section::Methods(ms) => ms
-                .iter()
-                .map(|m| {
-                    Py::new(
-                        py,
-                        PyModelMethod {
-                            name: m.name.clone(),
-                            type_annotation: m.type_annotation.clone(),
-                            description: m.description.clone(),
-                        },
-                    )
-                })
-                .collect(),
-            _ => Ok(vec![]),
+    fn methods<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
+        match &self {
+            PyModelSection::Methods(ms) => Some(ms.bind(py)),
+            _ => None,
         }
     }
 
     #[getter]
-    fn see_also_entries(&self, py: Python<'_>) -> PyResult<Vec<Py<PyModelSeeAlsoEntry>>> {
-        match &self.inner {
-            model::Section::SeeAlso(items) => items
-                .iter()
-                .map(|item| {
-                    Py::new(
-                        py,
-                        PyModelSeeAlsoEntry {
-                            names: item.names.clone(),
-                            description: item.description.clone(),
-                        },
-                    )
-                })
-                .collect(),
-            _ => Ok(vec![]),
+    fn see_also_entries<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
+        match &self {
+            PyModelSection::SeeAlso(items) => Some(items.bind(py)),
+            _ => None,
         }
     }
 
     #[getter]
-    fn references(&self, py: Python<'_>) -> PyResult<Vec<Py<PyModelReference>>> {
-        match &self.inner {
-            model::Section::References(refs) => refs
-                .iter()
-                .map(|r| {
-                    Py::new(
-                        py,
-                        PyModelReference {
-                            number: r.number.clone(),
-                            content: r.content.clone(),
-                        },
-                    )
-                })
-                .collect(),
-            _ => Ok(vec![]),
+    fn references<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
+        match &self {
+            PyModelSection::References(refs) => Some(refs.bind(py)),
+            _ => None,
         }
     }
 
     #[getter]
-    fn body(&self) -> Option<String> {
-        match &self.inner {
-            model::Section::FreeText { body, .. } => Some(body.clone()),
+    fn body<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyString>> {
+        match &self {
+            Self::FreeText { kind: _, body, .. } => Some(body.bind(py)),
             _ => None,
         }
     }
@@ -2511,17 +2700,377 @@ impl PyModelSection {
     fn __repr__(&self) -> String {
         format!(
             "Section(SectionKind.{})",
-            py_section_kind_name(section_to_py_kind(&self.inner))
+            py_section_kind_name(section_to_py_kind(self))
         )
+    }
+}
+
+impl TryFrom<&model::Section> for PyModelSection {
+    type Error = PyErr;
+
+    fn try_from(section: &model::Section) -> Result<Self, Self::Error> {
+        Python::attach(|py| -> Result<Self, Self::Error> {
+            match section {
+                model::Section::Parameters(params) => Ok(PyModelSection::Parameters(
+                    PyList::new(
+                        py,
+                        params
+                            .iter()
+                            .map(PyModelParameter::try_from)
+                            .collect::<Result<Vec<PyModelParameter>, _>>()?,
+                    )?
+                    .unbind(),
+                )),
+                model::Section::KeywordParameters(params) => Ok(PyModelSection::KeywordParameters(
+                    PyList::new(
+                        py,
+                        params
+                            .iter()
+                            .map(PyModelParameter::try_from)
+                            .collect::<Result<Vec<PyModelParameter>, _>>()?,
+                    )?
+                    .unbind(),
+                )),
+                model::Section::OtherParameters(params) => Ok(PyModelSection::OtherParameters(
+                    PyList::new(
+                        py,
+                        params
+                            .iter()
+                            .map(PyModelParameter::try_from)
+                            .collect::<Result<Vec<PyModelParameter>, _>>()?,
+                    )?
+                    .unbind(),
+                )),
+                model::Section::Receives(params) => Ok(PyModelSection::Receives(
+                    PyList::new(
+                        py,
+                        params
+                            .iter()
+                            .map(PyModelParameter::try_from)
+                            .collect::<Result<Vec<PyModelParameter>, _>>()?,
+                    )?
+                    .unbind(),
+                )),
+                model::Section::Returns(returns) => Ok(PyModelSection::Returns(
+                    PyList::new(
+                        py,
+                        returns
+                            .iter()
+                            .map(PyModelReturn::try_from)
+                            .collect::<Result<Vec<PyModelReturn>, _>>()?,
+                    )?
+                    .unbind(),
+                )),
+                model::Section::Yields(returns) => Ok(PyModelSection::Returns(
+                    PyList::new(
+                        py,
+                        returns
+                            .iter()
+                            .map(PyModelReturn::try_from)
+                            .collect::<Result<Vec<PyModelReturn>, _>>()?,
+                    )?
+                    .unbind(),
+                )),
+                model::Section::Raises(exceptions) => Ok(PyModelSection::Raises(
+                    PyList::new(
+                        py,
+                        exceptions
+                            .iter()
+                            .map(PyModelExceptionEntry::try_from)
+                            .collect::<Result<Vec<PyModelExceptionEntry>, _>>()?,
+                    )?
+                    .unbind(),
+                )),
+                model::Section::Warns(exceptions) => Ok(PyModelSection::Raises(
+                    PyList::new(
+                        py,
+                        exceptions
+                            .iter()
+                            .map(PyModelExceptionEntry::try_from)
+                            .collect::<Result<Vec<PyModelExceptionEntry>, _>>()?,
+                    )?
+                    .unbind(),
+                )),
+                model::Section::Attributes(attributes) => Ok(PyModelSection::Attributes(
+                    PyList::new(
+                        py,
+                        attributes
+                            .iter()
+                            .map(PyModelAttribute::try_from)
+                            .collect::<Result<Vec<PyModelAttribute>, _>>()?,
+                    )?
+                    .unbind(),
+                )),
+                model::Section::Methods(methods) => Ok(PyModelSection::Methods(
+                    PyList::new(
+                        py,
+                        methods
+                            .iter()
+                            .map(PyModelMethod::try_from)
+                            .collect::<Result<Vec<PyModelMethod>, _>>()?,
+                    )?
+                    .unbind(),
+                )),
+                model::Section::SeeAlso(seealso) => Ok(PyModelSection::SeeAlso(
+                    PyList::new(
+                        py,
+                        seealso
+                            .iter()
+                            .map(PyModelSeeAlsoEntry::try_from)
+                            .collect::<Result<Vec<PyModelSeeAlsoEntry>, _>>()?,
+                    )?
+                    .unbind(),
+                )),
+                model::Section::References(refs) => Ok(PyModelSection::References(
+                    PyList::new(
+                        py,
+                        refs.iter()
+                            .map(PyModelReference::try_from)
+                            .collect::<Result<Vec<PyModelReference>, _>>()?,
+                    )?
+                    .unbind(),
+                )),
+                model::Section::FreeText { kind, body } => Ok(match kind {
+                    model::FreeSectionKind::Notes => PyModelSection::FreeText {
+                        kind: PySectionKind::Notes,
+                        body: body.into_pyobject(py)?.unbind(),
+                        name: None,
+                    },
+                    model::FreeSectionKind::Examples => PyModelSection::FreeText {
+                        kind: PySectionKind::Examples,
+                        body: body.into_pyobject(py)?.unbind(),
+                        name: None,
+                    },
+                    model::FreeSectionKind::Warnings => PyModelSection::FreeText {
+                        kind: PySectionKind::Warnings,
+                        body: body.into_pyobject(py)?.unbind(),
+                        name: None,
+                    },
+                    model::FreeSectionKind::Todo => PyModelSection::FreeText {
+                        kind: PySectionKind::Todo,
+                        body: body.into_pyobject(py)?.unbind(),
+                        name: None,
+                    },
+                    model::FreeSectionKind::Attention => PyModelSection::FreeText {
+                        kind: PySectionKind::Attention,
+                        body: body.into_pyobject(py)?.unbind(),
+                        name: None,
+                    },
+                    model::FreeSectionKind::Caution => PyModelSection::FreeText {
+                        kind: PySectionKind::Caution,
+                        body: body.into_pyobject(py)?.unbind(),
+                        name: None,
+                    },
+                    model::FreeSectionKind::Danger => PyModelSection::FreeText {
+                        kind: PySectionKind::Danger,
+                        body: body.into_pyobject(py)?.unbind(),
+                        name: None,
+                    },
+                    model::FreeSectionKind::Error => PyModelSection::FreeText {
+                        kind: PySectionKind::Error,
+                        body: body.into_pyobject(py)?.unbind(),
+                        name: None,
+                    },
+                    model::FreeSectionKind::Hint => PyModelSection::FreeText {
+                        kind: PySectionKind::Hint,
+                        body: body.into_pyobject(py)?.unbind(),
+                        name: None,
+                    },
+                    model::FreeSectionKind::Important => PyModelSection::FreeText {
+                        kind: PySectionKind::Important,
+                        body: body.into_pyobject(py)?.unbind(),
+                        name: None,
+                    },
+                    model::FreeSectionKind::Tip => PyModelSection::FreeText {
+                        kind: PySectionKind::Tip,
+                        body: body.into_pyobject(py)?.unbind(),
+                        name: None,
+                    },
+                    model::FreeSectionKind::Unknown(name) => PyModelSection::FreeText {
+                        kind: PySectionKind::Unknown,
+                        body: body.into_pyobject(py)?.unbind(),
+                        name: Some(name.into_pyobject(py)?.unbind()),
+                    },
+                }),
+            }
+        })
+    }
+}
+
+impl TryInto<model::Section> for &PyModelSection {
+    type Error = PyErr;
+
+    fn try_into(self) -> Result<model::Section, Self::Error> {
+        Python::attach(|py| -> Result<model::Section, Self::Error> {
+            match self {
+                PyModelSection::Parameters(params) => Ok(model::Section::Parameters(
+                    params
+                        .bind(py)
+                        .iter()
+                        .map(|param| param.cast::<PyModelParameter>()?.borrow().deref().try_into())
+                        .collect::<Result<Vec<_>, _>>()?,
+                )),
+                PyModelSection::KeywordParameters(params) => Ok(model::Section::KeywordParameters(
+                    params
+                        .bind(py)
+                        .iter()
+                        .map(|param| param.cast::<PyModelParameter>()?.borrow().deref().try_into())
+                        .collect::<Result<Vec<_>, _>>()?,
+                )),
+                PyModelSection::OtherParameters(params) => Ok(model::Section::OtherParameters(
+                    params
+                        .bind(py)
+                        .iter()
+                        .map(|param| param.cast::<PyModelParameter>()?.borrow().deref().try_into())
+                        .collect::<Result<Vec<_>, _>>()?,
+                )),
+                PyModelSection::Receives(params) => Ok(model::Section::Receives(
+                    params
+                        .bind(py)
+                        .iter()
+                        .map(|param| param.cast::<PyModelParameter>()?.borrow().deref().try_into())
+                        .collect::<Result<Vec<_>, _>>()?,
+                )),
+                PyModelSection::Returns(returns) => Ok(model::Section::Returns(
+                    returns
+                        .bind(py)
+                        .iter()
+                        .map(|ret| ret.cast::<PyModelReturn>()?.borrow().deref().try_into())
+                        .collect::<Result<Vec<_>, _>>()?,
+                )),
+                PyModelSection::Yields(returns) => Ok(model::Section::Yields(
+                    returns
+                        .bind(py)
+                        .iter()
+                        .map(|ret| ret.cast::<PyModelReturn>()?.borrow().deref().try_into())
+                        .collect::<Result<Vec<_>, _>>()?,
+                )),
+                PyModelSection::Raises(exceptions) => Ok(model::Section::Raises(
+                    exceptions
+                        .bind(py)
+                        .iter()
+                        .map(|ret| ret.cast::<PyModelExceptionEntry>()?.borrow().deref().try_into())
+                        .collect::<Result<Vec<_>, _>>()?,
+                )),
+                PyModelSection::Warns(exceptions) => Ok(model::Section::Warns(
+                    exceptions
+                        .bind(py)
+                        .iter()
+                        .map(|ret| ret.cast::<PyModelExceptionEntry>()?.borrow().deref().try_into())
+                        .collect::<Result<Vec<_>, _>>()?,
+                )),
+                PyModelSection::Attributes(attrs) => Ok(model::Section::Attributes(
+                    attrs
+                        .bind(py)
+                        .iter()
+                        .map(|ret| ret.cast::<PyModelAttribute>()?.borrow().deref().try_into())
+                        .collect::<Result<Vec<_>, _>>()?,
+                )),
+                PyModelSection::Methods(methods) => Ok(model::Section::Methods(
+                    methods
+                        .bind(py)
+                        .iter()
+                        .map(|ret| ret.cast::<PyModelMethod>()?.borrow().deref().try_into())
+                        .collect::<Result<Vec<_>, _>>()?,
+                )),
+                PyModelSection::SeeAlso(seealso) => Ok(model::Section::SeeAlso(
+                    seealso
+                        .bind(py)
+                        .iter()
+                        .map(|ret| ret.cast::<PyModelSeeAlsoEntry>()?.borrow().deref().try_into())
+                        .collect::<Result<Vec<_>, _>>()?,
+                )),
+                PyModelSection::References(refs) => Ok(model::Section::References(
+                    refs.bind(py)
+                        .iter()
+                        .map(|ret| ret.cast::<PyModelReference>()?.borrow().deref().try_into())
+                        .collect::<Result<Vec<_>, _>>()?,
+                )),
+                PyModelSection::FreeText { kind, body, name } => Ok(match kind {
+                    PySectionKind::Notes => model::Section::FreeText {
+                        kind: model::FreeSectionKind::Notes,
+                        body: body.extract(py)?,
+                    },
+                    PySectionKind::Examples => model::Section::FreeText {
+                        kind: model::FreeSectionKind::Examples,
+                        body: body.extract(py)?,
+                    },
+                    PySectionKind::Warnings => model::Section::FreeText {
+                        kind: model::FreeSectionKind::Warnings,
+                        body: body.extract(py)?,
+                    },
+                    PySectionKind::Todo => model::Section::FreeText {
+                        kind: model::FreeSectionKind::Todo,
+                        body: body.extract(py)?,
+                    },
+                    PySectionKind::Attention => model::Section::FreeText {
+                        kind: model::FreeSectionKind::Attention,
+                        body: body.extract(py)?,
+                    },
+                    PySectionKind::Caution => model::Section::FreeText {
+                        kind: model::FreeSectionKind::Caution,
+                        body: body.extract(py)?,
+                    },
+                    PySectionKind::Danger => model::Section::FreeText {
+                        kind: model::FreeSectionKind::Danger,
+                        body: body.extract(py)?,
+                    },
+                    PySectionKind::Error => model::Section::FreeText {
+                        kind: model::FreeSectionKind::Error,
+                        body: body.extract(py)?,
+                    },
+                    PySectionKind::Hint => model::Section::FreeText {
+                        kind: model::FreeSectionKind::Hint,
+                        body: body.extract(py)?,
+                    },
+                    PySectionKind::Important => model::Section::FreeText {
+                        kind: model::FreeSectionKind::Important,
+                        body: body.extract(py)?,
+                    },
+                    PySectionKind::Tip => model::Section::FreeText {
+                        kind: model::FreeSectionKind::Tip,
+                        body: body.extract(py)?,
+                    },
+                    PySectionKind::Unknown => model::Section::FreeText {
+                        kind: model::FreeSectionKind::Unknown(
+                            name.as_ref()
+                                .ok_or(pyo3::exceptions::PyValueError::new_err(
+                                    "Section(SectionKind.Unknown) requres a name.",
+                                ))?
+                                .extract(py)?,
+                        ),
+                        body: body.extract(py)?,
+                    },
+                    _ => unreachable!(),
+                }),
+            }
+        })
     }
 }
 
 // ─── Model Docstring ─────────────────────────────────────────────────────────
 
-#[pyclass(skip_from_py_object, name = "Docstring")]
-#[derive(Clone)]
+#[pyclass(name = "Docstring")]
 struct PyModelDocstring {
-    inner: model::Docstring,
+    summary: Option<Py<PyString>>,
+    extended_summary: Option<Py<PyString>>,
+    deprecation: Option<Py<PyModelDeprecation>>,
+    sections: Py<PyList>,
+}
+
+impl PyModelDocstring {
+    fn verify_sections(py: Python<'_>, sections: &Py<PyList>) -> PyResult<()> {
+        if sections
+            .bind(py)
+            .into_iter()
+            .any(|s| !s.is_instance_of::<PyModelSection>())
+        {
+            return Err(pyo3::exceptions::PyTypeError::new_err(
+                "Docstring only accepts Sections in the 'sections' argument.".to_string(),
+            ));
+        }
+        Ok(())
+    }
 }
 
 #[pymethods]
@@ -2530,90 +3079,130 @@ impl PyModelDocstring {
     #[pyo3(signature = (*, summary=None, extended_summary=None, deprecation=None, sections=None))]
     fn new(
         py: Python<'_>,
-        summary: Option<String>,
-        extended_summary: Option<String>,
+        summary: Option<Py<PyString>>,
+        extended_summary: Option<Py<PyString>>,
         deprecation: Option<Py<PyModelDeprecation>>,
-        sections: Option<Vec<Py<PyModelSection>>>,
-    ) -> Self {
-        Self {
-            inner: model::Docstring {
-                summary,
-                extended_summary,
-                deprecation: deprecation.map(|d| {
-                    let d = d.borrow(py);
-                    model::Deprecation {
-                        version: d.version.clone(),
-                        description: d.description.clone(),
-                    }
-                }),
-                sections: sections
-                    .map(|ss| ss.iter().map(|s| s.borrow(py).inner.clone()).collect())
-                    .unwrap_or_default(),
-            },
+        sections: Option<Py<PyList>>,
+    ) -> PyResult<Self> {
+        let sections = if let Some(sec) = sections {
+            Self::verify_sections(py, &sec)?;
+            sec
+        } else {
+            PyList::empty(py).unbind()
+        };
+        Ok(Self {
+            summary,
+            extended_summary,
+            deprecation,
+            sections,
+        })
+    }
+
+    #[getter]
+    fn summary<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyString>> {
+        match &self.summary {
+            Some(summary) => Some(summary.bind(py)),
+            _ => None,
         }
     }
-
+    #[setter]
+    fn set_summary(&mut self, v: Option<Py<PyString>>) {
+        self.summary = v;
+    }
     #[getter]
-    fn summary(&self) -> Option<&str> {
-        self.inner.summary.as_deref()
+    fn extended_summary<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyString>> {
+        match &self.extended_summary {
+            Some(summary) => Some(summary.bind(py)),
+            _ => None,
+        }
     }
     #[setter]
-    fn set_summary(&mut self, v: Option<String>) {
-        self.inner.summary = v;
-    }
-    #[getter]
-    fn extended_summary(&self) -> Option<&str> {
-        self.inner.extended_summary.as_deref()
-    }
-    #[setter]
-    fn set_extended_summary(&mut self, v: Option<String>) {
-        self.inner.extended_summary = v;
+    fn set_extended_summary(&mut self, v: Option<Py<PyString>>) {
+        self.extended_summary = v;
     }
 
     #[getter]
-    fn deprecation(&self, py: Python<'_>) -> PyResult<Option<Py<PyModelDeprecation>>> {
-        self.inner
-            .deprecation
-            .as_ref()
-            .map(|d| {
-                Py::new(
-                    py,
-                    PyModelDeprecation {
-                        version: d.version.clone(),
-                        description: d.description.clone(),
-                    },
-                )
-            })
-            .transpose()
+    fn deprecation<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyModelDeprecation>> {
+        match &self.deprecation {
+            Some(deprecation) => Some(deprecation.bind(py)),
+            _ => None,
+        }
     }
     #[setter]
     fn set_deprecation(&mut self, dep: Option<Py<PyModelDeprecation>>) {
-        Python::attach(|py| {
-            self.inner.deprecation = dep.map(|d| {
-                let d = d.borrow(py);
-                model::Deprecation {
-                    version: d.version.clone(),
-                    description: d.description.clone(),
-                }
-            });
-        });
+        self.deprecation = dep;
     }
     #[getter]
-    fn sections(&self, py: Python<'_>) -> PyResult<Vec<Py<PyModelSection>>> {
-        self.inner
-            .sections
-            .iter()
-            .map(|s| Py::new(py, PyModelSection { inner: s.clone() }))
-            .collect()
+    fn sections<'py>(&self, py: Python<'py>) -> &Bound<'py, PyList> {
+        self.sections.bind(py)
     }
     #[setter]
-    fn set_sections(&mut self, sections: Vec<Py<PyModelSection>>) {
-        Python::attach(|py| {
-            self.inner.sections = sections.iter().map(|s| s.borrow(py).inner.clone()).collect();
-        });
+    fn set_sections(&mut self, py: Python<'_>, sections: Py<PyList>) -> PyResult<()> {
+        Self::verify_sections(py, &sections)?;
+        self.sections = sections;
+        Ok(())
     }
     fn __repr__(&self) -> String {
-        format!("Docstring(summary={:?})", self.inner.summary)
+        format!("Docstring(summary={:?})", self.summary)
+    }
+}
+
+impl TryFrom<&model::Docstring> for PyModelDocstring {
+    type Error = PyErr;
+
+    fn try_from(docstr: &model::Docstring) -> Result<Self, Self::Error> {
+        Python::attach(|py| {
+            Ok(Self {
+                summary: docstr
+                    .summary
+                    .as_ref()
+                    .map(|x| -> PyResult<_> { Ok(x.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                extended_summary: docstr
+                    .extended_summary
+                    .as_ref()
+                    .map(|x| -> PyResult<_> { Ok(x.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                deprecation: docstr
+                    .deprecation
+                    .as_ref()
+                    .map(|x| -> PyResult<_> { Py::new(py, PyModelDeprecation::try_from(x)?) })
+                    .transpose()?,
+                sections: PyList::new(
+                    py,
+                    docstr
+                        .sections
+                        .iter()
+                        .map(PyModelSection::try_from)
+                        .collect::<PyResult<Vec<_>>>()?,
+                )?
+                .unbind(),
+            })
+        })
+    }
+}
+
+impl TryInto<model::Docstring> for &PyModelDocstring {
+    type Error = PyErr;
+
+    fn try_into(self) -> Result<model::Docstring, Self::Error> {
+        Python::attach(|py| {
+            Ok(model::Docstring {
+                summary: self.summary.as_ref().map(|x| x.extract(py)).transpose()?,
+                extended_summary: self.extended_summary.as_ref().map(|x| x.extract(py)).transpose()?,
+                deprecation: self
+                    .deprecation
+                    .as_ref()
+                    .map(|x| x.bind(py).borrow().deref().try_into())
+                    .transpose()?,
+                sections: self
+                    .sections
+                    .bind(py)
+                    .iter()
+                    .map(|sec| sec.cast::<PyModelSection>()?.borrow().deref().try_into())
+                    .collect::<Result<Vec<_>, _>>()?,
+            })
+        })
     }
 }
 
@@ -2697,15 +3286,21 @@ fn detect_style(input: &str) -> PyStyle {
 /// Emit a model `Docstring` as Google-style text.
 #[pyfunction]
 #[pyo3(name = "emit_google", signature = (doc, base_indent=0))]
-fn py_emit_google(py: Python<'_>, doc: Py<PyModelDocstring>, base_indent: usize) -> String {
-    pydocstring_core::emit::google::emit_google(&doc.borrow(py).inner, base_indent)
+fn py_emit_google(py: Python<'_>, doc: Py<PyModelDocstring>, base_indent: usize) -> PyResult<String> {
+    Ok(pydocstring_core::emit::google::emit_google(
+        &doc.borrow(py).deref().try_into()?,
+        base_indent,
+    ))
 }
 
 /// Emit a model `Docstring` as NumPy-style text.
 #[pyfunction]
 #[pyo3(name = "emit_numpy", signature = (doc, base_indent=0))]
-fn py_emit_numpy(py: Python<'_>, doc: Py<PyModelDocstring>, base_indent: usize) -> String {
-    pydocstring_core::emit::numpy::emit_numpy(&doc.borrow(py).inner, base_indent)
+fn py_emit_numpy(py: Python<'_>, doc: Py<PyModelDocstring>, base_indent: usize) -> PyResult<String> {
+    Ok(pydocstring_core::emit::numpy::emit_numpy(
+        &doc.borrow(py).deref().try_into()?,
+        base_indent,
+    ))
 }
 
 // =============================================================================

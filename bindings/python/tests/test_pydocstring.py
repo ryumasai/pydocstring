@@ -411,8 +411,8 @@ class TestSection:
 
     def test_empty_accessors(self):
         sec = pydocstring.Section(pydocstring.SectionKind.PARAMETERS, parameters=[])
-        assert sec.returns == []
-        assert sec.exceptions == []
+        assert sec.returns is None
+        assert sec.exceptions is None
         assert sec.body is None
 
 
@@ -436,6 +436,9 @@ class TestDocstringModel:
         assert len(doc.sections) == 1
         assert doc.sections[0].kind == pydocstring.SectionKind.PARAMETERS
 
+        doc.sections[0].parameters[0].description = "foo"
+        assert doc.sections[0].parameters[0].description == "foo"
+
     def test_with_deprecation(self):
         dep = pydocstring.Deprecation("2.0", description="Removed.")
         doc = pydocstring.Docstring(deprecation=dep)
@@ -445,9 +448,8 @@ class TestDocstringModel:
 
 class TestToModel:
     def test_google_to_model(self):
-        doc = pydocstring.parse_google(
-            "Summary.\n\nArgs:\n    x (int): The value.\n"
-        )
+        docstr = "Summary.\n\nArgs:\n    x (int): The value.\n"
+        doc = pydocstring.parse_google(docstr)
         model = doc.to_model()
         assert model.summary == "Summary."
         assert len(model.sections) == 1
@@ -457,11 +459,11 @@ class TestToModel:
         assert params[0].names == ["x"]
         assert params[0].type_annotation == "int"
         assert params[0].description == "The value."
+        assert pydocstring.emit_google(model) == docstr
 
     def test_numpy_to_model(self):
-        doc = pydocstring.parse_numpy(
-            "Summary.\n\nParameters\n----------\nx : int\n    The value.\n"
-        )
+        docstr = "Summary.\n\nParameters\n----------\nx : int\n    The value.\n"
+        doc = pydocstring.parse_numpy(docstr)
         model = doc.to_model()
         assert model.summary == "Summary."
         assert len(model.sections) == 1
@@ -470,6 +472,7 @@ class TestToModel:
         assert len(params) == 1
         assert params[0].names == ["x"]
         assert params[0].type_annotation == "int"
+        assert pydocstring.emit_numpy(model) == docstr
 
     def test_google_to_model_raises(self):
         doc = pydocstring.parse_google(
