@@ -1756,8 +1756,7 @@ fn build_plain_docstring_node(
 // Model IR types
 // =============================================================================
 
-#[pyclass(from_py_object, name = "Deprecation")]
-#[derive(Clone)]
+#[pyclass(name = "Deprecation")]
 struct PyModelDeprecation {
     #[pyo3(get, set)]
     version: Py<PyString>,
@@ -1807,8 +1806,7 @@ impl TryInto<model::Deprecation> for &PyModelDeprecation {
     }
 }
 
-#[pyclass(from_py_object, name = "Parameter")]
-#[derive(Clone)]
+#[pyclass(name = "Parameter")]
 struct PyModelParameter {
     #[pyo3(get, set)]
     names: Py<PyList>,
@@ -1909,8 +1907,7 @@ impl TryInto<model::Parameter> for &PyModelParameter {
     }
 }
 
-#[pyclass(from_py_object, name = "Return")]
-#[derive(Clone)]
+#[pyclass(name = "Return")]
 struct PyModelReturn {
     #[pyo3(get, set)]
     name: Option<Py<PyString>>,
@@ -1995,8 +1992,7 @@ impl TryInto<model::Return> for &PyModelReturn {
     }
 }
 
-#[pyclass(from_py_object, name = "ExceptionEntry")]
-#[derive(Clone)]
+#[pyclass(name = "ExceptionEntry")]
 struct PyModelExceptionEntry {
     #[pyo3(get, set)]
     type_name: Py<PyString>,
@@ -2052,8 +2048,7 @@ impl TryInto<model::ExceptionEntry> for &PyModelExceptionEntry {
     }
 }
 
-#[pyclass(from_py_object, name = "SeeAlsoEntry")]
-#[derive(Clone)]
+#[pyclass(name = "SeeAlsoEntry")]
 struct PyModelSeeAlsoEntry {
     #[pyo3(get, set)]
     names: Py<PyList>,
@@ -2116,8 +2111,7 @@ impl TryInto<model::SeeAlsoEntry> for &PyModelSeeAlsoEntry {
     }
 }
 
-#[pyclass(from_py_object, name = "Reference")]
-#[derive(Clone)]
+#[pyclass(name = "Reference")]
 struct PyModelReference {
     #[pyo3(get, set)]
     number: Option<Py<PyString>>,
@@ -2182,8 +2176,7 @@ impl TryInto<model::Reference> for &PyModelReference {
     }
 }
 
-#[pyclass(from_py_object, name = "Attribute")]
-#[derive(Clone)]
+#[pyclass(name = "Attribute")]
 struct PyModelAttribute {
     #[pyo3(get, set)]
     name: Py<PyString>,
@@ -2255,8 +2248,7 @@ impl TryInto<model::Attribute> for &PyModelAttribute {
     }
 }
 
-#[pyclass(from_py_object, name = "Method")]
-#[derive(Clone)]
+#[pyclass(name = "Method")]
 struct PyModelMethod {
     #[pyo3(get, set)]
     name: Py<PyString>,
@@ -2330,7 +2322,7 @@ impl TryInto<model::Method> for &PyModelMethod {
 
 // ─── SectionKind ─────────────────────────────────────────────────────────────
 
-#[pyclass(eq, eq_int, frozen, hash, from_py_object, name = "SectionKind")]
+#[pyclass(from_py_object, eq, eq_int, frozen, hash, name = "SectionKind")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum PySectionKind {
     #[pyo3(name = "PARAMETERS")]
@@ -2439,8 +2431,7 @@ fn section_to_py_kind(section: &PyModelSection) -> PySectionKind {
 
 // ─── Model Section ───────────────────────────────────────────────────────────
 
-#[pyclass(from_py_object, name = "Section")]
-#[derive(Clone)]
+#[pyclass(name = "Section")]
 enum PyModelSection {
     Parameters(Py<PyList>),
     KeywordParameters(Py<PyList>),
@@ -3059,8 +3050,7 @@ impl TryInto<model::Section> for &PyModelSection {
 
 // ─── Model Docstring ─────────────────────────────────────────────────────────
 
-#[pyclass(skip_from_py_object, name = "Docstring")]
-#[derive(Clone)]
+#[pyclass(name = "Docstring")]
 struct PyModelDocstring {
     summary: Option<Py<PyString>>,
     extended_summary: Option<Py<PyString>>,
