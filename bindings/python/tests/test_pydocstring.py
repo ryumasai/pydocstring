@@ -487,6 +487,15 @@ class TestToModel:
         assert params[0].type_annotation == "int"
         assert pydocstring.emit_numpy(model) == docstr
 
+    def test_emit_sphinx(self):
+        docstr = "Summary.\n\nArgs:\n    x (int): The value.\n\nReturns:\n    str: The result.\n"
+        model = pydocstring.parse_google(docstr).to_model()
+        sphinx = pydocstring.emit_sphinx(model)
+        assert ":param x: The value.\n" in sphinx
+        assert ":type x: int\n" in sphinx
+        assert ":return: The result.\n" in sphinx
+        assert ":rtype: str\n" in sphinx
+
     def test_google_to_model_raises(self):
         doc = pydocstring.parse_google("Summary.\n\nRaises:\n    ValueError: Bad input.\n")
         model = doc.to_model()

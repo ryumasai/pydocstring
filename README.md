@@ -181,12 +181,14 @@ for section in &doc.sections {
 
 ### Emitting (Code Generation)
 
-Re-emit a `Docstring` model in any style — useful for style conversion or formatting:
+Re-emit a `Docstring` model in any style — useful for style conversion or formatting.
+Google, NumPy, and Sphinx (reStructuredText) output are supported:
 
 ```rust
 use pydocstring::model::{Docstring, Section, Parameter};
 use pydocstring::emit::google::emit_google;
 use pydocstring::emit::numpy::emit_numpy;
+use pydocstring::emit::sphinx::emit_sphinx;
 
 let doc = Docstring {
     summary: Some("Brief summary.".into()),
@@ -205,7 +207,14 @@ assert!(google.contains("Args:"));
 
 let numpy = emit_numpy(&doc);
 assert!(numpy.contains("Parameters\n----------"));
+
+let sphinx = emit_sphinx(&doc);
+assert!(sphinx.contains(":param x:"));
+assert!(sphinx.contains(":type x: int"));
 ```
+
+> **Note:** Sphinx support is emit-only. `detect_style` reports Sphinx docstrings
+> as `Style::Plain`, so parsing them yields a summary/extended-summary only.
 
 Combine parsing and emitting to convert between styles:
 

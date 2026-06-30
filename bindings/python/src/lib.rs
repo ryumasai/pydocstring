@@ -3303,6 +3303,16 @@ fn py_emit_numpy(py: Python<'_>, doc: Py<PyModelDocstring>, base_indent: usize) 
     ))
 }
 
+/// Emit a model `Docstring` as Sphinx-style (reStructuredText) text.
+#[pyfunction]
+#[pyo3(name = "emit_sphinx", signature = (doc, base_indent=0))]
+fn py_emit_sphinx(py: Python<'_>, doc: Py<PyModelDocstring>, base_indent: usize) -> PyResult<String> {
+    Ok(pydocstring_core::emit::sphinx::emit_sphinx(
+        &doc.borrow(py).deref().try_into()?,
+        base_indent,
+    ))
+}
+
 // =============================================================================
 // walk() — CST-direct Python dispatch
 // =============================================================================
@@ -3955,6 +3965,7 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(detect_style, m)?)?;
     m.add_function(wrap_pyfunction!(py_emit_google, m)?)?;
     m.add_function(wrap_pyfunction!(py_emit_numpy, m)?)?;
+    m.add_function(wrap_pyfunction!(py_emit_sphinx, m)?)?;
     m.add_function(wrap_pyfunction!(walk, m)?)?;
     // Core types
     m.add_class::<PyStyle>()?;
