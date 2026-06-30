@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- Sphinx-style (reStructuredText) emit: `emit::sphinx::emit_sphinx` renders a
+  style-independent `Docstring` model as a Sphinx field list (`:param:`,
+  `:type:`, `:raises:`, `:return:`, `:rtype:`, …), enabling conversion from
+  Google / NumPy to Sphinx. Exposed in the Python bindings as `emit_sphinx`.
+  Sphinx support is emit-only; `detect_style` still reports Sphinx docstrings as
+  `Style::Plain`.
+
 ## [0.1.13] - 2026-05-11
 
 ### Added

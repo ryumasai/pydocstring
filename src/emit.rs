@@ -5,6 +5,7 @@
 
 pub mod google;
 pub mod numpy;
+pub mod sphinx;
 
 /// Prepend `base_indent` spaces to every non-empty line.
 pub(crate) fn indent_lines(text: &str, base_indent: usize) -> String {

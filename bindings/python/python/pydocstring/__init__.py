@@ -43,6 +43,7 @@ from ._pydocstring import (
     detect_style,
     emit_google,
     emit_numpy,
+    emit_sphinx,
     parse,
     parse_google,
     parse_numpy,
@@ -109,5 +110,6 @@ __all__ = [
     "detect_style",
     "emit_google",
     "emit_numpy",
+    "emit_sphinx",
     "walk",
 ]
