@@ -936,8 +936,10 @@ impl PyGoogleDocstring {
     fn pretty_print(&self) -> String {
         self.parsed.pretty_print()
     }
-    fn to_model(&self) -> PyResult<PyModelDocstring> {
-        pydocstring_core::parse::google::to_model::to_model(&self.parsed)
+    #[pyo3(signature = (*, preserve_blank_lines=false))]
+    fn to_model(&self, preserve_blank_lines: bool) -> PyResult<PyModelDocstring> {
+        let options = pydocstring_core::parse::ToModelOptions { preserve_blank_lines };
+        pydocstring_core::parse::google::to_model::to_model_with_options(&self.parsed, options)
             .map(|doc| PyModelDocstring::try_from(&doc))
             .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
@@ -1614,8 +1616,10 @@ impl PyNumPyDocstring {
     fn pretty_print(&self) -> String {
         self.parsed.pretty_print()
     }
-    fn to_model(&self) -> PyResult<PyModelDocstring> {
-        pydocstring_core::parse::numpy::to_model::to_model(&self.parsed)
+    #[pyo3(signature = (*, preserve_blank_lines=false))]
+    fn to_model(&self, preserve_blank_lines: bool) -> PyResult<PyModelDocstring> {
+        let options = pydocstring_core::parse::ToModelOptions { preserve_blank_lines };
+        pydocstring_core::parse::numpy::to_model::to_model_with_options(&self.parsed, options)
             .map(|doc| PyModelDocstring::try_from(&doc))
             .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
@@ -1702,7 +1706,11 @@ impl PyPlainDocstring {
     fn pretty_print(&self) -> String {
         self.parsed.pretty_print()
     }
-    fn to_model(&self) -> PyResult<PyModelDocstring> {
+    // `preserve_blank_lines` is accepted for a uniform model API across styles
+    // but has no effect for plain docstrings (no entry sections).
+    #[pyo3(signature = (*, preserve_blank_lines=false))]
+    fn to_model(&self, preserve_blank_lines: bool) -> PyResult<PyModelDocstring> {
+        let _ = preserve_blank_lines;
         pydocstring_core::parse::plain::to_model::to_model(&self.parsed)
             .map(|doc| PyModelDocstring::try_from(&doc))
             .transpose()?
@@ -1818,12 +1826,16 @@ struct PyModelParameter {
     is_optional: bool,
     #[pyo3(get, set)]
     default_value: Option<Py<PyString>>,
+    #[pyo3(get, set)]
+    blank_lines_before: usize,
 }
 
 #[pymethods]
 impl PyModelParameter {
     #[new]
-    #[pyo3(signature = (names, *, type_annotation=None, description=None, is_optional=false, default_value=None))]
+    #[pyo3(
+        signature = (names, *, type_annotation=None, description=None, is_optional=false, default_value=None, blank_lines_before=0)
+    )]
     fn new(
         py: Python<'_>,
         names: Py<PyList>,
@@ -1831,6 +1843,7 @@ impl PyModelParameter {
         description: Option<Py<PyString>>,
         is_optional: bool,
         default_value: Option<Py<PyString>>,
+        blank_lines_before: usize,
     ) -> PyResult<Self> {
         if names.bind(py).into_iter().any(|n| !n.is_instance_of::<PyString>()) {
             return Err(pyo3::exceptions::PyTypeError::new_err(
@@ -1843,6 +1856,7 @@ impl PyModelParameter {
             description,
             is_optional,
             default_value,
+            blank_lines_before,
         })
     }
     fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
@@ -1874,6 +1888,7 @@ impl TryFrom<&model::Parameter> for PyModelParameter {
                     .as_ref()
                     .map(|a| -> PyResult<_> { Ok(a.into_pyobject(py)?.unbind()) })
                     .transpose()?,
+                blank_lines_before: param.blank_lines_before,
             })
         })
     }
@@ -1902,6 +1917,7 @@ impl TryInto<model::Parameter> for &PyModelParameter {
                     .as_ref()
                     .map(|d| -> PyResult<_> { d.extract(py) })
                     .transpose()?,
+                blank_lines_before: self.blank_lines_before,
             })
         })
     }
@@ -1915,21 +1931,25 @@ struct PyModelReturn {
     type_annotation: Option<Py<PyString>>,
     #[pyo3(get, set)]
     description: Option<Py<PyString>>,
+    #[pyo3(get, set)]
+    blank_lines_before: usize,
 }
 
 #[pymethods]
 impl PyModelReturn {
     #[new]
-    #[pyo3(signature = (*, name=None, type_annotation=None, description=None))]
+    #[pyo3(signature = (*, name=None, type_annotation=None, description=None, blank_lines_before=0))]
     fn new(
         name: Option<Py<PyString>>,
         type_annotation: Option<Py<PyString>>,
         description: Option<Py<PyString>>,
+        blank_lines_before: usize,
     ) -> Self {
         Self {
             name,
             type_annotation,
             description,
+            blank_lines_before,
         }
     }
     fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
@@ -1961,6 +1981,7 @@ impl TryFrom<&model::Return> for PyModelReturn {
                     .as_ref()
                     .map(|n| -> PyResult<_> { Ok(n.into_pyobject(py)?.unbind()) })
                     .transpose()?,
+                blank_lines_before: ret.blank_lines_before,
             })
         })
     }
@@ -1987,6 +2008,7 @@ impl TryInto<model::Return> for &PyModelReturn {
                     .as_ref()
                     .map(|n| -> PyResult<_> { n.extract(py) })
                     .transpose()?,
+                blank_lines_before: self.blank_lines_before,
             })
         })
     }
@@ -1998,14 +2020,20 @@ struct PyModelExceptionEntry {
     type_name: Py<PyString>,
     #[pyo3(get, set)]
     description: Option<Py<PyString>>,
+    #[pyo3(get, set)]
+    blank_lines_before: usize,
 }
 
 #[pymethods]
 impl PyModelExceptionEntry {
     #[new]
-    #[pyo3(signature = (type_name, *, description=None))]
-    fn new(type_name: Py<PyString>, description: Option<Py<PyString>>) -> Self {
-        Self { type_name, description }
+    #[pyo3(signature = (type_name, *, description=None, blank_lines_before=0))]
+    fn new(type_name: Py<PyString>, description: Option<Py<PyString>>, blank_lines_before: usize) -> Self {
+        Self {
+            type_name,
+            description,
+            blank_lines_before,
+        }
     }
     fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         "ExceptionEntry({})"
@@ -2026,6 +2054,7 @@ impl TryFrom<&model::ExceptionEntry> for PyModelExceptionEntry {
                     .as_ref()
                     .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
                     .transpose()?,
+                blank_lines_before: exception.blank_lines_before,
             })
         })
     }
@@ -2043,6 +2072,7 @@ impl TryInto<model::ExceptionEntry> for &PyModelExceptionEntry {
                     .as_ref()
                     .map(|d| -> PyResult<_> { d.extract(py) })
                     .transpose()?,
+                blank_lines_before: self.blank_lines_before,
             })
         })
     }
@@ -2054,17 +2084,28 @@ struct PyModelSeeAlsoEntry {
     names: Py<PyList>,
     #[pyo3(get, set)]
     description: Option<Py<PyString>>,
+    #[pyo3(get, set)]
+    blank_lines_before: usize,
 }
 
 #[pymethods]
 impl PyModelSeeAlsoEntry {
     #[new]
-    #[pyo3(signature = (names, *, description=None))]
-    fn new(py: Python<'_>, names: Py<PyList>, description: Option<Py<PyString>>) -> PyResult<Self> {
+    #[pyo3(signature = (names, *, description=None, blank_lines_before=0))]
+    fn new(
+        py: Python<'_>,
+        names: Py<PyList>,
+        description: Option<Py<PyString>>,
+        blank_lines_before: usize,
+    ) -> PyResult<Self> {
         if names.bind(py).into_iter().any(|n| !n.is_instance_of::<PyString>()) {
             return Err(pyo3::exceptions::PyTypeError::new_err("Names must be strings."));
         }
-        Ok(Self { names, description })
+        Ok(Self {
+            names,
+            description,
+            blank_lines_before,
+        })
     }
 
     fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
@@ -2089,6 +2130,7 @@ impl TryFrom<&model::SeeAlsoEntry> for PyModelSeeAlsoEntry {
                     .as_ref()
                     .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
                     .transpose()?,
+                blank_lines_before: seealso.blank_lines_before,
             })
         })
     }
@@ -2106,6 +2148,7 @@ impl TryInto<model::SeeAlsoEntry> for &PyModelSeeAlsoEntry {
                     .as_ref()
                     .map(|d| -> PyResult<_> { d.extract(py) })
                     .transpose()?,
+                blank_lines_before: self.blank_lines_before,
             })
         })
     }
@@ -2117,14 +2160,20 @@ struct PyModelReference {
     number: Option<Py<PyString>>,
     #[pyo3(get, set)]
     content: Option<Py<PyString>>,
+    #[pyo3(get, set)]
+    blank_lines_before: usize,
 }
 
 #[pymethods]
 impl PyModelReference {
     #[new]
-    #[pyo3(signature = (*, number=None, content=None))]
-    fn new(number: Option<Py<PyString>>, content: Option<Py<PyString>>) -> Self {
-        Self { number, content }
+    #[pyo3(signature = (*, number=None, content=None, blank_lines_before=0))]
+    fn new(number: Option<Py<PyString>>, content: Option<Py<PyString>>, blank_lines_before: usize) -> Self {
+        Self {
+            number,
+            content,
+            blank_lines_before,
+        }
     }
     fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
         self.number.as_ref().map_or_else(
@@ -2150,6 +2199,7 @@ impl TryFrom<&model::Reference> for PyModelReference {
                     .as_ref()
                     .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
                     .transpose()?,
+                blank_lines_before: reference.blank_lines_before,
             })
         })
     }
@@ -2171,6 +2221,7 @@ impl TryInto<model::Reference> for &PyModelReference {
                     .as_ref()
                     .map(|d| -> PyResult<_> { d.extract(py) })
                     .transpose()?,
+                blank_lines_before: self.blank_lines_before,
             })
         })
     }
@@ -2184,17 +2235,25 @@ struct PyModelAttribute {
     type_annotation: Option<Py<PyString>>,
     #[pyo3(get, set)]
     description: Option<Py<PyString>>,
+    #[pyo3(get, set)]
+    blank_lines_before: usize,
 }
 
 #[pymethods]
 impl PyModelAttribute {
     #[new]
-    #[pyo3(signature = (name, *, type_annotation=None, description=None))]
-    fn new(name: Py<PyString>, type_annotation: Option<Py<PyString>>, description: Option<Py<PyString>>) -> Self {
+    #[pyo3(signature = (name, *, type_annotation=None, description=None, blank_lines_before=0))]
+    fn new(
+        name: Py<PyString>,
+        type_annotation: Option<Py<PyString>>,
+        description: Option<Py<PyString>>,
+        blank_lines_before: usize,
+    ) -> Self {
         Self {
             name,
             type_annotation,
             description,
+            blank_lines_before,
         }
     }
     fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
@@ -2221,6 +2280,7 @@ impl TryFrom<&model::Attribute> for PyModelAttribute {
                     .as_ref()
                     .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
                     .transpose()?,
+                blank_lines_before: attribute.blank_lines_before,
             })
         })
     }
@@ -2243,6 +2303,7 @@ impl TryInto<model::Attribute> for &PyModelAttribute {
                     .as_ref()
                     .map(|d| -> PyResult<_> { d.extract(py) })
                     .transpose()?,
+                blank_lines_before: self.blank_lines_before,
             })
         })
     }
@@ -2256,17 +2317,25 @@ struct PyModelMethod {
     type_annotation: Option<Py<PyString>>,
     #[pyo3(get, set)]
     description: Option<Py<PyString>>,
+    #[pyo3(get, set)]
+    blank_lines_before: usize,
 }
 
 #[pymethods]
 impl PyModelMethod {
     #[new]
-    #[pyo3(signature = (name, *, type_annotation=None, description=None))]
-    fn new(name: Py<PyString>, type_annotation: Option<Py<PyString>>, description: Option<Py<PyString>>) -> Self {
+    #[pyo3(signature = (name, *, type_annotation=None, description=None, blank_lines_before=0))]
+    fn new(
+        name: Py<PyString>,
+        type_annotation: Option<Py<PyString>>,
+        description: Option<Py<PyString>>,
+        blank_lines_before: usize,
+    ) -> Self {
         Self {
             name,
             type_annotation,
             description,
+            blank_lines_before,
         }
     }
     fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
@@ -2293,6 +2362,7 @@ impl TryFrom<&model::Method> for PyModelMethod {
                     .as_ref()
                     .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
                     .transpose()?,
+                blank_lines_before: method.blank_lines_before,
             })
         })
     }
@@ -2315,6 +2385,7 @@ impl TryInto<model::Method> for &PyModelMethod {
                     .as_ref()
                     .map(|d| -> PyResult<_> { d.extract(py) })
                     .transpose()?,
+                blank_lines_before: self.blank_lines_before,
             })
         })
     }

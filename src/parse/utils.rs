@@ -290,6 +290,35 @@ pub(crate) fn find_entry_open_bracket(text: &str) -> Option<usize> {
     Some(bracket_pos)
 }
 
+/// Count the blank lines preceding an entry and advance `prev_end` to its end.
+///
+/// Entry nodes are sparse: the whitespace separating two sibling entries is not
+/// covered by any token, so blank lines survive only in the gap
+/// `source[prev_end..start]`. A single newline is the ordinary line break
+/// between adjacent entries; each additional newline is one blank line.
+///
+/// Returns `0` (and only advances `prev_end`) when `preserve` is `false` or for
+/// the first entry (`prev_end` is `None`). Callers thread a single `prev_end`
+/// across a section's entries and pass each entry node's range.
+pub(crate) fn blank_lines_before(
+    source: &str,
+    prev_end: &mut Option<usize>,
+    range: &crate::text::TextRange,
+    preserve: bool,
+) -> usize {
+    let start = range.start().raw() as usize;
+    let count = match *prev_end {
+        Some(pe) if preserve && pe < start && start <= source.len() => source[pe..start]
+            .bytes()
+            .filter(|&b| b == b'\n')
+            .count()
+            .saturating_sub(1),
+        _ => 0,
+    };
+    *prev_end = Some(range.end().raw() as usize);
+    count
+}
+
 /// Convert a multi-line description with potential leading indentation to
 /// an owned string with the leading indentation removed.
 pub(crate) fn convert_multiline_with_indentation(text: &str) -> String {

@@ -14,6 +14,25 @@ pub(crate) mod utils;
 pub mod visitor;
 
 // =============================================================================
+// Conversion options
+// =============================================================================
+
+/// Options controlling how an AST is converted into the [`Docstring`] model.
+///
+/// The model is normalizing by default: formatting trivia is dropped so that
+/// re-emitting produces canonical output. Set fields here to opt into
+/// preserving specific aspects of the original layout.
+///
+/// [`Docstring`]: crate::model::Docstring
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct ToModelOptions {
+    /// Preserve blank lines between section entries (recorded as
+    /// `blank_lines_before` on the entry). Defaults to `false`, in which case
+    /// blank lines are normalized away.
+    pub preserve_blank_lines: bool,
+}
+
+// =============================================================================
 // Style
 // =============================================================================
 
