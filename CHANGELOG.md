@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- NumPy and Google parsers: colons belonging to reStructuredText role
+  references (e.g. `:attr:`~module.ClassName.attr1``) and trailing colons in
+  prose lines (e.g. `Description with attributes:`) were misinterpreted as
+  term/classifier separators, causing the colons to be dropped on re-emit.
+  A new reStructuredText-aware separator rule now treats a colon as a
+  separator only when it follows whitespace (`name : type`) or is attached to
+  a single top-level token (`name:type`), leaving role references and prose
+  intact ([#26](https://github.com/ryumasai/pydocstring/issues/26)).
+
+### Added
+
+- Opt-in blank-line preservation between section entries, for both NumPy and
+  Google styles and every entry type. The model normalizes by default;
+  `to_model_with_options(parsed, ToModelOptions { preserve_blank_lines: true })`
+  (Rust) or `to_model(preserve_blank_lines=True)` (Python) records blank lines
+  as a new `blank_lines_before` field on each entry (`Parameter`, `Return`,
+  `ExceptionEntry`, `SeeAlsoEntry`, `Reference`, `Attribute`, `Method`), which
+  the emitters reproduce so bodies — such as a `Returns` block mixing prose and
+  rST role references — round-trip exactly
+  ([#26](https://github.com/ryumasai/pydocstring/issues/26)).
+
 ## [0.1.13] - 2026-05-11
 
 ### Added

@@ -17,6 +17,46 @@ pub(crate) fn find_entry_colon(text: &str) -> Option<usize> {
     None
 }
 
+/// Find the byte offset of the definition-list term/classifier separator colon.
+///
+/// NumPy and Google entries separate a term from its classifier (type) with a
+/// colon, following the reStructuredText convention. A colon only acts as a
+/// separator when it is either:
+///
+/// * preceded by whitespace (`name : type`), or
+/// * directly attached to a single top-level token (`name:type`).
+///
+/// A colon embedded in multi-word prose (`Description with attributes:`) or one
+/// that begins an rST role at the start of the line (`:attr:`...``) is **not** a
+/// separator, so the line is kept intact. Colons inside balanced brackets are
+/// skipped, just like [`find_entry_colon`].
+pub(crate) fn find_term_colon(text: &str) -> Option<usize> {
+    // A line that begins with a colon is an rST role / field marker, never a term.
+    if text.trim_start().starts_with(':') {
+        return None;
+    }
+
+    let bytes = text.as_bytes();
+    let mut depth: u32 = 0;
+    let mut top_level_ws = false;
+    for (i, &b) in bytes.iter().enumerate() {
+        match b {
+            b'(' | b'[' | b'{' | b'<' => depth += 1,
+            b')' | b']' | b'}' | b'>' => depth = depth.saturating_sub(1),
+            b':' if depth == 0 => {
+                // `name : type` (whitespace before) always separates; an attached
+                // colon only separates when the term is a single top-level token,
+                // so prose like `Some words:` is left intact.
+                let ws_before = i > 0 && bytes[i - 1].is_ascii_whitespace();
+                return if ws_before || !top_level_ws { Some(i) } else { None };
+            }
+            _ if depth == 0 && b.is_ascii_whitespace() => top_level_ws = true,
+            _ => {}
+        }
+    }
+    None
+}
+
 /// Split `text` by top-level commas (respecting `()`, `[]`, `{}`, and `<>` depth).
 ///
 /// Returns a `Vec` of `(byte_offset, segment)` pairs where
@@ -250,6 +290,35 @@ pub(crate) fn find_entry_open_bracket(text: &str) -> Option<usize> {
     Some(bracket_pos)
 }
 
+/// Count the blank lines preceding an entry and advance `prev_end` to its end.
+///
+/// Entry nodes are sparse: the whitespace separating two sibling entries is not
+/// covered by any token, so blank lines survive only in the gap
+/// `source[prev_end..start]`. A single newline is the ordinary line break
+/// between adjacent entries; each additional newline is one blank line.
+///
+/// Returns `0` (and only advances `prev_end`) when `preserve` is `false` or for
+/// the first entry (`prev_end` is `None`). Callers thread a single `prev_end`
+/// across a section's entries and pass each entry node's range.
+pub(crate) fn blank_lines_before(
+    source: &str,
+    prev_end: &mut Option<usize>,
+    range: &crate::text::TextRange,
+    preserve: bool,
+) -> usize {
+    let start = range.start().raw() as usize;
+    let count = match *prev_end {
+        Some(pe) if preserve && pe < start && start <= source.len() => source[pe..start]
+            .bytes()
+            .filter(|&b| b == b'\n')
+            .count()
+            .saturating_sub(1),
+        _ => 0,
+    };
+    *prev_end = Some(range.end().raw() as usize);
+    count
+}
+
 /// Convert a multi-line description with potential leading indentation to
 /// an owned string with the leading indentation removed.
 pub(crate) fn convert_multiline_with_indentation(text: &str) -> String {
@@ -304,6 +373,27 @@ mod tests {
         assert_eq!(find_entry_colon("Dict[str, List[int]]: desc"), Some(20));
         // Only colon inside brackets — no match
         assert_eq!(find_entry_colon("Dict[k: v]"), None);
+    }
+
+    // ---- find_term_colon ----
+
+    #[test]
+    fn test_find_term_colon() {
+        // `name : type` — whitespace before the colon separates.
+        assert_eq!(find_term_colon("x : int"), Some(2));
+        assert_eq!(find_term_colon("x, y : int"), Some(5));
+        // Attached colon on a single top-level token separates (lenient form).
+        assert_eq!(find_term_colon("result:int"), Some(6));
+        assert_eq!(find_term_colon("func_a: Description"), Some(6));
+        // Bracket-internal whitespace is not top-level, so an attached colon still
+        // separates and the colon inside the brackets is skipped.
+        assert_eq!(find_term_colon("Dict[str, int]: desc"), Some(14));
+        // Prose with an attached trailing colon is NOT split (Issue #26).
+        assert_eq!(find_term_colon("Description with attributes:"), None);
+        // A line that starts with an rST role colon is never a term separator.
+        assert_eq!(find_term_colon(":attr:`~module.ClassName.attr1`"), None);
+        // No colon at all.
+        assert_eq!(find_term_colon("name"), None);
     }
 
     #[test]

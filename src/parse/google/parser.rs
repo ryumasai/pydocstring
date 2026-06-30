@@ -6,7 +6,7 @@
 use crate::cursor::{LineCursor, indent_len};
 use crate::parse::google::kind::GoogleSectionKind;
 use crate::parse::utils::{
-    find_colon_ignoring_parens, find_entry_colon, find_entry_open_bracket, find_matching_close, strip_optional,
+    find_colon_ignoring_parens, find_entry_open_bracket, find_matching_close, find_term_colon, strip_optional,
 };
 use crate::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use crate::text::TextRange;
@@ -157,7 +157,7 @@ fn parse_entry_header(cursor: &LineCursor, parse_type: bool) -> EntryHeader {
     }
 
     // --- `name: desc` ---
-    if let Some(colon_rel) = find_entry_colon(trimmed) {
+    if let Some(colon_rel) = find_term_colon(trimmed) {
         let name = trimmed[..colon_rel].trim_end();
         // If the colon is at position 0 (e.g. RST-style `:param foo:`), the
         // name would be empty which is invalid.  Fall through to the bare-name
@@ -561,7 +561,7 @@ impl ReturnsState {
             self.range = Some(trimmed_range);
             let trimmed = cursor.current_trimmed();
             let col = cursor.current_indent();
-            if let Some(colon_pos) = find_entry_colon(trimmed) {
+            if let Some(colon_pos) = find_term_colon(trimmed) {
                 let type_str = trimmed[..colon_pos].trim_end();
                 let after_colon = &trimmed[colon_pos + 1..];
                 let desc_str = after_colon.trim_start();

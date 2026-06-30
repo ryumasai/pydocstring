@@ -251,7 +251,7 @@ class GoogleDocstring:
     @property
     def style(self) -> Style: ...
     def pretty_print(self) -> str: ...
-    def to_model(self) -> Docstring: ...
+    def to_model(self, *, preserve_blank_lines: bool = False) -> Docstring: ...
     def __repr__(self) -> str: ...
 
 # ─── NumPy CST wrappers ──────────────────────────────────────────────────────
@@ -423,7 +423,7 @@ class NumPyDocstring:
     @property
     def style(self) -> Style: ...
     def pretty_print(self) -> str: ...
-    def to_model(self) -> Docstring: ...
+    def to_model(self, *, preserve_blank_lines: bool = False) -> Docstring: ...
     def __repr__(self) -> str: ...
 
 # ─── Plain CST wrapper ───────────────────────────────────────────────────────
@@ -441,7 +441,7 @@ class PlainDocstring:
     @property
     def style(self) -> Style: ...
     def pretty_print(self) -> str: ...
-    def to_model(self) -> Docstring: ...
+    def to_model(self, *, preserve_blank_lines: bool = False) -> Docstring: ...
     def __repr__(self) -> str: ...
 
 # ─── Model IR ────────────────────────────────────────────────────────────────
@@ -458,6 +458,7 @@ class Parameter:
     description: str | None
     is_optional: bool
     default_value: str | None
+    blank_lines_before: int
     def __init__(
         self,
         names: list[str],
@@ -466,6 +467,7 @@ class Parameter:
         description: str | None = None,
         is_optional: bool = False,
         default_value: str | None = None,
+        blank_lines_before: int = 0,
     ) -> None: ...
     def __repr__(self) -> str: ...
 
@@ -473,43 +475,52 @@ class Return:
     name: str | None
     type_annotation: str | None
     description: str | None
+    blank_lines_before: int
     def __init__(
         self,
         *,
         name: str | None = None,
         type_annotation: str | None = None,
         description: str | None = None,
+        blank_lines_before: int = 0,
     ) -> None: ...
     def __repr__(self) -> str: ...
 
 class ExceptionEntry:
     type_name: str
     description: str | None
-    def __init__(self, type_name: str, *, description: str | None = None) -> None: ...
+    blank_lines_before: int
+    def __init__(self, type_name: str, *, description: str | None = None, blank_lines_before: int = 0) -> None: ...
     def __repr__(self) -> str: ...
 
 class SeeAlsoEntry:
     names: list[str]
     description: str | None
-    def __init__(self, names: list[str], *, description: str | None = None) -> None: ...
+    blank_lines_before: int
+    def __init__(self, names: list[str], *, description: str | None = None, blank_lines_before: int = 0) -> None: ...
     def __repr__(self) -> str: ...
 
 class Reference:
     number: str | None
     content: str | None
-    def __init__(self, *, number: str | None = None, content: str | None = None) -> None: ...
+    blank_lines_before: int
+    def __init__(
+        self, *, number: str | None = None, content: str | None = None, blank_lines_before: int = 0
+    ) -> None: ...
     def __repr__(self) -> str: ...
 
 class Attribute:
     name: str
     type_annotation: str | None
     description: str | None
+    blank_lines_before: int
     def __init__(
         self,
         name: str,
         *,
         type_annotation: str | None = None,
         description: str | None = None,
+        blank_lines_before: int = 0,
     ) -> None: ...
     def __repr__(self) -> str: ...
 
@@ -517,12 +528,14 @@ class Method:
     name: str
     type_annotation: str | None
     description: str | None
+    blank_lines_before: int
     def __init__(
         self,
         name: str,
         *,
         type_annotation: str | None = None,
         description: str | None = None,
+        blank_lines_before: int = 0,
     ) -> None: ...
     def __repr__(self) -> str: ...
 

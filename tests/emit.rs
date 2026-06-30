@@ -39,6 +39,7 @@ fn google_emit_args() {
                 description: Some("The value.\nMore description.\n\n    blockquote\n\nlast line.".into()),
                 is_optional: false,
                 default_value: None,
+                ..Default::default()
             },
             Parameter {
                 names: vec!["y".into()],
@@ -46,6 +47,7 @@ fn google_emit_args() {
                 description: Some("The name.".into()),
                 is_optional: false,
                 default_value: None,
+                ..Default::default()
             },
         ])],
         ..Default::default()
@@ -68,6 +70,7 @@ fn google_emit_args_optional() {
             description: Some("The value.".into()),
             is_optional: true,
             default_value: None,
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -85,6 +88,7 @@ fn google_emit_args_no_type() {
             description: Some("The value.".into()),
             is_optional: false,
             default_value: None,
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -100,6 +104,7 @@ fn google_emit_returns() {
             name: None,
             type_annotation: Some("int".into()),
             description: Some("The result.".into()),
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -116,6 +121,7 @@ fn google_emit_returns_no_type() {
             name: None,
             type_annotation: None,
             description: Some("The computed result.".into()),
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -131,10 +137,12 @@ fn google_emit_raises() {
             ExceptionEntry {
                 type_name: "ValueError".into(),
                 description: Some("If the input is invalid.".into()),
+                ..Default::default()
             },
             ExceptionEntry {
                 type_name: "TypeError".into(),
                 description: Some("If wrong type.".into()),
+                ..Default::default()
             },
         ])],
         ..Default::default()
@@ -171,15 +179,18 @@ fn google_emit_multiple_sections() {
                 description: Some("Val.".into()),
                 is_optional: false,
                 default_value: None,
+                ..Default::default()
             }]),
             Section::Returns(vec![Return {
                 name: None,
                 type_annotation: Some("str".into()),
                 description: Some("Result.".into()),
+                ..Default::default()
             }]),
             Section::Raises(vec![ExceptionEntry {
                 type_name: "ValueError".into(),
                 description: Some("Bad.".into()),
+                ..Default::default()
             }]),
         ],
         ..Default::default()
@@ -198,6 +209,7 @@ fn google_emit_attributes() {
             name: "name".into(),
             type_annotation: Some("str".into()),
             description: Some("The name.".into()),
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -213,6 +225,7 @@ fn google_emit_see_also() {
         sections: vec![Section::SeeAlso(vec![SeeAlsoEntry {
             names: vec!["func1".into(), "func2".into()],
             description: Some("Related functions.".into()),
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -256,6 +269,7 @@ fn numpy_emit_parameters() {
                 description: Some("The first number.\nMore description\n\n    blockquote\n\nlast line.".into()),
                 is_optional: false,
                 default_value: None,
+                ..Default::default()
             },
             Parameter {
                 names: vec!["y".into()],
@@ -263,6 +277,7 @@ fn numpy_emit_parameters() {
                 description: Some("The second number.".into()),
                 is_optional: false,
                 default_value: None,
+                ..Default::default()
             },
         ])],
         ..Default::default()
@@ -285,6 +300,7 @@ fn numpy_emit_parameters_optional() {
             description: Some("The value.".into()),
             is_optional: true,
             default_value: None,
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -302,6 +318,7 @@ fn numpy_emit_parameters_multiple_names() {
             description: Some("Values.".into()),
             is_optional: false,
             default_value: None,
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -319,6 +336,7 @@ fn numpy_emit_parameters_default() {
             description: Some("The value.".into()),
             is_optional: false,
             default_value: Some("0".into()),
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -334,6 +352,7 @@ fn numpy_emit_returns_named() {
             name: Some("result".into()),
             type_annotation: Some("int".into()),
             description: Some("The result.".into()),
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -350,6 +369,7 @@ fn numpy_emit_returns_type_only() {
             name: None,
             type_annotation: Some("int".into()),
             description: Some("The result.".into()),
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -365,10 +385,12 @@ fn numpy_emit_raises() {
             ExceptionEntry {
                 type_name: "ValueError".into(),
                 description: Some("If the input is invalid.".into()),
+                ..Default::default()
             },
             ExceptionEntry {
                 type_name: "TypeError".into(),
                 description: Some("If the type is wrong.".into()),
+                ..Default::default()
             },
         ])],
         ..Default::default()
@@ -417,10 +439,12 @@ fn numpy_emit_references() {
             Reference {
                 number: Some("1".into()),
                 content: Some("Author, Title, Journal.".into()),
+                ..Default::default()
             },
             Reference {
                 number: Some("2".into()),
                 content: Some("Another reference.".into()),
+                ..Default::default()
             },
         ])],
         ..Default::default()
@@ -439,6 +463,7 @@ fn numpy_emit_attributes() {
             name: "name".into(),
             type_annotation: Some("str".into()),
             description: Some("The name.".into()),
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -454,6 +479,7 @@ fn numpy_emit_see_also() {
         sections: vec![Section::SeeAlso(vec![SeeAlsoEntry {
             names: vec!["func1".into(), "func2".into()],
             description: Some("Related.".into()),
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -473,11 +499,13 @@ fn numpy_emit_multiple_sections() {
                 description: Some("Val.".into()),
                 is_optional: false,
                 default_value: None,
+                ..Default::default()
             }]),
             Section::Returns(vec![Return {
                 name: None,
                 type_annotation: Some("int".into()),
                 description: Some("Result.".into()),
+                ..Default::default()
             }]),
         ],
         ..Default::default()
@@ -509,6 +537,112 @@ fn numpy_roundtrip_summary() {
     let doc = to_model(&parse_numpy(input)).unwrap();
     let output = emit_numpy(&doc, 0);
     assert_eq!(output.trim(), input);
+}
+
+// =============================================================================
+// Regression: Issue #26 — rST role colons must not be eaten
+// =============================================================================
+
+/// NumPy Returns section that mixes prose with rST `:attr:` role references.
+/// The trailing colon of "Description with attributes:" and the leading colons
+/// of the `:attr:` lines must survive a parse → emit round-trip.
+#[test]
+fn numpy_roundtrip_rst_role_colons() {
+    use pydocstring::parse::numpy::{parse_numpy, to_model::to_model};
+
+    let input = "Returns\n-------\nDescription with attributes:\n:attr:`~module.ClassName.attr1`\n    First attribute\n:attr:`~module.ClassName.attr2`\n    Second attribute\n";
+    let output = emit_numpy(&to_model(&parse_numpy(input)).unwrap(), 0);
+    assert!(
+        output.contains("Description with attributes:"),
+        "trailing colon eaten:\n{output}"
+    );
+    assert!(
+        output.contains(":attr:`~module.ClassName.attr1`"),
+        "leading colon eaten:\n{output}"
+    );
+    assert!(
+        output.contains(":attr:`~module.ClassName.attr2`"),
+        "leading colon eaten:\n{output}"
+    );
+}
+
+/// `to_model` normalizes by default: blank lines between entries are dropped.
+/// `to_model_with_options(preserve_blank_lines)` opts into preserving them.
+#[test]
+fn numpy_blank_lines_between_returns_are_opt_in() {
+    use pydocstring::model::Section;
+    use pydocstring::parse::ToModelOptions;
+    use pydocstring::parse::numpy::parse_numpy;
+    use pydocstring::parse::numpy::to_model::{to_model, to_model_with_options};
+
+    let input = "Summary.\n\nReturns\n-------\nDescription with attributes:\n\n:attr:`~module.ClassName.attr1`\n    First attribute\n";
+    let parsed = parse_numpy(input);
+
+    // Default: normalized — blank line dropped.
+    let normalized = to_model(&parsed).unwrap();
+    let Section::Returns(entries) = &normalized.sections[0] else {
+        panic!("expected Returns section");
+    };
+    assert_eq!(entries[1].blank_lines_before, 0, "default should normalize");
+    assert!(
+        !emit_numpy(&normalized, 0).contains("attributes:\n\n:attr:"),
+        "default emit should not contain the blank line"
+    );
+
+    // Opt-in: blank line captured and round-trips exactly.
+    let preserved = to_model_with_options(
+        &parsed,
+        ToModelOptions {
+            preserve_blank_lines: true,
+        },
+    )
+    .unwrap();
+    let Section::Returns(entries) = &preserved.sections[0] else {
+        panic!("expected Returns section");
+    };
+    assert_eq!(entries[0].blank_lines_before, 0);
+    assert_eq!(entries[1].blank_lines_before, 1, "blank line not captured");
+    assert_eq!(emit_numpy(&preserved, 0), input, "blank line not preserved");
+}
+
+/// Blank-line preservation is general: it works for both styles and for entry
+/// types other than `Returns` (here Google `Args` and NumPy `Parameters`).
+#[test]
+fn blank_lines_preserved_across_styles_and_sections() {
+    use pydocstring::parse::ToModelOptions;
+    use pydocstring::parse::google::{parse_google, to_model::to_model_with_options as google_to_model};
+    use pydocstring::parse::numpy::{parse_numpy, to_model::to_model_with_options as numpy_to_model};
+
+    let opts = ToModelOptions {
+        preserve_blank_lines: true,
+    };
+
+    let google = "Summary.\n\nArgs:\n    x (int): The x.\n\n    y (int): The y.\n";
+    assert_eq!(
+        emit_google(&google_to_model(&parse_google(google), opts).unwrap(), 0),
+        google,
+        "Google Args blank line not preserved"
+    );
+
+    let numpy = "Summary.\n\nParameters\n----------\nx : int\n    The x.\n\ny : int\n    The y.\n";
+    assert_eq!(
+        emit_numpy(&numpy_to_model(&parse_numpy(numpy), opts).unwrap(), 0),
+        numpy,
+        "NumPy Parameters blank line not preserved"
+    );
+}
+
+/// Google Returns section with a leading `:attr:` rST role must keep its colon.
+#[test]
+fn google_roundtrip_rst_role_colons() {
+    use pydocstring::parse::google::{parse_google, to_model::to_model};
+
+    let input = "Summary.\n\nReturns:\n    :attr:`~module.ClassName.attr1`\n        First attribute\n";
+    let output = emit_google(&to_model(&parse_google(input)).unwrap(), 0);
+    assert!(
+        output.contains(":attr:`~module.ClassName.attr1`"),
+        "leading colon eaten:\n{output}"
+    );
 }
 
 // =============================================================================
@@ -551,6 +685,7 @@ fn google_emit_with_base_indent() {
             description: Some("The value.".into()),
             is_optional: false,
             default_value: None,
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -570,6 +705,7 @@ fn numpy_emit_with_base_indent() {
             description: Some("The value.".into()),
             is_optional: false,
             default_value: None,
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -590,6 +726,7 @@ fn google_emit_base_indent_preserves_blank_lines() {
             description: Some("Val.".into()),
             is_optional: false,
             default_value: None,
+            ..Default::default()
         }])],
         ..Default::default()
     };
@@ -609,6 +746,7 @@ fn numpy_emit_base_indent_preserves_blank_lines() {
             description: Some("Val.".into()),
             is_optional: false,
             default_value: None,
+            ..Default::default()
         }])],
         ..Default::default()
     };

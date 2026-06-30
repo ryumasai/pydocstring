@@ -501,6 +501,39 @@ class TestToModel:
         assert len(rets) == 1
         assert rets[0].type_annotation == "int"
 
+    def test_numpy_returns_preserves_rst_roles_and_blank_line(self):
+        # Issue #26: rST role colons must survive, and the blank line between
+        # entries is preserved only when opting in via preserve_blank_lines.
+        docstr = (
+            "Function with role references.\n\nReturns\n-------\n"
+            "Description with attributes:\n\n"
+            ":attr:`~module.ClassName.attr1`\n    First attribute\n"
+            ":attr:`~module.ClassName.attr2`\n    Second attribute\n"
+        )
+
+        # Default: normalized, blank line dropped (rST colons still preserved).
+        normalized = pydocstring.parse(docstr).to_model()
+        assert normalized.sections[0].returns[1].blank_lines_before == 0
+        assert ":attr:`~module.ClassName.attr1`" in pydocstring.emit_numpy(normalized)
+
+        # Opt-in: blank line captured and round-trips exactly.
+        model = pydocstring.parse(docstr).to_model(preserve_blank_lines=True)
+        rets = model.sections[0].returns
+        assert rets[0].blank_lines_before == 0
+        assert rets[1].blank_lines_before == 1
+        assert pydocstring.emit_numpy(model) == docstr
+
+    def test_blank_lines_preserved_for_google_args(self):
+        # Blank-line preservation is general, not NumPy-only: it also works for
+        # Google and for entry types other than Returns.
+        docstr = "Summary.\n\nArgs:\n    x (int): The x.\n\n    y (int): The y.\n"
+        # Default normalizes the blank line away.
+        assert pydocstring.parse(docstr).to_model().sections[0].parameters[1].blank_lines_before == 0
+        # Opt-in preserves it and round-trips exactly.
+        model = pydocstring.parse(docstr).to_model(preserve_blank_lines=True)
+        assert model.sections[0].parameters[1].blank_lines_before == 1
+        assert pydocstring.emit_google(model) == docstr
+
     def test_plain_to_model(self):
         doc = pydocstring.parse_plain("Brief summary.\n\nMore details.")
         model = doc.to_model()

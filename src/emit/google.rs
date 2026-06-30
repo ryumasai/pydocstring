@@ -24,6 +24,7 @@ use crate::model::{
 ///         description: Some("The value.".into()),
 ///         is_optional: false,
 ///         default_value: None,
+///         ..Default::default()
 ///     }])],
 ///     ..Default::default()
 /// };
@@ -163,8 +164,16 @@ fn emit_section(out: &mut String, section: &Section) {
     }
 }
 
+/// Emit `n` blank lines before an entry (captured layout; `0` is a no-op).
+fn emit_blank_lines(out: &mut String, n: usize) {
+    for _ in 0..n {
+        out.push('\n');
+    }
+}
+
 /// Google: `    name (type, optional): Description.`
 fn emit_parameter(out: &mut String, p: &Parameter) {
+    emit_blank_lines(out, p.blank_lines_before);
     out.push_str("    ");
     out.push_str(&p.names.join(", "));
     if p.type_annotation.is_some() || p.is_optional {
@@ -190,6 +199,7 @@ fn emit_parameter(out: &mut String, p: &Parameter) {
 
 /// Google: `    type: Description.`
 fn emit_return(out: &mut String, r: &Return) {
+    emit_blank_lines(out, r.blank_lines_before);
     out.push_str("    ");
     if let Some(ref ty) = r.type_annotation {
         out.push_str(ty);
@@ -206,6 +216,7 @@ fn emit_return(out: &mut String, r: &Return) {
 
 /// Google: `    ValueError: Description.`
 fn emit_exception(out: &mut String, e: &ExceptionEntry) {
+    emit_blank_lines(out, e.blank_lines_before);
     out.push_str("    ");
     out.push_str(&e.type_name);
     out.push(':');
@@ -218,6 +229,7 @@ fn emit_exception(out: &mut String, e: &ExceptionEntry) {
 
 /// Google: `    name (type): Description.`
 fn emit_attribute(out: &mut String, a: &Attribute) {
+    emit_blank_lines(out, a.blank_lines_before);
     out.push_str("    ");
     out.push_str(&a.name);
     if let Some(ref ty) = a.type_annotation {
@@ -235,6 +247,7 @@ fn emit_attribute(out: &mut String, a: &Attribute) {
 
 /// Google: `    name(sig): Description.`
 fn emit_method(out: &mut String, m: &Method) {
+    emit_blank_lines(out, m.blank_lines_before);
     out.push_str("    ");
     out.push_str(&m.name);
     if let Some(ref ty) = m.type_annotation {
@@ -252,6 +265,7 @@ fn emit_method(out: &mut String, m: &Method) {
 
 /// Google: `    func1, func2: Description.`
 fn emit_see_also(out: &mut String, item: &SeeAlsoEntry) {
+    emit_blank_lines(out, item.blank_lines_before);
     out.push_str("    ");
     out.push_str(&item.names.join(", "));
     if let Some(ref desc) = item.description {
@@ -263,6 +277,7 @@ fn emit_see_also(out: &mut String, item: &SeeAlsoEntry) {
 
 /// Google: `    .. [1] Content.`
 fn emit_reference(out: &mut String, r: &Reference) {
+    emit_blank_lines(out, r.blank_lines_before);
     out.push_str("    ");
     if let Some(ref num) = r.number {
         out.push_str(".. [");

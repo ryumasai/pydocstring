@@ -25,6 +25,7 @@ use crate::model::{
 ///         description: Some("The value.".into()),
 ///         is_optional: false,
 ///         default_value: None,
+///         ..Default::default()
 ///     }])],
 ///     ..Default::default()
 /// };
@@ -160,8 +161,16 @@ fn emit_section(out: &mut String, section: &Section) {
     }
 }
 
+/// Emit `n` blank lines before an entry (captured layout; `0` is a no-op).
+fn emit_blank_lines(out: &mut String, n: usize) {
+    for _ in 0..n {
+        out.push('\n');
+    }
+}
+
 /// NumPy: `x, y : int, optional\n    default: 0\n    Description.`
 fn emit_parameter(out: &mut String, p: &Parameter) {
+    emit_blank_lines(out, p.blank_lines_before);
     out.push_str(&p.names.join(", "));
     if p.type_annotation.is_some() || p.is_optional || p.default_value.is_some() {
         out.push_str(" : ");
@@ -190,6 +199,7 @@ fn emit_parameter(out: &mut String, p: &Parameter) {
 
 /// NumPy: `name : type\n    Description.` or `type\n    Description.`
 fn emit_return(out: &mut String, r: &Return) {
+    emit_blank_lines(out, r.blank_lines_before);
     if let Some(ref name) = r.name {
         out.push_str(name);
         if let Some(ref ty) = r.type_annotation {
@@ -207,6 +217,7 @@ fn emit_return(out: &mut String, r: &Return) {
 
 /// NumPy: `ValueError\n    Description.`
 fn emit_exception(out: &mut String, e: &ExceptionEntry) {
+    emit_blank_lines(out, e.blank_lines_before);
     out.push_str(&e.type_name);
     out.push('\n');
     if let Some(ref desc) = e.description {
@@ -216,6 +227,7 @@ fn emit_exception(out: &mut String, e: &ExceptionEntry) {
 
 /// NumPy: `name : type\n    Description.`
 fn emit_attribute(out: &mut String, a: &Attribute) {
+    emit_blank_lines(out, a.blank_lines_before);
     out.push_str(&a.name);
     if let Some(ref ty) = a.type_annotation {
         out.push_str(" : ");
@@ -229,6 +241,7 @@ fn emit_attribute(out: &mut String, a: &Attribute) {
 
 /// NumPy: `name\n    Description.`
 fn emit_method(out: &mut String, m: &Method) {
+    emit_blank_lines(out, m.blank_lines_before);
     out.push_str(&m.name);
     if let Some(ref ty) = m.type_annotation {
         out.push_str(" (");
@@ -243,6 +256,7 @@ fn emit_method(out: &mut String, m: &Method) {
 
 /// NumPy: `func1, func2 : Description.`
 fn emit_see_also(out: &mut String, item: &SeeAlsoEntry) {
+    emit_blank_lines(out, item.blank_lines_before);
     out.push_str(&item.names.join(", "));
     if let Some(ref desc) = item.description {
         out.push_str(" : ");
@@ -253,6 +267,7 @@ fn emit_see_also(out: &mut String, item: &SeeAlsoEntry) {
 
 /// NumPy: `.. [1] Content.`
 fn emit_reference(out: &mut String, r: &Reference) {
+    emit_blank_lines(out, r.blank_lines_before);
     if let Some(ref num) = r.number {
         out.push_str(".. [");
         out.push_str(num);

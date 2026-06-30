@@ -165,7 +165,7 @@ pub enum FreeSectionKind {
 // =============================================================================
 
 /// A parameter / argument entry.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Parameter {
     /// Parameter name(s). NumPy supports multiple names (`x, y`); Google always has one.
     pub names: Vec<String>,
@@ -177,10 +177,12 @@ pub struct Parameter {
     pub is_optional: bool,
     /// Default value text (NumPy `default: value` syntax).
     pub default_value: Option<String>,
+    /// Blank lines that preceded this entry in the source. See [`Return::blank_lines_before`].
+    pub blank_lines_before: usize,
 }
 
 /// A return / yield entry.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Return {
     /// Return name (NumPy supports named returns; Google does not).
     pub name: Option<String>,
@@ -188,37 +190,50 @@ pub struct Return {
     pub type_annotation: Option<String>,
     /// Description text.
     pub description: Option<String>,
+    /// Number of blank lines that preceded this entry in the source.
+    ///
+    /// Captured (only when conversion opts in via `preserve_blank_lines`) so
+    /// that round-tripping a section body preserves the blank lines between
+    /// entries, e.g. a `Returns` block mixing prose and rST role references.
+    /// Defaults to `0`, which keeps the emitted output normalized.
+    pub blank_lines_before: usize,
 }
 
 /// An exception or warning entry (for Raises / Warns sections).
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ExceptionEntry {
     /// Exception / warning type name (e.g. `ValueError`).
     pub type_name: String,
     /// Description text.
     pub description: Option<String>,
+    /// Blank lines that preceded this entry in the source. See [`Return::blank_lines_before`].
+    pub blank_lines_before: usize,
 }
 
 /// A see-also item.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct SeeAlsoEntry {
     /// Referenced names (can be multiple, comma-separated).
     pub names: Vec<String>,
     /// Description text.
     pub description: Option<String>,
+    /// Blank lines that preceded this entry in the source. See [`Return::blank_lines_before`].
+    pub blank_lines_before: usize,
 }
 
 /// A reference entry (NumPy `.. [1] ...` style).
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Reference {
     /// Reference number (e.g. `"1"`).
     pub number: Option<String>,
     /// Reference content text.
     pub content: Option<String>,
+    /// Blank lines that preceded this entry in the source. See [`Return::blank_lines_before`].
+    pub blank_lines_before: usize,
 }
 
 /// An attribute entry.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Attribute {
     /// Attribute name.
     pub name: String,
@@ -226,10 +241,12 @@ pub struct Attribute {
     pub type_annotation: Option<String>,
     /// Description text.
     pub description: Option<String>,
+    /// Blank lines that preceded this entry in the source. See [`Return::blank_lines_before`].
+    pub blank_lines_before: usize,
 }
 
 /// A method entry.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Method {
     /// Method name.
     pub name: String,
@@ -237,6 +254,8 @@ pub struct Method {
     pub type_annotation: Option<String>,
     /// Description text.
     pub description: Option<String>,
+    /// Blank lines that preceded this entry in the source. See [`Return::blank_lines_before`].
+    pub blank_lines_before: usize,
 }
 
 /// Deprecation notice.
