@@ -38,3 +38,25 @@ module-name = "pydocstring._pydocstring"
 python-source = "python"
 features = ["pyo3/extension-module"]
 include = ["LICENSE"]
+
+[dependency-groups]
+dev = [
+    "maturin>=1.0,<2.0",
+    "pytest>=8",
+    "ruff>=0.6",
+    "ty>=0.0.1a1",
+]
+
+[tool.uv]
+# uv provisions the Python interpreter and dev environment; the native
+# extension itself is compiled with `maturin develop`, so uv should not
+# try to build/install this project during `uv sync`.
+package = false
+
+[tool.ruff]
+target-version = "py310"
+src = ["python", "tests"]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

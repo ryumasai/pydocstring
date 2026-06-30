@@ -20,6 +20,9 @@ jobs:
         with:
           components: rustfmt, clippy
 
+      - name: Install just
+        uses: extractions/setup-just@v3
+
       - name: Cache cargo
         uses: actions/cache@v4
         with:
@@ -30,33 +33,32 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Check formatting
-        run: cargo fmt --all -- --check
+        run: just fmt-check
 
       - name: Clippy
-        run: cargo clippy --all-targets -- -D warnings
+        run: just lint
 
       - name: Build
-        run: cargo build --verbose
+        run: just build
 
       - name: Run tests
-        run: cargo test --verbose
+        run: just test
 
   python-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
 
-      - name: Build and install
-        uses: PyO3/maturin-action@v1
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
-          args: --manifest-path bindings/python/Cargo.toml --out dist
+          enable-cache: true
 
-      - name: Install and test
-        run: |
-          pip install dist/*.whl pytest
-          pytest bindings/python/tests/ -v
+      - name: Install just
+        uses: extractions/setup-just@v3
+
+      - name: Lint, type-check, and test
+        run: just py-ci
