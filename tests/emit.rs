@@ -512,6 +512,46 @@ fn numpy_roundtrip_summary() {
 }
 
 // =============================================================================
+// Regression: Issue #26 — rST role colons must not be eaten
+// =============================================================================
+
+/// NumPy Returns section that mixes prose with rST `:attr:` role references.
+/// The trailing colon of "Description with attributes:" and the leading colons
+/// of the `:attr:` lines must survive a parse → emit round-trip.
+#[test]
+fn numpy_roundtrip_rst_role_colons() {
+    use pydocstring::parse::numpy::{parse_numpy, to_model::to_model};
+
+    let input = "Returns\n-------\nDescription with attributes:\n:attr:`~module.ClassName.attr1`\n    First attribute\n:attr:`~module.ClassName.attr2`\n    Second attribute\n";
+    let output = emit_numpy(&to_model(&parse_numpy(input)).unwrap(), 0);
+    assert!(
+        output.contains("Description with attributes:"),
+        "trailing colon eaten:\n{output}"
+    );
+    assert!(
+        output.contains(":attr:`~module.ClassName.attr1`"),
+        "leading colon eaten:\n{output}"
+    );
+    assert!(
+        output.contains(":attr:`~module.ClassName.attr2`"),
+        "leading colon eaten:\n{output}"
+    );
+}
+
+/// Google Returns section with a leading `:attr:` rST role must keep its colon.
+#[test]
+fn google_roundtrip_rst_role_colons() {
+    use pydocstring::parse::google::{parse_google, to_model::to_model};
+
+    let input = "Summary.\n\nReturns:\n    :attr:`~module.ClassName.attr1`\n        First attribute\n";
+    let output = emit_google(&to_model(&parse_google(input)).unwrap(), 0);
+    assert!(
+        output.contains(":attr:`~module.ClassName.attr1`"),
+        "leading colon eaten:\n{output}"
+    );
+}
+
+// =============================================================================
 // Cross-style conversion: Google → Model → NumPy
 // =============================================================================
 
