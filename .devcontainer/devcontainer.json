@@ -6,12 +6,16 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "rust-lang.rust-analyzer"
-            ]
-        },
-        "settings": {
-            "editor.formatOnSave": true,
-            "rust-analyzer.checkOnSave.command": "clippy"
+                "rust-lang.rust-analyzer",
+                "ms-python.python",
+                "charliermarsh.ruff"
+            ],
+            "settings": {
+                "editor.formatOnSave": true,
+                "rust-analyzer.checkOnSave.command": "clippy",
+                "python.defaultInterpreterPath": "${workspaceFolder}/bindings/python/.venv/bin/python"
+            }
         }
-    }
+    },
+    "postCreateCommand": "cd bindings/python && uv sync && uv run maturin develop --uv"
 }

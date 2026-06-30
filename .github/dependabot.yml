@@ -1,0 +1,34 @@
+version: 2
+updates:
+  # GitHub Actions used by CI / release workflows
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  # Rust crate (root)
+  - package-ecosystem: cargo
+    directory: "/"
+    schedule:
+      interval: weekly
+
+  # Rust crate for the Python bindings (pyo3, etc.)
+  - package-ecosystem: cargo
+    directory: "/bindings/python"
+    schedule:
+      interval: weekly
+    groups:
+      cargo:
+        patterns: ["*"]
+
+  # Python dev tooling managed by uv (maturin, pytest, ruff, ty)
+  - package-ecosystem: uv
+    directory: "/bindings/python"
+    schedule:
+      interval: weekly
+    groups:
+      python:
+        patterns: ["*"]

@@ -239,6 +239,18 @@ Root-level accessors: `summary()`, `extended_summary()` (NumPy also has `depreca
 
 ## Development
 
+Common tasks are wrapped in a [`justfile`](justfile) — run `just` to list them:
+
+```bash
+just            # list all recipes
+just lint       # cargo clippy (warnings as errors)
+just test       # Rust test suite
+just py-test    # build the Python extension (uv + maturin) and run pytest
+just ci         # everything CI runs: fmt-check, lint, test, py-test
+```
+
+Or invoke cargo directly:
+
 ```bash
 cargo build
 cargo test

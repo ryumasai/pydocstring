@@ -358,37 +358,35 @@ print(numpy_text)  # Contains "Parameters\n----------"
 ### Prerequisites
 
 - Rust (stable)
-- Python 3.10+
-- maturin
+- [uv](https://docs.astral.sh/uv/) (manages the Python interpreter, venv, and dev tooling)
 
 ### Build
 
 ```bash
 cd bindings/python
 
-# Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate
+# Create the venv and install dev tooling (maturin, pytest) into it.
+# uv provisions the pinned Python from .python-version automatically.
+uv sync
 
-# Install maturin
-pip install maturin
-
-# Build and install in development mode
-maturin develop
+# Build and install the native extension in development mode
+uv run maturin develop --uv
 
 # Verify
-python -c "import pydocstring; print(pydocstring.detect_style('Args:\n    x: y'))"
+uv run python -c "import pydocstring; print(pydocstring.detect_style('Args:\n    x: y'))"
 ```
+
+After changing the Rust source, re-run `uv run maturin develop --uv` to rebuild.
 
 ### Build a wheel
 
 ```bash
-maturin build --release
+uv run maturin build --release
 # Output: target/wheels/pydocstring-*.whl
 ```
 
 ### Publish to PyPI
 
 ```bash
-maturin publish
+uv run maturin publish
 ```
