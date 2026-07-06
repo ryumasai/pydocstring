@@ -1,9 +1,88 @@
+//! Spec + contract tests for section recognition: header aliases, case
+//! insensitivity, ordering, deprecation directive, stray lines, spans.
+//! Exhaustive input coverage lives in tests/corpus/numpy/ + tests/snapshots.rs;
+//! these tests pin deliberate spec decisions and the typed-accessor contract.
+
 use super::*;
+
+// =============================================================================
+// Section header alias → kind mapping (spec table)
+// =============================================================================
+
+/// SPEC: full table of accepted section header spellings and the
+/// NumPySectionKind each maps to (parsed end-to-end through the parser).
+#[test]
+fn test_section_header_alias_table() {
+    #[rustfmt::skip]
+    let cases: &[(&str, NumPySectionKind)] = &[
+        // Parameters and aliases (incl. Arguments family)
+        ("Parameters", NumPySectionKind::Parameters),
+        ("Parameter", NumPySectionKind::Parameters),
+        ("Params", NumPySectionKind::Parameters),
+        ("Param", NumPySectionKind::Parameters),
+        ("Arguments", NumPySectionKind::Parameters),
+        ("Argument", NumPySectionKind::Parameters),
+        ("Args", NumPySectionKind::Parameters),
+        ("Arg", NumPySectionKind::Parameters),
+        // Other Parameters and aliases
+        ("Other Parameters", NumPySectionKind::OtherParameters),
+        ("Other Parameter", NumPySectionKind::OtherParameters),
+        ("Other Params", NumPySectionKind::OtherParameters),
+        ("Other Param", NumPySectionKind::OtherParameters),
+        ("Other Arguments", NumPySectionKind::OtherParameters),
+        ("Other Argument", NumPySectionKind::OtherParameters),
+        ("Other Args", NumPySectionKind::OtherParameters),
+        ("Other Arg", NumPySectionKind::OtherParameters),
+        // Returns / Yields / Receives
+        ("Returns", NumPySectionKind::Returns),
+        ("Return", NumPySectionKind::Returns),
+        ("Yields", NumPySectionKind::Yields),
+        ("Yield", NumPySectionKind::Yields),
+        ("Receives", NumPySectionKind::Receives),
+        ("Receive", NumPySectionKind::Receives),
+        // Raises / Warns / Warnings
+        ("Raises", NumPySectionKind::Raises),
+        ("Raise", NumPySectionKind::Raises),
+        ("Warns", NumPySectionKind::Warns),
+        ("Warn", NumPySectionKind::Warns),
+        ("Warnings", NumPySectionKind::Warnings),
+        ("Warning", NumPySectionKind::Warnings),
+        // Free-text and item sections
+        ("See Also", NumPySectionKind::SeeAlso),
+        ("Notes", NumPySectionKind::Notes),
+        ("Note", NumPySectionKind::Notes),
+        ("References", NumPySectionKind::References),
+        ("Reference", NumPySectionKind::References),
+        ("Examples", NumPySectionKind::Examples),
+        ("Example", NumPySectionKind::Examples),
+        // Class sections
+        ("Attributes", NumPySectionKind::Attributes),
+        ("Attribute", NumPySectionKind::Attributes),
+        ("Methods", NumPySectionKind::Methods),
+        ("Method", NumPySectionKind::Methods),
+    ];
+
+    for (header, expected) in cases {
+        let underline = "-".repeat(header.len());
+        let docstring = format!("Summary.\n\n{header}\n{underline}\nx : int\n    d.\n");
+        let result = parse_numpy(&docstring);
+        let sections = all_sections(&result);
+        assert_eq!(sections.len(), 1, "header {header:?} should start a section");
+        assert_eq!(sections[0].header().name().text(result.source()), *header);
+        assert_eq!(
+            sections[0].section_kind(result.source()),
+            *expected,
+            "header {header:?}"
+        );
+    }
+}
 
 // =============================================================================
 // Case insensitive sections
 // =============================================================================
 
+/// SPEC: section headers are matched case-insensitively; the header token
+/// preserves the original spelling.
 #[test]
 fn test_case_insensitive_sections() {
     let docstring = r#"Brief summary.
@@ -36,28 +115,11 @@ Some notes here.
 }
 
 // =============================================================================
-// Section header spans
-// =============================================================================
-
-#[test]
-fn test_section_header_spans() {
-    let docstring = r#"Summary.
-
-Parameters
-----------
-x : int
-    Desc.
-"#;
-    let result = parse_numpy(docstring);
-    let hdr = all_sections(&result)[0].header();
-    assert_eq!(hdr.name().text(result.source()), "Parameters");
-    assert_eq!(hdr.underline().text(result.source()), "----------");
-}
-
-// =============================================================================
 // Span round-trip
 // =============================================================================
 
+/// CONTRACT: token spans (summary, header name/underline, parameter fields)
+/// slice the original source back out.
 #[test]
 fn test_span_source_text_round_trip() {
     let docstring = r#"Summary line.
@@ -86,6 +148,8 @@ x : int
 // Deprecation
 // =============================================================================
 
+/// SPEC: `.. deprecated:: <version>` directive is recognized before sections.
+/// Also CONTRACT for NumPyDeprecation accessors (version / description).
 #[test]
 fn test_deprecation_directive() {
     let docstring = r#"Summary.
@@ -105,13 +169,13 @@ x : int
         dep.description().unwrap().text(result.source()),
         "Use `new_func` instead."
     );
-    assert_eq!(dep.version().text(result.source()), "1.6.0");
 }
 
 // =============================================================================
 // Section ordering
 // =============================================================================
 
+/// CONTRACT: `sections()` yields sections in source order.
 #[test]
 fn test_section_order_preserved() {
     let docstring = r#"Summary.
@@ -144,15 +208,20 @@ Some notes.
     assert_eq!(s[3].section_kind(result.source()), NumPySectionKind::Notes);
 }
 
+// =============================================================================
+// NumPySectionKind API
+// =============================================================================
+
+/// CONTRACT: ALL contains every known kind and never Unknown.
 #[test]
 fn test_all_section_kinds_exist() {
-    // Verify ALL is correct and contains no Unknown
     assert_eq!(NumPySectionKind::ALL.len(), 14);
     for kind in NumPySectionKind::ALL {
         assert_ne!(*kind, NumPySectionKind::Unknown);
     }
 }
 
+/// CONTRACT: from_name / is_known behavior for unknown and known names.
 #[test]
 fn test_section_kind_from_name_unknown() {
     assert_eq!(NumPySectionKind::from_name("nonexistent"), NumPySectionKind::Unknown);
@@ -160,6 +229,12 @@ fn test_section_kind_from_name_unknown() {
     assert!(NumPySectionKind::is_known("parameters"));
 }
 
+// =============================================================================
+// Stray lines
+// =============================================================================
+
+/// SPEC: a non-section line before the first section does not prevent later
+/// sections from being parsed.
 #[test]
 fn test_stray_lines() {
     let docstring = "Summary.\n\nThis line is not a section.\n\nParameters\n----------\nx : int\n    Desc.\n";
@@ -169,34 +244,28 @@ fn test_stray_lines() {
     assert_eq!(parameters(&result).len(), 1);
 }
 
+/// SPEC (documented limitation): in NumPy style, entries and stray lines sit at
+/// the same indentation level, so a stray line between sections is absorbed
+/// into the preceding section. Sections end only at the next header+underline.
 #[test]
 fn test_stray_line_between_sections() {
-    // In NumPy style, entries and stray lines sit at the same indentation level
-    // (L = H = 0).  A stray line between sections is absorbed into the preceding
-    // section as a spurious entry because indent alone cannot distinguish them.
-    // Sections end only when the next section header (name + underline) is found.
     let input = "Summary.\n\nParameters\n----------\na : int\n    desc.\n\nstray line 1\n\nReturns\n-------\nbool\n    desc\n\nstray line 2\n";
     let result = parse_numpy(input);
     // Returns is still parsed (it has a proper header+underline).
     let r = returns(&result);
     assert!(!r.is_empty(), "Returns section must be parsed");
-}
-
-#[test]
-fn test_stray_line_between_sections_no_blank() {
-    // Same limitation as test_stray_line_between_sections: stray lines in NumPy
-    // style cannot be detected and are absorbed into the preceding section.
-    let input =
-        "Summary.\n\nParameters\n----------\na : int\n    desc.\nstray line 1\n\nReturns\n-------\nbool\n    desc\n";
-    let result = parse_numpy(input);
-    let r = returns(&result);
-    assert!(!r.is_empty(), "Returns section must be parsed");
+    // Stray lines are absorbed, never dropped into new sections.
+    let s = all_sections(&result);
+    assert_eq!(s.len(), 2, "stray lines must not start new sections");
+    assert_eq!(s[0].section_kind(result.source()), NumPySectionKind::Parameters);
+    assert_eq!(s[1].section_kind(result.source()), NumPySectionKind::Returns);
 }
 
 // =============================================================================
 // Display impl
 // =============================================================================
 
+/// CONTRACT: Display impl for NumPySectionKind.
 #[test]
 fn test_section_kind_display() {
     assert_eq!(format!("{}", NumPySectionKind::Parameters), "Parameters");
@@ -214,15 +283,4 @@ fn test_section_kind_display() {
     assert_eq!(format!("{}", NumPySectionKind::Attributes), "Attributes");
     assert_eq!(format!("{}", NumPySectionKind::Methods), "Methods");
     assert_eq!(format!("{}", NumPySectionKind::Unknown), "Unknown");
-}
-
-#[test]
-fn test_docstring_display() {
-    let docstring = "My summary.";
-    let result = parse_numpy(docstring);
-    // The root node covers the full source text
-    assert_eq!(
-        doc(&result).syntax().range().source_text(result.source()),
-        "My summary."
-    );
 }

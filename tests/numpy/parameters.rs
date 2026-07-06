@@ -1,9 +1,16 @@
+//! Spec + contract tests for Parameters-like sections (Parameters, Other
+//! Parameters, Receives) and google-style entry compatibility.
+//! Exhaustive input coverage lives in tests/corpus/numpy/ + tests/snapshots.rs;
+//! these tests pin deliberate spec decisions and the typed-accessor contract.
+
 use super::*;
 
 // =============================================================================
-// Parameters section
+// Parameters section — accessor contract
 // =============================================================================
 
+/// CONTRACT: NumPyParameter accessors (names / type / description) and
+/// NumPyReturns return_type on a canonical docstring.
 #[test]
 fn test_with_parameters() {
     let docstring = r#"Calculate the sum of two numbers.
@@ -53,6 +60,11 @@ int
     );
 }
 
+// =============================================================================
+// Parameters — spec decisions
+// =============================================================================
+
+/// SPEC: trailing `, optional` marker is recognized and stripped from the type.
 #[test]
 fn test_optional_parameters() {
     let docstring = r#"Function with optional parameters.
@@ -75,28 +87,7 @@ optional : int, optional
     );
 }
 
-#[test]
-fn test_parse_with_parameters_spans() {
-    let docstring = r#"Brief description.
-
-Parameters
-----------
-x : int
-    The first parameter.
-y : str, optional
-    The second parameter.
-"#;
-    let result = parse_numpy(docstring);
-    assert_eq!(parameters(&result).len(), 2);
-
-    let names0: Vec<_> = parameters(&result)[0].names().collect();
-    assert_eq!(names0[0].text(result.source()), "x");
-    let names1: Vec<_> = parameters(&result)[1].names().collect();
-    assert_eq!(names1[0].text(result.source()), "y");
-    assert_eq!(parameters(&result)[0].r#type().unwrap().text(result.source()), "int");
-}
-
-/// Parameters with no space before colon: `x: int`
+/// SPEC (issues #26/#31): no space before colon: `x: int` still splits name/type.
 #[test]
 fn test_parameters_no_space_before_colon() {
     let docstring = "Summary.\n\nParameters\n----------\nx: int\n    The value.\n";
@@ -109,7 +100,7 @@ fn test_parameters_no_space_before_colon() {
     assert_eq!(p[0].description().unwrap().text(result.source()), "The value.");
 }
 
-/// Parameters with no space after colon: `x :int`
+/// SPEC (issues #26/#31): no space after colon: `x :int` still splits name/type.
 #[test]
 fn test_parameters_no_space_after_colon() {
     let docstring = "Summary.\n\nParameters\n----------\nx :int\n    The value.\n";
@@ -121,7 +112,7 @@ fn test_parameters_no_space_after_colon() {
     assert_eq!(p[0].r#type().unwrap().text(result.source()), "int");
 }
 
-/// Parameters with no spaces around colon: `x:int`
+/// SPEC (issues #26/#31): no spaces around colon: `x:int` still splits name/type.
 #[test]
 fn test_parameters_no_spaces_around_colon() {
     let docstring = "Summary.\n\nParameters\n----------\nx:int\n    The value.\n";
@@ -133,6 +124,7 @@ fn test_parameters_no_spaces_around_colon() {
     assert_eq!(p[0].r#type().unwrap().text(result.source()), "int");
 }
 
+/// SPEC: `x1, x2 : array_like` splits into multiple parameter names.
 #[test]
 fn test_multiple_parameter_names() {
     let docstring = r#"Summary.
@@ -150,9 +142,9 @@ x1, x2 : array_like
     assert_eq!(names[1].text(result.source()), "x2");
 }
 
+/// SPEC: a blank line between parameter entries does not end the section.
 #[test]
 fn test_multiple_parameters_with_blank_line_between() {
-    // NumPy style allows a blank line between parameter entries.
     let docstring = "Summary.\n\nParameters\n----------\nx : int\n    First.\n\ny : str\n    Second.\n";
     let result = parse_numpy(docstring);
     let p = parameters(&result);
@@ -161,6 +153,7 @@ fn test_multiple_parameters_with_blank_line_between() {
     assert_eq!(p[1].names().next().unwrap().text(result.source()), "y");
 }
 
+/// SPEC: a colon inside an indented description line does not start a new entry.
 #[test]
 fn test_description_with_colon_not_treated_as_param() {
     let docstring = r#"Brief summary.
@@ -183,28 +176,11 @@ x : int
     );
 }
 
-#[test]
-fn test_multi_paragraph_description() {
-    let docstring = r#"Summary.
-
-Parameters
-----------
-x : int
-    First paragraph of x.
-
-    Second paragraph of x.
-"#;
-    let result = parse_numpy(docstring);
-    let desc = parameters(&result)[0].description().unwrap().text(result.source());
-    assert!(desc.contains("First paragraph of x."));
-    assert!(desc.contains("Second paragraph of x."));
-    assert!(desc.contains('\n'));
-}
-
 // =============================================================================
-// Enum / choices type
+// Enum / choices type — spec decisions
 // =============================================================================
 
+/// SPEC: `{'C', 'F', 'A'}` enum type is kept whole (commas inside braces do not split).
 #[test]
 fn test_enum_type_as_string() {
     let docstring = "Summary.\n\nParameters\n----------\norder : {'C', 'F', 'A'}\n    Memory layout.";
@@ -219,6 +195,7 @@ fn test_enum_type_as_string() {
     assert_eq!(p.description().unwrap().text(result.source()), "Memory layout.");
 }
 
+/// SPEC: `, optional` after a brace-enclosed enum type is still recognized.
 #[test]
 fn test_enum_type_with_optional() {
     let docstring = "Summary.\n\nParameters\n----------\norder : {'C', 'F'}, optional\n    Memory layout.";
@@ -230,6 +207,7 @@ fn test_enum_type_with_optional() {
     assert_eq!(p.r#type().unwrap().text(result.source()), "{'C', 'F'}");
 }
 
+/// SPEC: `default 'C'` marker splits into keyword/value (no separator token).
 #[test]
 fn test_enum_type_with_default() {
     let docstring = "Summary.\n\nParameters\n----------\norder : {'C', 'F', 'A'}, default 'C'\n    Memory layout.";
@@ -244,81 +222,10 @@ fn test_enum_type_with_default() {
 }
 
 // =============================================================================
-// Parameters — aliases
+// Other Parameters / Receives — thin section-body contract
 // =============================================================================
 
-/// `Params` alias for Parameters.
-#[test]
-fn test_params_alias() {
-    let docstring = "Summary.\n\nParams\n------\nx : int\n    The value.\n";
-    let result = parse_numpy(docstring);
-    let p = parameters(&result);
-    assert_eq!(p.len(), 1);
-    let names: Vec<_> = p[0].names().collect();
-    assert_eq!(names[0].text(result.source()), "x");
-    assert_eq!(all_sections(&result)[0].header().name().text(result.source()), "Params");
-    assert_eq!(
-        all_sections(&result)[0].section_kind(result.source()),
-        NumPySectionKind::Parameters
-    );
-}
-
-/// `Param` alias for Parameters.
-#[test]
-fn test_param_alias() {
-    let docstring = "Summary.\n\nParam\n-----\nx : int\n    The value.\n";
-    let result = parse_numpy(docstring);
-    assert_eq!(parameters(&result).len(), 1);
-    assert_eq!(all_sections(&result)[0].header().name().text(result.source()), "Param");
-}
-
-/// `Parameter` alias for Parameters.
-#[test]
-fn test_parameter_alias() {
-    let docstring = "Summary.\n\nParameter\n---------\nx : int\n    The value.\n";
-    let result = parse_numpy(docstring);
-    assert_eq!(parameters(&result).len(), 1);
-    assert_eq!(
-        all_sections(&result)[0].header().name().text(result.source()),
-        "Parameter"
-    );
-}
-
-// =============================================================================
-// Other Parameters section
-// =============================================================================
-
-#[test]
-fn test_other_parameters_basic() {
-    let docstring = "Summary.\n\nOther Parameters\n----------------\ndebug : bool\n    Enable debug mode.\nverbose : bool, optional\n    Verbose output.\n";
-    let result = parse_numpy(docstring);
-    let op = other_parameters(&result);
-    assert_eq!(op.len(), 2);
-    let names0: Vec<_> = op[0].names().collect();
-    assert_eq!(names0[0].text(result.source()), "debug");
-    assert_eq!(op[0].r#type().unwrap().text(result.source()), "bool");
-    let names1: Vec<_> = op[1].names().collect();
-    assert_eq!(names1[0].text(result.source()), "verbose");
-    assert!(op[1].optional().is_some());
-}
-
-/// `Other Params` alias.
-#[test]
-fn test_other_params_alias() {
-    let docstring = "Summary.\n\nOther Params\n------------\nx : int\n    Extra.\n";
-    let result = parse_numpy(docstring);
-    assert_eq!(other_parameters(&result).len(), 1);
-    assert_eq!(
-        all_sections(&result)[0].header().name().text(result.source()),
-        "Other Params"
-    );
-    assert_eq!(
-        all_sections(&result)[0].section_kind(result.source()),
-        NumPySectionKind::OtherParameters
-    );
-}
-
-/// Other Parameters section body variant check.
+/// CONTRACT: an OtherParameters section exposes its entries via `parameters()`.
 #[test]
 fn test_other_parameters_section_body_variant() {
     let docstring = "Summary.\n\nOther Parameters\n----------------\nx : int\n    Extra.\n";
@@ -329,10 +236,7 @@ fn test_other_parameters_section_body_variant() {
     assert_eq!(params.len(), 1);
 }
 
-// =============================================================================
-// Receives section
-// =============================================================================
-
+/// CONTRACT: Receives entries expose names / type / description.
 #[test]
 fn test_receives_basic() {
     let docstring = "Summary.\n\nReceives\n--------\ndata : bytes\n    The received data.\n";
@@ -345,49 +249,12 @@ fn test_receives_basic() {
     assert_eq!(r[0].description().unwrap().text(result.source()), "The received data.");
 }
 
-#[test]
-fn test_receives_multiple() {
-    let docstring = "Summary.\n\nReceives\n--------\nmsg : str\n    The message.\ndata : bytes\n    The payload.\n";
-    let result = parse_numpy(docstring);
-    let r = receives(&result);
-    assert_eq!(r.len(), 2);
-    let names0: Vec<_> = r[0].names().collect();
-    assert_eq!(names0[0].text(result.source()), "msg");
-    let names1: Vec<_> = r[1].names().collect();
-    assert_eq!(names1[0].text(result.source()), "data");
-}
-
-/// `Receive` alias.
-#[test]
-fn test_receive_alias() {
-    let docstring = "Summary.\n\nReceive\n-------\ndata : bytes\n    The data.\n";
-    let result = parse_numpy(docstring);
-    assert_eq!(receives(&result).len(), 1);
-    assert_eq!(
-        all_sections(&result)[0].header().name().text(result.source()),
-        "Receive"
-    );
-    assert_eq!(
-        all_sections(&result)[0].section_kind(result.source()),
-        NumPySectionKind::Receives
-    );
-}
-
-/// Receives section body variant check.
-#[test]
-fn test_receives_section_body_variant() {
-    let docstring = "Summary.\n\nReceives\n--------\ndata : bytes\n    Payload.\n";
-    let result = parse_numpy(docstring);
-    let s = &all_sections(&result)[0];
-    assert_eq!(s.section_kind(result.source()), NumPySectionKind::Receives);
-    let params: Vec<_> = s.parameters().collect();
-    assert_eq!(params.len(), 1);
-}
-
 // =============================================================================
-// Google-style entry format in NumPy sections
+// Google-style entry format in NumPy sections — compat spec
 // =============================================================================
 
+/// SPEC (compat): google-style `name (str): desc` entries are accepted inside
+/// NumPy Parameters sections.
 #[test]
 fn test_google_style_entry_in_numpy_section() {
     let docstring = "Summary.\n\nParameters\n----------\nname (str): The name.\n";
@@ -404,67 +271,7 @@ fn test_google_style_entry_in_numpy_section() {
     );
 }
 
-#[test]
-fn test_google_style_entry_with_optional() {
-    let docstring = "Summary.\n\nParameters\n----------\nname (str, optional): The name.\n";
-    let result = parse_numpy(docstring);
-    let params = parameters(&result);
-    assert_eq!(params.len(), 1);
-
-    let names: Vec<_> = params[0].names().collect();
-    assert_eq!(names[0].text(result.source()), "name");
-    assert_eq!(params[0].r#type().map(|t| t.text(result.source())), Some("str"));
-    assert!(params[0].optional().is_some());
-    assert_eq!(
-        params[0].description().map(|t| t.text(result.source())),
-        Some("The name.")
-    );
-}
-
-#[test]
-fn test_google_style_entry_no_description() {
-    let docstring = "Summary.\n\nParameters\n----------\nname (int):\n";
-    let result = parse_numpy(docstring);
-    let params = parameters(&result);
-    assert_eq!(params.len(), 1);
-
-    let names: Vec<_> = params[0].names().collect();
-    assert_eq!(names[0].text(result.source()), "name");
-    assert_eq!(params[0].r#type().map(|t| t.text(result.source())), Some("int"));
-    assert!(params[0].description().is_none());
-}
-
-#[test]
-fn test_google_style_entry_with_continuation() {
-    let docstring = "Summary.\n\nParameters\n----------\nname (str): The name.\n    Continued here.\n";
-    let result = parse_numpy(docstring);
-    let params = parameters(&result);
-    assert_eq!(params.len(), 1);
-
-    assert_eq!(params[0].r#type().map(|t| t.text(result.source())), Some("str"));
-    assert_eq!(
-        params[0].description().map(|t| t.text(result.source())),
-        Some("The name.\n    Continued here.")
-    );
-}
-
-#[test]
-fn test_google_style_entry_complex_type() {
-    let docstring = "Summary.\n\nParameters\n----------\ndata (Dict[str, int]): The mapping.\n";
-    let result = parse_numpy(docstring);
-    let params = parameters(&result);
-    assert_eq!(params.len(), 1);
-
-    assert_eq!(
-        params[0].r#type().map(|t| t.text(result.source())),
-        Some("Dict[str, int]")
-    );
-    assert_eq!(
-        params[0].description().map(|t| t.text(result.source())),
-        Some("The mapping.")
-    );
-}
-
+/// SPEC (compat): google-style and NumPy-style entries may coexist in one section.
 #[test]
 fn test_google_style_mixed_with_numpy_style() {
     let docstring = "Summary.\n\nParameters\n----------\nx (int): First.\ny : str\n    Second.\n";
@@ -486,6 +293,7 @@ fn test_google_style_mixed_with_numpy_style() {
     );
 }
 
+/// SPEC (compat): `name (int)` without a trailing colon is still a google-style entry.
 #[test]
 fn test_google_style_entry_no_colon_after_bracket() {
     let docstring = "Summary.\n\nParameters\n----------\nname (int)\n    Desc.\n";
