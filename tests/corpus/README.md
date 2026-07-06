@@ -1,9 +1,31 @@
 # Test corpus
 
-Each `<style>/<name>.txt` file is a docstring input, parsed by the harness in
-`tests/snapshots.rs` with the parser named by its directory (`google`,
-`numpy`, `plain`) and compared byte-for-byte against the sibling
+Each `.txt` file under `<style>/` is a docstring input, parsed by the harness
+in `tests/snapshots.rs` with the parser named by its top-level directory
+(`google`, `numpy`, `plain`) and compared byte-for-byte against the sibling
 `<name>.snap`.
+
+## Layout
+
+Inputs are grouped by the area of the grammar they exercise, mirroring the
+module split of the assertion test suite (`tests/google/args.rs` ↔
+`corpus/google/args/`, …):
+
+```
+google/  args/  edge_cases/  freetext/  raises/  returns/
+         sections/  structured/  summary/
+numpy/   parameters/  edge_cases/  freetext/  raises/  returns/
+         sections/  structured/  summary/  regressions/
+plain/   (flat — only a handful of inputs)
+```
+
+- `sections/` — section-level behavior: header aliases, ordering, unknown
+  sections, blank lines between sections.
+- `structured/` — entry-style sections other than
+  parameters/returns/raises (attributes, methods, see also, warns, yields, …).
+- `regressions/` — issue reproducers, named `issue<NN>_<slug>.txt`
+  (e.g. `issue26_rst_roles.txt`). Keep the input exactly as reported.
+  Create the directory per style when the first reproducer arrives.
 
 ## Workflow
 
@@ -17,8 +39,6 @@ Each `<style>/<name>.txt` file is a docstring input, parsed by the harness in
 
 - Name files after the behavior they pin (`args_multiline_description`,
   `tab_indented_parameters`), so a snapshot diff tells you what changed.
-- **Issue reproducers**: `issue<NN>_<slug>.txt` (e.g. `issue26_rst_roles.txt`).
-  Keep the input exactly as reported.
 - **Combined families**: variants that only differ in one word are merged
   into a single multi-section input rather than one file each —
   `section_aliases.txt` (every section-header alias; the EMIT half of the
