@@ -42,6 +42,8 @@
 //! - Accurate source spans (byte offsets) on every AST node
 //! - NumPy style: fully supported
 //! - Google style: fully supported
+//! - Emit to Google, NumPy, and Sphinx (reStructuredText) styles (Sphinx is
+//!   emit-only; see [`emit::sphinx`])
 
 pub(crate) mod cursor;
 pub mod emit;

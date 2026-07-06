@@ -643,6 +643,10 @@ def emit_numpy(doc: Docstring, base_indent: int = 0) -> str:
     """Render a model ``Docstring`` as NumPy-style text."""
     ...
 
+def emit_sphinx(doc: Docstring, base_indent: int = 0) -> str:
+    """Render a model ``Docstring`` as Sphinx-style (reStructuredText) text."""
+    ...
+
 def walk(
     doc: GoogleDocstring | NumPyDocstring | PlainDocstring,
     visitor: _VisitorT,

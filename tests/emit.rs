@@ -2,6 +2,7 @@
 
 use pydocstring::emit::google::emit_google;
 use pydocstring::emit::numpy::emit_numpy;
+use pydocstring::emit::sphinx::emit_sphinx;
 use pydocstring::model::*;
 
 // =============================================================================
@@ -485,6 +486,246 @@ fn numpy_emit_multiple_sections() {
     let text = emit_numpy(&doc, 0);
     assert!(text.contains("Parameters\n----------\n"));
     assert!(text.contains("Returns\n-------\n"));
+}
+
+// =============================================================================
+// Sphinx emit
+// =============================================================================
+
+#[test]
+fn sphinx_emit_summary_only() {
+    let doc = Docstring {
+        summary: Some("Brief summary.".into()),
+        ..Default::default()
+    };
+    assert_eq!(emit_sphinx(&doc, 0), "Brief summary.\n");
+}
+
+#[test]
+fn sphinx_emit_summary_and_extended() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        extended_summary: Some("Extended description.".into()),
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, 0);
+    assert_eq!(text, "Summary.\n\nExtended description.\n");
+}
+
+#[test]
+fn sphinx_emit_params() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Parameters(vec![
+            Parameter {
+                names: vec!["x".into()],
+                type_annotation: Some("int".into()),
+                description: Some("The first number.\nMore description.".into()),
+                is_optional: false,
+                default_value: None,
+            },
+            Parameter {
+                names: vec!["y".into()],
+                type_annotation: Some("str".into()),
+                description: Some("The name.".into()),
+                is_optional: false,
+                default_value: None,
+            },
+        ])],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, 0);
+    assert!(text.contains(":param x: The first number.\n    More description.\n"));
+    assert!(text.contains(":type x: int\n"));
+    assert!(text.contains(":param y: The name.\n"));
+    assert!(text.contains(":type y: str\n"));
+}
+
+#[test]
+fn sphinx_emit_params_optional_and_default() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Parameters(vec![Parameter {
+            names: vec!["x".into()],
+            type_annotation: Some("int".into()),
+            description: Some("The value.".into()),
+            is_optional: true,
+            default_value: Some("0".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, 0);
+    assert!(text.contains(":param x: The value., defaults to 0\n"));
+    assert!(text.contains(":type x: int, optional\n"));
+}
+
+#[test]
+fn sphinx_emit_params_default_no_description() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Parameters(vec![Parameter {
+            names: vec!["x".into()],
+            type_annotation: Some("int".into()),
+            description: None,
+            is_optional: false,
+            default_value: Some("0".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, 0);
+    assert!(text.contains(":param x: defaults to 0\n"));
+}
+
+#[test]
+fn sphinx_emit_params_multiple_names_duplicated() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Parameters(vec![Parameter {
+            names: vec!["x".into(), "y".into()],
+            type_annotation: Some("float".into()),
+            description: Some("Values.".into()),
+            is_optional: false,
+            default_value: None,
+        }])],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, 0);
+    assert!(text.contains(":param x: Values.\n"));
+    assert!(text.contains(":type x: float\n"));
+    assert!(text.contains(":param y: Values.\n"));
+    assert!(text.contains(":type y: float\n"));
+}
+
+#[test]
+fn sphinx_emit_returns() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Returns(vec![Return {
+            name: None,
+            type_annotation: Some("int".into()),
+            description: Some("The result.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, 0);
+    assert!(text.contains(":return: The result.\n"));
+    assert!(text.contains(":rtype: int\n"));
+}
+
+#[test]
+fn sphinx_emit_raises() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Raises(vec![ExceptionEntry {
+            type_name: "ValueError".into(),
+            description: Some("If the input is invalid.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, 0);
+    assert!(text.contains(":raises ValueError: If the input is invalid.\n"));
+}
+
+#[test]
+fn sphinx_emit_attributes() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Attributes(vec![Attribute {
+            name: "name".into(),
+            type_annotation: Some("str".into()),
+            description: Some("The name.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, 0);
+    assert!(text.contains(":var name: The name.\n"));
+    assert!(text.contains(":vartype name: str\n"));
+}
+
+#[test]
+fn sphinx_emit_notes_admonition() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::FreeText {
+            kind: FreeSectionKind::Notes,
+            body: "Some notes here.".into(),
+        }],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, 0);
+    assert!(text.contains(".. note::\n\n    Some notes here.\n"));
+}
+
+#[test]
+fn sphinx_emit_see_also() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::SeeAlso(vec![SeeAlsoEntry {
+            names: vec!["func1".into(), "func2".into()],
+            description: Some("Related.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, 0);
+    assert!(text.contains(".. seealso::\n\n    func1, func2: Related.\n"));
+}
+
+#[test]
+fn sphinx_emit_deprecation() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        deprecation: Some(Deprecation {
+            version: "1.6.0".into(),
+            description: Some("Use `other` instead.".into()),
+        }),
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, 0);
+    assert!(text.contains(".. deprecated:: 1.6.0\n"));
+    assert!(text.contains("    Use `other` instead.\n"));
+}
+
+#[test]
+fn sphinx_emit_with_base_indent() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Parameters(vec![Parameter {
+            names: vec!["x".into()],
+            type_annotation: Some("int".into()),
+            description: Some("The value.".into()),
+            is_optional: false,
+            default_value: None,
+        }])],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, 4);
+    assert!(text.contains("    Summary.\n"));
+    assert!(text.contains("    :param x: The value.\n"));
+    assert!(text.contains("    :type x: int\n"));
+}
+
+#[test]
+fn google_to_sphinx_conversion() {
+    use pydocstring::parse::google::{parse_google, to_model::to_model};
+
+    let google_input = "Summary.\n\nArgs:\n    x (int): The value.\n\nReturns:\n    str: The result.";
+    let doc = to_model(&parse_google(google_input)).unwrap();
+    let sphinx_output = emit_sphinx(&doc, 0);
+    assert!(sphinx_output.contains(":param x: The value.\n"));
+    assert!(sphinx_output.contains(":type x: int\n"));
+    assert!(sphinx_output.contains(":return: The result.\n"));
+    assert!(sphinx_output.contains(":rtype: str\n"));
+}
+
+#[test]
+fn numpy_to_sphinx_conversion() {
+    use pydocstring::parse::numpy::{parse_numpy, to_model::to_model};
+
+    let numpy_input = "Summary.\n\nParameters\n----------\nx : int\n    The value.\n";
+    let doc = to_model(&parse_numpy(numpy_input)).unwrap();
+    let sphinx_output = emit_sphinx(&doc, 0);
+    assert!(sphinx_output.contains(":param x: The value.\n"));
+    assert!(sphinx_output.contains(":type x: int\n"));
 }
 
 // =============================================================================
