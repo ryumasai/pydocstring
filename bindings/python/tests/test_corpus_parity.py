@@ -27,7 +27,7 @@ def _ensure_trailing_newline(text: str) -> str:
     return text if text.endswith("\n") else text + "\n"
 
 
-def corpus_cases() -> list[pytest.param]:
+def corpus_cases():
     cases = []
     for txt in sorted(CORPUS.rglob("*.txt")):
         style = txt.relative_to(CORPUS).parts[0]
