@@ -254,6 +254,11 @@ fn test_stray_line_between_sections() {
     // Returns is still parsed (it has a proper header+underline).
     let r = returns(&result);
     assert!(!r.is_empty(), "Returns section must be parsed");
+    // Stray lines are absorbed, never dropped into new sections.
+    let s = all_sections(&result);
+    assert_eq!(s.len(), 2, "stray lines must not start new sections");
+    assert_eq!(s[0].section_kind(result.source()), NumPySectionKind::Parameters);
+    assert_eq!(s[1].section_kind(result.source()), NumPySectionKind::Returns);
 }
 
 // =============================================================================

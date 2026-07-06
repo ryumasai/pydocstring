@@ -86,4 +86,5 @@ fn test_mixed_tab_space_parameters() {
     assert_eq!(names[0].text(result.source()), "x");
     let desc = params[0].description().unwrap().text(result.source());
     assert!(desc.contains("The value."), "desc = {:?}", desc);
+    assert!(desc.contains("More detail."), "desc = {:?}", desc);
 }
