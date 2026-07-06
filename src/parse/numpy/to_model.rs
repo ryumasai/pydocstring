@@ -49,6 +49,9 @@ fn convert_section(section: &NumPySection<'_>, source: &str) -> Section {
         NumPySectionKind::OtherParameters => {
             Section::OtherParameters(section.parameters().map(|p| convert_parameter(&p, source)).collect())
         }
+        NumPySectionKind::KeywordParameters => {
+            Section::KeywordParameters(section.parameters().map(|p| convert_parameter(&p, source)).collect())
+        }
         NumPySectionKind::Returns => {
             let entries: Vec<Return> = section
                 .returns()
@@ -151,6 +154,14 @@ fn convert_section(section: &NumPySection<'_>, source: &str) -> Section {
                 NumPySectionKind::Notes => FreeSectionKind::Notes,
                 NumPySectionKind::Examples => FreeSectionKind::Examples,
                 NumPySectionKind::Warnings => FreeSectionKind::Warnings,
+                NumPySectionKind::Todo => FreeSectionKind::Todo,
+                NumPySectionKind::Attention => FreeSectionKind::Attention,
+                NumPySectionKind::Caution => FreeSectionKind::Caution,
+                NumPySectionKind::Danger => FreeSectionKind::Danger,
+                NumPySectionKind::Error => FreeSectionKind::Error,
+                NumPySectionKind::Hint => FreeSectionKind::Hint,
+                NumPySectionKind::Important => FreeSectionKind::Important,
+                NumPySectionKind::Tip => FreeSectionKind::Tip,
                 NumPySectionKind::Unknown => FreeSectionKind::Unknown(section.header().name().text(source).to_owned()),
                 _ => unreachable!(),
             };

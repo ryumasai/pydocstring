@@ -327,6 +327,8 @@ enum PyNumPySectionKind {
     Receives,
     #[pyo3(name = "OTHER_PARAMETERS")]
     OtherParameters,
+    #[pyo3(name = "KEYWORD_PARAMETERS")]
+    KeywordParameters,
     #[pyo3(name = "RAISES")]
     Raises,
     #[pyo3(name = "WARNS")]
@@ -345,6 +347,22 @@ enum PyNumPySectionKind {
     Attributes,
     #[pyo3(name = "METHODS")]
     Methods,
+    #[pyo3(name = "TODO")]
+    Todo,
+    #[pyo3(name = "ATTENTION")]
+    Attention,
+    #[pyo3(name = "CAUTION")]
+    Caution,
+    #[pyo3(name = "DANGER")]
+    Danger,
+    #[pyo3(name = "ERROR")]
+    Error,
+    #[pyo3(name = "HINT")]
+    Hint,
+    #[pyo3(name = "IMPORTANT")]
+    Important,
+    #[pyo3(name = "TIP")]
+    Tip,
     #[pyo3(name = "UNKNOWN")]
     Unknown,
 }
@@ -360,6 +378,7 @@ impl PyNumPySectionKind {
                 Self::Yields => "YIELDS",
                 Self::Receives => "RECEIVES",
                 Self::OtherParameters => "OTHER_PARAMETERS",
+                Self::KeywordParameters => "KEYWORD_PARAMETERS",
                 Self::Raises => "RAISES",
                 Self::Warns => "WARNS",
                 Self::Warnings => "WARNINGS",
@@ -369,6 +388,14 @@ impl PyNumPySectionKind {
                 Self::Examples => "EXAMPLES",
                 Self::Attributes => "ATTRIBUTES",
                 Self::Methods => "METHODS",
+                Self::Todo => "TODO",
+                Self::Attention => "ATTENTION",
+                Self::Caution => "CAUTION",
+                Self::Danger => "DANGER",
+                Self::Error => "ERROR",
+                Self::Hint => "HINT",
+                Self::Important => "IMPORTANT",
+                Self::Tip => "TIP",
                 Self::Unknown => "UNKNOWN",
             }
         )
@@ -382,6 +409,7 @@ fn numpy_section_kind_to_py(kind: NumPySectionKind) -> PyNumPySectionKind {
         NumPySectionKind::Yields => PyNumPySectionKind::Yields,
         NumPySectionKind::Receives => PyNumPySectionKind::Receives,
         NumPySectionKind::OtherParameters => PyNumPySectionKind::OtherParameters,
+        NumPySectionKind::KeywordParameters => PyNumPySectionKind::KeywordParameters,
         NumPySectionKind::Raises => PyNumPySectionKind::Raises,
         NumPySectionKind::Warns => PyNumPySectionKind::Warns,
         NumPySectionKind::Warnings => PyNumPySectionKind::Warnings,
@@ -391,6 +419,14 @@ fn numpy_section_kind_to_py(kind: NumPySectionKind) -> PyNumPySectionKind {
         NumPySectionKind::Examples => PyNumPySectionKind::Examples,
         NumPySectionKind::Attributes => PyNumPySectionKind::Attributes,
         NumPySectionKind::Methods => PyNumPySectionKind::Methods,
+        NumPySectionKind::Todo => PyNumPySectionKind::Todo,
+        NumPySectionKind::Attention => PyNumPySectionKind::Attention,
+        NumPySectionKind::Caution => PyNumPySectionKind::Caution,
+        NumPySectionKind::Danger => PyNumPySectionKind::Danger,
+        NumPySectionKind::Error => PyNumPySectionKind::Error,
+        NumPySectionKind::Hint => PyNumPySectionKind::Hint,
+        NumPySectionKind::Important => PyNumPySectionKind::Important,
+        NumPySectionKind::Tip => PyNumPySectionKind::Tip,
         NumPySectionKind::Unknown => PyNumPySectionKind::Unknown,
     }
 }

@@ -26,17 +26,6 @@ const KNOWN_IDEMPOTENCE_FAILURES: &[&str] = &[];
 const KNOWN_MODEL_STABILITY_FAILURES: &[&str] = &[];
 /// Entries are `"<from>-><to>: <corpus path>"`, e.g. `"numpy->google: numpy/returns/yields_basic.txt"`.
 const KNOWN_CONVERSION_FAILURES: &[&str] = &[
-    // NumPy parser does not recognize Google-only admonition/freetext section
-    // headers (Attention, Caution, Todo, ...) emitted by emit_numpy.
-    "google->numpy: google/freetext/freetext_sections.txt",
-    "google->numpy: google/freetext/todo_multiline.txt",
-    "google->numpy: google/freetext/todo_without_bullets.txt",
-    // NumPy parser does not recognize the "Keyword Arguments" section header,
-    // so KeywordParameters degrade on the numpy round trip.
-    "google->numpy: google/sections/napoleon_case_insensitive.txt",
-    "google->numpy: google/sections/napoleon_full_docstring.txt",
-    "google->numpy: google/sections/section_aliases.txt",
-    "google->numpy: google/structured/section_body_variants.txt",
     // Fundamental NumPy ambiguity: a description-only Return has no
     // unambiguous NumPy form — the bare line re-parses as the type
     // (prefer_type, see the #26 discussion).
@@ -45,7 +34,10 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     "numpy->google: numpy/edge_cases/indented_with_deprecation.txt",
     "numpy->google: numpy/sections/deprecation_directive.txt",
     // Google parser reads References as free text, losing the structured
-    // Reference entries (number + content).
+    // Reference entries (number + content) — issue #55. The google->numpy
+    // direction of the same asymmetry hits the References section inside
+    // freetext_sections.txt.
+    "google->numpy: google/freetext/freetext_sections.txt",
     "numpy->google: numpy/freetext/references_directive_markers.txt",
     "numpy->google: numpy/freetext/references_parsing.txt",
     // Google parser does not split comma-separated parameter names.

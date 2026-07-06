@@ -60,6 +60,24 @@ fn test_section_header_alias_table() {
         ("Attribute", NumPySectionKind::Attributes),
         ("Methods", NumPySectionKind::Methods),
         ("Method", NumPySectionKind::Methods),
+        // Keyword parameters family (recognized for cross-style round trips, #53)
+        ("Keyword Parameters", NumPySectionKind::KeywordParameters),
+        ("Keyword Parameter", NumPySectionKind::KeywordParameters),
+        ("Keyword Params", NumPySectionKind::KeywordParameters),
+        ("Keyword Param", NumPySectionKind::KeywordParameters),
+        ("Keyword Arguments", NumPySectionKind::KeywordParameters),
+        ("Keyword Argument", NumPySectionKind::KeywordParameters),
+        ("Keyword Args", NumPySectionKind::KeywordParameters),
+        ("Keyword Arg", NumPySectionKind::KeywordParameters),
+        // Admonition free-text sections (recognized for cross-style round trips, #52)
+        ("Todo", NumPySectionKind::Todo),
+        ("Attention", NumPySectionKind::Attention),
+        ("Caution", NumPySectionKind::Caution),
+        ("Danger", NumPySectionKind::Danger),
+        ("Error", NumPySectionKind::Error),
+        ("Hint", NumPySectionKind::Hint),
+        ("Important", NumPySectionKind::Important),
+        ("Tip", NumPySectionKind::Tip),
     ];
 
     for (header, expected) in cases {
@@ -215,7 +233,7 @@ Some notes.
 /// CONTRACT: ALL contains every known kind and never Unknown.
 #[test]
 fn test_all_section_kinds_exist() {
-    assert_eq!(NumPySectionKind::ALL.len(), 14);
+    assert_eq!(NumPySectionKind::ALL.len(), 23);
     for kind in NumPySectionKind::ALL {
         assert_ne!(*kind, NumPySectionKind::Unknown);
     }
