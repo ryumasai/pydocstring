@@ -1,0 +1,34 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..55 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..34 {
+    GOOGLE_SECTION_HEADER@10..18 {
+      NAME: "Returns"@10..17
+      COLON: ":"@17..18
+    }
+    GOOGLE_RETURNS@23..34 {
+      RETURN_TYPE: "int"@23..26
+      COLON: ":"@26..27
+      DESCRIPTION: "Value."@28..34
+    }
+  }
+  GOOGLE_SECTION@36..55 {
+    GOOGLE_SECTION_HEADER@36..41 {
+      NAME: "Args"@36..40
+      COLON: ":"@40..41
+    }
+    GOOGLE_ARG@46..55 {
+      NAME: "x"@46..47
+      COLON: ":"@47..48
+      DESCRIPTION: "Input."@49..55
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Returns:
+    int: Value.
+
+Args:
+    x: Input.

@@ -1,0 +1,34 @@
+=== CST ===
+NUMPY_DOCSTRING@0..110 {
+  SUMMARY: "add(a, b)"@0..9
+  EXTENDED_SUMMARY: "The sum of two numbers."@11..34
+  NUMPY_SECTION@36..110 {
+    NUMPY_SECTION_HEADER@36..57 {
+      NAME: "Parameters"@36..46
+      UNDERLINE: "----------"@47..57
+    }
+    NUMPY_PARAMETER@58..83 {
+      NAME: "a"@58..59
+      COLON: ":"@60..61
+      TYPE: "int"@62..65
+      DESCRIPTION: "First number."@70..83
+    }
+    NUMPY_PARAMETER@84..110 {
+      NAME: "b"@84..85
+      COLON: ":"@86..87
+      TYPE: "int"@88..91
+      DESCRIPTION: "Second number."@96..110
+    }
+  }
+}
+=== EMIT ===
+add(a, b)
+
+The sum of two numbers.
+
+Parameters
+----------
+a : int
+    First number.
+b : int
+    Second number.

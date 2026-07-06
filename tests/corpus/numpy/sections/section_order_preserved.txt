@@ -1,0 +1,20 @@
+Summary.
+
+Parameters
+----------
+x : int
+    Desc.
+
+Returns
+-------
+int
+    Result.
+
+Raises
+------
+ValueError
+    Bad input.
+
+Notes
+-----
+Some notes.

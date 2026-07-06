@@ -1,0 +1,10 @@
+Summary.
+
+Parameters
+----------
+x : int
+    Value.
+
+Custom
+------
+Extra info.

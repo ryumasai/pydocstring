@@ -1,0 +1,21 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..66 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..66 {
+    GOOGLE_SECTION_HEADER@10..16 {
+      NAME: "Warns"@10..15
+      COLON: ":"@15..16
+    }
+    GOOGLE_WARNING@21..66 {
+      WARNING_TYPE: "UserWarning"@21..32
+      COLON: ":"@32..33
+      DESCRIPTION: "First line.\n        Second line."@34..66
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Warns:
+    UserWarning: First line.
+        Second line.

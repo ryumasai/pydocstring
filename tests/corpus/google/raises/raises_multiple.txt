@@ -1,0 +1,5 @@
+Summary.
+
+Raises:
+    ValueError: If invalid.
+    TypeError: If wrong type.

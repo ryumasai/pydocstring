@@ -1,0 +1,150 @@
+=== CST ===
+NUMPY_DOCSTRING@0..386 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..50 {
+    NUMPY_SECTION_HEADER@10..31 {
+      NAME: "Attributes"@10..20
+      UNDERLINE: "----------"@21..31
+    }
+    NUMPY_ATTRIBUTE@32..50 {
+      NAME: "x"@32..33
+      COLON: ":"@34..35
+      TYPE: "int"@36..39
+      DESCRIPTION: "Value."@44..50
+    }
+  }
+  NUMPY_SECTION@52..78 {
+    NUMPY_SECTION_HEADER@52..69 {
+      NAME: "Examples"@52..60
+      UNDERLINE: "--------"@61..69
+    }
+    BODY_TEXT: ">>> pass"@70..78
+  }
+  NUMPY_SECTION@80..115 {
+    NUMPY_SECTION_HEADER@80..95 {
+      NAME: "Methods"@80..87
+      UNDERLINE: "-------"@88..95
+    }
+    NUMPY_METHOD@96..115 {
+      NAME: "foo()"@96..101
+      DESCRIPTION: "Does bar."@106..115
+    }
+  }
+  NUMPY_SECTION@117..169 {
+    NUMPY_SECTION_HEADER@117..150 {
+      NAME: "Other Parameters"@117..133
+      UNDERLINE: "----------------"@134..150
+    }
+    NUMPY_PARAMETER@151..169 {
+      NAME: "x"@151..152
+      COLON: ":"@153..154
+      TYPE: "int"@155..158
+      DESCRIPTION: "Extra."@163..169
+    }
+  }
+  NUMPY_SECTION@171..214 {
+    NUMPY_SECTION_HEADER@171..188 {
+      NAME: "Receives"@171..179
+      UNDERLINE: "--------"@180..188
+    }
+    NUMPY_PARAMETER@189..214 {
+      NAME: "data"@189..193
+      COLON: ":"@194..195
+      TYPE: "bytes"@196..201
+      DESCRIPTION: "Payload."@206..214
+    }
+  }
+  NUMPY_SECTION@216..248 {
+    NUMPY_SECTION_HEADER@216..233 {
+      NAME: "See Also"@216..224
+      UNDERLINE: "--------"@225..233
+    }
+    NUMPY_SEE_ALSO_ITEM@234..248 {
+      NAME: "func_a"@234..240
+      COLON: ":"@241..242
+      DESCRIPTION: "Desc."@243..248
+    }
+  }
+  NUMPY_SECTION@250..291 {
+    NUMPY_SECTION_HEADER@250..277 {
+      NAME: "CustomSection"@250..263
+      UNDERLINE: "-------------"@264..277
+    }
+    BODY_TEXT: "Some content."@278..291
+  }
+  NUMPY_SECTION@293..322 {
+    NUMPY_SECTION_HEADER@293..310 {
+      NAME: "Warnings"@293..301
+      UNDERLINE: "--------"@302..310
+    }
+    BODY_TEXT: "Do not use."@311..322
+  }
+  NUMPY_SECTION@324..356 {
+    NUMPY_SECTION_HEADER@324..335 {
+      NAME: "Warns"@324..329
+      UNDERLINE: "-----"@330..335
+    }
+    NUMPY_WARNING@336..356 {
+      TYPE: "UserWarning"@336..347
+      DESCRIPTION: "Bad."@352..356
+    }
+  }
+  NUMPY_SECTION@358..386 {
+    NUMPY_SECTION_HEADER@358..371 {
+      NAME: "Yields"@358..364
+      UNDERLINE: "------"@365..371
+    }
+    NUMPY_YIELDS@372..386 {
+      RETURN_TYPE: "int"@372..375
+      DESCRIPTION: "Value."@380..386
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Attributes
+----------
+x : int
+    Value.
+
+Examples
+--------
+>>> pass
+
+Methods
+-------
+foo()
+    Does bar.
+
+Other Parameters
+----------------
+x : int
+    Extra.
+
+Receives
+--------
+data : bytes
+    Payload.
+
+See Also
+--------
+func_a : Desc.
+
+CustomSection
+-------------
+Some content.
+
+Warnings
+--------
+Do not use.
+
+Warns
+-----
+UserWarning
+    Bad.
+
+Yields
+------
+int
+    Value.

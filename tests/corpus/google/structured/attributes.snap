@@ -1,0 +1,32 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..71 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..71 {
+    GOOGLE_SECTION_HEADER@10..21 {
+      NAME: "Attributes"@10..20
+      COLON: ":"@20..21
+    }
+    GOOGLE_ATTRIBUTE@26..47 {
+      NAME: "name"@26..30
+      OPEN_BRACKET: "("@31..32
+      TYPE: "str"@32..35
+      CLOSE_BRACKET: ")"@35..36
+      COLON: ":"@36..37
+      DESCRIPTION: "The name."@38..47
+    }
+    GOOGLE_ATTRIBUTE@52..71 {
+      NAME: "age"@52..55
+      OPEN_BRACKET: "("@56..57
+      TYPE: "int"@57..60
+      CLOSE_BRACKET: ")"@60..61
+      COLON: ":"@61..62
+      DESCRIPTION: "The age."@63..71
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Attributes:
+    name (str): The name.
+    age (int): The age.

@@ -1,0 +1,25 @@
+=== CST ===
+NUMPY_DOCSTRING@0..93 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..93 {
+    NUMPY_SECTION_HEADER@10..31 {
+      NAME: "Parameters"@10..20
+      UNDERLINE: "----------"@21..31
+    }
+    NUMPY_PARAMETER@32..93 {
+      NAME: "x"@32..33
+      COLON: ":"@34..35
+      TYPE: "int"@36..39
+      DESCRIPTION: "First paragraph of x.\n\n    Second paragraph of x."@44..93
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Parameters
+----------
+x : int
+    First paragraph of x.
+
+    Second paragraph of x.

@@ -1,0 +1,11 @@
+        Brief.
+
+        Parameters
+        ----------
+        a : float
+            The value.
+
+        Raises
+        ------
+        ValueError
+            If bad.

@@ -1,0 +1,185 @@
+=== CST ===
+NUMPY_DOCSTRING@0..447 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..37 {
+    NUMPY_SECTION_HEADER@10..25 {
+      NAME: "Example"@10..17
+      UNDERLINE: "-------"@18..25
+    }
+    BODY_TEXT: ">>> 1 + 1\n2"@26..37
+  }
+  NUMPY_SECTION@39..64 {
+    NUMPY_SECTION_HEADER@39..48 {
+      NAME: "Note"@39..43
+      UNDERLINE: "----"@44..48
+    }
+    BODY_TEXT: "This is a note."@49..64
+  }
+  NUMPY_SECTION@66..110 {
+    NUMPY_SECTION_HEADER@66..91 {
+      NAME: "Other Params"@66..78
+      UNDERLINE: "------------"@79..91
+    }
+    NUMPY_PARAMETER@92..110 {
+      NAME: "x"@92..93
+      COLON: ":"@94..95
+      TYPE: "int"@96..99
+      DESCRIPTION: "Extra."@104..110
+    }
+  }
+  NUMPY_SECTION@112..146 {
+    NUMPY_SECTION_HEADER@112..123 {
+      NAME: "Param"@112..117
+      UNDERLINE: "-----"@118..123
+    }
+    NUMPY_PARAMETER@124..146 {
+      NAME: "x"@124..125
+      COLON: ":"@126..127
+      TYPE: "int"@128..131
+      DESCRIPTION: "The value."@136..146
+    }
+  }
+  NUMPY_SECTION@148..190 {
+    NUMPY_SECTION_HEADER@148..167 {
+      NAME: "Parameter"@148..157
+      UNDERLINE: "---------"@158..167
+    }
+    NUMPY_PARAMETER@168..190 {
+      NAME: "x"@168..169
+      COLON: ":"@170..171
+      TYPE: "int"@172..175
+      DESCRIPTION: "The value."@180..190
+    }
+  }
+  NUMPY_SECTION@192..228 {
+    NUMPY_SECTION_HEADER@192..205 {
+      NAME: "Params"@192..198
+      UNDERLINE: "------"@199..205
+    }
+    NUMPY_PARAMETER@206..228 {
+      NAME: "x"@206..207
+      COLON: ":"@208..209
+      TYPE: "int"@210..213
+      DESCRIPTION: "The value."@218..228
+    }
+  }
+  NUMPY_SECTION@230..267 {
+    NUMPY_SECTION_HEADER@230..241 {
+      NAME: "Raise"@230..235
+      UNDERLINE: "-----"@236..241
+    }
+    NUMPY_EXCEPTION@242..267 {
+      TYPE: "ValueError"@242..252
+      DESCRIPTION: "Bad input."@257..267
+    }
+  }
+  NUMPY_SECTION@269..311 {
+    NUMPY_SECTION_HEADER@269..284 {
+      NAME: "Receive"@269..276
+      UNDERLINE: "-------"@277..284
+    }
+    NUMPY_PARAMETER@285..311 {
+      NAME: "data"@285..289
+      COLON: ":"@290..291
+      TYPE: "bytes"@292..297
+      DESCRIPTION: "The data."@302..311
+    }
+  }
+  NUMPY_SECTION@313..345 {
+    NUMPY_SECTION_HEADER@313..326 {
+      NAME: "Return"@313..319
+      UNDERLINE: "------"@320..326
+    }
+    NUMPY_RETURNS@327..345 {
+      RETURN_TYPE: "int"@327..330
+      DESCRIPTION: "The value."@335..345
+    }
+  }
+  NUMPY_SECTION@347..383 {
+    NUMPY_SECTION_HEADER@347..356 {
+      NAME: "Warn"@347..351
+      UNDERLINE: "----"@352..356
+    }
+    NUMPY_WARNING@357..383 {
+      TYPE: "UserWarning"@357..368
+      DESCRIPTION: "Bad usage."@373..383
+    }
+  }
+  NUMPY_SECTION@385..412 {
+    NUMPY_SECTION_HEADER@385..400 {
+      NAME: "Warning"@385..392
+      UNDERLINE: "-------"@393..400
+    }
+    BODY_TEXT: "Be careful."@401..412
+  }
+  NUMPY_SECTION@414..447 {
+    NUMPY_SECTION_HEADER@414..425 {
+      NAME: "Yield"@414..419
+      UNDERLINE: "-----"@420..425
+    }
+    NUMPY_YIELDS@426..447 {
+      RETURN_TYPE: "int"@426..429
+      DESCRIPTION: "Next integer."@434..447
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Examples
+--------
+>>> 1 + 1
+2
+
+Notes
+-----
+This is a note.
+
+Other Parameters
+----------------
+x : int
+    Extra.
+
+Parameters
+----------
+x : int
+    The value.
+
+Parameters
+----------
+x : int
+    The value.
+
+Parameters
+----------
+x : int
+    The value.
+
+Raises
+------
+ValueError
+    Bad input.
+
+Receives
+--------
+data : bytes
+    The data.
+
+Returns
+-------
+int
+    The value.
+
+Warns
+-----
+UserWarning
+    Bad usage.
+
+Warnings
+--------
+Be careful.
+
+Yields
+------
+int
+    Next integer.

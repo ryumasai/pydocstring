@@ -1,0 +1,5 @@
+Summary.
+
+Args:
+    *args: Positional args.
+    **kwargs: Keyword args.

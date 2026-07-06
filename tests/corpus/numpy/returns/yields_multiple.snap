@@ -1,0 +1,31 @@
+=== CST ===
+NUMPY_DOCSTRING@0..77 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..77 {
+    NUMPY_SECTION_HEADER@10..23 {
+      NAME: "Yields"@10..16
+      UNDERLINE: "------"@17..23
+    }
+    NUMPY_YIELDS@24..50 {
+      NAME: "index"@24..29
+      COLON: ":"@30..31
+      RETURN_TYPE: "int"@32..35
+      DESCRIPTION: "The index."@40..50
+    }
+    NUMPY_YIELDS@51..77 {
+      NAME: "value"@51..56
+      COLON: ":"@57..58
+      RETURN_TYPE: "str"@59..62
+      DESCRIPTION: "The value."@67..77
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Yields
+------
+index : int
+    The index.
+value : str
+    The value.

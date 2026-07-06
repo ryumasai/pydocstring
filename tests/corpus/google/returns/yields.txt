@@ -1,0 +1,4 @@
+Summary.
+
+Yields:
+    int: The next value.

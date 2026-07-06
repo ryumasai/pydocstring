@@ -1,0 +1,5 @@
+Summary.
+
+Returns:
+    int: The count.
+    str: The message.

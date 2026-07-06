@@ -1,0 +1,8 @@
+Summary.
+
+Examples
+--------
+Here is an example:
+
+>>> func(2)
+4

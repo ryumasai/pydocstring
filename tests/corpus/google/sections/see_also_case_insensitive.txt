@@ -1,0 +1,4 @@
+Summary.
+
+see also:
+    func_a: Description.

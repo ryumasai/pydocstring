@@ -1,0 +1,6 @@
+Summary.
+
+Yields
+------
+value : str
+    The generated string.

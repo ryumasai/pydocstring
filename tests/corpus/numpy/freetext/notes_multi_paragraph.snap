@@ -1,0 +1,19 @@
+=== CST ===
+NUMPY_DOCSTRING@0..57 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..57 {
+    NUMPY_SECTION_HEADER@10..21 {
+      NAME: "Notes"@10..15
+      UNDERLINE: "-----"@16..21
+    }
+    BODY_TEXT: "First paragraph.\n\nSecond paragraph."@22..57
+  }
+}
+=== EMIT ===
+Summary.
+
+Notes
+-----
+First paragraph.
+
+Second paragraph.

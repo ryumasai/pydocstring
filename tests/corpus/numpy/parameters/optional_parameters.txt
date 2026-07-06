@@ -1,0 +1,8 @@
+Function with optional parameters.
+
+Parameters
+----------
+required : str
+    A required parameter.
+optional : int, optional
+    An optional parameter.

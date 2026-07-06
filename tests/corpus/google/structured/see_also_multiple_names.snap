@@ -1,0 +1,20 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..46 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..46 {
+    GOOGLE_SECTION_HEADER@10..19 {
+      NAME: "See Also"@10..18
+      COLON: ":"@18..19
+    }
+    GOOGLE_SEE_ALSO_ITEM@24..46 {
+      NAME: "func_a"@24..30
+      NAME: "func_b"@32..38
+      NAME: "func_c"@40..46
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+See Also:
+    func_a, func_b, func_c

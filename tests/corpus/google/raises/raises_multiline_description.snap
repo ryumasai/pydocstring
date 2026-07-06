@@ -1,0 +1,21 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..66 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..66 {
+    GOOGLE_SECTION_HEADER@10..17 {
+      NAME: "Raises"@10..16
+      COLON: ":"@16..17
+    }
+    GOOGLE_EXCEPTION@22..66 {
+      TYPE: "ValueError"@22..32
+      COLON: ":"@32..33
+      DESCRIPTION: "If the\n        input is invalid."@34..66
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Raises:
+    ValueError: If the
+        input is invalid.

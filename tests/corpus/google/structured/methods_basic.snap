@@ -1,0 +1,26 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..88 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..88 {
+    GOOGLE_SECTION_HEADER@10..18 {
+      NAME: "Methods"@10..17
+      COLON: ":"@17..18
+    }
+    GOOGLE_METHOD@23..48 {
+      NAME: "reset()"@23..30
+      COLON: ":"@30..31
+      DESCRIPTION: "Reset the state."@32..48
+    }
+    GOOGLE_METHOD@53..88 {
+      NAME: "update(data)"@53..65
+      COLON: ":"@65..66
+      DESCRIPTION: "Update with new data."@67..88
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Methods:
+    reset(): Reset the state.
+    update(data): Update with new data.

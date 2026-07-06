@@ -1,0 +1,26 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..57 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..32 {
+    GOOGLE_SECTION_HEADER@10..21 {
+      NAME: "Custom One"@10..20
+      COLON: ":"@20..21
+    }
+    BODY_TEXT: "First."@26..32
+  }
+  GOOGLE_SECTION@34..57 {
+    GOOGLE_SECTION_HEADER@34..45 {
+      NAME: "Custom Two"@34..44
+      COLON: ":"@44..45
+    }
+    BODY_TEXT: "Second."@50..57
+  }
+}
+=== EMIT ===
+Summary.
+
+Custom One:
+    First.
+
+Custom Two:
+    Second.

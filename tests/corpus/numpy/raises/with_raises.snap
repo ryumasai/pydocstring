@@ -1,0 +1,27 @@
+=== CST ===
+NUMPY_DOCSTRING@0..126 {
+  SUMMARY: "Function that may raise exceptions."@0..35
+  NUMPY_SECTION@37..126 {
+    NUMPY_SECTION_HEADER@37..50 {
+      NAME: "Raises"@37..43
+      UNDERLINE: "------"@44..50
+    }
+    NUMPY_EXCEPTION@51..90 {
+      TYPE: "ValueError"@51..61
+      DESCRIPTION: "If the input is invalid."@66..90
+    }
+    NUMPY_EXCEPTION@91..126 {
+      TYPE: "TypeError"@91..100
+      DESCRIPTION: "If the type is wrong."@105..126
+    }
+  }
+}
+=== EMIT ===
+Function that may raise exceptions.
+
+Raises
+------
+ValueError
+    If the input is invalid.
+TypeError
+    If the type is wrong.

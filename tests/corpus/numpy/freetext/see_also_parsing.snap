@@ -1,0 +1,26 @@
+=== CST ===
+NUMPY_DOCSTRING@0..67 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..67 {
+    NUMPY_SECTION_HEADER@10..27 {
+      NAME: "See Also"@10..18
+      UNDERLINE: "--------"@19..27
+    }
+    NUMPY_SEE_ALSO_ITEM@28..52 {
+      NAME: "func_a"@28..34
+      COLON: ":"@35..36
+      DESCRIPTION: "Does something."@37..52
+    }
+    NUMPY_SEE_ALSO_ITEM@53..67 {
+      NAME: "func_b"@53..59
+      NAME: "func_c"@61..67
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+See Also
+--------
+func_a : Does something.
+func_b, func_c

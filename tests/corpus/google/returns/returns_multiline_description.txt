@@ -1,0 +1,5 @@
+Summary.
+
+Returns:
+    int: The result
+        of the computation.

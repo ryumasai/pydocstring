@@ -1,0 +1,4 @@
+Summary.
+
+Raises:
+    ValueError: If the input is invalid.

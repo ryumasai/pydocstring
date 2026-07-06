@@ -1,0 +1,20 @@
+Calculate the sum.
+
+This function adds two numbers.
+
+Args:
+    a (int): The first number.
+    b (int): The second number.
+
+Returns:
+    int: The sum of a and b.
+
+Raises:
+    TypeError: If inputs are not numbers.
+
+Example:
+    >>> add(1, 2)
+    3
+
+Note:
+    This is a simple function.

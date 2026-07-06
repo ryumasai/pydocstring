@@ -1,0 +1,31 @@
+=== CST ===
+NUMPY_DOCSTRING@0..84 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..84 {
+    NUMPY_SECTION_HEADER@10..27 {
+      NAME: "Receives"@10..18
+      UNDERLINE: "--------"@19..27
+    }
+    NUMPY_PARAMETER@28..54 {
+      NAME: "msg"@28..31
+      COLON: ":"@32..33
+      TYPE: "str"@34..37
+      DESCRIPTION: "The message."@42..54
+    }
+    NUMPY_PARAMETER@55..84 {
+      NAME: "data"@55..59
+      COLON: ":"@60..61
+      TYPE: "bytes"@62..67
+      DESCRIPTION: "The payload."@72..84
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Receives
+--------
+msg : str
+    The message.
+data : bytes
+    The payload.

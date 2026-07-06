@@ -1,0 +1,22 @@
+=== CST ===
+NUMPY_DOCSTRING@0..56 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..56 {
+    NUMPY_SECTION_HEADER@10..21 {
+      NAME: "Warns"@10..15
+      UNDERLINE: "-----"@16..21
+    }
+    NUMPY_WARNING@22..56 {
+      TYPE: "UserWarning"@22..33
+      COLON: ":"@34..35
+      DESCRIPTION: "If input is unusual."@36..56
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Warns
+-----
+UserWarning
+    If input is unusual.

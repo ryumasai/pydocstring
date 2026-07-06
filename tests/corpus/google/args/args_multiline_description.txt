@@ -1,0 +1,6 @@
+Summary.
+
+Args:
+    x (int): First line.
+        Second line.
+        Third line.

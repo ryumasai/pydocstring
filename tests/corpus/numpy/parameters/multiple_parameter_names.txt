@@ -1,0 +1,6 @@
+Summary.
+
+Parameters
+----------
+x1, x2 : array_like
+    Input arrays.

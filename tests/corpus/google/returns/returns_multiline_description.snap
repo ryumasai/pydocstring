@@ -1,0 +1,21 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..66 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..66 {
+    GOOGLE_SECTION_HEADER@10..18 {
+      NAME: "Returns"@10..17
+      COLON: ":"@17..18
+    }
+    GOOGLE_RETURNS@23..66 {
+      RETURN_TYPE: "int"@23..26
+      COLON: ":"@26..27
+      DESCRIPTION: "The result\n        of the computation."@28..66
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Returns:
+    int: The result
+    of the computation.

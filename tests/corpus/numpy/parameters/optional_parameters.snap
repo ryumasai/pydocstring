@@ -1,0 +1,32 @@
+=== CST ===
+NUMPY_DOCSTRING@0..150 {
+  SUMMARY: "Function with optional parameters."@0..34
+  NUMPY_SECTION@36..150 {
+    NUMPY_SECTION_HEADER@36..57 {
+      NAME: "Parameters"@36..46
+      UNDERLINE: "----------"@47..57
+    }
+    NUMPY_PARAMETER@58..98 {
+      NAME: "required"@58..66
+      COLON: ":"@67..68
+      TYPE: "str"@69..72
+      DESCRIPTION: "A required parameter."@77..98
+    }
+    NUMPY_PARAMETER@99..150 {
+      NAME: "optional"@99..107
+      COLON: ":"@108..109
+      TYPE: "int"@110..113
+      OPTIONAL: "optional"@115..123
+      DESCRIPTION: "An optional parameter."@128..150
+    }
+  }
+}
+=== EMIT ===
+Function with optional parameters.
+
+Parameters
+----------
+required : str
+    A required parameter.
+optional : int, optional
+    An optional parameter.

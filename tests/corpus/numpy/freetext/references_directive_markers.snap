@@ -1,0 +1,23 @@
+=== CST ===
+NUMPY_DOCSTRING@0..48 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..48 {
+    NUMPY_SECTION_HEADER@10..31 {
+      NAME: "References"@10..20
+      UNDERLINE: "----------"@21..31
+    }
+    NUMPY_REFERENCE@32..48 {
+      DIRECTIVE_MARKER: ".."@32..34
+      OPEN_BRACKET: "["@35..36
+      NUMBER: "1"@36..37
+      CLOSE_BRACKET: "]"@37..38
+      CONTENT: "Some ref."@39..48
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+References
+----------
+.. [1] Some ref.

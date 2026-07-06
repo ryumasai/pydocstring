@@ -1,0 +1,41 @@
+Summary.
+
+Arguments:
+    x (int): The value.
+
+Attribute:
+    name (str): The name.
+
+Examples:
+    >>> 1 + 1
+    2
+
+Keyword Arguments:
+    key (str): The key.
+
+Notes:
+    This is also a note.
+
+Parameters:
+    x (int): The value.
+
+Params:
+    x (int): The value.
+
+Raise:
+    ValueError: If invalid.
+
+Receive:
+    msg (str): The message.
+
+Return:
+    int: The value.
+
+Warn:
+    FutureWarning: Will change.
+
+Warning:
+    This is deprecated.
+
+Yield:
+    str: Next string.

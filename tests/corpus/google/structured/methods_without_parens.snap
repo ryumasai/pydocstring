@@ -1,0 +1,20 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..56 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..56 {
+    GOOGLE_SECTION_HEADER@10..18 {
+      NAME: "Methods"@10..17
+      COLON: ":"@17..18
+    }
+    GOOGLE_METHOD@23..56 {
+      NAME: "do_stuff"@23..31
+      COLON: ":"@31..32
+      DESCRIPTION: "Performs the operation."@33..56
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Methods:
+    do_stuff: Performs the operation.

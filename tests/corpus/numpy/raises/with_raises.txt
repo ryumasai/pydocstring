@@ -1,0 +1,8 @@
+Function that may raise exceptions.
+
+Raises
+------
+ValueError
+    If the input is invalid.
+TypeError
+    If the type is wrong.

@@ -1,0 +1,13 @@
+Calculate the sum of two numbers.
+
+Parameters
+----------
+x : int
+    The first number.
+y : int
+    The second number.
+
+Returns
+-------
+int
+    The sum of x and y.

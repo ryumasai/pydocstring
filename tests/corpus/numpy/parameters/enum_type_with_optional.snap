@@ -1,0 +1,24 @@
+=== CST ===
+NUMPY_DOCSTRING@0..79 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..79 {
+    NUMPY_SECTION_HEADER@10..31 {
+      NAME: "Parameters"@10..20
+      UNDERLINE: "----------"@21..31
+    }
+    NUMPY_PARAMETER@32..79 {
+      NAME: "order"@32..37
+      COLON: ":"@38..39
+      TYPE: "{'C', 'F'}"@40..50
+      OPTIONAL: "optional"@52..60
+      DESCRIPTION: "Memory layout."@65..79
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Parameters
+----------
+order : {'C', 'F'}, optional
+    Memory layout.

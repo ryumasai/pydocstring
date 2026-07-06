@@ -1,0 +1,6 @@
+Summary.
+
+Attributes
+----------
+name
+    The name.

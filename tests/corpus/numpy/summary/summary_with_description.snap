@@ -1,0 +1,10 @@
+=== CST ===
+NUMPY_DOCSTRING@0..91 {
+  SUMMARY: "Brief summary."@0..14
+  EXTENDED_SUMMARY: "This is a longer description that provides\nmore details about the function."@16..91
+}
+=== EMIT ===
+Brief summary.
+
+This is a longer description that provides
+more details about the function.

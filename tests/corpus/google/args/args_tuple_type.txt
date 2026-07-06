@@ -1,0 +1,4 @@
+Summary.
+
+Args:
+    pair (Tuple[int, str]): A pair of values.

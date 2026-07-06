@@ -1,0 +1,4 @@
+Summary.
+
+Warns:
+    DeprecationWarning: If using old API.

@@ -1,0 +1,5 @@
+Summary.
+
+Warns
+-----
+UserWarning : If input is unusual.

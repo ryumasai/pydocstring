@@ -1,0 +1,7 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..32 {
+  SUMMARY: "Summary line one\ncontinues here."@0..32
+}
+=== EMIT ===
+Summary line one
+continues here.

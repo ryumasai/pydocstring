@@ -1,0 +1,26 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..75 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..75 {
+    GOOGLE_SECTION_HEADER@10..17 {
+      NAME: "Raises"@10..16
+      COLON: ":"@16..17
+    }
+    GOOGLE_EXCEPTION@22..45 {
+      TYPE: "ValueError"@22..32
+      COLON: ":"@32..33
+      DESCRIPTION: "If invalid."@34..45
+    }
+    GOOGLE_EXCEPTION@50..75 {
+      TYPE: "TypeError"@50..59
+      COLON: ":"@59..60
+      DESCRIPTION: "If wrong type."@61..75
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Raises:
+    ValueError: If invalid.
+    TypeError: If wrong type.
