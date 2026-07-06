@@ -10,7 +10,7 @@ pub mod to_model;
 pub use crate::parse::visitor::{DocstringVisitor, walk};
 pub use kind::GoogleSectionKind;
 pub use nodes::{
-    GoogleArg, GoogleAttribute, GoogleDocstring, GoogleException, GoogleMethod, GoogleReturn, GoogleSection,
-    GoogleSectionHeader, GoogleSeeAlsoItem, GoogleWarning, GoogleYield,
+    GoogleArg, GoogleAttribute, GoogleDeprecation, GoogleDocstring, GoogleException, GoogleMethod, GoogleReturn,
+    GoogleSection, GoogleSectionHeader, GoogleSeeAlsoItem, GoogleWarning, GoogleYield,
 };
 pub use parser::parse_google;

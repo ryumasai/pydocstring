@@ -1,0 +1,33 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..88 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_DEPRECATION@10..57 {
+    DIRECTIVE_MARKER: ".."@10..12
+    KEYWORD: "deprecated"@13..23
+    DOUBLE_COLON: "::"@23..25
+    VERSION: "1.6.0"@26..31
+    DESCRIPTION: "Use new_func instead."@36..57
+  }
+  GOOGLE_SECTION@59..88 {
+    GOOGLE_SECTION_HEADER@59..64 {
+      NAME: "Args"@59..63
+      COLON: ":"@63..64
+    }
+    GOOGLE_ARG@69..88 {
+      NAME: "x"@69..70
+      OPEN_BRACKET: "("@71..72
+      TYPE: "int"@72..75
+      CLOSE_BRACKET: ")"@75..76
+      COLON: ":"@76..77
+      DESCRIPTION: "The value."@78..88
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+.. deprecated:: 1.6.0
+    Use new_func instead.
+
+Args:
+    x (int): The value.

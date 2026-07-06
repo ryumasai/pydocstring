@@ -3,9 +3,11 @@
 //! Parses docstrings in NumPy format and produces a [`Parsed`] result
 //! containing a tree of [`SyntaxNode`]s and [`SyntaxToken`]s.
 
-use crate::cursor::{LineCursor, indent_columns, indent_len};
+use crate::cursor::{LineCursor, indent_len};
 use crate::parse::numpy::kind::NumPySectionKind;
-use crate::parse::utils::{find_matching_close, find_term_colon, split_comma_parts, try_parse_bracket_entry};
+use crate::parse::utils::{
+    find_matching_close, find_term_colon, split_comma_parts, try_parse_bracket_entry, try_parse_deprecation_directive,
+};
 use crate::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use crate::text::TextRange;
 
@@ -59,37 +61,6 @@ struct SectionHeaderInfo {
     kind: NumPySectionKind,
     name: TextRange,
     underline: TextRange,
-}
-
-// =============================================================================
-// Description collector (for deprecation directive body)
-// =============================================================================
-
-fn collect_description(cursor: &mut LineCursor, entry_indent_cols: usize) -> Option<TextRange> {
-    let mut first_content_line: Option<usize> = None;
-    let mut last_content_line = cursor.line;
-
-    while !cursor.is_eof() {
-        let line = cursor.current_line_text();
-        if !line.trim().is_empty() && indent_columns(line) <= entry_indent_cols {
-            break;
-        }
-        if !line.trim().is_empty() {
-            if first_content_line.is_none() {
-                first_content_line = Some(cursor.line);
-            }
-            last_content_line = cursor.line;
-        }
-        cursor.advance();
-    }
-
-    first_content_line.map(|first| {
-        let first_line = cursor.line_text(first);
-        let first_col = indent_len(first_line);
-        let last_line = cursor.line_text(last_content_line);
-        let last_col = indent_len(last_line) + last_line.trim().len();
-        cursor.make_range(first, first_col, last_content_line, last_col)
-    })
 }
 
 // =============================================================================
@@ -1076,65 +1047,12 @@ pub fn parse_numpy(input: &str) -> Parsed {
     cursor.skip_blanks();
 
     // --- Deprecation directive ---
-    if !cursor.is_eof() && try_detect_header(&cursor).is_none() {
-        let line = cursor.current_line_text();
-        let trimmed = line.trim();
-        if trimmed.starts_with(".. deprecated::") {
-            let col = cursor.current_indent();
-            let prefix = ".. deprecated::";
-            let after_prefix = &trimmed[prefix.len()..];
-            let ws_len = after_prefix.len() - after_prefix.trim_start().len();
-            let version_str = after_prefix.trim();
-            let version_col = col + prefix.len() + ws_len;
-
-            let mut dep_children: Vec<SyntaxElement> = Vec::new();
-
-            // `..` at col..col+2
-            dep_children.push(SyntaxElement::Token(SyntaxToken::new(
-                SyntaxKind::DIRECTIVE_MARKER,
-                cursor.make_line_range(cursor.line, col, 2),
-            )));
-            // `deprecated` at col+3..col+13
-            dep_children.push(SyntaxElement::Token(SyntaxToken::new(
-                SyntaxKind::KEYWORD,
-                cursor.make_line_range(cursor.line, col + 3, 10),
-            )));
-            // `::` at col+13..col+15
-            dep_children.push(SyntaxElement::Token(SyntaxToken::new(
-                SyntaxKind::DOUBLE_COLON,
-                cursor.make_line_range(cursor.line, col + 13, 2),
-            )));
-
-            let version_range = cursor.make_line_range(cursor.line, version_col, version_str.len());
-            dep_children.push(SyntaxElement::Token(SyntaxToken::new(
-                SyntaxKind::VERSION,
-                version_range,
-            )));
-
-            let dep_start_line = cursor.line;
-            cursor.advance();
-
-            let desc_range = collect_description(&mut cursor, indent_columns(line));
-
-            if let Some(desc) = desc_range {
-                dep_children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, desc)));
-            }
-
-            // Compute deprecation span
-            let (dep_end_line, dep_end_col) = match desc_range {
-                None => (dep_start_line, col + trimmed.len()),
-                Some(d) => cursor.offset_to_line_col(d.end().raw() as usize),
-            };
-
-            let dep_range = cursor.make_range(dep_start_line, col, dep_end_line, dep_end_col);
-            root_children.push(SyntaxElement::Node(SyntaxNode::new(
-                SyntaxKind::NUMPY_DEPRECATION,
-                dep_range,
-                dep_children,
-            )));
-
-            cursor.skip_blanks();
-        }
+    if !cursor.is_eof()
+        && try_detect_header(&cursor).is_none()
+        && let Some(node) = try_parse_deprecation_directive(&mut cursor, SyntaxKind::NUMPY_DEPRECATION)
+    {
+        root_children.push(SyntaxElement::Node(node));
+        cursor.skip_blanks();
     }
 
     // --- Extended summary ---

@@ -93,6 +93,27 @@ class TestParseGoogle:
         assert doc.extended_summary is not None
         assert doc.extended_summary.text == "Extended description here."
 
+    def test_deprecation(self):
+        doc = pydocstring.parse_google("Summary.\n\n.. deprecated:: 1.6.0\n    Use new_func instead.")
+        dep = doc.deprecation
+        assert dep is not None
+        assert dep.version.text == "1.6.0"
+        assert dep.description is not None
+        assert dep.description.text == "Use new_func instead."
+        assert doc.extended_summary is None
+
+        class Collector(pydocstring.Visitor):
+            def __init__(self):
+                self.deps = []
+
+            def enter_google_deprecation(self, dep, ctx):
+                self.deps.append(dep)
+
+        deps = pydocstring.walk(doc, Collector()).deps
+        assert len(deps) == 1
+        assert deps[0].version.text == "1.6.0"
+        assert repr(deps[0]) == 'GoogleDeprecation("1.6.0")'
+
     def test_body_text_section(self):
         doc = pydocstring.parse_google("Summary.\n\nNotes:\n    Some free text.")
         section = doc.sections[0]

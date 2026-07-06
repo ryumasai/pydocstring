@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from . import (
         GoogleArg,
         GoogleAttribute,
+        GoogleDeprecation,
         GoogleDocstring,
         GoogleException,
         GoogleMethod,
@@ -42,6 +43,8 @@ _ALL_VISITOR_METHODS: frozenset[str] = frozenset(
     [
         "enter_google_docstring",
         "exit_google_docstring",
+        "enter_google_deprecation",
+        "exit_google_deprecation",
         "enter_google_section",
         "exit_google_section",
         "enter_google_arg",
@@ -128,6 +131,14 @@ class Visitor:
 
     @_pydocstring_noop
     def exit_google_docstring(self, node: GoogleDocstring, ctx: WalkContext, /) -> None:
+        pass
+
+    @_pydocstring_noop
+    def enter_google_deprecation(self, node: GoogleDeprecation, ctx: WalkContext, /) -> None:
+        pass
+
+    @_pydocstring_noop
+    def exit_google_deprecation(self, node: GoogleDeprecation, ctx: WalkContext, /) -> None:
         pass
 
     @_pydocstring_noop

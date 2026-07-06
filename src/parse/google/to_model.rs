@@ -1,7 +1,8 @@
 //! Convert a Google-style AST into the style-independent [`Docstring`] model.
 
 use crate::model::{
-    Attribute, Docstring, ExceptionEntry, FreeSectionKind, Method, Parameter, Return, Section, SeeAlsoEntry,
+    Attribute, Deprecation, Docstring, ExceptionEntry, FreeSectionKind, Method, Parameter, Return, Section,
+    SeeAlsoEntry,
 };
 use crate::parse::google::kind::GoogleSectionKind;
 use crate::parse::google::nodes::{GoogleDocstring, GoogleSection};
@@ -20,12 +21,17 @@ pub fn to_model(parsed: &Parsed) -> Option<Docstring> {
         .extended_summary()
         .map(|t| convert_multiline_with_indentation(t.text(source)));
 
+    let deprecation = root.deprecation().map(|dep| Deprecation {
+        version: dep.version().text(source).to_owned(),
+        description: dep.description().map(|t| t.text(source).to_owned()),
+    });
+
     let sections = root.sections().map(|s| convert_section(&s, source)).collect();
 
     Some(Docstring {
         summary,
         extended_summary,
-        deprecation: None,
+        deprecation,
         sections,
     })
 }

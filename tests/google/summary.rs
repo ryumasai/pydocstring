@@ -76,6 +76,26 @@ fn test_section_only_no_summary() {
     assert_eq!(args(&result).len(), 1);
 }
 
+/// SPEC: `.. deprecated:: <version>` directive between the summary and the
+/// extended summary is recognized and does NOT become extended summary.
+/// Also CONTRACT for GoogleDeprecation accessors (version / description).
+#[test]
+fn test_deprecation_directive() {
+    let docstring = "Summary.\n\n.. deprecated:: 1.6.0\n    Use `new_func` instead.\n\nArgs:\n    x (int): The value.";
+    let result = parse_google(docstring);
+
+    let dep = doc(&result).deprecation().expect("deprecation should be parsed");
+    assert_eq!(dep.version().text(result.source()), "1.6.0");
+    assert_eq!(
+        dep.description().unwrap().text(result.source()),
+        "Use `new_func` instead."
+    );
+
+    // The directive is not swallowed into the extended summary.
+    assert!(doc(&result).extended_summary().is_none());
+    assert_eq!(args(&result).len(), 1);
+}
+
 /// Leading blank lines are skipped before the summary.
 #[test]
 fn test_leading_blank_lines() {

@@ -1,5 +1,108 @@
 //! Shared utilities for docstring style parsers.
 
+use crate::cursor::{LineCursor, indent_columns, indent_len};
+use crate::syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
+use crate::text::TextRange;
+
+// =============================================================================
+// Deprecation directive parsing (shared by the NumPy and Google parsers)
+// =============================================================================
+
+/// Collect a directive body: the following lines that are blank or indented
+/// deeper than `entry_indent_cols`. Advances the cursor past the collected
+/// lines and returns the range spanning the first to last content line.
+pub(crate) fn collect_description(cursor: &mut LineCursor, entry_indent_cols: usize) -> Option<TextRange> {
+    let mut first_content_line: Option<usize> = None;
+    let mut last_content_line = cursor.line;
+
+    while !cursor.is_eof() {
+        let line = cursor.current_line_text();
+        if !line.trim().is_empty() && indent_columns(line) <= entry_indent_cols {
+            break;
+        }
+        if !line.trim().is_empty() {
+            if first_content_line.is_none() {
+                first_content_line = Some(cursor.line);
+            }
+            last_content_line = cursor.line;
+        }
+        cursor.advance();
+    }
+
+    first_content_line.map(|first| {
+        let first_line = cursor.line_text(first);
+        let first_col = indent_len(first_line);
+        let last_line = cursor.line_text(last_content_line);
+        let last_col = indent_len(last_line) + last_line.trim().len();
+        cursor.make_range(first, first_col, last_content_line, last_col)
+    })
+}
+
+/// Try to parse an rST `.. deprecated:: <version>` directive at `cursor.line`.
+///
+/// On success, builds a deprecation node of `node_kind` (`NUMPY_DEPRECATION`
+/// or `GOOGLE_DEPRECATION`) with `DIRECTIVE_MARKER`, `KEYWORD`, `DOUBLE_COLON`,
+/// `VERSION`, and an optional `DESCRIPTION` collected from the following
+/// more-indented lines, and advances the cursor past the directive.
+/// Returns `None` (without advancing) if the current line is not a
+/// deprecation directive.
+pub(crate) fn try_parse_deprecation_directive(cursor: &mut LineCursor, node_kind: SyntaxKind) -> Option<SyntaxNode> {
+    let line = cursor.current_line_text();
+    let trimmed = line.trim();
+    if !trimmed.starts_with(".. deprecated::") {
+        return None;
+    }
+
+    let col = cursor.current_indent();
+    let prefix = ".. deprecated::";
+    let after_prefix = &trimmed[prefix.len()..];
+    let ws_len = after_prefix.len() - after_prefix.trim_start().len();
+    let version_str = after_prefix.trim();
+    let version_col = col + prefix.len() + ws_len;
+
+    let mut dep_children: Vec<SyntaxElement> = Vec::new();
+
+    // `..` at col..col+2
+    dep_children.push(SyntaxElement::Token(SyntaxToken::new(
+        SyntaxKind::DIRECTIVE_MARKER,
+        cursor.make_line_range(cursor.line, col, 2),
+    )));
+    // `deprecated` at col+3..col+13
+    dep_children.push(SyntaxElement::Token(SyntaxToken::new(
+        SyntaxKind::KEYWORD,
+        cursor.make_line_range(cursor.line, col + 3, 10),
+    )));
+    // `::` at col+13..col+15
+    dep_children.push(SyntaxElement::Token(SyntaxToken::new(
+        SyntaxKind::DOUBLE_COLON,
+        cursor.make_line_range(cursor.line, col + 13, 2),
+    )));
+
+    let version_range = cursor.make_line_range(cursor.line, version_col, version_str.len());
+    dep_children.push(SyntaxElement::Token(SyntaxToken::new(
+        SyntaxKind::VERSION,
+        version_range,
+    )));
+
+    let dep_start_line = cursor.line;
+    cursor.advance();
+
+    let desc_range = collect_description(cursor, indent_columns(line));
+
+    if let Some(desc) = desc_range {
+        dep_children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, desc)));
+    }
+
+    // Compute deprecation span
+    let (dep_end_line, dep_end_col) = match desc_range {
+        None => (dep_start_line, col + trimmed.len()),
+        Some(d) => cursor.offset_to_line_col(d.end().raw() as usize),
+    };
+
+    let dep_range = cursor.make_range(dep_start_line, col, dep_end_line, dep_end_col);
+    Some(SyntaxNode::new(node_kind, dep_range, dep_children))
+}
+
 /// Find the byte offset of the first entry-separating colon in `text`.
 ///
 /// Skips colons that appear inside balanced brackets (`()`, `[]`, `{}`, `<>`)

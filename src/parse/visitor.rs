@@ -41,8 +41,8 @@
 //! ```
 
 use crate::parse::google::nodes::{
-    GoogleArg, GoogleAttribute, GoogleDocstring, GoogleException, GoogleMethod, GoogleReturn, GoogleSection,
-    GoogleSeeAlsoItem, GoogleWarning, GoogleYield,
+    GoogleArg, GoogleAttribute, GoogleDeprecation, GoogleDocstring, GoogleException, GoogleMethod, GoogleReturn,
+    GoogleSection, GoogleSeeAlsoItem, GoogleWarning, GoogleYield,
 };
 use crate::parse::numpy::nodes::{
     NumPyAttribute, NumPyDeprecation, NumPyDocstring, NumPyException, NumPyMethod, NumPyParameter, NumPyReference,
@@ -76,6 +76,10 @@ pub trait DocstringVisitor: Sized {
     /// Called for the Google docstring root.
     fn visit_google_docstring(&mut self, source: &str, doc: &GoogleDocstring<'_>) -> Result<(), Self::Error> {
         walk_children(source, doc.syntax(), self)
+    }
+    /// Called for the deprecation notice, if present.
+    fn visit_google_deprecation(&mut self, source: &str, dep: &GoogleDeprecation<'_>) -> Result<(), Self::Error> {
+        walk_children(source, dep.syntax(), self)
     }
     /// Called for each Google section.
     fn visit_google_section(&mut self, source: &str, sec: &GoogleSection<'_>) -> Result<(), Self::Error> {
@@ -181,6 +185,7 @@ pub fn walk<V: DocstringVisitor>(source: &str, node: &SyntaxNode, visitor: &mut 
         SyntaxKind::NUMPY_DOCSTRING => visitor.visit_numpy_docstring(source, &NumPyDocstring(node))?,
         // Google inner nodes
         SyntaxKind::GOOGLE_SECTION => visitor.visit_google_section(source, &GoogleSection(node))?,
+        SyntaxKind::GOOGLE_DEPRECATION => visitor.visit_google_deprecation(source, &GoogleDeprecation(node))?,
         SyntaxKind::GOOGLE_ARG => visitor.visit_google_arg(source, &GoogleArg(node))?,
         SyntaxKind::GOOGLE_RETURNS => visitor.visit_google_return(source, &GoogleReturn(node))?,
         SyntaxKind::GOOGLE_YIELDS => visitor.visit_google_yield(source, &GoogleYield(node))?,
