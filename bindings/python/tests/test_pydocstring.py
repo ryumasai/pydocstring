@@ -487,6 +487,18 @@ class TestToModel:
         assert params[0].type_annotation == "int"
         assert pydocstring.emit_numpy(model) == docstr
 
+    def test_numpy_yields_to_model_round_trip(self):
+        docstr = "Summary.\n\nYields\n------\nint\n    The next value.\n"
+        model = pydocstring.parse_numpy(docstr).to_model()
+        assert model.sections[0].kind == pydocstring.SectionKind.YIELDS
+        assert pydocstring.emit_numpy(model) == docstr
+
+    def test_numpy_warns_to_model_round_trip(self):
+        docstr = "Summary.\n\nWarns\n-----\nUserWarning\n    When deprecated.\n"
+        model = pydocstring.parse_numpy(docstr).to_model()
+        assert model.sections[0].kind == pydocstring.SectionKind.WARNS
+        assert pydocstring.emit_numpy(model) == docstr
+
     def test_emit_sphinx(self):
         docstr = "Summary.\n\nArgs:\n    x (int): The value.\n\nReturns:\n    str: The result.\n"
         model = pydocstring.parse_google(docstr).to_model()

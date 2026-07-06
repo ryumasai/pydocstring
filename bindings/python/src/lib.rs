@@ -2761,7 +2761,7 @@ impl TryFrom<&model::Section> for PyModelSection {
                     )?
                     .unbind(),
                 )),
-                model::Section::Yields(returns) => Ok(PyModelSection::Returns(
+                model::Section::Yields(returns) => Ok(PyModelSection::Yields(
                     PyList::new(
                         py,
                         returns
@@ -2781,7 +2781,7 @@ impl TryFrom<&model::Section> for PyModelSection {
                     )?
                     .unbind(),
                 )),
-                model::Section::Warns(exceptions) => Ok(PyModelSection::Raises(
+                model::Section::Warns(exceptions) => Ok(PyModelSection::Warns(
                     PyList::new(
                         py,
                         exceptions
