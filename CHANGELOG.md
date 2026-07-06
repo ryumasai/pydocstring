@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- NumPy and Google parsers: colons belonging to reStructuredText role
+  references (e.g. `:attr:`~module.ClassName.attr1``) and trailing colons in
+  prose lines (e.g. `Description with attributes:`) were misinterpreted as
+  term/classifier separators, causing the colons to be dropped on re-emit.
+  A new reStructuredText-aware separator rule now treats a colon as a
+  separator only when it follows whitespace (`name : type`) or is attached to
+  a single top-level token (`name:type`), leaving role references and prose
+  intact ([#26](https://github.com/ryumasai/pydocstring/issues/26)).
+
 ### Added
 
 - Sphinx-style (reStructuredText) emit: `emit::sphinx::emit_sphinx` renders a

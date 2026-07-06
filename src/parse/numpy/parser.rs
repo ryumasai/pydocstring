@@ -5,7 +5,7 @@
 
 use crate::cursor::{LineCursor, indent_columns, indent_len};
 use crate::parse::numpy::kind::NumPySectionKind;
-use crate::parse::utils::{find_entry_colon, find_matching_close, split_comma_parts, try_parse_bracket_entry};
+use crate::parse::utils::{find_matching_close, find_term_colon, split_comma_parts, try_parse_bracket_entry};
 use crate::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use crate::text::TextRange;
 
@@ -113,7 +113,7 @@ fn parse_name_and_type(text: &str, line_idx: usize, col_base: usize, cursor: &Li
         return result;
     }
 
-    let Some(colon_pos) = find_entry_colon(text) else {
+    let Some(colon_pos) = find_term_colon(text) else {
         let names = parse_name_list(text, line_idx, col_base, cursor);
         return ParamHeaderParts {
             names,
@@ -617,7 +617,7 @@ fn process_returns_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, ent
     let col = cursor.current_indent();
     let trimmed = cursor.current_trimmed();
 
-    let (name, colon, return_type) = if let Some(colon_pos) = find_entry_colon(trimmed) {
+    let (name, colon, return_type) = if let Some(colon_pos) = find_term_colon(trimmed) {
         let n = trimmed[..colon_pos].trim_end();
         let after_colon = &trimmed[colon_pos + 1..];
         let t = after_colon.trim();
@@ -661,7 +661,7 @@ fn process_yields_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entr
     let col = cursor.current_indent();
     let trimmed = cursor.current_trimmed();
 
-    let (name, colon, return_type) = if let Some(colon_pos) = find_entry_colon(trimmed) {
+    let (name, colon, return_type) = if let Some(colon_pos) = find_term_colon(trimmed) {
         let n = trimmed[..colon_pos].trim_end();
         let after_colon = &trimmed[colon_pos + 1..];
         let t = after_colon.trim();
@@ -705,7 +705,7 @@ fn process_raises_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entr
     let col = cursor.current_indent();
     let trimmed = cursor.current_trimmed();
 
-    let (exc_type, colon, first_desc) = if let Some(colon_pos) = find_entry_colon(trimmed) {
+    let (exc_type, colon, first_desc) = if let Some(colon_pos) = find_term_colon(trimmed) {
         let type_str = trimmed[..colon_pos].trim_end();
         let after_colon = &trimmed[colon_pos + 1..];
         let desc_str = after_colon.trim();
@@ -748,7 +748,7 @@ fn process_warning_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, ent
     let col = cursor.current_indent();
     let trimmed = cursor.current_trimmed();
 
-    let (warn_type, colon, first_desc) = if let Some(colon_pos) = find_entry_colon(trimmed) {
+    let (warn_type, colon, first_desc) = if let Some(colon_pos) = find_term_colon(trimmed) {
         let type_str = trimmed[..colon_pos].trim_end();
         let after_colon = &trimmed[colon_pos + 1..];
         let desc_str = after_colon.trim();
@@ -791,7 +791,7 @@ fn process_see_also_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, en
     let col = cursor.current_indent();
     let trimmed = cursor.current_trimmed();
 
-    let (names_str, colon, description) = if let Some(colon_pos) = find_entry_colon(trimmed) {
+    let (names_str, colon, description) = if let Some(colon_pos) = find_term_colon(trimmed) {
         let after_colon = &trimmed[colon_pos + 1..];
         let desc_text = after_colon.trim();
         let ws_after = after_colon.len() - after_colon.trim_start().len();
@@ -855,7 +855,7 @@ fn process_method_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entr
     let col = cursor.current_indent();
     let trimmed = cursor.current_trimmed();
 
-    let (name, colon) = if let Some(colon_pos) = find_entry_colon(trimmed) {
+    let (name, colon) = if let Some(colon_pos) = find_term_colon(trimmed) {
         let n = trimmed[..colon_pos].trim_end();
         (
             cursor.make_line_range(cursor.line, col, n.len()),
