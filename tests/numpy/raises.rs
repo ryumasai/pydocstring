@@ -1,49 +1,15 @@
+//! Spec + contract tests for Raises and Warns sections.
+//! Exhaustive input coverage lives in tests/corpus/numpy/ + tests/snapshots.rs;
+//! these tests pin deliberate spec decisions and the typed-accessor contract.
+
 use super::*;
 
 // =============================================================================
-// Raises section
+// Raises — colon splitting spec
 // =============================================================================
 
-#[test]
-fn test_with_raises() {
-    let docstring = r#"Function that may raise exceptions.
-
-Raises
-------
-ValueError
-    If the input is invalid.
-TypeError
-    If the type is wrong.
-"#;
-    let result = parse_numpy(docstring);
-
-    assert_eq!(raises(&result).len(), 2);
-    assert_eq!(raises(&result)[0].r#type().text(result.source()), "ValueError");
-    assert_eq!(raises(&result)[1].r#type().text(result.source()), "TypeError");
-}
-
-#[test]
-fn test_raises_with_spans() {
-    let docstring = r#"Summary.
-
-Raises
-------
-ValueError
-    If input is bad.
-TypeError
-    If type is wrong.
-"#;
-    let result = parse_numpy(docstring);
-    assert_eq!(raises(&result).len(), 2);
-    assert_eq!(raises(&result)[0].r#type().text(result.source()), "ValueError");
-    assert_eq!(raises(&result)[1].r#type().text(result.source()), "TypeError");
-}
-
-// =============================================================================
-// Raises — colon splitting
-// =============================================================================
-
-/// Raises with colon separating type and description on the same line.
+/// SPEC (issues #26/#31): `Type : description` on one line splits at the colon.
+/// Also CONTRACT for NumPyException accessors (type / colon / description).
 #[test]
 fn test_raises_colon_split() {
     let docstring =
@@ -65,7 +31,8 @@ fn test_raises_colon_split() {
     );
 }
 
-/// Raises without colon (bare type, description on next line).
+/// SPEC: bare exception type with the description on the next indented line
+/// (no colon token present).
 #[test]
 fn test_raises_no_colon() {
     let docstring = "Summary.\n\nRaises\n------\nValueError\n    If the input is invalid.";
@@ -80,7 +47,7 @@ fn test_raises_no_colon() {
     );
 }
 
-/// Raises with colon and continuation description on next lines.
+/// SPEC: continuation lines after an inline `Type : desc` join the description.
 #[test]
 fn test_raises_colon_with_continuation() {
     let docstring = "Summary.\n\nRaises\n------\nValueError : If bad.\n    More detail here.";
@@ -94,24 +61,11 @@ fn test_raises_colon_with_continuation() {
     assert!(desc.contains("More detail here."), "desc = {:?}", desc);
 }
 
-/// `Raise` alias for Raises.
-#[test]
-fn test_raise_alias() {
-    let docstring = "Summary.\n\nRaise\n-----\nValueError\n    Bad input.\n";
-    let result = parse_numpy(docstring);
-    let exc = raises(&result);
-    assert_eq!(exc.len(), 1);
-    assert_eq!(all_sections(&result)[0].header().name().text(result.source()), "Raise");
-    assert_eq!(
-        all_sections(&result)[0].section_kind(result.source()),
-        NumPySectionKind::Raises
-    );
-}
-
 // =============================================================================
 // Warns section
 // =============================================================================
 
+/// CONTRACT: NumPyWarning accessors (type / description).
 #[test]
 fn test_warns_basic() {
     let docstring = "Summary.\n\nWarns\n-----\nDeprecationWarning\n    If the old API is used.\n";
@@ -125,17 +79,7 @@ fn test_warns_basic() {
     );
 }
 
-#[test]
-fn test_warns_multiple() {
-    let docstring = "Summary.\n\nWarns\n-----\nDeprecationWarning\n    Old API.\nUserWarning\n    Bad usage.\n";
-    let result = parse_numpy(docstring);
-    let w = warns(&result);
-    assert_eq!(w.len(), 2);
-    assert_eq!(w[0].r#type().text(result.source()), "DeprecationWarning");
-    assert_eq!(w[1].r#type().text(result.source()), "UserWarning");
-}
-
-/// Warns with colon separating type and description on the same line.
+/// SPEC (issues #26/#31): `Type : description` colon split also applies in Warns.
 #[test]
 fn test_warns_colon_split() {
     let docstring = "Summary.\n\nWarns\n-----\nUserWarning : If input is unusual.\n";
@@ -148,29 +92,4 @@ fn test_warns_colon_split() {
         w[0].description().unwrap().text(result.source()),
         "If input is unusual."
     );
-}
-
-/// `Warn` alias for Warns.
-#[test]
-fn test_warn_alias() {
-    let docstring = "Summary.\n\nWarn\n----\nUserWarning\n    Bad usage.\n";
-    let result = parse_numpy(docstring);
-    let w = warns(&result);
-    assert_eq!(w.len(), 1);
-    assert_eq!(all_sections(&result)[0].header().name().text(result.source()), "Warn");
-    assert_eq!(
-        all_sections(&result)[0].section_kind(result.source()),
-        NumPySectionKind::Warns
-    );
-}
-
-/// Warns section body variant check.
-#[test]
-fn test_warns_section_body_variant() {
-    let docstring = "Summary.\n\nWarns\n-----\nUserWarning\n    Bad.\n";
-    let result = parse_numpy(docstring);
-    let s = &all_sections(&result)[0];
-    assert_eq!(s.section_kind(result.source()), NumPySectionKind::Warns);
-    let items: Vec<_> = s.warnings().collect();
-    assert_eq!(items.len(), 1);
 }

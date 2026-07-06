@@ -1,51 +1,83 @@
+//! Spec pins for section dispatch: header-alias→kind mapping, case-insensitivity,
+//! ordering, unknown sections, plus header/section span contract.
+//! Exhaustive input coverage lives in tests/corpus/google/ + tests/snapshots.rs.
+
 use super::*;
 
 // =============================================================================
-// Multiple sections
+// Section-header alias → kind mapping (spec table)
 // =============================================================================
 
+/// Every recognised header alias maps to its GoogleSectionKind, and the header
+/// name token preserves the source spelling.  This is the full alias table —
+/// an alias removed or remapped in the parser fails here explicitly.
 #[test]
-fn test_all_sections() {
-    let docstring = r#"Calculate the sum.
-
-This function adds two numbers.
-
-Args:
-    a (int): The first number.
-    b (int): The second number.
-
-Returns:
-    int: The sum of a and b.
-
-Raises:
-    TypeError: If inputs are not numbers.
-
-Example:
-    >>> add(1, 2)
-    3
-
-Note:
-    This is a simple function."#;
-
-    let result = parse_google(docstring);
-    assert_eq!(
-        doc(&result).summary().unwrap().text(result.source()),
-        "Calculate the sum."
-    );
-    assert!(doc(&result).extended_summary().is_some());
-    assert_eq!(args(&result).len(), 2);
-    assert!(returns(&result).is_some());
-    assert_eq!(raises(&result).len(), 1);
-    assert!(examples(&result).is_some());
-    assert!(notes(&result).is_some());
+fn test_section_header_alias_kind_table() {
+    use GoogleSectionKind as K;
+    let cases: &[(&str, GoogleSectionKind)] = &[
+        ("Args", K::Args),
+        ("Arguments", K::Args),
+        ("Parameters", K::Args),
+        ("Params", K::Args),
+        ("Keyword Args", K::KeywordArgs),
+        ("Keyword Arguments", K::KeywordArgs),
+        ("Other Parameters", K::OtherParameters),
+        ("Receives", K::Receives),
+        ("Receive", K::Receives),
+        ("Returns", K::Returns),
+        ("Return", K::Returns),
+        ("Yields", K::Yields),
+        ("Yield", K::Yields),
+        ("Raises", K::Raises),
+        ("Raise", K::Raises),
+        ("Warns", K::Warns),
+        ("Warn", K::Warns),
+        ("Attributes", K::Attributes),
+        ("Attribute", K::Attributes),
+        ("Methods", K::Methods),
+        ("See Also", K::SeeAlso),
+        ("Note", K::Notes),
+        ("Notes", K::Notes),
+        ("Example", K::Examples),
+        ("Examples", K::Examples),
+        ("Todo", K::Todo),
+        ("References", K::References),
+        // Singular "Warning" is the free-text admonition, NOT Warns.
+        ("Warning", K::Warnings),
+        ("Warnings", K::Warnings),
+        ("Attention", K::Attention),
+        ("Caution", K::Caution),
+        ("Danger", K::Danger),
+        ("Error", K::Error),
+        ("Hint", K::Hint),
+        ("Important", K::Important),
+        ("Tip", K::Tip),
+        ("Custom", K::Unknown),
+    ];
+    for (header, expected) in cases {
+        let input = format!("Summary.\n\n{header}:\n    x: d.");
+        let result = parse_google(&input);
+        let sections = all_sections(&result);
+        assert_eq!(sections.len(), 1, "header {header:?} should produce one section");
+        assert_eq!(
+            sections[0].section_kind(result.source()),
+            *expected,
+            "header {header:?}"
+        );
+        assert_eq!(
+            sections[0].header().name().text(result.source()),
+            *header,
+            "header name must preserve source spelling for {header:?}"
+        );
+    }
 }
 
+/// Section headers are matched case-insensitively.
 #[test]
-fn test_sections_with_blank_lines() {
-    let docstring = "Summary.\n\nArgs:\n    x (int): Value.\n\n    y (str): Name.\n\nReturns:\n    bool: Success.";
+fn test_napoleon_case_insensitive() {
+    let docstring = "Summary.\n\nkeyword args:\n    x (int): Value.";
     let result = parse_google(docstring);
-    assert_eq!(args(&result).len(), 2);
-    assert!(returns(&result).is_some());
+    assert_eq!(keyword_args(&result).len(), 1);
 }
 
 // =============================================================================
@@ -63,7 +95,7 @@ fn test_section_order() {
 }
 
 // =============================================================================
-// Section header / section spans
+// Section header / section spans (contract)
 // =============================================================================
 
 #[test]
@@ -104,19 +136,7 @@ fn test_unknown_section_preserved() {
     );
 }
 
-#[test]
-fn test_unknown_section_with_known() {
-    let docstring = "Summary.\n\nArgs:\n    x: Value.\n\nCustom:\n    Content.\n\nReturns:\n    int: Result.";
-    let result = parse_google(docstring);
-    let sections = all_sections(&result);
-    assert_eq!(sections.len(), 3);
-    assert_eq!(sections[0].header().name().text(result.source()), "Args");
-    assert_eq!(sections[1].header().name().text(result.source()), "Custom");
-    assert_eq!(sections[2].header().name().text(result.source()), "Returns");
-    assert_eq!(args(&result).len(), 1);
-    assert!(returns(&result).is_some());
-}
-
+/// Multi-word unknown names followed by a colon are still section headers.
 #[test]
 fn test_multiple_unknown_sections() {
     let docstring = "Summary.\n\nCustom One:\n    First.\n\nCustom Two:\n    Second.";
@@ -128,25 +148,7 @@ fn test_multiple_unknown_sections() {
 }
 
 // =============================================================================
-// Case-insensitive section headers
-// =============================================================================
-
-#[test]
-fn test_napoleon_case_insensitive() {
-    let docstring = "Summary.\n\nkeyword args:\n    x (int): Value.";
-    let result = parse_google(docstring);
-    assert_eq!(keyword_args(&result).len(), 1);
-}
-
-#[test]
-fn test_see_also_case_insensitive() {
-    let docstring = "Summary.\n\nsee also:\n    func_a: Description.";
-    let result = parse_google(docstring);
-    assert_eq!(see_also(&result).len(), 1);
-}
-
-// =============================================================================
-// Full docstring with all Napoleon sections
+// Full docstring smoke test (exercises many accessors together)
 // =============================================================================
 
 #[test]
@@ -194,22 +196,4 @@ Example:
     assert_eq!(see_also(&result).len(), 1);
     assert!(notes(&result).is_some());
     assert!(examples(&result).is_some());
-}
-
-// =============================================================================
-// Span round-trip
-// =============================================================================
-
-#[test]
-fn test_span_source_text_round_trip() {
-    let docstring = "Summary.\n\nArgs:\n    x (int): Value.\n\nReturns:\n    bool: Success.";
-    let result = parse_google(docstring);
-
-    assert_eq!(doc(&result).summary().unwrap().text(result.source()), "Summary.");
-    assert_eq!(args(&result)[0].name().text(result.source()), "x");
-    assert_eq!(args(&result)[0].r#type().unwrap().text(result.source()), "int");
-    assert_eq!(
-        returns(&result).unwrap().return_type().unwrap().text(result.source()),
-        "bool"
-    );
 }

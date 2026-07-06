@@ -1,22 +1,15 @@
+//! Spec + contract tests for summary / extended summary / empty input /
+//! signature-line handling.
+//! Exhaustive input coverage lives in tests/corpus/numpy/ + tests/snapshots.rs;
+//! these tests pin deliberate spec decisions and the typed-accessor contract.
+
 use super::*;
 
 // =============================================================================
-// Basic parsing / Summary / Extended Summary
+// Summary spans and accessors
 // =============================================================================
 
-#[test]
-fn test_simple_summary() {
-    let docstring = "This is a brief summary.";
-    let result = parse_numpy(docstring);
-
-    assert_eq!(
-        doc(&result).summary().unwrap().text(result.source()),
-        "This is a brief summary."
-    );
-    assert!(doc(&result).extended_summary().is_none());
-    assert!(parameters(&result).is_empty());
-}
-
+/// CONTRACT: summary token text and byte range.
 #[test]
 fn test_parse_simple_span() {
     let docstring = "Brief description.";
@@ -27,25 +20,10 @@ fn test_parse_simple_span() {
     );
     assert_eq!(doc(&result).summary().unwrap().range().start(), TextSize::new(0));
     assert_eq!(doc(&result).summary().unwrap().range().end(), TextSize::new(18));
-    assert_eq!(
-        doc(&result).summary().unwrap().text(result.source()),
-        "Brief description."
-    );
 }
 
-#[test]
-fn test_summary_with_description() {
-    let docstring = r#"Brief summary.
-
-This is a longer description that provides
-more details about the function.
-"#;
-    let result = parse_numpy(docstring);
-
-    assert_eq!(doc(&result).summary().unwrap().text(result.source()), "Brief summary.");
-    assert!(doc(&result).extended_summary().is_some());
-}
-
+/// SPEC: the summary runs to the first blank line (may span multiple lines);
+/// text after the blank line is the extended summary.
 #[test]
 fn test_multiline_summary() {
     let docstring = "This is a long summary\nthat spans two lines.\n\nExtended description.";
@@ -58,29 +36,25 @@ fn test_multiline_summary() {
     assert_eq!(desc.text(result.source()), "Extended description.");
 }
 
-#[test]
-fn test_multiline_summary_no_extended() {
-    let docstring = "Summary line one\ncontinues here.";
-    let result = parse_numpy(docstring);
-    assert_eq!(
-        doc(&result).summary().unwrap().text(result.source()),
-        "Summary line one\ncontinues here."
-    );
-    assert!(doc(&result).extended_summary().is_none());
-}
+// =============================================================================
+// Empty input
+// =============================================================================
 
+/// SPEC: empty input produces no summary.
 #[test]
 fn test_empty_docstring() {
     let result = parse_numpy("");
     assert!(doc(&result).summary().is_none());
 }
 
+/// SPEC: whitespace-only input produces no summary.
 #[test]
 fn test_whitespace_only_docstring() {
     let result = parse_numpy("   \n\n   ");
     assert!(doc(&result).summary().is_none());
 }
 
+/// CONTRACT: the root node's range covers the entire input.
 #[test]
 fn test_docstring_span_covers_entire_input() {
     let docstring = "First line.\n\nSecond line.";
@@ -93,6 +67,8 @@ fn test_docstring_span_covers_entire_input() {
 // Signature-like line is treated as summary
 // =============================================================================
 
+/// SPEC: a signature-like first line (`add(a, b)`) is treated as the summary,
+/// not stripped or parsed specially.
 #[test]
 fn test_parse_with_signature_line() {
     let docstring = r#"add(a, b)
@@ -109,28 +85,4 @@ b : int
     let result = parse_numpy(docstring);
     assert_eq!(doc(&result).summary().unwrap().text(result.source()), "add(a, b)");
     assert_eq!(parameters(&result).len(), 2);
-}
-
-// =============================================================================
-// Extended summary
-// =============================================================================
-
-#[test]
-fn test_extended_summary_preserves_paragraphs() {
-    let docstring = r#"Summary.
-
-First paragraph of extended.
-
-Second paragraph of extended.
-
-Parameters
-----------
-x : int
-    Desc.
-"#;
-    let result = parse_numpy(docstring);
-    let ext = doc(&result).extended_summary().unwrap();
-    assert!(ext.text(result.source()).contains("First paragraph"));
-    assert!(ext.text(result.source()).contains("Second paragraph"));
-    assert!(ext.text(result.source()).contains('\n'));
 }

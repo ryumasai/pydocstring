@@ -1,4 +1,8 @@
 //! Integration tests for Google-style docstring parser.
+//!
+//! Division of labor: exhaustive input coverage lives in tests/corpus/google/
+//! and tests/snapshots.rs (full CST and emit pinned per corpus file). The
+//! modules here pin deliberate spec decisions and the typed-accessor contract.
 
 pub use pydocstring::parse::google::{
     GoogleArg, GoogleAttribute, GoogleDocstring, GoogleException, GoogleMethod, GoogleReturn, GoogleSection,
@@ -75,14 +79,6 @@ pub fn keyword_args<'a>(result: &'a Parsed) -> Vec<GoogleArg<'a>> {
         .collect()
 }
 
-pub fn other_parameters<'a>(result: &'a Parsed) -> Vec<GoogleArg<'a>> {
-    doc(result)
-        .sections()
-        .filter(|s| matches!(s.section_kind(result.source()), GoogleSectionKind::OtherParameters))
-        .flat_map(|s| s.args().collect::<Vec<_>>())
-        .collect()
-}
-
 pub fn receives<'a>(result: &'a Parsed) -> Vec<GoogleArg<'a>> {
     doc(result)
         .sections()
@@ -126,26 +122,5 @@ pub fn examples(result: &Parsed) -> Option<&SyntaxToken> {
     doc(result)
         .sections()
         .find(|s| matches!(s.section_kind(result.source()), GoogleSectionKind::Examples))
-        .and_then(|s| s.body_text())
-}
-
-pub fn todo(result: &Parsed) -> Option<&SyntaxToken> {
-    doc(result)
-        .sections()
-        .find(|s| matches!(s.section_kind(result.source()), GoogleSectionKind::Todo))
-        .and_then(|s| s.body_text())
-}
-
-pub fn references(result: &Parsed) -> Option<&SyntaxToken> {
-    doc(result)
-        .sections()
-        .find(|s| matches!(s.section_kind(result.source()), GoogleSectionKind::References))
-        .and_then(|s| s.body_text())
-}
-
-pub fn warnings(result: &Parsed) -> Option<&SyntaxToken> {
-    doc(result)
-        .sections()
-        .find(|s| matches!(s.section_kind(result.source()), GoogleSectionKind::Warnings))
         .and_then(|s| s.body_text())
 }

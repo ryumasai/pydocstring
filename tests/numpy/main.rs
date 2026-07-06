@@ -1,4 +1,7 @@
-//! Integration tests for NumPy-style docstring parser.
+//! Integration tests for the NumPy-style docstring parser.
+//!
+//! Exhaustive input coverage lives in tests/corpus/numpy/ + tests/snapshots.rs;
+//! the tests here pin deliberate spec decisions and the typed-accessor contract.
 
 pub use pydocstring::parse::numpy::{
     kind::NumPySectionKind,
@@ -97,25 +100,10 @@ pub fn notes(result: &Parsed) -> Option<&SyntaxToken> {
         .and_then(|s| s.body_text())
 }
 
-pub fn examples(result: &Parsed) -> Option<&SyntaxToken> {
-    doc(result)
-        .sections()
-        .find(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Examples))
-        .and_then(|s| s.body_text())
-}
-
 pub fn receives<'a>(result: &'a Parsed) -> Vec<NumPyParameter<'a>> {
     doc(result)
         .sections()
         .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Receives))
-        .flat_map(|s| s.parameters().collect::<Vec<_>>())
-        .collect()
-}
-
-pub fn other_parameters<'a>(result: &'a Parsed) -> Vec<NumPyParameter<'a>> {
-    doc(result)
-        .sections()
-        .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::OtherParameters))
         .flat_map(|s| s.parameters().collect::<Vec<_>>())
         .collect()
 }
@@ -134,18 +122,4 @@ pub fn methods<'a>(result: &'a Parsed) -> Vec<NumPyMethod<'a>> {
         .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Methods))
         .flat_map(|s| s.methods().collect::<Vec<_>>())
         .collect()
-}
-
-pub fn warnings_text(result: &Parsed) -> Option<&SyntaxToken> {
-    doc(result)
-        .sections()
-        .find(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Warnings))
-        .and_then(|s| s.body_text())
-}
-
-pub fn unknown_text(result: &Parsed) -> Option<&SyntaxToken> {
-    doc(result)
-        .sections()
-        .find(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Unknown))
-        .and_then(|s| s.body_text())
 }

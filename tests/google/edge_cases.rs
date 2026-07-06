@@ -1,3 +1,7 @@
+//! Spec pins for indentation rules, colon rules, missing tokens, and stray lines.
+//! Exhaustive input coverage lives in tests/corpus/google/ + tests/snapshots.rs;
+//! these tests pin deliberate parsing decisions and the accessor API.
+
 use super::*;
 
 // =============================================================================
@@ -95,15 +99,6 @@ fn test_section_header_space_before_colon() {
     assert!(all_sections(&result)[0].header().colon().is_some());
 }
 
-/// `Returns :` with space before colon.
-#[test]
-fn test_returns_space_before_colon() {
-    let input = "Summary.\n\nReturns :\n    int: The result.";
-    let result = parse_google(input);
-    let r = returns(&result).unwrap();
-    assert_eq!(r.return_type().unwrap().text(result.source()), "int");
-}
-
 /// Colonless `Args` should be parsed as Args section.
 /// The section header should contain a missing COLON token.
 #[test]
@@ -122,25 +117,6 @@ fn test_section_header_no_colon() {
     assert!(missing.unwrap().is_missing());
 }
 
-/// Colonless `Returns` should be parsed as Returns section.
-#[test]
-fn test_returns_no_colon() {
-    let input = "Summary.\n\nReturns\n    int: The result.";
-    let result = parse_google(input);
-    let r = returns(&result).unwrap();
-    assert_eq!(r.return_type().unwrap().text(result.source()), "int");
-}
-
-/// Colonless `Raises` should be parsed as Raises section.
-#[test]
-fn test_raises_no_colon() {
-    let input = "Summary.\n\nRaises\n    ValueError: If invalid.";
-    let result = parse_google(input);
-    let r = raises(&result);
-    assert_eq!(r.len(), 1);
-    assert_eq!(r[0].r#type().text(result.source()), "ValueError");
-}
-
 /// Unknown names without colon should NOT be treated as headers.
 #[test]
 fn test_unknown_name_without_colon_not_header() {
@@ -150,16 +126,6 @@ fn test_unknown_name_without_colon_not_header() {
         all_sections(&result).is_empty(),
         "unknown colonless name should not become a section"
     );
-}
-
-/// Multiple sections with mixed colon styles.
-#[test]
-fn test_mixed_colon_styles() {
-    let input = "Summary.\n\nArgs:\n    x: value.\n\nReturns\n    int: result.\n\nRaises :\n    ValueError: If bad.";
-    let result = parse_google(input);
-    assert_eq!(args(&result).len(), 1);
-    assert!(returns(&result).is_some());
-    assert_eq!(raises(&result).len(), 1);
 }
 
 // =============================================================================
@@ -190,29 +156,6 @@ fn test_tab_args_with_continuation() {
     let desc = a[0].description().unwrap().text(result.source());
     assert!(desc.contains("First line."), "desc = {:?}", desc);
     assert!(desc.contains("Continuation."), "desc = {:?}", desc);
-}
-
-/// Returns section with tab-indented entry.
-#[test]
-fn test_tab_indented_returns() {
-    let input = "Summary.\n\nReturns:\n\tint: The result.";
-    let result = parse_google(input);
-    let r = returns(&result);
-    assert!(r.is_some());
-    let r = r.unwrap();
-    assert_eq!(r.return_type().unwrap().text(result.source()), "int");
-    assert_eq!(r.description().unwrap().text(result.source()), "The result.");
-}
-
-/// Raises section with tab-indented entries.
-#[test]
-fn test_tab_indented_raises() {
-    let input = "Summary.\n\nRaises:\n\tValueError: If bad.\n\tTypeError: If wrong type.";
-    let result = parse_google(input);
-    let r = raises(&result);
-    assert_eq!(r.len(), 2);
-    assert_eq!(r[0].r#type().text(result.source()), "ValueError");
-    assert_eq!(r[1].r#type().text(result.source()), "TypeError");
 }
 
 /// Section header detection with tab indentation matches.
@@ -366,10 +309,6 @@ fn test_arg_no_description_space_before_colon_not_header() {
 }
 
 // =============================================================================
-// RST-style :param lines inside Args section
-// =============================================================================
-
-// =============================================================================
 // Stray lines between sections
 // =============================================================================
 
@@ -395,6 +334,19 @@ fn test_stray_line_between_args_and_returns() {
         !desc.contains("stray"),
         "stray line must not be part of Returns description"
     );
+}
+
+/// Same as above but WITHOUT blank lines before the stray lines.
+#[test]
+fn test_stray_line_between_args_and_returns_no_blank() {
+    let input = "Summary.\n\nArgs:\n    a: desc.\nstray line 1\n\nReturns:\n    desc\nstray line 2\n";
+    let result = parse_google(input);
+    let a = args(&result);
+    assert_eq!(a.len(), 1, "stray line must not become an arg entry (no-blank case)");
+    assert_eq!(a[0].name().text(result.source()), "a");
+    let r = returns(&result).unwrap();
+    let desc = r.description().unwrap().text(result.source());
+    assert!(!desc.contains("stray"), "stray line must not be in Returns description");
 }
 
 /// A blank-line-separated entry at greater indent than the header must still
@@ -443,29 +395,9 @@ fn test_freetext_description_blank_line_continuation() {
     assert_eq!(args(&result).len(), 1);
 }
 
-/// Returns description with blank line + continuation at deeper indent.
-#[test]
-fn test_returns_description_blank_line_continuation() {
-    let input = "Summary.\n\nReturns:\n    bool: Short desc.\n\n        Longer explanation.\n";
-    let result = parse_google(input);
-    let r = returns(&result).unwrap();
-    let desc = r.description().unwrap().text(result.source());
-    assert!(desc.contains("Short desc."), "desc = {:?}", desc);
-    assert!(desc.contains("Longer explanation."), "desc = {:?}", desc);
-}
-
-/// Same as above but WITHOUT blank lines before the stray lines.
-#[test]
-fn test_stray_line_between_args_and_returns_no_blank() {
-    let input = "Summary.\n\nArgs:\n    a: desc.\nstray line 1\n\nReturns:\n    desc\nstray line 2\n";
-    let result = parse_google(input);
-    let a = args(&result);
-    assert_eq!(a.len(), 1, "stray line must not become an arg entry (no-blank case)");
-    assert_eq!(a[0].name().text(result.source()), "a");
-    let r = returns(&result).unwrap();
-    let desc = r.description().unwrap().text(result.source());
-    assert!(!desc.contains("stray"), "stray line must not be in Returns description");
-}
+// =============================================================================
+// RST-style :param lines inside Args section
+// =============================================================================
 
 /// RST-style `:param foo:` lines inside a Google `Args:` section must not
 /// produce a GOOGLE_ARG with an empty NAME, which would panic when
