@@ -1,4 +1,0 @@
-Summary.
-
-Tip:
-    Use vectorized operations for speed.

@@ -1,0 +1,59 @@
+Summary.
+
+Example
+-------
+>>> 1 + 1
+2
+
+Note
+----
+This is a note.
+
+Other Params
+------------
+x : int
+    Extra.
+
+Param
+-----
+x : int
+    The value.
+
+Parameter
+---------
+x : int
+    The value.
+
+Params
+------
+x : int
+    The value.
+
+Raise
+-----
+ValueError
+    Bad input.
+
+Receive
+-------
+data : bytes
+    The data.
+
+Return
+------
+int
+    The value.
+
+Warn
+----
+UserWarning
+    Bad usage.
+
+Warning
+-------
+Be careful.
+
+Yield
+-----
+int
+    Next integer.

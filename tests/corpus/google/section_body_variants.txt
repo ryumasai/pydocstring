@@ -1,0 +1,16 @@
+Summary.
+
+Keyword Args:
+    k (str): Key.
+
+Methods:
+    foo(): Does bar.
+
+Other Parameters:
+    x (int): Extra.
+
+See Also:
+    func_a: Desc.
+
+Warns:
+    UserWarning: Desc.

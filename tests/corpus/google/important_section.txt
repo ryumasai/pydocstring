@@ -1,4 +1,0 @@
-Summary.
-
-Important:
-    Must be called before init().

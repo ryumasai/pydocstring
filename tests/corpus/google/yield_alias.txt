@@ -1,4 +1,0 @@
-Summary.
-
-Yield:
-    str: Next string.

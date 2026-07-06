@@ -1,4 +1,0 @@
-Summary.
-
-Return:
-    int: The value.

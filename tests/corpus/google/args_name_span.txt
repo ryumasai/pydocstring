@@ -1,4 +1,0 @@
-Summary.
-
-Args:
-    x (int): Value.

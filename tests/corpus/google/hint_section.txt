@@ -1,4 +1,0 @@
-Summary.
-
-Hint:
-    Try using a smaller batch size.

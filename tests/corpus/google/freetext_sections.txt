@@ -1,0 +1,31 @@
+Summary.
+
+Attention:
+    This requires careful handling.
+
+Caution:
+    Use with care.
+
+Danger:
+    May cause data loss.
+
+Error:
+    Known issue with large inputs.
+
+Hint:
+    Try using a smaller batch size.
+
+Important:
+    Must be called before init().
+
+Note:
+    This is a note.
+
+Tip:
+    Use vectorized operations for speed.
+
+Warnings:
+    This function is deprecated.
+
+References:
+    Author, Title, 2024.

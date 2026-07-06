@@ -1,0 +1,106 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..407 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..56 {
+    GOOGLE_SECTION_HEADER@10..20 {
+      NAME: "Attention"@10..19
+      COLON: ":"@19..20
+    }
+    BODY_TEXT: "This requires careful handling."@25..56
+  }
+  GOOGLE_SECTION@58..85 {
+    GOOGLE_SECTION_HEADER@58..66 {
+      NAME: "Caution"@58..65
+      COLON: ":"@65..66
+    }
+    BODY_TEXT: "Use with care."@71..85
+  }
+  GOOGLE_SECTION@87..119 {
+    GOOGLE_SECTION_HEADER@87..94 {
+      NAME: "Danger"@87..93
+      COLON: ":"@93..94
+    }
+    BODY_TEXT: "May cause data loss."@99..119
+  }
+  GOOGLE_SECTION@121..162 {
+    GOOGLE_SECTION_HEADER@121..127 {
+      NAME: "Error"@121..126
+      COLON: ":"@126..127
+    }
+    BODY_TEXT: "Known issue with large inputs."@132..162
+  }
+  GOOGLE_SECTION@164..205 {
+    GOOGLE_SECTION_HEADER@164..169 {
+      NAME: "Hint"@164..168
+      COLON: ":"@168..169
+    }
+    BODY_TEXT: "Try using a smaller batch size."@174..205
+  }
+  GOOGLE_SECTION@207..251 {
+    GOOGLE_SECTION_HEADER@207..217 {
+      NAME: "Important"@207..216
+      COLON: ":"@216..217
+    }
+    BODY_TEXT: "Must be called before init()."@222..251
+  }
+  GOOGLE_SECTION@253..278 {
+    GOOGLE_SECTION_HEADER@253..258 {
+      NAME: "Note"@253..257
+      COLON: ":"@257..258
+    }
+    BODY_TEXT: "This is a note."@263..278
+  }
+  GOOGLE_SECTION@280..325 {
+    GOOGLE_SECTION_HEADER@280..284 {
+      NAME: "Tip"@280..283
+      COLON: ":"@283..284
+    }
+    BODY_TEXT: "Use vectorized operations for speed."@289..325
+  }
+  GOOGLE_SECTION@327..369 {
+    GOOGLE_SECTION_HEADER@327..336 {
+      NAME: "Warnings"@327..335
+      COLON: ":"@335..336
+    }
+    BODY_TEXT: "This function is deprecated."@341..369
+  }
+  GOOGLE_SECTION@371..407 {
+    GOOGLE_SECTION_HEADER@371..382 {
+      NAME: "References"@371..381
+      COLON: ":"@381..382
+    }
+    BODY_TEXT: "Author, Title, 2024."@387..407
+  }
+}
+=== EMIT ===
+Summary.
+
+Attention:
+    This requires careful handling.
+
+Caution:
+    Use with care.
+
+Danger:
+    May cause data loss.
+
+Error:
+    Known issue with large inputs.
+
+Hint:
+    Try using a smaller batch size.
+
+Important:
+    Must be called before init().
+
+Notes:
+    This is a note.
+
+Tip:
+    Use vectorized operations for speed.
+
+Warnings:
+    This function is deprecated.
+
+References:
+    Author, Title, 2024.

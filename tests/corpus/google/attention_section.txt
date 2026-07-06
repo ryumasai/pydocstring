@@ -1,4 +1,0 @@
-Summary.
-
-Attention:
-    This requires careful handling.

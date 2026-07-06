@@ -1,4 +1,0 @@
-Summary.
-
-Methods:
-    foo(): Does bar.

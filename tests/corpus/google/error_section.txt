@@ -1,4 +1,0 @@
-Summary.
-
-Error:
-    Known issue with large inputs.

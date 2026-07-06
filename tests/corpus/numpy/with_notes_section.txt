@@ -1,5 +1,0 @@
-Function with notes.
-
-Notes
------
-This is an important note about the function.

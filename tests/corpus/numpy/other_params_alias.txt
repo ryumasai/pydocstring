@@ -1,6 +1,0 @@
-Summary.
-
-Other Params
-------------
-x : int
-    Extra.

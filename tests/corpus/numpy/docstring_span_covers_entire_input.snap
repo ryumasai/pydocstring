@@ -1,9 +1,0 @@
-=== CST ===
-NUMPY_DOCSTRING@0..25 {
-  SUMMARY: "First line."@0..11
-  EXTENDED_SUMMARY: "Second line."@13..25
-}
-=== EMIT ===
-First line.
-
-Second line.

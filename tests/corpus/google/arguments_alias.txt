@@ -1,4 +1,0 @@
-Summary.
-
-Arguments:
-    x (int): The value.

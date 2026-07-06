@@ -1,0 +1,195 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..466 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..44 {
+    GOOGLE_SECTION_HEADER@10..20 {
+      NAME: "Arguments"@10..19
+      COLON: ":"@19..20
+    }
+    GOOGLE_ARG@25..44 {
+      NAME: "x"@25..26
+      OPEN_BRACKET: "("@27..28
+      TYPE: "int"@28..31
+      CLOSE_BRACKET: ")"@31..32
+      COLON: ":"@32..33
+      DESCRIPTION: "The value."@34..44
+    }
+  }
+  GOOGLE_SECTION@46..82 {
+    GOOGLE_SECTION_HEADER@46..56 {
+      NAME: "Attribute"@46..55
+      COLON: ":"@55..56
+    }
+    GOOGLE_ATTRIBUTE@61..82 {
+      NAME: "name"@61..65
+      OPEN_BRACKET: "("@66..67
+      TYPE: "str"@67..70
+      CLOSE_BRACKET: ")"@70..71
+      COLON: ":"@71..72
+      DESCRIPTION: "The name."@73..82
+    }
+  }
+  GOOGLE_SECTION@84..113 {
+    GOOGLE_SECTION_HEADER@84..93 {
+      NAME: "Examples"@84..92
+      COLON: ":"@92..93
+    }
+    BODY_TEXT: ">>> 1 + 1\n    2"@98..113
+  }
+  GOOGLE_SECTION@115..157 {
+    GOOGLE_SECTION_HEADER@115..133 {
+      NAME: "Keyword Arguments"@115..132
+      COLON: ":"@132..133
+    }
+    GOOGLE_ARG@138..157 {
+      NAME: "key"@138..141
+      OPEN_BRACKET: "("@142..143
+      TYPE: "str"@143..146
+      CLOSE_BRACKET: ")"@146..147
+      COLON: ":"@147..148
+      DESCRIPTION: "The key."@149..157
+    }
+  }
+  GOOGLE_SECTION@159..190 {
+    GOOGLE_SECTION_HEADER@159..165 {
+      NAME: "Notes"@159..164
+      COLON: ":"@164..165
+    }
+    BODY_TEXT: "This is also a note."@170..190
+  }
+  GOOGLE_SECTION@192..227 {
+    GOOGLE_SECTION_HEADER@192..203 {
+      NAME: "Parameters"@192..202
+      COLON: ":"@202..203
+    }
+    GOOGLE_ARG@208..227 {
+      NAME: "x"@208..209
+      OPEN_BRACKET: "("@210..211
+      TYPE: "int"@211..214
+      CLOSE_BRACKET: ")"@214..215
+      COLON: ":"@215..216
+      DESCRIPTION: "The value."@217..227
+    }
+  }
+  GOOGLE_SECTION@229..260 {
+    GOOGLE_SECTION_HEADER@229..236 {
+      NAME: "Params"@229..235
+      COLON: ":"@235..236
+    }
+    GOOGLE_ARG@241..260 {
+      NAME: "x"@241..242
+      OPEN_BRACKET: "("@243..244
+      TYPE: "int"@244..247
+      CLOSE_BRACKET: ")"@247..248
+      COLON: ":"@248..249
+      DESCRIPTION: "The value."@250..260
+    }
+  }
+  GOOGLE_SECTION@262..296 {
+    GOOGLE_SECTION_HEADER@262..268 {
+      NAME: "Raise"@262..267
+      COLON: ":"@267..268
+    }
+    GOOGLE_EXCEPTION@273..296 {
+      TYPE: "ValueError"@273..283
+      COLON: ":"@283..284
+      DESCRIPTION: "If invalid."@285..296
+    }
+  }
+  GOOGLE_SECTION@298..334 {
+    GOOGLE_SECTION_HEADER@298..306 {
+      NAME: "Receive"@298..305
+      COLON: ":"@305..306
+    }
+    GOOGLE_ARG@311..334 {
+      NAME: "msg"@311..314
+      OPEN_BRACKET: "("@315..316
+      TYPE: "str"@316..319
+      CLOSE_BRACKET: ")"@319..320
+      COLON: ":"@320..321
+      DESCRIPTION: "The message."@322..334
+    }
+  }
+  GOOGLE_SECTION@336..363 {
+    GOOGLE_SECTION_HEADER@336..343 {
+      NAME: "Return"@336..342
+      COLON: ":"@342..343
+    }
+    GOOGLE_RETURNS@348..363 {
+      RETURN_TYPE: "int"@348..351
+      COLON: ":"@351..352
+      DESCRIPTION: "The value."@353..363
+    }
+  }
+  GOOGLE_SECTION@365..402 {
+    GOOGLE_SECTION_HEADER@365..370 {
+      NAME: "Warn"@365..369
+      COLON: ":"@369..370
+    }
+    GOOGLE_WARNING@375..402 {
+      WARNING_TYPE: "FutureWarning"@375..388
+      COLON: ":"@388..389
+      DESCRIPTION: "Will change."@390..402
+    }
+  }
+  GOOGLE_SECTION@404..436 {
+    GOOGLE_SECTION_HEADER@404..412 {
+      NAME: "Warning"@404..411
+      COLON: ":"@411..412
+    }
+    BODY_TEXT: "This is deprecated."@417..436
+  }
+  GOOGLE_SECTION@438..466 {
+    GOOGLE_SECTION_HEADER@438..444 {
+      NAME: "Yield"@438..443
+      COLON: ":"@443..444
+    }
+    GOOGLE_YIELDS@449..466 {
+      RETURN_TYPE: "str"@449..452
+      COLON: ":"@452..453
+      DESCRIPTION: "Next string."@454..466
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Args:
+    x (int): The value.
+
+Attributes:
+    name (str): The name.
+
+Examples:
+    >>> 1 + 1
+    2
+
+Keyword Args:
+    key (str): The key.
+
+Notes:
+    This is also a note.
+
+Args:
+    x (int): The value.
+
+Args:
+    x (int): The value.
+
+Raises:
+    ValueError: If invalid.
+
+Receives:
+    msg (str): The message.
+
+Returns:
+    int: The value.
+
+Warns:
+    FutureWarning: Will change.
+
+Warnings:
+    This is deprecated.
+
+Yields:
+    str: Next string.

@@ -1,4 +1,0 @@
-Summary.
-
-Danger:
-    May cause data loss.

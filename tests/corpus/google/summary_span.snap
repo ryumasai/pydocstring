@@ -1,6 +1,0 @@
-=== CST ===
-GOOGLE_DOCSTRING@0..18 {
-  SUMMARY: "Brief description."@0..18
-}
-=== EMIT ===
-Brief description.

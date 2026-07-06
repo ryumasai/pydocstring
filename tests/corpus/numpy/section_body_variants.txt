@@ -1,0 +1,47 @@
+Summary.
+
+Attributes
+----------
+x : int
+    Value.
+
+Examples
+--------
+>>> pass
+
+Methods
+-------
+foo()
+    Does bar.
+
+Other Parameters
+----------------
+x : int
+    Extra.
+
+Receives
+--------
+data : bytes
+    Payload.
+
+See Also
+--------
+func_a : Desc.
+
+CustomSection
+-------------
+Some content.
+
+Warnings
+--------
+Do not use.
+
+Warns
+-----
+UserWarning
+    Bad.
+
+Yields
+------
+int
+    Value.

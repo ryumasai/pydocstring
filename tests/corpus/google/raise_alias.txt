@@ -1,4 +1,0 @@
-Summary.
-
-Raise:
-    ValueError: If invalid.

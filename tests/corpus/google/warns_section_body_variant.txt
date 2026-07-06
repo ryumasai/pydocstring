@@ -1,4 +1,0 @@
-Summary.
-
-Warns:
-    UserWarning: Desc.
