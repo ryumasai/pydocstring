@@ -1,0 +1,6 @@
+Summary.
+
+Attributes
+----------
+x : int
+    Value.

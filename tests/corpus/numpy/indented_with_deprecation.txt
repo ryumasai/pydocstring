@@ -1,0 +1,9 @@
+    Summary.
+
+    .. deprecated:: 2.0.0
+        Use new_func instead.
+
+    Parameters
+    ----------
+    x : int
+        Desc.

@@ -1,0 +1,21 @@
+=== CST ===
+NUMPY_DOCSTRING@0..68 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..68 {
+    NUMPY_SECTION_HEADER@10..21 {
+      NAME: "Warns"@10..15
+      UNDERLINE: "-----"@16..21
+    }
+    NUMPY_WARNING@22..68 {
+      TYPE: "DeprecationWarning"@22..40
+      DESCRIPTION: "If the old API is used."@45..68
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Warns
+-----
+DeprecationWarning
+    If the old API is used.

@@ -1,0 +1,46 @@
+=== CST ===
+NUMPY_DOCSTRING@0..162 {
+  SUMMARY: "Calculate the sum of two numbers."@0..33
+  NUMPY_SECTION@35..117 {
+    NUMPY_SECTION_HEADER@35..56 {
+      NAME: "Parameters"@35..45
+      UNDERLINE: "----------"@46..56
+    }
+    NUMPY_PARAMETER@57..86 {
+      NAME: "x"@57..58
+      COLON: ":"@59..60
+      TYPE: "int"@61..64
+      DESCRIPTION: "The first number."@69..86
+    }
+    NUMPY_PARAMETER@87..117 {
+      NAME: "y"@87..88
+      COLON: ":"@89..90
+      TYPE: "int"@91..94
+      DESCRIPTION: "The second number."@99..117
+    }
+  }
+  NUMPY_SECTION@119..162 {
+    NUMPY_SECTION_HEADER@119..134 {
+      NAME: "Returns"@119..126
+      UNDERLINE: "-------"@127..134
+    }
+    NUMPY_RETURNS@135..162 {
+      RETURN_TYPE: "int"@135..138
+      DESCRIPTION: "The sum of x and y."@143..162
+    }
+  }
+}
+=== EMIT ===
+Calculate the sum of two numbers.
+
+Parameters
+----------
+x : int
+    The first number.
+y : int
+    The second number.
+
+Returns
+-------
+int
+    The sum of x and y.

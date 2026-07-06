@@ -1,0 +1,15 @@
+Brief summary.
+
+parameters
+----------
+x : int
+    First param.
+
+returns
+-------
+int
+    The result.
+
+NOTES
+-----
+Some notes here.

@@ -1,0 +1,31 @@
+=== CST ===
+NUMPY_DOCSTRING@0..182 {
+  SUMMARY: "Function with role references."@0..30
+  NUMPY_SECTION@32..182 {
+    NUMPY_SECTION_HEADER@32..47 {
+      NAME: "Returns"@32..39
+      UNDERLINE: "-------"@40..47
+    }
+    NUMPY_RETURNS@48..76 {
+      RETURN_TYPE: "Description with attributes:"@48..76
+    }
+    NUMPY_RETURNS@78..129 {
+      RETURN_TYPE: ":attr:`~module.ClassName.attr1`"@78..109
+      DESCRIPTION: "First attribute"@114..129
+    }
+    NUMPY_RETURNS@130..182 {
+      RETURN_TYPE: ":attr:`~module.ClassName.attr2`"@130..161
+      DESCRIPTION: "Second attribute"@166..182
+    }
+  }
+}
+=== EMIT ===
+Function with role references.
+
+Returns
+-------
+Description with attributes:
+:attr:`~module.ClassName.attr1`
+    First attribute
+:attr:`~module.ClassName.attr2`
+    Second attribute

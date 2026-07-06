@@ -1,0 +1,31 @@
+=== CST ===
+NUMPY_DOCSTRING@0..93 {
+  SUMMARY: "Compute values."@0..15
+  NUMPY_SECTION@17..93 {
+    NUMPY_SECTION_HEADER@17..32 {
+      NAME: "Returns"@17..24
+      UNDERLINE: "-------"@25..32
+    }
+    NUMPY_RETURNS@33..61 {
+      NAME: "x"@33..34
+      COLON: ":"@35..36
+      RETURN_TYPE: "int"@37..40
+      DESCRIPTION: "The first value."@45..61
+    }
+    NUMPY_RETURNS@62..93 {
+      NAME: "y"@62..63
+      COLON: ":"@64..65
+      RETURN_TYPE: "float"@66..71
+      DESCRIPTION: "The second value."@76..93
+    }
+  }
+}
+=== EMIT ===
+Compute values.
+
+Returns
+-------
+x : int
+    The first value.
+y : float
+    The second value.

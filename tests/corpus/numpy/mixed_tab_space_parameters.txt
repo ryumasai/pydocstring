@@ -1,0 +1,7 @@
+Summary.
+
+Parameters
+----------
+x : int
+	The value.
+	  More detail.

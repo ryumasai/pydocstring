@@ -1,0 +1,10 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..83 {
+  SUMMARY: "Brief summary."@0..14
+  EXTENDED_SUMMARY: "Extended description that provides\nmore details about the function."@16..83
+}
+=== EMIT ===
+Brief summary.
+
+Extended description that provides
+more details about the function.

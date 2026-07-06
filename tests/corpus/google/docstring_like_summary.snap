@@ -1,0 +1,6 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..8 {
+  SUMMARY: "Summary."@0..8
+}
+=== EMIT ===
+Summary.

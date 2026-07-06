@@ -1,0 +1,6 @@
+Summary.
+
+Returns
+-------
+result:int
+    The result.

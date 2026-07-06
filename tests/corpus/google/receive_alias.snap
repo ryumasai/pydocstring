@@ -1,0 +1,23 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..46 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..46 {
+    GOOGLE_SECTION_HEADER@10..18 {
+      NAME: "Receive"@10..17
+      COLON: ":"@17..18
+    }
+    GOOGLE_ARG@23..46 {
+      NAME: "msg"@23..26
+      OPEN_BRACKET: "("@27..28
+      TYPE: "str"@28..31
+      CLOSE_BRACKET: ")"@31..32
+      COLON: ":"@32..33
+      DESCRIPTION: "The message."@34..46
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Receives:
+    msg (str): The message.

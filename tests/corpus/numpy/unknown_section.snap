@@ -1,0 +1,17 @@
+=== CST ===
+NUMPY_DOCSTRING@0..58 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..58 {
+    NUMPY_SECTION_HEADER@10..37 {
+      NAME: "CustomSection"@10..23
+      UNDERLINE: "-------------"@24..37
+    }
+    BODY_TEXT: "Some custom content."@38..58
+  }
+}
+=== EMIT ===
+Summary.
+
+CustomSection
+-------------
+Some custom content.

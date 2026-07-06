@@ -1,0 +1,4 @@
+Summary.
+
+Methods:
+    do_stuff: Performs the operation.

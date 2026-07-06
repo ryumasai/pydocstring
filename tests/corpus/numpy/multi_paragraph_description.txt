@@ -1,0 +1,8 @@
+Summary.
+
+Parameters
+----------
+x : int
+    First paragraph of x.
+
+    Second paragraph of x.

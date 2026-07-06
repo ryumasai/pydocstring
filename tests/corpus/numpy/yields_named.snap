@@ -1,0 +1,23 @@
+=== CST ===
+NUMPY_DOCSTRING@0..61 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..61 {
+    NUMPY_SECTION_HEADER@10..23 {
+      NAME: "Yields"@10..16
+      UNDERLINE: "------"@17..23
+    }
+    NUMPY_YIELDS@24..61 {
+      NAME: "value"@24..29
+      COLON: ":"@30..31
+      RETURN_TYPE: "str"@32..35
+      DESCRIPTION: "The generated string."@40..61
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Yields
+------
+value : str
+    The generated string.

@@ -1,0 +1,17 @@
+=== CST ===
+NUMPY_DOCSTRING@0..56 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..56 {
+    NUMPY_SECTION_HEADER@10..27 {
+      NAME: "Warnings"@10..18
+      UNDERLINE: "--------"@19..27
+    }
+    BODY_TEXT: "This function is deprecated."@28..56
+  }
+}
+=== EMIT ===
+Summary.
+
+Warnings
+--------
+This function is deprecated.

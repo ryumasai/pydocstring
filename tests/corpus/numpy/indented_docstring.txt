@@ -1,0 +1,13 @@
+    Summary line.
+
+    Parameters
+    ----------
+    x : int
+        Description of x.
+    y : str, optional
+        Description of y.
+
+    Returns
+    -------
+    bool
+        The result.

@@ -1,0 +1,10 @@
+Function with role references.
+
+Returns
+-------
+Description with attributes:
+
+:attr:`~module.ClassName.attr1`
+    First attribute
+:attr:`~module.ClassName.attr2`
+    Second attribute

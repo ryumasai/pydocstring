@@ -1,0 +1,17 @@
+=== CST ===
+NUMPY_DOCSTRING@0..39 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..39 {
+    NUMPY_SECTION_HEADER@10..27 {
+      NAME: "Warnings"@10..18
+      UNDERLINE: "--------"@19..27
+    }
+    BODY_TEXT: "Do not use."@28..39
+  }
+}
+=== EMIT ===
+Summary.
+
+Warnings
+--------
+Do not use.

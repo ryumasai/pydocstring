@@ -1,0 +1,5 @@
+=== CST ===
+PLAIN_DOCSTRING@0..44 {
+  SUMMARY: "Summary."@0..8
+  EXTENDED_SUMMARY: ":param x: Description.\n:rtype: int"@10..44
+}

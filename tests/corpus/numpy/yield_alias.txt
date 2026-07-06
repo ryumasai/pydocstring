@@ -1,0 +1,6 @@
+Summary.
+
+Yield
+-----
+int
+    Next integer.

@@ -1,0 +1,16 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..42 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..42 {
+    GOOGLE_SECTION_HEADER@10..17 {
+      NAME: "Danger"@10..16
+      COLON: ":"@16..17
+    }
+    BODY_TEXT: "May cause data loss."@22..42
+  }
+}
+=== EMIT ===
+Summary.
+
+Danger:
+    May cause data loss.

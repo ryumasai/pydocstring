@@ -1,0 +1,6 @@
+Summary line.
+
+Parameters
+----------
+x : int
+    Description of x.

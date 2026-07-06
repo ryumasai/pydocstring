@@ -1,0 +1,28 @@
+Calculate something.
+
+Extended description.
+
+Args:
+    x (int): First argument.
+
+Keyword Args:
+    timeout (float): Timeout value.
+
+Returns:
+    int: The result.
+
+Raises:
+    ValueError: If x is negative.
+
+Warns:
+    DeprecationWarning: If old API is used.
+
+See Also:
+    other_func: Related function.
+
+Note:
+    Implementation detail.
+
+Example:
+    >>> calculate(1)
+    1

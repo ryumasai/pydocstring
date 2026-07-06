@@ -1,0 +1,11 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..81 {
+  SUMMARY: "Brief summary."@0..14
+  EXTENDED_SUMMARY: "First paragraph of description.\n\nSecond paragraph of description."@16..81
+}
+=== EMIT ===
+Brief summary.
+
+First paragraph of description.
+
+Second paragraph of description.

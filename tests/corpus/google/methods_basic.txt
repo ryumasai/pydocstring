@@ -1,0 +1,5 @@
+Summary.
+
+Methods:
+    reset(): Reset the state.
+    update(data): Update with new data.

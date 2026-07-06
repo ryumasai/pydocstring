@@ -1,0 +1,6 @@
+Summary.
+
+Receive
+-------
+data : bytes
+    The data.

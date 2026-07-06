@@ -1,0 +1,20 @@
+=== CST ===
+NUMPY_DOCSTRING@0..52 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..52 {
+    NUMPY_SECTION_HEADER@10..25 {
+      NAME: "Methods"@10..17
+      UNDERLINE: "-------"@18..25
+    }
+    NUMPY_METHOD@26..52 {
+      NAME: "reset()"@26..33
+      COLON: ":"@34..35
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Methods
+-------
+reset()

@@ -1,0 +1,4 @@
+Brief summary.
+
+Extended description that provides
+more details about the function.

@@ -1,0 +1,6 @@
+Summary.
+
+Warns
+-----
+UserWarning
+    Bad.

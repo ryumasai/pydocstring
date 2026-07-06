@@ -1,0 +1,16 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..51 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..51 {
+    GOOGLE_SECTION_HEADER@10..16 {
+      NAME: "Error"@10..15
+      COLON: ":"@15..16
+    }
+    BODY_TEXT: "Known issue with large inputs."@21..51
+  }
+}
+=== EMIT ===
+Summary.
+
+Error:
+    Known issue with large inputs.

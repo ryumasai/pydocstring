@@ -1,0 +1,6 @@
+Summary.
+
+See Also
+--------
+func_a : First function.
+func_b : Second function.

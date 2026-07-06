@@ -1,0 +1,6 @@
+Brief summary.
+
+Parameters
+----------
+x : int
+    A value like key: value should not split.

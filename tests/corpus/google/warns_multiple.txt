@@ -1,0 +1,5 @@
+Summary.
+
+Warns:
+    DeprecationWarning: Old API.
+    UserWarning: Bad config.

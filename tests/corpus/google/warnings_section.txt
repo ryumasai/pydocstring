@@ -1,0 +1,4 @@
+Summary.
+
+Warnings:
+    This function is deprecated.

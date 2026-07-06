@@ -1,0 +1,38 @@
+=== CST ===
+NUMPY_DOCSTRING@0..164 {
+  SUMMARY: "Brief."@8..14
+  NUMPY_SECTION@24..94 {
+    NUMPY_SECTION_HEADER@24..53 {
+      NAME: "Parameters"@24..34
+      UNDERLINE: "----------"@43..53
+    }
+    NUMPY_PARAMETER@62..94 {
+      NAME: "a"@62..63
+      COLON: ":"@64..65
+      TYPE: "float"@66..71
+      DESCRIPTION: "The value."@84..94
+    }
+  }
+  NUMPY_SECTION@104..164 {
+    NUMPY_SECTION_HEADER@104..125 {
+      NAME: "Raises"@104..110
+      UNDERLINE: "------"@119..125
+    }
+    NUMPY_EXCEPTION@134..164 {
+      TYPE: "ValueError"@134..144
+      DESCRIPTION: "If bad."@157..164
+    }
+  }
+}
+=== EMIT ===
+Brief.
+
+Parameters
+----------
+a : float
+    The value.
+
+Raises
+------
+ValueError
+    If bad.

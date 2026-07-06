@@ -1,0 +1,6 @@
+Summary.
+
+Raise
+-----
+ValueError
+    Bad input.

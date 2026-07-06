@@ -1,0 +1,8 @@
+Summary.
+
+Raises
+------
+ValueError
+    If input is bad.
+TypeError
+    If type is wrong.

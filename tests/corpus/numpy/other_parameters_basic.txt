@@ -1,0 +1,8 @@
+Summary.
+
+Other Parameters
+----------------
+debug : bool
+    Enable debug mode.
+verbose : bool, optional
+    Verbose output.

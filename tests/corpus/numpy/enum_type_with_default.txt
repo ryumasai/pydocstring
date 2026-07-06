@@ -1,0 +1,6 @@
+Summary.
+
+Parameters
+----------
+order : {'C', 'F', 'A'}, default 'C'
+    Memory layout.

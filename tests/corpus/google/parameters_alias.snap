@@ -1,0 +1,23 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..45 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..45 {
+    GOOGLE_SECTION_HEADER@10..21 {
+      NAME: "Parameters"@10..20
+      COLON: ":"@20..21
+    }
+    GOOGLE_ARG@26..45 {
+      NAME: "x"@26..27
+      OPEN_BRACKET: "("@28..29
+      TYPE: "int"@29..32
+      CLOSE_BRACKET: ")"@32..33
+      COLON: ":"@33..34
+      DESCRIPTION: "The value."@35..45
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Args:
+    x (int): The value.

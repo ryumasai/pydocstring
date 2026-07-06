@@ -1,0 +1,4 @@
+Summary.
+
+Receive:
+    msg (str): The message.

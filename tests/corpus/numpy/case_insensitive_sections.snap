@@ -1,0 +1,49 @@
+=== CST ===
+NUMPY_DOCSTRING@0..129 {
+  SUMMARY: "Brief summary."@0..14
+  NUMPY_SECTION@16..62 {
+    NUMPY_SECTION_HEADER@16..37 {
+      NAME: "parameters"@16..26
+      UNDERLINE: "----------"@27..37
+    }
+    NUMPY_PARAMETER@38..62 {
+      NAME: "x"@38..39
+      COLON: ":"@40..41
+      TYPE: "int"@42..45
+      DESCRIPTION: "First param."@50..62
+    }
+  }
+  NUMPY_SECTION@64..99 {
+    NUMPY_SECTION_HEADER@64..79 {
+      NAME: "returns"@64..71
+      UNDERLINE: "-------"@72..79
+    }
+    NUMPY_RETURNS@80..99 {
+      RETURN_TYPE: "int"@80..83
+      DESCRIPTION: "The result."@88..99
+    }
+  }
+  NUMPY_SECTION@101..129 {
+    NUMPY_SECTION_HEADER@101..112 {
+      NAME: "NOTES"@101..106
+      UNDERLINE: "-----"@107..112
+    }
+    BODY_TEXT: "Some notes here."@113..129
+  }
+}
+=== EMIT ===
+Brief summary.
+
+Parameters
+----------
+x : int
+    First param.
+
+Returns
+-------
+int
+    The result.
+
+Notes
+-----
+Some notes here.

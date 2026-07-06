@@ -1,0 +1,26 @@
+=== CST ===
+NUMPY_DOCSTRING@0..78 {
+  SUMMARY: "Summary."@0..8
+  EXTENDED_SUMMARY: "This line is not a section."@10..37
+  NUMPY_SECTION@39..78 {
+    NUMPY_SECTION_HEADER@39..60 {
+      NAME: "Parameters"@39..49
+      UNDERLINE: "----------"@50..60
+    }
+    NUMPY_PARAMETER@61..78 {
+      NAME: "x"@61..62
+      COLON: ":"@63..64
+      TYPE: "int"@65..68
+      DESCRIPTION: "Desc."@73..78
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+This line is not a section.
+
+Parameters
+----------
+x : int
+    Desc.

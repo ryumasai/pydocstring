@@ -1,0 +1,10 @@
+add(a, b)
+
+The sum of two numbers.
+
+Parameters
+----------
+a : int
+    First number.
+b : int
+    Second number.

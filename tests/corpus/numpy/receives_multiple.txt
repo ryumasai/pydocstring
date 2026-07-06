@@ -1,0 +1,8 @@
+Summary.
+
+Receives
+--------
+msg : str
+    The message.
+data : bytes
+    The payload.

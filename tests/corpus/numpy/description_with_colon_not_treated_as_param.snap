@@ -1,0 +1,23 @@
+=== CST ===
+NUMPY_DOCSTRING@0..91 {
+  SUMMARY: "Brief summary."@0..14
+  NUMPY_SECTION@16..91 {
+    NUMPY_SECTION_HEADER@16..37 {
+      NAME: "Parameters"@16..26
+      UNDERLINE: "----------"@27..37
+    }
+    NUMPY_PARAMETER@38..91 {
+      NAME: "x"@38..39
+      COLON: ":"@40..41
+      TYPE: "int"@42..45
+      DESCRIPTION: "A value like key: value should not split."@50..91
+    }
+  }
+}
+=== EMIT ===
+Brief summary.
+
+Parameters
+----------
+x : int
+    A value like key: value should not split.

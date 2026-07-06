@@ -1,0 +1,8 @@
+Summary.
+
+Yields
+------
+index : int
+    The index.
+value : str
+    The value.

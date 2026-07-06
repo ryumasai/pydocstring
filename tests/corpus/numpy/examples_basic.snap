@@ -1,0 +1,18 @@
+=== CST ===
+NUMPY_DOCSTRING@0..41 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..41 {
+    NUMPY_SECTION_HEADER@10..27 {
+      NAME: "Examples"@10..18
+      UNDERLINE: "--------"@19..27
+    }
+    BODY_TEXT: ">>> func(1)\n1"@28..41
+  }
+}
+=== EMIT ===
+Summary.
+
+Examples
+--------
+>>> func(1)
+1

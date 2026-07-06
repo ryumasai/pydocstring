@@ -1,0 +1,120 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..372 {
+  SUMMARY: "Calculate something."@0..20
+  EXTENDED_SUMMARY: "Extended description."@22..43
+  GOOGLE_SECTION@45..79 {
+    GOOGLE_SECTION_HEADER@45..50 {
+      NAME: "Args"@45..49
+      COLON: ":"@49..50
+    }
+    GOOGLE_ARG@55..79 {
+      NAME: "x"@55..56
+      OPEN_BRACKET: "("@57..58
+      TYPE: "int"@58..61
+      CLOSE_BRACKET: ")"@61..62
+      COLON: ":"@62..63
+      DESCRIPTION: "First argument."@64..79
+    }
+  }
+  GOOGLE_SECTION@81..130 {
+    GOOGLE_SECTION_HEADER@81..94 {
+      NAME: "Keyword Args"@81..93
+      COLON: ":"@93..94
+    }
+    GOOGLE_ARG@99..130 {
+      NAME: "timeout"@99..106
+      OPEN_BRACKET: "("@107..108
+      TYPE: "float"@108..113
+      CLOSE_BRACKET: ")"@113..114
+      COLON: ":"@114..115
+      DESCRIPTION: "Timeout value."@116..130
+    }
+  }
+  GOOGLE_SECTION@132..161 {
+    GOOGLE_SECTION_HEADER@132..140 {
+      NAME: "Returns"@132..139
+      COLON: ":"@139..140
+    }
+    GOOGLE_RETURNS@145..161 {
+      RETURN_TYPE: "int"@145..148
+      COLON: ":"@148..149
+      DESCRIPTION: "The result."@150..161
+    }
+  }
+  GOOGLE_SECTION@163..204 {
+    GOOGLE_SECTION_HEADER@163..170 {
+      NAME: "Raises"@163..169
+      COLON: ":"@169..170
+    }
+    GOOGLE_EXCEPTION@175..204 {
+      TYPE: "ValueError"@175..185
+      COLON: ":"@185..186
+      DESCRIPTION: "If x is negative."@187..204
+    }
+  }
+  GOOGLE_SECTION@206..256 {
+    GOOGLE_SECTION_HEADER@206..212 {
+      NAME: "Warns"@206..211
+      COLON: ":"@211..212
+    }
+    GOOGLE_WARNING@217..256 {
+      WARNING_TYPE: "DeprecationWarning"@217..235
+      COLON: ":"@235..236
+      DESCRIPTION: "If old API is used."@237..256
+    }
+  }
+  GOOGLE_SECTION@258..301 {
+    GOOGLE_SECTION_HEADER@258..267 {
+      NAME: "See Also"@258..266
+      COLON: ":"@266..267
+    }
+    GOOGLE_SEE_ALSO_ITEM@272..301 {
+      NAME: "other_func"@272..282
+      COLON: ":"@282..283
+      DESCRIPTION: "Related function."@284..301
+    }
+  }
+  GOOGLE_SECTION@303..335 {
+    GOOGLE_SECTION_HEADER@303..308 {
+      NAME: "Note"@303..307
+      COLON: ":"@307..308
+    }
+    BODY_TEXT: "Implementation detail."@313..335
+  }
+  GOOGLE_SECTION@337..372 {
+    GOOGLE_SECTION_HEADER@337..345 {
+      NAME: "Example"@337..344
+      COLON: ":"@344..345
+    }
+    BODY_TEXT: ">>> calculate(1)\n    1"@350..372
+  }
+}
+=== EMIT ===
+Calculate something.
+
+Extended description.
+
+Args:
+    x (int): First argument.
+
+Keyword Args:
+    timeout (float): Timeout value.
+
+Returns:
+    int: The result.
+
+Raises:
+    ValueError: If x is negative.
+
+Warns:
+    DeprecationWarning: If old API is used.
+
+See Also:
+    other_func: Related function.
+
+Notes:
+    Implementation detail.
+
+Examples:
+    >>> calculate(1)
+    1

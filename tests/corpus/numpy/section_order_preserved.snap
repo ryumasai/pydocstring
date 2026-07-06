@@ -1,0 +1,64 @@
+=== CST ===
+NUMPY_DOCSTRING@0..148 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..49 {
+    NUMPY_SECTION_HEADER@10..31 {
+      NAME: "Parameters"@10..20
+      UNDERLINE: "----------"@21..31
+    }
+    NUMPY_PARAMETER@32..49 {
+      NAME: "x"@32..33
+      COLON: ":"@34..35
+      TYPE: "int"@36..39
+      DESCRIPTION: "Desc."@44..49
+    }
+  }
+  NUMPY_SECTION@51..82 {
+    NUMPY_SECTION_HEADER@51..66 {
+      NAME: "Returns"@51..58
+      UNDERLINE: "-------"@59..66
+    }
+    NUMPY_RETURNS@67..82 {
+      RETURN_TYPE: "int"@67..70
+      DESCRIPTION: "Result."@75..82
+    }
+  }
+  NUMPY_SECTION@84..123 {
+    NUMPY_SECTION_HEADER@84..97 {
+      NAME: "Raises"@84..90
+      UNDERLINE: "------"@91..97
+    }
+    NUMPY_EXCEPTION@98..123 {
+      TYPE: "ValueError"@98..108
+      DESCRIPTION: "Bad input."@113..123
+    }
+  }
+  NUMPY_SECTION@125..148 {
+    NUMPY_SECTION_HEADER@125..136 {
+      NAME: "Notes"@125..130
+      UNDERLINE: "-----"@131..136
+    }
+    BODY_TEXT: "Some notes."@137..148
+  }
+}
+=== EMIT ===
+Summary.
+
+Parameters
+----------
+x : int
+    Desc.
+
+Returns
+-------
+int
+    Result.
+
+Raises
+------
+ValueError
+    Bad input.
+
+Notes
+-----
+Some notes.

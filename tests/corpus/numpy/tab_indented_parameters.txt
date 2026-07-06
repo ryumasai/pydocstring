@@ -1,0 +1,8 @@
+Summary.
+
+Parameters
+----------
+x : int
+	Description of x.
+y : str
+	Description of y.

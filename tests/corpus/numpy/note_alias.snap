@@ -1,0 +1,17 @@
+=== CST ===
+NUMPY_DOCSTRING@0..35 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..35 {
+    NUMPY_SECTION_HEADER@10..19 {
+      NAME: "Note"@10..14
+      UNDERLINE: "----"@15..19
+    }
+    BODY_TEXT: "This is a note."@20..35
+  }
+}
+=== EMIT ===
+Summary.
+
+Notes
+-----
+This is a note.

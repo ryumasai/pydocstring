@@ -1,0 +1,6 @@
+=== CST ===
+NUMPY_DOCSTRING@0..11 {
+  SUMMARY: "My summary."@0..11
+}
+=== EMIT ===
+My summary.

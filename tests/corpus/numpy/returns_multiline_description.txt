@@ -1,0 +1,8 @@
+Summary.
+
+Returns
+-------
+result : int
+    First line.
+
+    Second paragraph.

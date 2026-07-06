@@ -1,0 +1,33 @@
+=== CST ===
+NUMPY_DOCSTRING@0..100 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_DEPRECATION@10..59 {
+    DIRECTIVE_MARKER: ".."@10..12
+    KEYWORD: "deprecated"@13..23
+    DOUBLE_COLON: "::"@23..25
+    VERSION: "1.6.0"@26..31
+    DESCRIPTION: "Use `new_func` instead."@36..59
+  }
+  NUMPY_SECTION@61..100 {
+    NUMPY_SECTION_HEADER@61..82 {
+      NAME: "Parameters"@61..71
+      UNDERLINE: "----------"@72..82
+    }
+    NUMPY_PARAMETER@83..100 {
+      NAME: "x"@83..84
+      COLON: ":"@85..86
+      TYPE: "int"@87..90
+      DESCRIPTION: "Desc."@95..100
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+.. deprecated:: 1.6.0
+    Use `new_func` instead.
+
+Parameters
+----------
+x : int
+    Desc.

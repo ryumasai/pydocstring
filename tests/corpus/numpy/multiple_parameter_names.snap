@@ -1,0 +1,24 @@
+=== CST ===
+NUMPY_DOCSTRING@0..69 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..69 {
+    NUMPY_SECTION_HEADER@10..31 {
+      NAME: "Parameters"@10..20
+      UNDERLINE: "----------"@21..31
+    }
+    NUMPY_PARAMETER@32..69 {
+      NAME: "x1"@32..34
+      NAME: "x2"@36..38
+      COLON: ":"@39..40
+      TYPE: "array_like"@41..51
+      DESCRIPTION: "Input arrays."@56..69
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Parameters
+----------
+x1, x2 : array_like
+    Input arrays.

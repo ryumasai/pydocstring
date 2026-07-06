@@ -1,0 +1,16 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..46 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..46 {
+    GOOGLE_SECTION_HEADER@10..21 {
+      NAME: "References"@10..20
+      COLON: ":"@20..21
+    }
+    BODY_TEXT: "Author, Title, 2024."@26..46
+  }
+}
+=== EMIT ===
+Summary.
+
+References:
+    Author, Title, 2024.

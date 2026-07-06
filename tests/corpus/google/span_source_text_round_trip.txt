@@ -1,0 +1,7 @@
+Summary.
+
+Args:
+    x (int): Value.
+
+Returns:
+    bool: Success.

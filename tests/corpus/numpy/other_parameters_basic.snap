@@ -1,0 +1,32 @@
+=== CST ===
+NUMPY_DOCSTRING@0..124 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..124 {
+    NUMPY_SECTION_HEADER@10..43 {
+      NAME: "Other Parameters"@10..26
+      UNDERLINE: "----------------"@27..43
+    }
+    NUMPY_PARAMETER@44..79 {
+      NAME: "debug"@44..49
+      COLON: ":"@50..51
+      TYPE: "bool"@52..56
+      DESCRIPTION: "Enable debug mode."@61..79
+    }
+    NUMPY_PARAMETER@80..124 {
+      NAME: "verbose"@80..87
+      COLON: ":"@88..89
+      TYPE: "bool"@90..94
+      OPTIONAL: "optional"@96..104
+      DESCRIPTION: "Verbose output."@109..124
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Other Parameters
+----------------
+debug : bool
+    Enable debug mode.
+verbose : bool, optional
+    Verbose output.

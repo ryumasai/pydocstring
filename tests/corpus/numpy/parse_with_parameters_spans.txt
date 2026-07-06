@@ -1,0 +1,8 @@
+Brief description.
+
+Parameters
+----------
+x : int
+    The first parameter.
+y : str, optional
+    The second parameter.

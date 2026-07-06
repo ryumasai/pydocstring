@@ -1,0 +1,16 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..56 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..56 {
+    GOOGLE_SECTION_HEADER@10..20 {
+      NAME: "Attention"@10..19
+      COLON: ":"@19..20
+    }
+    BODY_TEXT: "This requires careful handling."@25..56
+  }
+}
+=== EMIT ===
+Summary.
+
+Attention:
+    This requires careful handling.

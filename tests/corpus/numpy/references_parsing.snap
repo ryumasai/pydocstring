@@ -1,0 +1,31 @@
+=== CST ===
+NUMPY_DOCSTRING@0..99 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..99 {
+    NUMPY_SECTION_HEADER@10..31 {
+      NAME: "References"@10..20
+      UNDERLINE: "----------"@21..31
+    }
+    NUMPY_REFERENCE@32..65 {
+      DIRECTIVE_MARKER: ".."@32..34
+      OPEN_BRACKET: "["@35..36
+      NUMBER: "1"@36..37
+      CLOSE_BRACKET: "]"@37..38
+      CONTENT: "Author A, \"Title A\", 2020."@39..65
+    }
+    NUMPY_REFERENCE@66..99 {
+      DIRECTIVE_MARKER: ".."@66..68
+      OPEN_BRACKET: "["@69..70
+      NUMBER: "2"@70..71
+      CLOSE_BRACKET: "]"@71..72
+      CONTENT: "Author B, \"Title B\", 2021."@73..99
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+References
+----------
+.. [1] Author A, "Title A", 2020.
+.. [2] Author B, "Title B", 2021.

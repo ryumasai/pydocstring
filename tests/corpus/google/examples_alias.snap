@@ -1,0 +1,17 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..39 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..39 {
+    GOOGLE_SECTION_HEADER@10..19 {
+      NAME: "Examples"@10..18
+      COLON: ":"@18..19
+    }
+    BODY_TEXT: ">>> 1 + 1\n    2"@24..39
+  }
+}
+=== EMIT ===
+Summary.
+
+Examples:
+    >>> 1 + 1
+    2

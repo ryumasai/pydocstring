@@ -1,0 +1,10 @@
+=== CST ===
+NUMPY_DOCSTRING@0..67 {
+  SUMMARY: "This is a long summary\nthat spans two lines."@0..44
+  EXTENDED_SUMMARY: "Extended description."@46..67
+}
+=== EMIT ===
+This is a long summary
+that spans two lines.
+
+Extended description.

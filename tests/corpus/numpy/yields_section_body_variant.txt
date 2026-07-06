@@ -1,0 +1,6 @@
+Summary.
+
+Yields
+------
+int
+    Value.

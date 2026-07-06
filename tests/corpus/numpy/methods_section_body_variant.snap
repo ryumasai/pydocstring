@@ -1,0 +1,21 @@
+=== CST ===
+NUMPY_DOCSTRING@0..45 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..45 {
+    NUMPY_SECTION_HEADER@10..25 {
+      NAME: "Methods"@10..17
+      UNDERLINE: "-------"@18..25
+    }
+    NUMPY_METHOD@26..45 {
+      NAME: "foo()"@26..31
+      DESCRIPTION: "Does bar."@36..45
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Methods
+-------
+foo()
+    Does bar.

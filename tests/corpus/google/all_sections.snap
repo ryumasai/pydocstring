@@ -1,0 +1,84 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..283 {
+  SUMMARY: "Calculate the sum."@0..18
+  EXTENDED_SUMMARY: "This function adds two numbers."@20..51
+  GOOGLE_SECTION@53..121 {
+    GOOGLE_SECTION_HEADER@53..58 {
+      NAME: "Args"@53..57
+      COLON: ":"@57..58
+    }
+    GOOGLE_ARG@63..89 {
+      NAME: "a"@63..64
+      OPEN_BRACKET: "("@65..66
+      TYPE: "int"@66..69
+      CLOSE_BRACKET: ")"@69..70
+      COLON: ":"@70..71
+      DESCRIPTION: "The first number."@72..89
+    }
+    GOOGLE_ARG@94..121 {
+      NAME: "b"@94..95
+      OPEN_BRACKET: "("@96..97
+      TYPE: "int"@97..100
+      CLOSE_BRACKET: ")"@100..101
+      COLON: ":"@101..102
+      DESCRIPTION: "The second number."@103..121
+    }
+  }
+  GOOGLE_SECTION@123..160 {
+    GOOGLE_SECTION_HEADER@123..131 {
+      NAME: "Returns"@123..130
+      COLON: ":"@130..131
+    }
+    GOOGLE_RETURNS@136..160 {
+      RETURN_TYPE: "int"@136..139
+      COLON: ":"@139..140
+      DESCRIPTION: "The sum of a and b."@141..160
+    }
+  }
+  GOOGLE_SECTION@162..211 {
+    GOOGLE_SECTION_HEADER@162..169 {
+      NAME: "Raises"@162..168
+      COLON: ":"@168..169
+    }
+    GOOGLE_EXCEPTION@174..211 {
+      TYPE: "TypeError"@174..183
+      COLON: ":"@183..184
+      DESCRIPTION: "If inputs are not numbers."@185..211
+    }
+  }
+  GOOGLE_SECTION@213..245 {
+    GOOGLE_SECTION_HEADER@213..221 {
+      NAME: "Example"@213..220
+      COLON: ":"@220..221
+    }
+    BODY_TEXT: ">>> add(1, 2)\n    3"@226..245
+  }
+  GOOGLE_SECTION@247..283 {
+    GOOGLE_SECTION_HEADER@247..252 {
+      NAME: "Note"@247..251
+      COLON: ":"@251..252
+    }
+    BODY_TEXT: "This is a simple function."@257..283
+  }
+}
+=== EMIT ===
+Calculate the sum.
+
+This function adds two numbers.
+
+Args:
+    a (int): The first number.
+    b (int): The second number.
+
+Returns:
+    int: The sum of a and b.
+
+Raises:
+    TypeError: If inputs are not numbers.
+
+Examples:
+    >>> add(1, 2)
+    3
+
+Notes:
+    This is a simple function.
