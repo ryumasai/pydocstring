@@ -1,19 +1,19 @@
 === CST ===
-GOOGLE_DOCSTRING@0..55 {
+DOCUMENT@0..55 {
   SUMMARY@0..32 {
     TEXT_LINE: "Summary line one"@0..16
     NEWLINE: "\n"@16..17
     TEXT_LINE: "continues here."@17..32
   }
   NEWLINE: "\n"@32..33
-  GOOGLE_SECTION@33..55 {
-    GOOGLE_SECTION_HEADER@33..38 {
+  SECTION@33..55 {
+    SECTION_HEADER@33..38 {
       NAME: "Args"@33..37
       COLON: ":"@37..38
     }
     NEWLINE: "\n"@38..39
     WHITESPACE: "    "@39..43
-    GOOGLE_ARG@43..55 {
+    ENTRY@43..55 {
       NAME: "x"@43..44
       WHITESPACE: " "@44..45
       OPEN_BRACKET: "("@45..46

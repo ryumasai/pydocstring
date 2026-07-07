@@ -1,37 +1,37 @@
 === CST ===
-NUMPY_DOCSTRING@0..100 {
+DOCUMENT@0..100 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  NUMPY_SECTION@10..99 {
-    NUMPY_SECTION_HEADER@10..31 {
+  SECTION@10..99 {
+    SECTION_HEADER@10..31 {
       NAME: "References"@10..20
       NEWLINE: "\n"@20..21
       UNDERLINE: "----------"@21..31
     }
     NEWLINE: "\n"@31..32
-    NUMPY_REFERENCE@32..65 {
+    CITATION@32..65 {
       DIRECTIVE_MARKER: ".."@32..34
       WHITESPACE: " "@34..35
       OPEN_BRACKET: "["@35..36
-      NUMBER: "1"@36..37
+      LABEL: "1"@36..37
       CLOSE_BRACKET: "]"@37..38
       WHITESPACE: " "@38..39
-      CONTENT@39..65 {
+      DESCRIPTION@39..65 {
         TEXT_LINE: "Author A, \"Title A\", 2020."@39..65
       }
     }
     NEWLINE: "\n"@65..66
-    NUMPY_REFERENCE@66..99 {
+    CITATION@66..99 {
       DIRECTIVE_MARKER: ".."@66..68
       WHITESPACE: " "@68..69
       OPEN_BRACKET: "["@69..70
-      NUMBER: "2"@70..71
+      LABEL: "2"@70..71
       CLOSE_BRACKET: "]"@71..72
       WHITESPACE: " "@72..73
-      CONTENT@73..99 {
+      DESCRIPTION@73..99 {
         TEXT_LINE: "Author B, \"Title B\", 2021."@73..99
       }
     }

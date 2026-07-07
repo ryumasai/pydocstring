@@ -1,5 +1,5 @@
 === CST ===
-NUMPY_DOCSTRING@0..165 {
+DOCUMENT@0..165 {
   WHITESPACE: "        "@0..8
   SUMMARY@8..14 {
     TEXT_LINE: "Brief."@8..14
@@ -7,8 +7,8 @@ NUMPY_DOCSTRING@0..165 {
   NEWLINE: "\n"@14..15
   BLANK_LINE: "\n"@15..16
   WHITESPACE: "        "@16..24
-  NUMPY_SECTION@24..94 {
-    NUMPY_SECTION_HEADER@24..53 {
+  SECTION@24..94 {
+    SECTION_HEADER@24..53 {
       NAME: "Parameters"@24..34
       NEWLINE: "\n"@34..35
       WHITESPACE: "        "@35..43
@@ -16,7 +16,7 @@ NUMPY_DOCSTRING@0..165 {
     }
     NEWLINE: "\n"@53..54
     WHITESPACE: "        "@54..62
-    NUMPY_PARAMETER@62..94 {
+    ENTRY@62..94 {
       NAME: "a"@62..63
       WHITESPACE: " "@63..64
       COLON: ":"@64..65
@@ -32,8 +32,8 @@ NUMPY_DOCSTRING@0..165 {
   NEWLINE: "\n"@94..95
   BLANK_LINE: "\n"@95..96
   WHITESPACE: "        "@96..104
-  NUMPY_SECTION@104..164 {
-    NUMPY_SECTION_HEADER@104..125 {
+  SECTION@104..164 {
+    SECTION_HEADER@104..125 {
       NAME: "Raises"@104..110
       NEWLINE: "\n"@110..111
       WHITESPACE: "        "@111..119
@@ -41,7 +41,7 @@ NUMPY_DOCSTRING@0..165 {
     }
     NEWLINE: "\n"@125..126
     WHITESPACE: "        "@126..134
-    NUMPY_EXCEPTION@134..164 {
+    ENTRY@134..164 {
       TYPE: "ValueError"@134..144
       NEWLINE: "\n"@144..145
       WHITESPACE: "            "@145..157

@@ -1,5 +1,5 @@
 === CST ===
-NUMPY_DOCSTRING@0..189 {
+DOCUMENT@0..189 {
   WHITESPACE: "    "@0..4
   SUMMARY@4..17 {
     TEXT_LINE: "Summary line."@4..17
@@ -7,8 +7,8 @@ NUMPY_DOCSTRING@0..189 {
   NEWLINE: "\n"@17..18
   BLANK_LINE: "\n"@18..19
   WHITESPACE: "    "@19..23
-  NUMPY_SECTION@23..134 {
-    NUMPY_SECTION_HEADER@23..48 {
+  SECTION@23..134 {
+    SECTION_HEADER@23..48 {
       NAME: "Parameters"@23..33
       NEWLINE: "\n"@33..34
       WHITESPACE: "    "@34..38
@@ -16,7 +16,7 @@ NUMPY_DOCSTRING@0..189 {
     }
     NEWLINE: "\n"@48..49
     WHITESPACE: "    "@49..53
-    NUMPY_PARAMETER@53..86 {
+    ENTRY@53..86 {
       NAME: "x"@53..54
       WHITESPACE: " "@54..55
       COLON: ":"@55..56
@@ -30,7 +30,7 @@ NUMPY_DOCSTRING@0..189 {
     }
     NEWLINE: "\n"@86..87
     WHITESPACE: "    "@87..91
-    NUMPY_PARAMETER@91..134 {
+    ENTRY@91..134 {
       NAME: "y"@91..92
       WHITESPACE: " "@92..93
       COLON: ":"@93..94
@@ -49,8 +49,8 @@ NUMPY_DOCSTRING@0..189 {
   NEWLINE: "\n"@134..135
   BLANK_LINE: "\n"@135..136
   WHITESPACE: "    "@136..140
-  NUMPY_SECTION@140..188 {
-    NUMPY_SECTION_HEADER@140..159 {
+  SECTION@140..188 {
+    SECTION_HEADER@140..159 {
       NAME: "Returns"@140..147
       NEWLINE: "\n"@147..148
       WHITESPACE: "    "@148..152
@@ -58,7 +58,7 @@ NUMPY_DOCSTRING@0..189 {
     }
     NEWLINE: "\n"@159..160
     WHITESPACE: "    "@160..164
-    NUMPY_RETURNS@164..188 {
+    ENTRY@164..188 {
       RETURN_TYPE: "bool"@164..168
       NEWLINE: "\n"@168..169
       WHITESPACE: "        "@169..177

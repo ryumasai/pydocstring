@@ -1,18 +1,18 @@
 === CST ===
-NUMPY_DOCSTRING@0..57 {
+DOCUMENT@0..57 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  NUMPY_SECTION@10..56 {
-    NUMPY_SECTION_HEADER@10..27 {
+  SECTION@10..56 {
+    SECTION_HEADER@10..27 {
       NAME: "Warnings"@10..18
       NEWLINE: "\n"@18..19
       UNDERLINE: "--------"@19..27
     }
     NEWLINE: "\n"@27..28
-    BODY_TEXT@28..56 {
+    DESCRIPTION@28..56 {
       TEXT_LINE: "This function is deprecated."@28..56
     }
   }

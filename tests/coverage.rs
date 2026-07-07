@@ -164,8 +164,8 @@ fn token_texts(node: &SyntaxNode, source: &str) -> Vec<(SyntaxKind, String)> {
 #[test]
 fn name_list_commas_are_comma_tokens() {
     let google = pydocstring::parse::google::parse_google("Summary.\n\nArgs:\n    x1, x2 (int): The values.\n");
-    let arg = google.root().find_node(SyntaxKind::GOOGLE_SECTION).unwrap();
-    let arg = arg.find_node(SyntaxKind::GOOGLE_ARG).unwrap();
+    let arg = google.root().find_node(SyntaxKind::SECTION).unwrap();
+    let arg = arg.find_node(SyntaxKind::ENTRY).unwrap();
     let tokens = token_texts(arg, google.source());
     let name_comma: Vec<_> = tokens
         .iter()
@@ -183,8 +183,8 @@ fn name_list_commas_are_comma_tokens() {
 
     let numpy =
         pydocstring::parse::numpy::parse_numpy("Summary.\n\nParameters\n----------\nx1, x2 : int\n    The values.\n");
-    let param = numpy.root().find_node(SyntaxKind::NUMPY_SECTION).unwrap();
-    let param = param.find_node(SyntaxKind::NUMPY_PARAMETER).unwrap();
+    let param = numpy.root().find_node(SyntaxKind::SECTION).unwrap();
+    let param = param.find_node(SyntaxKind::ENTRY).unwrap();
     let tokens = token_texts(param, numpy.source());
     let name_comma: Vec<_> = tokens
         .iter()
@@ -208,8 +208,8 @@ fn name_list_commas_are_comma_tokens() {
 fn optional_marker_comma_is_a_comma_token() {
     let input = "Summary.\n\nArgs:\n    x (int, optional): The value.\n";
     let parsed = pydocstring::parse::google::parse_google(input);
-    let arg = parsed.root().find_node(SyntaxKind::GOOGLE_SECTION).unwrap();
-    let arg = arg.find_node(SyntaxKind::GOOGLE_ARG).unwrap();
+    let arg = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
+    let arg = arg.find_node(SyntaxKind::ENTRY).unwrap();
     let tokens = token_texts(arg, parsed.source());
     let type_area: Vec<_> = tokens
         .iter()
@@ -228,8 +228,8 @@ fn optional_marker_comma_is_a_comma_token() {
     // A bracket-internal comma is not a separator: no COMMA token.
     let input = "Summary.\n\nArgs:\n    x (Dict[str, int]): The value.\n";
     let parsed = pydocstring::parse::google::parse_google(input);
-    let arg = parsed.root().find_node(SyntaxKind::GOOGLE_SECTION).unwrap();
-    let arg = arg.find_node(SyntaxKind::GOOGLE_ARG).unwrap();
+    let arg = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
+    let arg = arg.find_node(SyntaxKind::ENTRY).unwrap();
     let tokens = token_texts(arg, parsed.source());
     assert!(
         tokens

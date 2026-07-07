@@ -39,17 +39,50 @@ fn test_detect_plain_sphinx() {
 #[test]
 fn test_parse_dispatches_to_plain() {
     let result = parse("Just a summary.");
-    assert_eq!(result.root().kind(), SyntaxKind::PLAIN_DOCSTRING);
+    assert_eq!(result.root().kind(), SyntaxKind::DOCUMENT);
+    assert_eq!(result.style(), Style::Plain);
 }
 
 #[test]
 fn test_parse_dispatches_to_google() {
     let result = parse("Summary.\n\nArgs:\n    x: Desc.");
-    assert_eq!(result.root().kind(), SyntaxKind::GOOGLE_DOCSTRING);
+    assert_eq!(result.root().kind(), SyntaxKind::DOCUMENT);
+    assert_eq!(result.style(), Style::Google);
 }
 
 #[test]
 fn test_parse_dispatches_to_numpy() {
     let result = parse("Summary.\n\nParameters\n----------\nx : int\n    Desc.");
-    assert_eq!(result.root().kind(), SyntaxKind::NUMPY_DOCSTRING);
+    assert_eq!(result.root().kind(), SyntaxKind::DOCUMENT);
+    assert_eq!(result.style(), Style::NumPy);
+}
+
+// =============================================================================
+// SPEC: Parsed::style() — the root kind is style-neutral (DOCUMENT), so each
+// parser records the style it parsed as.
+// =============================================================================
+
+#[test]
+fn spec_parsed_style_reports_the_parser_style() {
+    let google = pydocstring::parse::google::parse_google("Summary.\n\nArgs:\n    x: Desc.");
+    assert_eq!(google.style(), Style::Google);
+    assert_eq!(google.root().kind(), SyntaxKind::DOCUMENT);
+
+    let numpy = pydocstring::parse::numpy::parse_numpy("Summary.\n\nParameters\n----------\nx : int\n    Desc.");
+    assert_eq!(numpy.style(), Style::NumPy);
+    assert_eq!(numpy.root().kind(), SyntaxKind::DOCUMENT);
+
+    let plain = pydocstring::parse::plain::parse_plain("Just a summary.");
+    assert_eq!(plain.style(), Style::Plain);
+    assert_eq!(plain.root().kind(), SyntaxKind::DOCUMENT);
+}
+
+/// SPEC: the per-style typed wrappers are views over the unified `DOCUMENT`
+/// node — `GoogleDocstring::cast` works on a Google-parsed root.
+#[test]
+fn spec_google_docstring_casts_on_document_root() {
+    let parsed = pydocstring::parse::google::parse_google("Summary.\n\nArgs:\n    x: Desc.");
+    let doc = pydocstring::parse::google::GoogleDocstring::cast(parsed.root()).expect("cast must succeed");
+    assert_eq!(doc.summary().unwrap().text(parsed.source()), "Summary.");
+    assert_eq!(doc.sections().count(), 1);
 }

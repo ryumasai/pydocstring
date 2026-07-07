@@ -71,14 +71,15 @@ summary + extended summary, and unrecognised styles such as Sphinx.
 Use `parse()` to let the library detect the style and parse in one step:
 
 ```rust
-use pydocstring::parse::parse;
+use pydocstring::parse::{parse, Style};
 use pydocstring::syntax::SyntaxKind;
 
 let result = parse("Summary.\n\nArgs:\n    x: Desc.");
-assert_eq!(result.root().kind(), SyntaxKind::GOOGLE_DOCSTRING);
+assert_eq!(result.root().kind(), SyntaxKind::DOCUMENT);
+assert_eq!(result.style(), Style::Google);
 
 let result = parse("Just a summary.");
-assert_eq!(result.root().kind(), SyntaxKind::PLAIN_DOCSTRING);
+assert_eq!(result.style(), Style::Plain);
 ```
 
 ### Source Locations
@@ -114,14 +115,14 @@ println!("{}", result.pretty_print());
 ```
 
 ```text
-GOOGLE_DOCSTRING@0..42 {
+DOCUMENT@0..42 {
   SUMMARY: "Summary."@0..8
-  GOOGLE_SECTION@10..42 {
-    GOOGLE_SECTION_HEADER@10..15 {
+  SECTION@10..42 {
+    SECTION_HEADER@10..15 {
       NAME: "Args"@10..14
       COLON: ":"@14..15
     }
-    GOOGLE_ARG@20..42 {
+    ENTRY@20..42 {
       NAME: "x"@20..21
       OPEN_BRACKET: "("@22..23
       TYPE: "int"@23..26

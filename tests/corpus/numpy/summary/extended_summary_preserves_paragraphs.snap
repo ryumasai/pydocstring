@@ -1,5 +1,5 @@
 === CST ===
-NUMPY_DOCSTRING@0..111 {
+DOCUMENT@0..111 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
@@ -13,14 +13,14 @@ NUMPY_DOCSTRING@0..111 {
   }
   NEWLINE: "\n"@69..70
   BLANK_LINE: "\n"@70..71
-  NUMPY_SECTION@71..110 {
-    NUMPY_SECTION_HEADER@71..92 {
+  SECTION@71..110 {
+    SECTION_HEADER@71..92 {
       NAME: "Parameters"@71..81
       NEWLINE: "\n"@81..82
       UNDERLINE: "----------"@82..92
     }
     NEWLINE: "\n"@92..93
-    NUMPY_PARAMETER@93..110 {
+    ENTRY@93..110 {
       NAME: "x"@93..94
       WHITESPACE: " "@94..95
       COLON: ":"@95..96

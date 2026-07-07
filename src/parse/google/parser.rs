@@ -377,7 +377,7 @@ fn build_section_header_node(info: &SectionHeaderInfo) -> SyntaxNode {
             TextRange::new(info.name.end(), info.name.end()),
         )));
     }
-    SyntaxNode::new(SyntaxKind::GOOGLE_SECTION_HEADER, info.range, children)
+    SyntaxNode::new(SyntaxKind::SECTION_HEADER, info.range, children)
 }
 
 /// Split a NAME range on commas into individual NAME tokens with per-part
@@ -419,10 +419,23 @@ fn push_comma_separated_names(children: &mut Vec<SyntaxElement>, name: TextRange
     }
 }
 
-/// Build a SyntaxNode for an arg-like entry (GoogleArg, GoogleAttribute, GoogleMethod).
-fn build_arg_node(kind: SyntaxKind, header: &EntryHeader, range: TextRange, source: &str) -> SyntaxNode {
+/// Parsing behaviour of an arg-like entry. All three produce `ENTRY` nodes;
+/// the differences (name splitting, type parsing) are grammar details of the
+/// section the entry appears in, not separate node kinds.
+#[derive(Clone, Copy, PartialEq)]
+enum ArgRole {
+    /// Args-like entry: comma-separated names, bracketed type.
+    Arg,
+    /// Attributes entry: whole name, bracketed type.
+    Attribute,
+    /// Methods entry: whole name, no type parsing.
+    Method,
+}
+
+/// Build an `ENTRY` SyntaxNode for an arg-like entry (arg, attribute, method).
+fn build_arg_node(role: ArgRole, header: &EntryHeader, range: TextRange, source: &str) -> SyntaxNode {
     let mut children = Vec::new();
-    if kind == SyntaxKind::GOOGLE_ARG {
+    if role == ArgRole::Arg {
         // Arg entries support comma-separated names (`x1, x2 (int): ...`),
         // like NumPy parameters. Attribute / method names stay whole.
         push_comma_separated_names(&mut children, header.name, source);
@@ -502,7 +515,7 @@ fn build_arg_node(kind: SyntaxKind, header: &EntryHeader, range: TextRange, sour
     // Ensure children are in source order (needed when colon/description
     // appear before the close bracket, e.g., `arg (int:desc.)`).
     children.sort_by_key(|c| c.range().start());
-    SyntaxNode::new(kind, range, children)
+    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
 /// Build a SyntaxNode for an exception entry.
@@ -520,7 +533,7 @@ fn build_exception_node(header: &EntryHeader, range: TextRange) -> SyntaxNode {
             colon.end(),
         )));
     }
-    SyntaxNode::new(SyntaxKind::GOOGLE_EXCEPTION, range, children)
+    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
 /// Build a SyntaxNode for a warning entry.
@@ -541,7 +554,7 @@ fn build_warning_node(header: &EntryHeader, range: TextRange) -> SyntaxNode {
             colon.end(),
         )));
     }
-    SyntaxNode::new(SyntaxKind::GOOGLE_WARNING, range, children)
+    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
 /// Build a SyntaxNode for a see-also entry.
@@ -560,7 +573,7 @@ fn build_see_also_node(header: &EntryHeader, range: TextRange, source: &str) -> 
             colon.end(),
         )));
     }
-    SyntaxNode::new(SyntaxKind::GOOGLE_SEE_ALSO_ITEM, range, children)
+    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
 // =============================================================================
@@ -623,7 +636,7 @@ fn extend_last_node_description(nodes: &mut [SyntaxElement], cont: TextRange) {
 
 fn process_arg_line(
     cursor: &LineCursor,
-    node_kind: SyntaxKind,
+    role: ArgRole,
     nodes: &mut Vec<SyntaxElement>,
     entry_indent: &mut Option<usize>,
 ) {
@@ -637,9 +650,9 @@ fn process_arg_line(
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
     }
-    let (header, entry_range) = parse_entry(cursor, node_kind != SyntaxKind::GOOGLE_METHOD);
+    let (header, entry_range) = parse_entry(cursor, role != ArgRole::Method);
     nodes.push(SyntaxElement::Node(build_arg_node(
-        node_kind,
+        role,
         &header,
         entry_range,
         cursor.source(),
@@ -746,7 +759,7 @@ impl ReturnsState {
         }
     }
 
-    fn into_node(self, kind: SyntaxKind, source: &str) -> Option<SyntaxNode> {
+    fn into_node(self, source: &str) -> Option<SyntaxNode> {
         let range = self.range?;
         let mut children = Vec::new();
         if let Some(rt) = self.return_type {
@@ -762,7 +775,7 @@ impl ReturnsState {
                 source,
             )));
         }
-        Some(SyntaxNode::new(kind, range, children))
+        Some(SyntaxNode::new(SyntaxKind::ENTRY, range, children))
     }
 }
 
@@ -773,9 +786,9 @@ impl ReturnsState {
 /// Tracks the current section being parsed and accumulates its body children.
 enum SectionBody {
     /// Args-like entries (Args, KeywordArgs, OtherParameters, Receives, Attributes, Methods)
-    Args(SyntaxKind, Vec<SyntaxElement>),
+    Args(ArgRole, Vec<SyntaxElement>),
     /// Returns/Yields
-    Returns(SyntaxKind, ReturnsState),
+    Returns(ReturnsState),
     /// Raises
     Raises(Vec<SyntaxElement>),
     /// Warns
@@ -792,14 +805,14 @@ impl SectionBody {
     #[rustfmt::skip]
     fn new(kind: GoogleSectionKind) -> Self {
         match kind {
-            GoogleSectionKind::Args => Self::Args(SyntaxKind::GOOGLE_ARG, Vec::new()),
-            GoogleSectionKind::KeywordArgs => Self::Args(SyntaxKind::GOOGLE_ARG, Vec::new()),
-            GoogleSectionKind::OtherParameters => Self::Args(SyntaxKind::GOOGLE_ARG, Vec::new()),
-            GoogleSectionKind::Receives => Self::Args(SyntaxKind::GOOGLE_ARG, Vec::new()),
-            GoogleSectionKind::Attributes => Self::Args(SyntaxKind::GOOGLE_ATTRIBUTE, Vec::new()),
-            GoogleSectionKind::Methods => Self::Args(SyntaxKind::GOOGLE_METHOD, Vec::new()),
-            GoogleSectionKind::Returns => Self::Returns(SyntaxKind::GOOGLE_RETURNS, ReturnsState::new()),
-            GoogleSectionKind::Yields => Self::Returns(SyntaxKind::GOOGLE_YIELDS, ReturnsState::new()),
+            GoogleSectionKind::Args => Self::Args(ArgRole::Arg, Vec::new()),
+            GoogleSectionKind::KeywordArgs => Self::Args(ArgRole::Arg, Vec::new()),
+            GoogleSectionKind::OtherParameters => Self::Args(ArgRole::Arg, Vec::new()),
+            GoogleSectionKind::Receives => Self::Args(ArgRole::Arg, Vec::new()),
+            GoogleSectionKind::Attributes => Self::Args(ArgRole::Attribute, Vec::new()),
+            GoogleSectionKind::Methods => Self::Args(ArgRole::Method, Vec::new()),
+            GoogleSectionKind::Returns => Self::Returns(ReturnsState::new()),
+            GoogleSectionKind::Yields => Self::Returns(ReturnsState::new()),
             GoogleSectionKind::Raises => Self::Raises(Vec::new()),
             GoogleSectionKind::Warns => Self::Warns(Vec::new()),
             GoogleSectionKind::SeeAlso => Self::SeeAlso(Vec::new()),
@@ -811,12 +824,12 @@ impl SectionBody {
     #[rustfmt::skip]
     fn process_line(&mut self, cursor: &LineCursor, entry_indent: &mut Option<usize>) {
         match self {
-            Self::Args(node_kind, nodes) => process_arg_line(cursor, *node_kind, nodes, entry_indent),
-            Self::Returns(_, state) => state.process_line(cursor),
+            Self::Args(role, nodes) => process_arg_line(cursor, *role, nodes, entry_indent),
+            Self::Returns(state) => state.process_line(cursor),
             Self::Raises(nodes) => process_exception_line(cursor, nodes, entry_indent),
             Self::Warns(nodes) => process_warning_line(cursor, nodes, entry_indent),
             Self::SeeAlso(nodes) => process_see_also_line(cursor, nodes, entry_indent),
-            Self::References(nodes) => process_reference_line(cursor, SyntaxKind::GOOGLE_REFERENCE, nodes, entry_indent),
+            Self::References(nodes) => process_reference_line(cursor, nodes, entry_indent),
             Self::FreeText(range) => {
                 let r = cursor.current_trimmed_range();
                 match range {
@@ -830,7 +843,7 @@ impl SectionBody {
     fn into_children(self, source: &str) -> Vec<SyntaxElement> {
         match self {
             Self::Args(_, nodes) => nodes,
-            Self::Returns(kind, state) => match state.into_node(kind, source) {
+            Self::Returns(state) => match state.into_node(source) {
                 Some(node) => vec![SyntaxElement::Node(node)],
                 None => vec![],
             },
@@ -839,7 +852,11 @@ impl SectionBody {
             Self::SeeAlso(nodes) => nodes,
             Self::References(nodes) => nodes,
             Self::FreeText(range) => match range {
-                Some(r) => vec![SyntaxElement::Node(build_text_block(SyntaxKind::BODY_TEXT, r, source))],
+                Some(r) => vec![SyntaxElement::Node(build_text_block(
+                    SyntaxKind::DESCRIPTION,
+                    r,
+                    source,
+                ))],
                 None => vec![],
             },
         }
@@ -868,7 +885,7 @@ impl SectionBody {
 /// assert_eq!(summary.text(source), "Summary.");
 ///
 /// // Access sections
-/// let sections: Vec<_> = root.nodes(SyntaxKind::GOOGLE_SECTION).collect();
+/// let sections: Vec<_> = root.nodes(SyntaxKind::SECTION).collect();
 /// assert_eq!(sections.len(), 2);
 /// ```
 pub fn parse_google(input: &str) -> Parsed {
@@ -877,9 +894,9 @@ pub fn parse_google(input: &str) -> Parsed {
 
     line_cursor.skip_blanks();
     if line_cursor.is_eof() {
-        let mut root = SyntaxNode::new(SyntaxKind::GOOGLE_DOCSTRING, line_cursor.full_range(), root_children);
+        let mut root = SyntaxNode::new(SyntaxKind::DOCUMENT, line_cursor.full_range(), root_children);
         crate::parse::trivia::attach_trivia(&mut root, input);
-        return Parsed::new(input.to_string(), root);
+        return Parsed::new(input.to_string(), root, crate::parse::Style::Google);
     }
 
     let mut summary_done = false;
@@ -921,7 +938,7 @@ pub fn parse_google(input: &str) -> Parsed {
             && !extended_done
             && ext_first.is_none()
             && current_header.is_none()
-            && let Some(node) = try_parse_deprecation_directive(&mut line_cursor, SyntaxKind::GOOGLE_DEPRECATION)
+            && let Some(node) = try_parse_deprecation_directive(&mut line_cursor)
         {
             root_children.push(SyntaxElement::Node(node));
             deprecation_done = true;
@@ -1054,9 +1071,9 @@ pub fn parse_google(input: &str) -> Parsed {
         )));
     }
 
-    let mut root = SyntaxNode::new(SyntaxKind::GOOGLE_DOCSTRING, line_cursor.full_range(), root_children);
+    let mut root = SyntaxNode::new(SyntaxKind::DOCUMENT, line_cursor.full_range(), root_children);
     crate::parse::trivia::attach_trivia(&mut root, input);
-    Parsed::new(input.to_string(), root)
+    Parsed::new(input.to_string(), root, crate::parse::Style::Google)
 }
 
 fn flush_section(
@@ -1073,7 +1090,7 @@ fn flush_section(
     section_children.extend(body.into_children(cursor.source()));
 
     root_children.push(SyntaxElement::Node(SyntaxNode::new(
-        SyntaxKind::GOOGLE_SECTION,
+        SyntaxKind::SECTION,
         section_range,
         section_children,
     )));

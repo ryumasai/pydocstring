@@ -1,18 +1,18 @@
 === CST ===
-NUMPY_DOCSTRING@0..59 {
+DOCUMENT@0..59 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  NUMPY_SECTION@10..58 {
-    NUMPY_SECTION_HEADER@10..37 {
+  SECTION@10..58 {
+    SECTION_HEADER@10..37 {
       NAME: "CustomSection"@10..23
       NEWLINE: "\n"@23..24
       UNDERLINE: "-------------"@24..37
     }
     NEWLINE: "\n"@37..38
-    BODY_TEXT@38..58 {
+    DESCRIPTION@38..58 {
       TEXT_LINE: "Some custom content."@38..58
     }
   }

@@ -19,8 +19,12 @@ use crate::syntax::Parsed;
 
 /// Build a [`Docstring`] from a Google-style [`Parsed`] result.
 ///
-/// Returns `None` if the root node is not a `GOOGLE_DOCSTRING`.
+/// Returns `None` if the docstring was not parsed as
+/// [`Style::Google`](crate::parse::Style::Google).
 pub fn to_model(parsed: &Parsed) -> Option<Docstring> {
+    if parsed.style() != crate::parse::Style::Google {
+        return None;
+    }
     let source = parsed.source();
     let root = GoogleDocstring::cast(parsed.root())?;
 

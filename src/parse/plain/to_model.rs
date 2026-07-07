@@ -6,8 +6,12 @@ use crate::syntax::Parsed;
 
 /// Build a [`Docstring`] from a plain-style [`Parsed`] result.
 ///
-/// Returns `None` if the root node is not a `PLAIN_DOCSTRING`.
+/// Returns `None` if the docstring was not parsed as
+/// [`Style::Plain`](crate::parse::Style::Plain).
 pub fn to_model(parsed: &Parsed) -> Option<Docstring> {
+    if parsed.style() != crate::parse::Style::Plain {
+        return None;
+    }
     let source = parsed.source();
     let root = PlainDocstring::cast(parsed.root())?;
 

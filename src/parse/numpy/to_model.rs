@@ -19,8 +19,12 @@ use crate::syntax::Parsed;
 
 /// Build a [`Docstring`] from a NumPy-style [`Parsed`] result.
 ///
-/// Returns `None` if the root node is not a `NUMPY_DOCSTRING`.
+/// Returns `None` if the docstring was not parsed as
+/// [`Style::NumPy`](crate::parse::Style::NumPy).
 pub fn to_model(parsed: &Parsed) -> Option<Docstring> {
+    if parsed.style() != crate::parse::Style::NumPy {
+        return None;
+    }
     let source = parsed.source();
     let root = NumPyDocstring::cast(parsed.root())?;
 

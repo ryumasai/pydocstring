@@ -1,18 +1,18 @@
 === CST ===
-NUMPY_DOCSTRING@0..81 {
+DOCUMENT@0..81 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  NUMPY_SECTION@10..80 {
-    NUMPY_SECTION_HEADER@10..21 {
+  SECTION@10..80 {
+    SECTION_HEADER@10..21 {
       NAME: "Warns"@10..15
       NEWLINE: "\n"@15..16
       UNDERLINE: "-----"@16..21
     }
     NEWLINE: "\n"@21..22
-    NUMPY_WARNING@22..53 {
+    ENTRY@22..53 {
       TYPE: "DeprecationWarning"@22..40
       NEWLINE: "\n"@40..41
       WHITESPACE: "    "@41..45
@@ -21,7 +21,7 @@ NUMPY_DOCSTRING@0..81 {
       }
     }
     NEWLINE: "\n"@53..54
-    NUMPY_WARNING@54..80 {
+    ENTRY@54..80 {
       TYPE: "UserWarning"@54..65
       NEWLINE: "\n"@65..66
       WHITESPACE: "    "@66..70

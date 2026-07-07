@@ -10,6 +10,7 @@
 use core::fmt;
 use core::fmt::Write;
 
+use crate::parse::Style;
 use crate::text::LineColumn;
 use crate::text::LineIndex;
 use crate::text::TextRange;
@@ -20,8 +21,13 @@ use crate::text::TextRange;
 
 /// Node and token kinds for all docstring styles.
 ///
-/// Google and NumPy variants coexist in a single enum, just as Biome puts
-/// `JsIfStatement` and `TsInterface` in one `SyntaxKind`.
+/// Node kinds are style-neutral: a Google-style and a NumPy-style docstring
+/// produce the same [`SyntaxKind::DOCUMENT`] / [`SyntaxKind::SECTION`] /
+/// [`SyntaxKind::ENTRY`] shapes. Style differences live only in the section
+/// header ([`SyntaxKind::COLON`] vs [`SyntaxKind::UNDERLINE`]) and in the
+/// parsers/renderers; [`Parsed::style`] reports the source style. The
+/// vocabulary borrows reST concepts (document, section, directive, citation)
+/// so a future reST-flavoured parser can join the same tree.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[allow(non_camel_case_types)]
 #[non_exhaustive]
@@ -36,8 +42,9 @@ pub enum SyntaxKind {
     /// `,` separator: between multiple names, or before an `optional` /
     /// `default …` marker inside a type annotation.
     COMMA,
-    /// Description text block (node wrapping one [`SyntaxKind::TEXT_LINE`]
-    /// token per content line).
+    /// Prose text block (node wrapping one [`SyntaxKind::TEXT_LINE`] token
+    /// per content line): an entry/directive description, a free-text
+    /// section body, or a citation's content.
     DESCRIPTION,
     /// Opening bracket: `(`, `[`, `{`, or `<`.
     OPEN_BRACKET,
@@ -45,9 +52,6 @@ pub enum SyntaxKind {
     CLOSE_BRACKET,
     /// `optional` marker.
     OPTIONAL,
-    /// Free-text section body (node wrapping one
-    /// [`SyntaxKind::TEXT_LINE`] token per content line).
-    BODY_TEXT,
     /// Summary block (node wrapping one [`SyntaxKind::TEXT_LINE`] token per
     /// content line).
     SUMMARY,
@@ -58,8 +62,7 @@ pub enum SyntaxKind {
     STRAY_LINE,
     /// The content span of one line inside a text block node
     /// ([`SyntaxKind::SUMMARY`], [`SyntaxKind::EXTENDED_SUMMARY`],
-    /// [`SyntaxKind::DESCRIPTION`], [`SyntaxKind::BODY_TEXT`],
-    /// [`SyntaxKind::CONTENT`]): excludes leading indentation and the
+    /// [`SyntaxKind::DESCRIPTION`]): excludes leading indentation and the
     /// trailing newline. Never contains a newline.
     TEXT_LINE,
 
@@ -81,8 +84,8 @@ pub enum SyntaxKind {
     /// Warning type (e.g. `UserWarning`).
     WARNING_TYPE,
 
-    // ── NumPy-specific tokens ──────────────────────────────────────────
-    /// Section header underline (`----------`).
+    // ── reST-flavoured tokens ──────────────────────────────────────────
+    /// Section header underline (`----------`, NumPy-style headers).
     UNDERLINE,
     /// RST directive marker (`..`).
     DIRECTIVE_MARKER,
@@ -90,9 +93,9 @@ pub enum SyntaxKind {
     KEYWORD,
     /// RST double colon (`::`).
     DOUBLE_COLON,
-    /// Deprecation version string.
-    VERSION,
-    /// Return type (NumPy-style).
+    /// Directive argument (e.g. the version of a `.. deprecated::`).
+    ARGUMENT,
+    /// Return type (Returns/Yields entries).
     RETURN_TYPE,
     /// `default` keyword.
     DEFAULT_KEYWORD,
@@ -100,73 +103,29 @@ pub enum SyntaxKind {
     DEFAULT_SEPARATOR,
     /// Default value text.
     DEFAULT_VALUE,
-    /// Reference number.
-    NUMBER,
-    /// Reference content text block (node wrapping one
-    /// [`SyntaxKind::TEXT_LINE`] token per content line).
-    CONTENT,
+    /// Citation label (`1`, `CIT2002`, `#f1`, … inside `.. [label]`).
+    LABEL,
 
-    // ── Google nodes ───────────────────────────────────────────────────
-    /// Root node for a Google-style docstring.
-    GOOGLE_DOCSTRING,
-    /// A complete Google section (header + body items).
-    GOOGLE_SECTION,
-    /// Section header (`Args:`, `Returns:`, etc.).
-    GOOGLE_SECTION_HEADER,
-    /// Deprecation directive block.
-    GOOGLE_DEPRECATION,
-    /// A single argument entry.
-    GOOGLE_ARG,
-    /// A single return value entry.
-    GOOGLE_RETURNS,
-    /// A single yield value entry.
-    GOOGLE_YIELDS,
-    /// A single exception entry.
-    GOOGLE_EXCEPTION,
-    /// A single warning entry.
-    GOOGLE_WARNING,
-    /// A single "See Also" item.
-    GOOGLE_SEE_ALSO_ITEM,
-    /// A single reference entry.
-    GOOGLE_REFERENCE,
-    /// A single attribute entry.
-    GOOGLE_ATTRIBUTE,
-    /// A single method entry.
-    GOOGLE_METHOD,
-
-    // ── NumPy nodes ────────────────────────────────────────────────────
-    /// Root node for a NumPy-style docstring.
-    NUMPY_DOCSTRING,
-    /// A complete NumPy section (header + body items).
-    NUMPY_SECTION,
-    /// Section header (name + underline).
-    NUMPY_SECTION_HEADER,
-    /// Deprecation directive block.
-    NUMPY_DEPRECATION,
-    /// A single parameter entry.
-    NUMPY_PARAMETER,
-    /// A single return value entry.
-    NUMPY_RETURNS,
-    /// A single yield value entry.
-    NUMPY_YIELDS,
-    /// A single exception entry.
-    NUMPY_EXCEPTION,
-    /// A single warning entry.
-    NUMPY_WARNING,
-    /// A single "See Also" item.
-    NUMPY_SEE_ALSO_ITEM,
-    /// A single reference entry.
-    NUMPY_REFERENCE,
-    /// A single attribute entry.
-    NUMPY_ATTRIBUTE,
-    /// A single method entry.
-    NUMPY_METHOD,
-
-    // ── Plain node ─────────────────────────────────────────────────────
-    /// Root node for a plain docstring (summary/extended summary only,
-    /// no NumPy or Google style section markers).
-    /// Also used for unrecognised styles such as Sphinx.
-    PLAIN_DOCSTRING,
+    // ── Nodes (style-neutral) ──────────────────────────────────────────
+    /// Root node of a parsed docstring, whatever its style.
+    /// Use [`Parsed::style`] to recover the source style.
+    DOCUMENT,
+    /// A complete section (header + body items).
+    SECTION,
+    /// Section header (`Args:` in Google style, name + underline in
+    /// NumPy style).
+    SECTION_HEADER,
+    /// A single section body entry (argument/parameter, return, yield,
+    /// exception, warning, attribute, method, or "See Also" item).
+    /// Corresponds to a reST `definition_list_item`: NAME ≈ term,
+    /// TYPE ≈ classifier, DESCRIPTION ≈ definition.
+    ENTRY,
+    /// An rST directive block (currently only `.. deprecated:: <version>`;
+    /// the version is an [`SyntaxKind::ARGUMENT`] token).
+    DIRECTIVE,
+    /// A citation/footnote entry in a References section
+    /// (`.. [label] content`).
+    CITATION,
 }
 
 impl SyntaxKind {
@@ -177,35 +136,12 @@ impl SyntaxKind {
             Self::SUMMARY
                 | Self::EXTENDED_SUMMARY
                 | Self::DESCRIPTION
-                | Self::BODY_TEXT
-                | Self::CONTENT
-                | Self::PLAIN_DOCSTRING
-                | Self::GOOGLE_DOCSTRING
-                | Self::GOOGLE_SECTION
-                | Self::GOOGLE_SECTION_HEADER
-                | Self::GOOGLE_DEPRECATION
-                | Self::GOOGLE_ARG
-                | Self::GOOGLE_RETURNS
-                | Self::GOOGLE_YIELDS
-                | Self::GOOGLE_EXCEPTION
-                | Self::GOOGLE_WARNING
-                | Self::GOOGLE_SEE_ALSO_ITEM
-                | Self::GOOGLE_REFERENCE
-                | Self::GOOGLE_ATTRIBUTE
-                | Self::GOOGLE_METHOD
-                | Self::NUMPY_DOCSTRING
-                | Self::NUMPY_SECTION
-                | Self::NUMPY_SECTION_HEADER
-                | Self::NUMPY_DEPRECATION
-                | Self::NUMPY_PARAMETER
-                | Self::NUMPY_RETURNS
-                | Self::NUMPY_YIELDS
-                | Self::NUMPY_EXCEPTION
-                | Self::NUMPY_WARNING
-                | Self::NUMPY_SEE_ALSO_ITEM
-                | Self::NUMPY_REFERENCE
-                | Self::NUMPY_ATTRIBUTE
-                | Self::NUMPY_METHOD
+                | Self::DOCUMENT
+                | Self::SECTION
+                | Self::SECTION_HEADER
+                | Self::ENTRY
+                | Self::DIRECTIVE
+                | Self::CITATION
         )
     }
 
@@ -222,7 +158,7 @@ impl SyntaxKind {
         matches!(self, Self::WHITESPACE | Self::NEWLINE | Self::BLANK_LINE)
     }
 
-    /// Display name for pretty-printing (e.g. `"GOOGLE_ARG"`, `"NAME"`).
+    /// Display name for pretty-printing (e.g. `"ENTRY"`, `"NAME"`).
     pub const fn name(self) -> &'static str {
         match self {
             // Common tokens
@@ -234,7 +170,6 @@ impl SyntaxKind {
             Self::OPEN_BRACKET => "OPEN_BRACKET",
             Self::CLOSE_BRACKET => "CLOSE_BRACKET",
             Self::OPTIONAL => "OPTIONAL",
-            Self::BODY_TEXT => "BODY_TEXT",
             Self::SUMMARY => "SUMMARY",
             Self::EXTENDED_SUMMARY => "EXTENDED_SUMMARY",
             Self::STRAY_LINE => "STRAY_LINE",
@@ -245,48 +180,24 @@ impl SyntaxKind {
             Self::BLANK_LINE => "BLANK_LINE",
             // Google tokens
             Self::WARNING_TYPE => "WARNING_TYPE",
-            // NumPy tokens
+            // reST-flavoured tokens
             Self::UNDERLINE => "UNDERLINE",
             Self::DIRECTIVE_MARKER => "DIRECTIVE_MARKER",
             Self::KEYWORD => "KEYWORD",
             Self::DOUBLE_COLON => "DOUBLE_COLON",
-            Self::VERSION => "VERSION",
+            Self::ARGUMENT => "ARGUMENT",
             Self::RETURN_TYPE => "RETURN_TYPE",
             Self::DEFAULT_KEYWORD => "DEFAULT_KEYWORD",
             Self::DEFAULT_SEPARATOR => "DEFAULT_SEPARATOR",
             Self::DEFAULT_VALUE => "DEFAULT_VALUE",
-            Self::NUMBER => "NUMBER",
-            Self::CONTENT => "CONTENT",
-            // Google nodes
-            Self::GOOGLE_DOCSTRING => "GOOGLE_DOCSTRING",
-            Self::GOOGLE_SECTION => "GOOGLE_SECTION",
-            Self::GOOGLE_SECTION_HEADER => "GOOGLE_SECTION_HEADER",
-            Self::GOOGLE_DEPRECATION => "GOOGLE_DEPRECATION",
-            Self::GOOGLE_ARG => "GOOGLE_ARG",
-            Self::GOOGLE_RETURNS => "GOOGLE_RETURNS",
-            Self::GOOGLE_YIELDS => "GOOGLE_YIELDS",
-            Self::GOOGLE_EXCEPTION => "GOOGLE_EXCEPTION",
-            Self::GOOGLE_WARNING => "GOOGLE_WARNING",
-            Self::GOOGLE_SEE_ALSO_ITEM => "GOOGLE_SEE_ALSO_ITEM",
-            Self::GOOGLE_REFERENCE => "GOOGLE_REFERENCE",
-            Self::GOOGLE_ATTRIBUTE => "GOOGLE_ATTRIBUTE",
-            Self::GOOGLE_METHOD => "GOOGLE_METHOD",
-            // Plain node
-            Self::PLAIN_DOCSTRING => "PLAIN_DOCSTRING",
-            // NumPy nodes
-            Self::NUMPY_DOCSTRING => "NUMPY_DOCSTRING",
-            Self::NUMPY_SECTION => "NUMPY_SECTION",
-            Self::NUMPY_SECTION_HEADER => "NUMPY_SECTION_HEADER",
-            Self::NUMPY_DEPRECATION => "NUMPY_DEPRECATION",
-            Self::NUMPY_PARAMETER => "NUMPY_PARAMETER",
-            Self::NUMPY_RETURNS => "NUMPY_RETURNS",
-            Self::NUMPY_YIELDS => "NUMPY_YIELDS",
-            Self::NUMPY_EXCEPTION => "NUMPY_EXCEPTION",
-            Self::NUMPY_WARNING => "NUMPY_WARNING",
-            Self::NUMPY_SEE_ALSO_ITEM => "NUMPY_SEE_ALSO_ITEM",
-            Self::NUMPY_REFERENCE => "NUMPY_REFERENCE",
-            Self::NUMPY_ATTRIBUTE => "NUMPY_ATTRIBUTE",
-            Self::NUMPY_METHOD => "NUMPY_METHOD",
+            Self::LABEL => "LABEL",
+            // Nodes
+            Self::DOCUMENT => "DOCUMENT",
+            Self::SECTION => "SECTION",
+            Self::SECTION_HEADER => "SECTION_HEADER",
+            Self::ENTRY => "ENTRY",
+            Self::DIRECTIVE => "DIRECTIVE",
+            Self::CITATION => "CITATION",
         }
     }
 }
@@ -524,21 +435,25 @@ impl SyntaxElement {
 
 /// The result of parsing a docstring.
 ///
-/// Owns the source text and the root [`SyntaxNode`].
+/// Owns the source text and the root [`SyntaxNode`], and records the
+/// [`Style`] the docstring was parsed as (the root node kind is the
+/// style-neutral [`SyntaxKind::DOCUMENT`]).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Parsed {
     source: String,
     root: SyntaxNode,
+    style: Style,
     line_index: LineIndex,
 }
 
 impl Parsed {
-    /// Creates a new `Parsed` from source text and root node.
-    pub fn new(source: String, root: SyntaxNode) -> Self {
+    /// Creates a new `Parsed` from source text, root node, and source style.
+    pub fn new(source: String, root: SyntaxNode, style: Style) -> Self {
         let line_index = LineIndex::new(&source);
         Self {
             source,
             root,
+            style,
             line_index,
         }
     }
@@ -551,6 +466,11 @@ impl Parsed {
     /// The root node of the syntax tree.
     pub fn root(&self) -> &SyntaxNode {
         &self.root
+    }
+
+    /// The style this docstring was parsed as.
+    pub fn style(&self) -> Style {
+        self.style
     }
 
     /// Convert a byte offset to a [`LineColumn`] position.
@@ -608,15 +528,15 @@ mod tests {
 
     #[test]
     fn test_syntax_kind_name() {
-        assert_eq!(SyntaxKind::GOOGLE_ARG.name(), "GOOGLE_ARG");
+        assert_eq!(SyntaxKind::ENTRY.name(), "ENTRY");
         assert_eq!(SyntaxKind::NAME.name(), "NAME");
-        assert_eq!(SyntaxKind::NUMPY_PARAMETER.name(), "NUMPY_PARAMETER");
+        assert_eq!(SyntaxKind::SECTION.name(), "SECTION");
     }
 
     #[test]
     fn test_syntax_kind_is_node_is_token() {
-        assert!(SyntaxKind::GOOGLE_DOCSTRING.is_node());
-        assert!(!SyntaxKind::GOOGLE_DOCSTRING.is_token());
+        assert!(SyntaxKind::DOCUMENT.is_node());
+        assert!(!SyntaxKind::DOCUMENT.is_token());
         assert!(SyntaxKind::NAME.is_token());
         assert!(!SyntaxKind::NAME.is_node());
     }
@@ -631,7 +551,7 @@ mod tests {
     #[test]
     fn test_syntax_node_find_token() {
         let node = SyntaxNode::new(
-            SyntaxKind::GOOGLE_ARG,
+            SyntaxKind::ENTRY,
             TextRange::new(TextSize::new(0), TextSize::new(10)),
             vec![
                 SyntaxElement::Token(SyntaxToken::new(
@@ -658,7 +578,7 @@ mod tests {
     #[test]
     fn test_syntax_node_find_node() {
         let child = SyntaxNode::new(
-            SyntaxKind::GOOGLE_SECTION_HEADER,
+            SyntaxKind::SECTION_HEADER,
             TextRange::new(TextSize::new(0), TextSize::new(5)),
             vec![SyntaxElement::Token(SyntaxToken::new(
                 SyntaxKind::NAME,
@@ -666,28 +586,28 @@ mod tests {
             ))],
         );
         let parent = SyntaxNode::new(
-            SyntaxKind::GOOGLE_SECTION,
+            SyntaxKind::SECTION,
             TextRange::new(TextSize::new(0), TextSize::new(20)),
             vec![SyntaxElement::Node(child)],
         );
 
-        assert!(parent.find_node(SyntaxKind::GOOGLE_SECTION_HEADER).is_some());
-        assert!(parent.find_node(SyntaxKind::GOOGLE_ARG).is_none());
-        assert_eq!(parent.nodes(SyntaxKind::GOOGLE_SECTION_HEADER).count(), 1);
+        assert!(parent.find_node(SyntaxKind::SECTION_HEADER).is_some());
+        assert!(parent.find_node(SyntaxKind::ENTRY).is_none());
+        assert_eq!(parent.nodes(SyntaxKind::SECTION_HEADER).count(), 1);
     }
 
     #[test]
     fn test_pretty_print() {
         let source = "Args:\n    x: int";
         let root = SyntaxNode::new(
-            SyntaxKind::GOOGLE_DOCSTRING,
+            SyntaxKind::DOCUMENT,
             TextRange::new(TextSize::new(0), TextSize::new(source.len() as u32)),
             vec![SyntaxElement::Node(SyntaxNode::new(
-                SyntaxKind::GOOGLE_SECTION,
+                SyntaxKind::SECTION,
                 TextRange::new(TextSize::new(0), TextSize::new(source.len() as u32)),
                 vec![
                     SyntaxElement::Node(SyntaxNode::new(
-                        SyntaxKind::GOOGLE_SECTION_HEADER,
+                        SyntaxKind::SECTION_HEADER,
                         TextRange::new(TextSize::new(0), TextSize::new(5)),
                         vec![
                             SyntaxElement::Token(SyntaxToken::new(
@@ -701,7 +621,7 @@ mod tests {
                         ],
                     )),
                     SyntaxElement::Node(SyntaxNode::new(
-                        SyntaxKind::GOOGLE_ARG,
+                        SyntaxKind::ENTRY,
                         TextRange::new(TextSize::new(10), TextSize::new(source.len() as u32)),
                         vec![
                             SyntaxElement::Token(SyntaxToken::new(
@@ -722,14 +642,14 @@ mod tests {
             ))],
         );
 
-        let parsed = Parsed::new(source.to_string(), root);
+        let parsed = Parsed::new(source.to_string(), root, crate::parse::Style::Google);
         let output = parsed.pretty_print();
 
         // Verify structure is present
-        assert!(output.contains("GOOGLE_DOCSTRING@"));
-        assert!(output.contains("GOOGLE_SECTION@"));
-        assert!(output.contains("GOOGLE_SECTION_HEADER@"));
-        assert!(output.contains("GOOGLE_ARG@"));
+        assert!(output.contains("DOCUMENT@"));
+        assert!(output.contains("SECTION@"));
+        assert!(output.contains("SECTION_HEADER@"));
+        assert!(output.contains("ENTRY@"));
         assert!(output.contains("NAME: \"Args\"@"));
         assert!(output.contains("COLON: \":\"@"));
         assert!(output.contains("NAME: \"x\"@"));
@@ -740,7 +660,7 @@ mod tests {
     fn test_visitor_walk() {
         let source = "hello";
         let root = SyntaxNode::new(
-            SyntaxKind::GOOGLE_DOCSTRING,
+            SyntaxKind::DOCUMENT,
             TextRange::new(TextSize::new(0), TextSize::new(5)),
             vec![SyntaxElement::Token(SyntaxToken::new(
                 SyntaxKind::TEXT_LINE,

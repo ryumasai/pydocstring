@@ -400,11 +400,11 @@ fn test_freetext_description_blank_line_continuation() {
 // =============================================================================
 
 /// RST-style `:param foo:` lines inside a Google `Args:` section must not
-/// produce a GOOGLE_ARG with an empty NAME, which would panic when
+/// produce an ENTRY with an empty NAME, which would panic when
 /// `required_token(NAME)` is called.  They should be treated as bare-name
 /// entries (fallback) so the line text is stored verbatim as the NAME token.
 ///
-/// Regression test for: "required token NAME not found in GOOGLE_ARG".
+/// Regression test for: "required token NAME not found in ENTRY".
 #[test]
 fn test_rst_style_param_in_args_no_panic() {
     let input = "Summary.\n\nArgs:\n    :param int seconds: The seconds.\n    :param int nanoseconds: The nanoseconds.";

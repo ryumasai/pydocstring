@@ -1,17 +1,17 @@
 === CST ===
-GOOGLE_DOCSTRING@0..88 {
+DOCUMENT@0..88 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  GOOGLE_DEPRECATION@10..57 {
+  DIRECTIVE@10..57 {
     DIRECTIVE_MARKER: ".."@10..12
     WHITESPACE: " "@12..13
     KEYWORD: "deprecated"@13..23
     DOUBLE_COLON: "::"@23..25
     WHITESPACE: " "@25..26
-    VERSION: "1.6.0"@26..31
+    ARGUMENT: "1.6.0"@26..31
     NEWLINE: "\n"@31..32
     WHITESPACE: "    "@32..36
     DESCRIPTION@36..57 {
@@ -20,14 +20,14 @@ GOOGLE_DOCSTRING@0..88 {
   }
   NEWLINE: "\n"@57..58
   BLANK_LINE: "\n"@58..59
-  GOOGLE_SECTION@59..88 {
-    GOOGLE_SECTION_HEADER@59..64 {
+  SECTION@59..88 {
+    SECTION_HEADER@59..64 {
       NAME: "Args"@59..63
       COLON: ":"@63..64
     }
     NEWLINE: "\n"@64..65
     WHITESPACE: "    "@65..69
-    GOOGLE_ARG@69..88 {
+    ENTRY@69..88 {
       NAME: "x"@69..70
       WHITESPACE: " "@70..71
       OPEN_BRACKET: "("@71..72

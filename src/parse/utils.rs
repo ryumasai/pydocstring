@@ -96,13 +96,12 @@ pub(crate) fn collect_description(cursor: &mut LineCursor, entry_indent_cols: us
 
 /// Try to parse an rST `.. deprecated:: <version>` directive at `cursor.line`.
 ///
-/// On success, builds a deprecation node of `node_kind` (`NUMPY_DEPRECATION`
-/// or `GOOGLE_DEPRECATION`) with `DIRECTIVE_MARKER`, `KEYWORD`, `DOUBLE_COLON`,
-/// `VERSION`, and an optional `DESCRIPTION` collected from the following
-/// more-indented lines, and advances the cursor past the directive.
-/// Returns `None` (without advancing) if the current line is not a
-/// deprecation directive.
-pub(crate) fn try_parse_deprecation_directive(cursor: &mut LineCursor, node_kind: SyntaxKind) -> Option<SyntaxNode> {
+/// On success, builds a `DIRECTIVE` node with `DIRECTIVE_MARKER`, `KEYWORD`,
+/// `DOUBLE_COLON`, `ARGUMENT` (the version), and an optional `DESCRIPTION`
+/// collected from the following more-indented lines, and advances the cursor
+/// past the directive. Returns `None` (without advancing) if the current
+/// line is not a deprecation directive.
+pub(crate) fn try_parse_deprecation_directive(cursor: &mut LineCursor) -> Option<SyntaxNode> {
     let line = cursor.current_line_text();
     let trimmed = line.trim();
     if !trimmed.starts_with(".. deprecated::") {
@@ -136,7 +135,7 @@ pub(crate) fn try_parse_deprecation_directive(cursor: &mut LineCursor, node_kind
 
     let version_range = cursor.make_line_range(cursor.line, version_col, version_str.len());
     dep_children.push(SyntaxElement::Token(SyntaxToken::new(
-        SyntaxKind::VERSION,
+        SyntaxKind::ARGUMENT,
         version_range,
     )));
 
@@ -160,7 +159,7 @@ pub(crate) fn try_parse_deprecation_directive(cursor: &mut LineCursor, node_kind
     };
 
     let dep_range = cursor.make_range(dep_start_line, col, dep_end_line, dep_end_col);
-    Some(SyntaxNode::new(node_kind, dep_range, dep_children))
+    Some(SyntaxNode::new(SyntaxKind::DIRECTIVE, dep_range, dep_children))
 }
 
 /// Find the byte offset of the first entry-separating colon in `text`.
@@ -527,9 +526,8 @@ pub(crate) fn convert_multiline_with_indentation(text: &str) -> String {
 // Reference entries (shared by the NumPy and Google parsers)
 // =============================================================================
 
-/// Build a reference node of `kind` for an rST-style line: `.. [N] content`.
+/// Build a `CITATION` node for an rST-style line: `.. [label] content`.
 fn build_reference_node_rst(
-    kind: SyntaxKind,
     directive_marker: TextRange,
     open_bracket: TextRange,
     number: Option<TextRange>,
@@ -547,31 +545,31 @@ fn build_reference_node_rst(
         open_bracket,
     )));
     if let Some(n) = number {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::NUMBER, n)));
+        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::LABEL, n)));
     }
     children.push(SyntaxElement::Token(SyntaxToken::new(
         SyntaxKind::CLOSE_BRACKET,
         close_bracket,
     )));
     if let Some(c) = content {
-        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::CONTENT, c)));
+        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, c)));
     }
-    SyntaxNode::new(kind, range, children)
+    SyntaxNode::new(SyntaxKind::CITATION, range, children)
 }
 
-/// Build a reference node of `kind` for a plain-text line (content only).
-fn build_reference_node_plain(kind: SyntaxKind, content: TextRange, range: TextRange) -> SyntaxNode {
-    let children = vec![SyntaxElement::Node(text_block_single(SyntaxKind::CONTENT, content))];
-    SyntaxNode::new(kind, range, children)
+/// Build a `CITATION` node for a plain-text line (content only).
+fn build_reference_node_plain(content: TextRange, range: TextRange) -> SyntaxNode {
+    let children = vec![SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, content))];
+    SyntaxNode::new(SyntaxKind::CITATION, range, children)
 }
 
-/// Extend the `CONTENT` block of the last reference node, or add one.
+/// Extend the `DESCRIPTION` block of the last citation node, or add one.
 fn extend_last_ref_content(nodes: &mut [SyntaxElement], cont: TextRange) {
     if let Some(SyntaxElement::Node(node)) = nodes.last_mut() {
         let mut found_content = false;
         for child in node.children_mut() {
             if let SyntaxElement::Node(n) = child {
-                if n.kind() == SyntaxKind::CONTENT {
+                if n.kind() == SyntaxKind::DESCRIPTION {
                     extend_text_block(n, cont);
                     found_content = true;
                     break;
@@ -579,20 +577,19 @@ fn extend_last_ref_content(nodes: &mut [SyntaxElement], cont: TextRange) {
             }
         }
         if !found_content {
-            node.push_child(SyntaxElement::Node(text_block_single(SyntaxKind::CONTENT, cont)));
+            node.push_child(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, cont)));
         }
         node.extend_range_to(cont.end());
     }
 }
 
-/// Process one line of a References section body, appending a reference node
-/// of `node_kind` (or extending the previous one for continuation lines).
+/// Process one line of a References section body, appending a `CITATION`
+/// node (or extending the previous one for continuation lines).
 ///
-/// Handles rST-marker lines (`.. [N] content`), plain-content lines, and
+/// Handles rST-marker lines (`.. [label] content`), plain-content lines, and
 /// more-indented continuation lines that extend the previous entry's content.
 pub(crate) fn process_reference_line(
     cursor: &LineCursor,
-    node_kind: SyntaxKind,
     nodes: &mut Vec<SyntaxElement>,
     entry_indent: &mut Option<usize>,
 ) {
@@ -643,7 +640,6 @@ pub(crate) fn process_reference_line(
             };
 
             nodes.push(SyntaxElement::Node(build_reference_node_rst(
-                node_kind,
                 directive_marker,
                 open_bracket,
                 number,
@@ -657,7 +653,6 @@ pub(crate) fn process_reference_line(
 
     // Plain text reference
     nodes.push(SyntaxElement::Node(build_reference_node_plain(
-        node_kind,
         cursor.current_trimmed_range(),
         cursor.current_trimmed_range(),
     )));

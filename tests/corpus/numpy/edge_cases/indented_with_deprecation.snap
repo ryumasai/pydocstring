@@ -1,5 +1,5 @@
 === CST ===
-NUMPY_DOCSTRING@0..127 {
+DOCUMENT@0..127 {
   WHITESPACE: "    "@0..4
   SUMMARY@4..12 {
     TEXT_LINE: "Summary."@4..12
@@ -7,13 +7,13 @@ NUMPY_DOCSTRING@0..127 {
   NEWLINE: "\n"@12..13
   BLANK_LINE: "\n"@13..14
   WHITESPACE: "    "@14..18
-  NUMPY_DEPRECATION@18..69 {
+  DIRECTIVE@18..69 {
     DIRECTIVE_MARKER: ".."@18..20
     WHITESPACE: " "@20..21
     KEYWORD: "deprecated"@21..31
     DOUBLE_COLON: "::"@31..33
     WHITESPACE: " "@33..34
-    VERSION: "2.0.0"@34..39
+    ARGUMENT: "2.0.0"@34..39
     NEWLINE: "\n"@39..40
     WHITESPACE: "        "@40..48
     DESCRIPTION@48..69 {
@@ -23,8 +23,8 @@ NUMPY_DOCSTRING@0..127 {
   NEWLINE: "\n"@69..70
   BLANK_LINE: "\n"@70..71
   WHITESPACE: "    "@71..75
-  NUMPY_SECTION@75..126 {
-    NUMPY_SECTION_HEADER@75..100 {
+  SECTION@75..126 {
+    SECTION_HEADER@75..100 {
       NAME: "Parameters"@75..85
       NEWLINE: "\n"@85..86
       WHITESPACE: "    "@86..90
@@ -32,7 +32,7 @@ NUMPY_DOCSTRING@0..127 {
     }
     NEWLINE: "\n"@100..101
     WHITESPACE: "    "@101..105
-    NUMPY_PARAMETER@105..126 {
+    ENTRY@105..126 {
       NAME: "x"@105..106
       WHITESPACE: " "@106..107
       COLON: ":"@107..108

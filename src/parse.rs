@@ -106,22 +106,24 @@ pub fn detect_style(input: &str) -> Style {
 /// Parse a docstring, auto-detecting its style.
 ///
 /// Internally calls [`detect_style`] and dispatches to the appropriate parser.
-/// The root node kind of the returned [`Parsed`] reflects the detected style:
-/// - [`SyntaxKind::NUMPY_DOCSTRING`](crate::syntax::SyntaxKind::NUMPY_DOCSTRING) for NumPy
-/// - [`SyntaxKind::GOOGLE_DOCSTRING`](crate::syntax::SyntaxKind::GOOGLE_DOCSTRING) for Google
-/// - [`SyntaxKind::PLAIN_DOCSTRING`](crate::syntax::SyntaxKind::PLAIN_DOCSTRING) for Plain (and unrecognised styles)
+/// The root node kind is always the style-neutral
+/// [`SyntaxKind::DOCUMENT`](crate::syntax::SyntaxKind::DOCUMENT); the detected
+/// style is recorded on the result and reported by
+/// [`Parsed::style`](crate::syntax::Parsed::style).
 ///
 /// # Example
 ///
 /// ```rust
 /// use pydocstring::parse::parse;
+/// use pydocstring::parse::Style;
 /// use pydocstring::syntax::SyntaxKind;
 ///
 /// let result = parse("Summary.\n\nArgs:\n    x: Description.");
-/// assert_eq!(result.root().kind(), SyntaxKind::GOOGLE_DOCSTRING);
+/// assert_eq!(result.root().kind(), SyntaxKind::DOCUMENT);
+/// assert_eq!(result.style(), Style::Google);
 ///
 /// let plain = parse("Just a summary.");
-/// assert_eq!(plain.root().kind(), SyntaxKind::PLAIN_DOCSTRING);
+/// assert_eq!(plain.style(), Style::Plain);
 /// ```
 pub fn parse(input: &str) -> crate::syntax::Parsed {
     match detect_style(input) {

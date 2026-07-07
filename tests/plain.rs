@@ -6,7 +6,7 @@ use pydocstring::syntax::SyntaxKind;
 #[test]
 fn test_empty() {
     let result = parse_plain("");
-    assert_eq!(result.root().kind(), SyntaxKind::PLAIN_DOCSTRING);
+    assert_eq!(result.root().kind(), SyntaxKind::DOCUMENT);
     let doc = PlainDocstring::cast(result.root()).unwrap();
     assert!(doc.summary().is_none());
     assert!(doc.extended_summary().is_none());
@@ -35,7 +35,7 @@ fn test_summary_and_extended() {
 fn test_sphinx_treated_as_plain() {
     let input = "Summary.\n\n:param x: Description.\n:rtype: int";
     let result = parse_plain(input);
-    assert_eq!(result.root().kind(), SyntaxKind::PLAIN_DOCSTRING);
+    assert_eq!(result.root().kind(), SyntaxKind::DOCUMENT);
     let doc = PlainDocstring::cast(result.root()).unwrap();
     assert_eq!(doc.summary().unwrap().text(result.source()), "Summary.");
 }

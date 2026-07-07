@@ -1,18 +1,18 @@
 === CST ===
-NUMPY_DOCSTRING@0..149 {
+DOCUMENT@0..149 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  NUMPY_SECTION@10..49 {
-    NUMPY_SECTION_HEADER@10..31 {
+  SECTION@10..49 {
+    SECTION_HEADER@10..31 {
       NAME: "Parameters"@10..20
       NEWLINE: "\n"@20..21
       UNDERLINE: "----------"@21..31
     }
     NEWLINE: "\n"@31..32
-    NUMPY_PARAMETER@32..49 {
+    ENTRY@32..49 {
       NAME: "x"@32..33
       WHITESPACE: " "@33..34
       COLON: ":"@34..35
@@ -27,14 +27,14 @@ NUMPY_DOCSTRING@0..149 {
   }
   NEWLINE: "\n"@49..50
   BLANK_LINE: "\n"@50..51
-  NUMPY_SECTION@51..82 {
-    NUMPY_SECTION_HEADER@51..66 {
+  SECTION@51..82 {
+    SECTION_HEADER@51..66 {
       NAME: "Returns"@51..58
       NEWLINE: "\n"@58..59
       UNDERLINE: "-------"@59..66
     }
     NEWLINE: "\n"@66..67
-    NUMPY_RETURNS@67..82 {
+    ENTRY@67..82 {
       RETURN_TYPE: "int"@67..70
       NEWLINE: "\n"@70..71
       WHITESPACE: "    "@71..75
@@ -45,14 +45,14 @@ NUMPY_DOCSTRING@0..149 {
   }
   NEWLINE: "\n"@82..83
   BLANK_LINE: "\n"@83..84
-  NUMPY_SECTION@84..123 {
-    NUMPY_SECTION_HEADER@84..97 {
+  SECTION@84..123 {
+    SECTION_HEADER@84..97 {
       NAME: "Raises"@84..90
       NEWLINE: "\n"@90..91
       UNDERLINE: "------"@91..97
     }
     NEWLINE: "\n"@97..98
-    NUMPY_EXCEPTION@98..123 {
+    ENTRY@98..123 {
       TYPE: "ValueError"@98..108
       NEWLINE: "\n"@108..109
       WHITESPACE: "    "@109..113
@@ -63,14 +63,14 @@ NUMPY_DOCSTRING@0..149 {
   }
   NEWLINE: "\n"@123..124
   BLANK_LINE: "\n"@124..125
-  NUMPY_SECTION@125..148 {
-    NUMPY_SECTION_HEADER@125..136 {
+  SECTION@125..148 {
+    SECTION_HEADER@125..136 {
       NAME: "Notes"@125..130
       NEWLINE: "\n"@130..131
       UNDERLINE: "-----"@131..136
     }
     NEWLINE: "\n"@136..137
-    BODY_TEXT@137..148 {
+    DESCRIPTION@137..148 {
       TEXT_LINE: "Some notes."@137..148
     }
   }

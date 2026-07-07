@@ -1,5 +1,5 @@
 === CST ===
-GOOGLE_DOCSTRING@0..67 {
+DOCUMENT@0..67 {
   SUMMARY@0..44 {
     TEXT_LINE: "This is a long summary"@0..22
     NEWLINE: "\n"@22..23
