@@ -9,6 +9,7 @@ use pydocstring_core::parse::google::nodes as gn;
 use pydocstring_core::parse::numpy::kind::NumPySectionKind;
 use pydocstring_core::parse::numpy::nodes as nn;
 use pydocstring_core::parse::plain::nodes as pn;
+use pydocstring_core::parse::text_block::TextBlock;
 use pydocstring_core::parse::visitor::{DocstringVisitor, walk as core_walk};
 use pydocstring_core::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use pydocstring_core::text::TextRange;
@@ -160,6 +161,97 @@ fn mk_tokens<'a>(
     source: &str,
 ) -> PyResult<Vec<Py<PyToken>>> {
     tokens.map(|t| mk_token(py, t, source)).collect()
+}
+
+// ─── TextBlock ──────────────────────────────────────────────────────────────
+
+/// A multi-line text content block (summary, extended summary, description,
+/// free-text section body, or reference content).
+///
+/// Wraps one `Token` per content line; `text` is the raw source slice of the
+/// block's range (byte-identical to the pre-#38 token text), `logical_text`
+/// is the dedented/joined convenience form.
+#[pyclass(frozen, skip_from_py_object, name = "TextBlock")]
+struct PyTextBlock {
+    text: String,
+    logical_text: String,
+    range: TextRange,
+    lines: Vec<Py<PyToken>>,
+}
+
+#[pymethods]
+impl PyTextBlock {
+    /// Raw source slice of the block's range, including interior
+    /// indentation and newlines.
+    #[getter]
+    fn text(&self) -> &str {
+        &self.text
+    }
+    /// Logical text: continuation lines dedented by their common
+    /// indentation and joined with newlines.
+    #[getter]
+    fn logical_text(&self) -> &str {
+        &self.logical_text
+    }
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        Py::new(py, PyTextRange::from(self.range))
+    }
+    /// One `Token` per content line.
+    #[getter]
+    fn lines(&self, py: Python<'_>) -> Vec<Py<PyToken>> {
+        self.lines.iter().map(|t| t.clone_ref(py)).collect()
+    }
+    /// Whether this block is a zero-length placeholder inserted by the
+    /// parser to represent a syntactically missing element (e.g. the
+    /// description in ``arg (int):``). Equivalent to ``range.is_empty()``.
+    fn is_missing(&self) -> bool {
+        self.range.is_empty()
+    }
+    fn __repr__(&self) -> String {
+        format!("TextBlock({:?})", self.text)
+    }
+}
+
+fn mk_text_block(py: Python<'_>, block: &TextBlock<'_>, source: &str) -> PyResult<Py<PyTextBlock>> {
+    Py::new(
+        py,
+        PyTextBlock {
+            text: block.text(source).to_string(),
+            logical_text: block.logical_text(source),
+            range: *block.range(),
+            lines: mk_tokens(py, block.lines(), source)?,
+        },
+    )
+}
+
+fn mk_text_block_opt(
+    py: Python<'_>,
+    block: Option<TextBlock<'_>>,
+    source: &str,
+) -> PyResult<Option<Py<PyTextBlock>>> {
+    block.map(|b| mk_text_block(py, &b, source)).transpose()
+}
+
+/// Like [`mk_text_block_opt`], but falls back to the zero-length "missing"
+/// placeholder block of `kind` (excluded by the typed accessors) so Python
+/// callers can distinguish e.g. `a (int):` from `a (int)`.
+fn mk_text_block_or_missing(
+    py: Python<'_>,
+    present: Option<TextBlock<'_>>,
+    node: &SyntaxNode,
+    kind: SyntaxKind,
+    source: &str,
+) -> PyResult<Option<Py<PyTextBlock>>> {
+    match present {
+        Some(b) => Ok(Some(mk_text_block(py, &b, source)?)),
+        None => node
+            .nodes(kind)
+            .next()
+            .and_then(TextBlock::cast)
+            .map(|b| mk_text_block(py, &b, source))
+            .transpose(),
+    }
 }
 
 // ─── Style ──────────────────────────────────────────────────────────────────
@@ -446,7 +538,7 @@ struct PyGoogleArg {
     r#type: Option<Py<PyToken>>,
     close_bracket: Option<Py<PyToken>>,
     colon: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
     optional: Option<Py<PyToken>>,
     default_keyword: Option<Py<PyToken>>,
     default_separator: Option<Py<PyToken>>,
@@ -484,7 +576,7 @@ impl PyGoogleArg {
         self.colon.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
@@ -525,7 +617,7 @@ fn build_google_arg(py: Python<'_>, arg: &gn::GoogleArg<'_>, source: &str) -> Py
                 source,
             )?,
             colon: mk_token_or_missing(py, arg.colon(), arg.syntax(), SyntaxKind::COLON, source)?,
-            description: mk_token_or_missing(py, arg.description(), arg.syntax(), SyntaxKind::DESCRIPTION, source)?,
+            description: mk_text_block_or_missing(py, arg.description(), arg.syntax(), SyntaxKind::DESCRIPTION, source)?,
             optional: mk_token_opt(py, arg.optional(), source)?,
             default_keyword: mk_token_opt(py, arg.default_keyword(), source)?,
             default_separator: mk_token_opt(py, arg.default_separator(), source)?,
@@ -547,7 +639,7 @@ struct PyGoogleReturn {
     range: TextRange,
     return_type: Option<Py<PyToken>>,
     colon: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -565,7 +657,7 @@ impl PyGoogleReturn {
         self.colon.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self) -> &'static str {
@@ -580,7 +672,7 @@ fn build_google_return(py: Python<'_>, rtn: &gn::GoogleReturn<'_>, source: &str)
             range: *rtn.syntax().range(),
             return_type: mk_token_opt(py, rtn.return_type(), source)?,
             colon: mk_token_opt(py, rtn.colon(), source)?,
-            description: mk_token_opt(py, rtn.description(), source)?,
+            description: mk_text_block_opt(py, rtn.description(), source)?,
         },
     )
 }
@@ -592,7 +684,7 @@ struct PyGoogleYield {
     range: TextRange,
     return_type: Option<Py<PyToken>>,
     colon: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -610,7 +702,7 @@ impl PyGoogleYield {
         self.colon.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self) -> &'static str {
@@ -625,7 +717,7 @@ fn build_google_yield(py: Python<'_>, yld: &gn::GoogleYield<'_>, source: &str) -
             range: *yld.syntax().range(),
             return_type: mk_token_opt(py, yld.return_type(), source)?,
             colon: mk_token_opt(py, yld.colon(), source)?,
-            description: mk_token_opt(py, yld.description(), source)?,
+            description: mk_text_block_opt(py, yld.description(), source)?,
         },
     )
 }
@@ -637,7 +729,7 @@ struct PyGoogleException {
     range: TextRange,
     r#type: Py<PyToken>,
     colon: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -655,7 +747,7 @@ impl PyGoogleException {
         self.colon.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self, py: Python<'_>) -> String {
@@ -674,7 +766,7 @@ fn build_google_exception(
             range: *exc.syntax().range(),
             r#type: mk_token(py, exc.r#type(), source)?,
             colon: mk_token_opt(py, exc.colon(), source)?,
-            description: mk_token_or_missing(py, exc.description(), exc.syntax(), SyntaxKind::DESCRIPTION, source)?,
+            description: mk_text_block_or_missing(py, exc.description(), exc.syntax(), SyntaxKind::DESCRIPTION, source)?,
         },
     )
 }
@@ -686,7 +778,7 @@ struct PyGoogleWarning {
     range: TextRange,
     warning_type: Py<PyToken>,
     colon: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -704,7 +796,7 @@ impl PyGoogleWarning {
         self.colon.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self, py: Python<'_>) -> String {
@@ -719,7 +811,7 @@ fn build_google_warning(py: Python<'_>, wrn: &gn::GoogleWarning<'_>, source: &st
             range: *wrn.syntax().range(),
             warning_type: mk_token(py, wrn.warning_type(), source)?,
             colon: mk_token_opt(py, wrn.colon(), source)?,
-            description: mk_token_or_missing(py, wrn.description(), wrn.syntax(), SyntaxKind::DESCRIPTION, source)?,
+            description: mk_text_block_or_missing(py, wrn.description(), wrn.syntax(), SyntaxKind::DESCRIPTION, source)?,
         },
     )
 }
@@ -731,7 +823,7 @@ struct PyGoogleSeeAlsoItem {
     range: TextRange,
     names: Vec<Py<PyToken>>,
     colon: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -749,7 +841,7 @@ impl PyGoogleSeeAlsoItem {
         self.colon.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self) -> &'static str {
@@ -768,7 +860,7 @@ fn build_google_see_also_item(
             range: *sai.syntax().range(),
             names: mk_tokens(py, sai.names(), source)?,
             colon: mk_token_opt(py, sai.colon(), source)?,
-            description: mk_token_or_missing(py, sai.description(), sai.syntax(), SyntaxKind::DESCRIPTION, source)?,
+            description: mk_text_block_or_missing(py, sai.description(), sai.syntax(), SyntaxKind::DESCRIPTION, source)?,
         },
     )
 }
@@ -782,7 +874,7 @@ struct PyGoogleReference {
     open_bracket: Option<Py<PyToken>>,
     number: Option<Py<PyToken>>,
     close_bracket: Option<Py<PyToken>>,
-    content: Option<Py<PyToken>>,
+    content: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -808,7 +900,7 @@ impl PyGoogleReference {
         self.close_bracket.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn content(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn content(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.content.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self) -> &'static str {
@@ -825,7 +917,7 @@ fn build_google_reference(py: Python<'_>, r: &gn::GoogleReference<'_>, source: &
             open_bracket: mk_token_opt(py, r.open_bracket(), source)?,
             number: mk_token_opt(py, r.number(), source)?,
             close_bracket: mk_token_opt(py, r.close_bracket(), source)?,
-            content: mk_token_opt(py, r.content(), source)?,
+            content: mk_text_block_opt(py, r.content(), source)?,
         },
     )
 }
@@ -840,7 +932,7 @@ struct PyGoogleAttribute {
     r#type: Option<Py<PyToken>>,
     close_bracket: Option<Py<PyToken>>,
     colon: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -870,7 +962,7 @@ impl PyGoogleAttribute {
         self.colon.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self, py: Python<'_>) -> String {
@@ -898,7 +990,7 @@ fn build_google_attribute(
                 source,
             )?,
             colon: mk_token_or_missing(py, att.colon(), att.syntax(), SyntaxKind::COLON, source)?,
-            description: mk_token_or_missing(py, att.description(), att.syntax(), SyntaxKind::DESCRIPTION, source)?,
+            description: mk_text_block_or_missing(py, att.description(), att.syntax(), SyntaxKind::DESCRIPTION, source)?,
         },
     )
 }
@@ -913,7 +1005,7 @@ struct PyGoogleMethod {
     r#type: Option<Py<PyToken>>,
     close_bracket: Option<Py<PyToken>>,
     colon: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -943,7 +1035,7 @@ impl PyGoogleMethod {
         self.colon.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self, py: Python<'_>) -> String {
@@ -967,7 +1059,7 @@ fn build_google_method(py: Python<'_>, mtd: &gn::GoogleMethod<'_>, source: &str)
                 source,
             )?,
             colon: mk_token_or_missing(py, mtd.colon(), mtd.syntax(), SyntaxKind::COLON, source)?,
-            description: mk_token_or_missing(py, mtd.description(), mtd.syntax(), SyntaxKind::DESCRIPTION, source)?,
+            description: mk_text_block_or_missing(py, mtd.description(), mtd.syntax(), SyntaxKind::DESCRIPTION, source)?,
         },
     )
 }
@@ -1021,7 +1113,7 @@ struct PyGoogleDeprecation {
     keyword: Option<Py<PyToken>>,
     double_colon: Option<Py<PyToken>>,
     version: Py<PyToken>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -1047,7 +1139,7 @@ impl PyGoogleDeprecation {
         self.version.clone_ref(py)
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self, py: Python<'_>) -> String {
@@ -1068,7 +1160,7 @@ fn build_google_deprecation(
             keyword: mk_token_opt(py, dep.keyword(), source)?,
             double_colon: mk_token_opt(py, dep.double_colon(), source)?,
             version: mk_token(py, dep.version(), source)?,
-            description: mk_token_opt(py, dep.description(), source)?,
+            description: mk_text_block_opt(py, dep.description(), source)?,
         },
     )
 }
@@ -1078,8 +1170,8 @@ fn build_google_deprecation(
 #[pyclass(frozen, skip_from_py_object, name = "GoogleDocstring")]
 struct PyGoogleDocstring {
     range: TextRange,
-    summary: Option<Py<PyToken>>,
-    extended_summary: Option<Py<PyToken>>,
+    summary: Option<Py<PyTextBlock>>,
+    extended_summary: Option<Py<PyTextBlock>>,
     deprecation: Option<Py<PyGoogleDeprecation>>,
     stray_lines: Vec<Py<PyToken>>,
     sections: Vec<Py<PyGoogleSection>>,
@@ -1095,11 +1187,11 @@ impl PyGoogleDocstring {
         Py::new(py, PyTextRange::from(self.range))
     }
     #[getter]
-    fn summary(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn summary(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.summary.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn extended_summary(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn extended_summary(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.extended_summary.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
@@ -1142,8 +1234,8 @@ fn build_google_docstring_node(
     source: &str,
     parsed: Arc<Parsed>,
 ) -> PyResult<Py<PyGoogleDocstring>> {
-    let summary = mk_token_opt(py, doc.summary(), source)?;
-    let extended_summary = mk_token_opt(py, doc.extended_summary(), source)?;
+    let summary = mk_text_block_opt(py, doc.summary(), source)?;
+    let extended_summary = mk_text_block_opt(py, doc.extended_summary(), source)?;
     let deprecation = doc
         .deprecation()
         .map(|dep| build_google_deprecation(py, &dep, source))
@@ -1189,7 +1281,7 @@ struct PyNumPyDeprecation {
     keyword: Option<Py<PyToken>>,
     double_colon: Option<Py<PyToken>>,
     version: Py<PyToken>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -1215,7 +1307,7 @@ impl PyNumPyDeprecation {
         self.version.clone_ref(py)
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self, py: Python<'_>) -> String {
@@ -1236,7 +1328,7 @@ fn build_numpy_deprecation(
             keyword: mk_token_opt(py, dep.keyword(), source)?,
             double_colon: mk_token_opt(py, dep.double_colon(), source)?,
             version: mk_token(py, dep.version(), source)?,
-            description: mk_token_opt(py, dep.description(), source)?,
+            description: mk_text_block_opt(py, dep.description(), source)?,
         },
     )
 }
@@ -1249,7 +1341,7 @@ struct PyNumPyParameter {
     names: Vec<Py<PyToken>>,
     colon: Option<Py<PyToken>>,
     r#type: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
     optional: Option<Py<PyToken>>,
     default_keyword: Option<Py<PyToken>>,
     default_separator: Option<Py<PyToken>>,
@@ -1275,7 +1367,7 @@ impl PyNumPyParameter {
         self.r#type.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
@@ -1312,7 +1404,7 @@ fn build_numpy_parameter(py: Python<'_>, prm: &nn::NumPyParameter<'_>, source: &
             names: mk_tokens(py, prm.names(), source)?,
             colon: mk_token_opt(py, prm.colon(), source)?,
             r#type: mk_token_or_missing(py, prm.r#type(), prm.syntax(), SyntaxKind::TYPE, source)?,
-            description: mk_token_opt(py, prm.description(), source)?,
+            description: mk_text_block_opt(py, prm.description(), source)?,
             optional: mk_token_opt(py, prm.optional(), source)?,
             default_keyword: mk_token_opt(py, prm.default_keyword(), source)?,
             default_separator: mk_token_opt(py, prm.default_separator(), source)?,
@@ -1335,7 +1427,7 @@ struct PyNumPyReturns {
     name: Option<Py<PyToken>>,
     colon: Option<Py<PyToken>>,
     return_type: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -1357,7 +1449,7 @@ impl PyNumPyReturns {
         self.return_type.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self) -> &'static str {
@@ -1373,7 +1465,7 @@ fn build_numpy_returns(py: Python<'_>, rtn: &nn::NumPyReturns<'_>, source: &str)
             name: mk_token_opt(py, rtn.name(), source)?,
             colon: mk_token_opt(py, rtn.colon(), source)?,
             return_type: mk_token_opt(py, rtn.return_type(), source)?,
-            description: mk_token_opt(py, rtn.description(), source)?,
+            description: mk_text_block_opt(py, rtn.description(), source)?,
         },
     )
 }
@@ -1386,7 +1478,7 @@ struct PyNumPyYields {
     name: Option<Py<PyToken>>,
     colon: Option<Py<PyToken>>,
     return_type: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -1408,7 +1500,7 @@ impl PyNumPyYields {
         self.return_type.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self) -> &'static str {
@@ -1424,7 +1516,7 @@ fn build_numpy_yields(py: Python<'_>, yld: &nn::NumPyYields<'_>, source: &str) -
             name: mk_token_opt(py, yld.name(), source)?,
             colon: mk_token_opt(py, yld.colon(), source)?,
             return_type: mk_token_opt(py, yld.return_type(), source)?,
-            description: mk_token_opt(py, yld.description(), source)?,
+            description: mk_text_block_opt(py, yld.description(), source)?,
         },
     )
 }
@@ -1436,7 +1528,7 @@ struct PyNumPyException {
     range: TextRange,
     r#type: Py<PyToken>,
     colon: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -1454,7 +1546,7 @@ impl PyNumPyException {
         self.colon.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self, py: Python<'_>) -> String {
@@ -1469,7 +1561,7 @@ fn build_numpy_exception(py: Python<'_>, exc: &nn::NumPyException<'_>, source: &
             range: *exc.syntax().range(),
             r#type: mk_token(py, exc.r#type(), source)?,
             colon: mk_token_opt(py, exc.colon(), source)?,
-            description: mk_token_opt(py, exc.description(), source)?,
+            description: mk_text_block_opt(py, exc.description(), source)?,
         },
     )
 }
@@ -1481,7 +1573,7 @@ struct PyNumPyWarning {
     range: TextRange,
     r#type: Py<PyToken>,
     colon: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -1499,7 +1591,7 @@ impl PyNumPyWarning {
         self.colon.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self, py: Python<'_>) -> String {
@@ -1514,7 +1606,7 @@ fn build_numpy_warning(py: Python<'_>, wrn: &nn::NumPyWarning<'_>, source: &str)
             range: *wrn.syntax().range(),
             r#type: mk_token(py, wrn.r#type(), source)?,
             colon: mk_token_opt(py, wrn.colon(), source)?,
-            description: mk_token_opt(py, wrn.description(), source)?,
+            description: mk_text_block_opt(py, wrn.description(), source)?,
         },
     )
 }
@@ -1526,7 +1618,7 @@ struct PyNumPySeeAlsoItem {
     range: TextRange,
     names: Vec<Py<PyToken>>,
     colon: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -1544,7 +1636,7 @@ impl PyNumPySeeAlsoItem {
         self.colon.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self) -> &'static str {
@@ -1563,7 +1655,7 @@ fn build_numpy_see_also_item(
             range: *sai.syntax().range(),
             names: mk_tokens(py, sai.names(), source)?,
             colon: mk_token_opt(py, sai.colon(), source)?,
-            description: mk_token_opt(py, sai.description(), source)?,
+            description: mk_text_block_opt(py, sai.description(), source)?,
         },
     )
 }
@@ -1577,7 +1669,7 @@ struct PyNumPyReference {
     open_bracket: Option<Py<PyToken>>,
     number: Option<Py<PyToken>>,
     close_bracket: Option<Py<PyToken>>,
-    content: Option<Py<PyToken>>,
+    content: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -1603,7 +1695,7 @@ impl PyNumPyReference {
         self.close_bracket.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn content(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn content(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.content.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self) -> &'static str {
@@ -1620,7 +1712,7 @@ fn build_numpy_reference(py: Python<'_>, r: &nn::NumPyReference<'_>, source: &st
             open_bracket: mk_token_opt(py, r.open_bracket(), source)?,
             number: mk_token_opt(py, r.number(), source)?,
             close_bracket: mk_token_opt(py, r.close_bracket(), source)?,
-            content: mk_token_opt(py, r.content(), source)?,
+            content: mk_text_block_opt(py, r.content(), source)?,
         },
     )
 }
@@ -1633,7 +1725,7 @@ struct PyNumPyAttribute {
     name: Py<PyToken>,
     colon: Option<Py<PyToken>>,
     r#type: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -1655,7 +1747,7 @@ impl PyNumPyAttribute {
         self.r#type.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self, py: Python<'_>) -> String {
@@ -1671,7 +1763,7 @@ fn build_numpy_attribute(py: Python<'_>, att: &nn::NumPyAttribute<'_>, source: &
             name: mk_token(py, att.name(), source)?,
             colon: mk_token_opt(py, att.colon(), source)?,
             r#type: mk_token_opt(py, att.r#type(), source)?,
-            description: mk_token_opt(py, att.description(), source)?,
+            description: mk_text_block_opt(py, att.description(), source)?,
         },
     )
 }
@@ -1683,7 +1775,7 @@ struct PyNumPyMethod {
     range: TextRange,
     name: Py<PyToken>,
     colon: Option<Py<PyToken>>,
-    description: Option<Py<PyToken>>,
+    description: Option<Py<PyTextBlock>>,
 }
 
 #[pymethods]
@@ -1701,7 +1793,7 @@ impl PyNumPyMethod {
         self.colon.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self, py: Python<'_>) -> String {
@@ -1716,7 +1808,7 @@ fn build_numpy_method(py: Python<'_>, mtd: &nn::NumPyMethod<'_>, source: &str) -
             range: *mtd.syntax().range(),
             name: mk_token(py, mtd.name(), source)?,
             colon: mk_token_opt(py, mtd.colon(), source)?,
-            description: mk_token_opt(py, mtd.description(), source)?,
+            description: mk_text_block_opt(py, mtd.description(), source)?,
         },
     )
 }
@@ -1766,8 +1858,8 @@ fn build_numpy_section(py: Python<'_>, sec: &nn::NumPySection<'_>, source: &str)
 #[pyclass(frozen, skip_from_py_object, name = "NumPyDocstring")]
 struct PyNumPyDocstring {
     range: TextRange,
-    summary: Option<Py<PyToken>>,
-    extended_summary: Option<Py<PyToken>>,
+    summary: Option<Py<PyTextBlock>>,
+    extended_summary: Option<Py<PyTextBlock>>,
     deprecation: Option<Py<PyNumPyDeprecation>>,
     sections: Vec<Py<PyNumPySection>>,
     source: String,
@@ -1782,11 +1874,11 @@ impl PyNumPyDocstring {
         Py::new(py, PyTextRange::from(self.range))
     }
     #[getter]
-    fn summary(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn summary(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.summary.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn extended_summary(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn extended_summary(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.extended_summary.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
@@ -1825,8 +1917,8 @@ fn build_numpy_docstring_node(
     source: &str,
     parsed: Arc<Parsed>,
 ) -> PyResult<Py<PyNumPyDocstring>> {
-    let summary = mk_token_opt(py, doc.summary(), source)?;
-    let extended_summary = mk_token_opt(py, doc.extended_summary(), source)?;
+    let summary = mk_text_block_opt(py, doc.summary(), source)?;
+    let extended_summary = mk_text_block_opt(py, doc.extended_summary(), source)?;
     let deprecation = doc
         .deprecation()
         .map(|dep| build_numpy_deprecation(py, &dep, source))
@@ -1864,8 +1956,8 @@ fn build_numpy_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyNumPyD
 #[pyclass(frozen, skip_from_py_object, name = "PlainDocstring")]
 struct PyPlainDocstring {
     range: TextRange,
-    summary: Option<Py<PyToken>>,
-    extended_summary: Option<Py<PyToken>>,
+    summary: Option<Py<PyTextBlock>>,
+    extended_summary: Option<Py<PyTextBlock>>,
     source: String,
     /// Cached CST — avoids re-parsing when `walk()` is called.
     parsed: Arc<Parsed>,
@@ -1878,11 +1970,11 @@ impl PyPlainDocstring {
         Py::new(py, PyTextRange::from(self.range))
     }
     #[getter]
-    fn summary(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn summary(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.summary.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
-    fn extended_summary(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+    fn extended_summary(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
         self.extended_summary.as_ref().map(|t| t.clone_ref(py))
     }
     #[getter]
@@ -1912,8 +2004,8 @@ fn build_plain_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyPlainD
     let source = arc.source();
     let doc = pn::PlainDocstring::cast(arc.root())
         .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not PLAIN_DOCSTRING"))?;
-    let summary = mk_token_opt(py, doc.summary(), source)?;
-    let extended_summary = mk_token_opt(py, doc.extended_summary(), source)?;
+    let summary = mk_text_block_opt(py, doc.summary(), source)?;
+    let extended_summary = mk_text_block_opt(py, doc.extended_summary(), source)?;
     Py::new(
         py,
         PyPlainDocstring {
@@ -1932,8 +2024,8 @@ fn build_plain_docstring_node(
     source: &str,
     parsed: Arc<Parsed>,
 ) -> PyResult<Py<PyPlainDocstring>> {
-    let summary = mk_token_opt(py, doc.summary(), source)?;
-    let extended_summary = mk_token_opt(py, doc.extended_summary(), source)?;
+    let summary = mk_text_block_opt(py, doc.summary(), source)?;
+    let extended_summary = mk_text_block_opt(py, doc.extended_summary(), source)?;
     Py::new(
         py,
         PyPlainDocstring {
@@ -4199,6 +4291,7 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyTextRange>()?;
     m.add_class::<PyLineColumn>()?;
     m.add_class::<PyToken>()?;
+    m.add_class::<PyTextBlock>()?;
     m.add_class::<PyWalkContext>()?;
     // Google CST wrappers
     m.add_class::<PyGoogleDocstring>()?;

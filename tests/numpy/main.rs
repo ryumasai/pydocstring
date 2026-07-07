@@ -3,6 +3,7 @@
 //! Exhaustive input coverage lives in tests/corpus/numpy/ + tests/snapshots.rs;
 //! the tests here pin deliberate spec decisions and the typed-accessor contract.
 
+pub use pydocstring::parse::numpy::TextBlock;
 pub use pydocstring::parse::numpy::kind::NumPySectionKind;
 pub use pydocstring::parse::numpy::nodes::NumPyAttribute;
 pub use pydocstring::parse::numpy::nodes::NumPyDeprecation;
@@ -100,7 +101,7 @@ pub fn references<'a>(result: &'a Parsed) -> Vec<NumPyReference<'a>> {
         .collect()
 }
 
-pub fn notes(result: &Parsed) -> Option<&SyntaxToken> {
+pub fn notes<'a>(result: &'a Parsed) -> Option<TextBlock<'a>> {
     doc(result)
         .sections()
         .find(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Notes))

@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..44 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..44 {
@@ -13,7 +15,9 @@ GOOGLE_DOCSTRING@0..44 {
     GOOGLE_EXCEPTION@22..44 {
       TYPE: "ValueError"@22..32
       COLON: ":"@32..33
-      DESCRIPTION: "If invalid."@33..44
+      DESCRIPTION@33..44 {
+        TEXT_LINE: "If invalid."@33..44
+      }
     }
   }
 }

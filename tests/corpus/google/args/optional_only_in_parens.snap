@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..40 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..40 {
@@ -19,7 +21,9 @@ GOOGLE_DOCSTRING@0..40 {
       CLOSE_BRACKET: ")"@31..32
       COLON: ":"@32..33
       WHITESPACE: " "@33..34
-      DESCRIPTION: "Value."@34..40
+      DESCRIPTION@34..40 {
+        TEXT_LINE: "Value."@34..40
+      }
     }
   }
 }

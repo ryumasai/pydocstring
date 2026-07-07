@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..79 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..78 {
@@ -11,11 +13,15 @@ NUMPY_DOCSTRING@0..79 {
     }
     NEWLINE: "\n"@31..32
     NUMPY_REFERENCE@32..53 {
-      CONTENT: ".. [1 unclosed marker"@32..53
+      CONTENT@32..53 {
+        TEXT_LINE: ".. [1 unclosed marker"@32..53
+      }
     }
     NEWLINE: "\n"@53..54
     NUMPY_REFERENCE@54..78 {
-      CONTENT: "plain ref with ] bracket"@54..78
+      CONTENT@54..78 {
+        TEXT_LINE: "plain ref with ] bracket"@54..78
+      }
     }
   }
   NEWLINE: "\n"@78..79

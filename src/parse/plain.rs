@@ -8,5 +8,6 @@ pub mod nodes;
 pub mod parser;
 pub mod to_model;
 
+pub use crate::parse::text_block::TextBlock;
 pub use nodes::PlainDocstring;
 pub use parser::parse_plain;

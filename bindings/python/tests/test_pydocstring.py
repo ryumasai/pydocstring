@@ -301,19 +301,86 @@ class TestParseNumPy:
 class TestToken:
     def test_text_and_range(self):
         doc = pydocstring.parse_google("Summary.")
-        token = doc.summary
-        assert token is not None
+        assert doc.summary is not None
+        token = doc.summary.lines[0]
         assert token.text == "Summary."
         assert token.range.start == 0
         assert token.range.end == 8
 
     def test_repr(self):
         doc = pydocstring.parse_google("Hello.")
-        assert repr(doc.summary) == 'Token("Hello.")'
+        assert doc.summary is not None
+        assert repr(doc.summary.lines[0]) == 'Token("Hello.")'
 
     def test_no_kind_field(self):
         doc = pydocstring.parse_google("Summary.")
-        assert not hasattr(doc.summary, "kind"), "Token must not expose a 'kind' field"
+        assert doc.summary is not None
+        token = doc.summary.lines[0]
+        assert not hasattr(token, "kind"), "Token must not expose a 'kind' field"
+
+
+class TestTextBlock:
+    def test_text_is_raw_slice(self):
+        doc = pydocstring.parse_google("Summary.")
+        block = doc.summary
+        assert block is not None
+        assert block.text == "Summary."
+        assert block.range.start == 0
+        assert block.range.end == 8
+
+    def test_repr(self):
+        doc = pydocstring.parse_google("Hello.")
+        assert repr(doc.summary) == 'TextBlock("Hello.")'
+
+    def test_lines_one_token_per_content_line(self):
+        doc = pydocstring.parse_google("Summary.\n\nArgs:\n    x: First line.\n        Cont.")
+        descriptions = []
+
+        class V(pydocstring.Visitor):
+            def enter_google_arg(self, arg, ctx):
+                descriptions.append(arg.description)
+
+        pydocstring.walk(doc, V())
+        block = descriptions[0]
+        assert [line.text for line in block.lines] == ["First line.", "Cont."]
+        # Raw text keeps the interior newline and indentation.
+        assert block.text == "First line.\n        Cont."
+
+    def test_logical_text_dedents_continuation(self):
+        doc = pydocstring.parse_google("Summary.\n\nArgs:\n    x: First line.\n        Cont.")
+        descriptions = []
+
+        class V(pydocstring.Visitor):
+            def enter_google_arg(self, arg, ctx):
+                descriptions.append(arg.description)
+
+        pydocstring.walk(doc, V())
+        assert descriptions[0].logical_text == "First line.\nCont."
+
+    def test_multiline_summary_text_matches_source_slice(self):
+        doc = pydocstring.parse_plain("First summary line.\nSecond summary line.")
+        assert doc.summary is not None
+        assert doc.summary.text == "First summary line.\nSecond summary line."
+        assert [line.text for line in doc.summary.lines] == [
+            "First summary line.",
+            "Second summary line.",
+        ]
+
+    def test_missing_description_block(self):
+        doc = pydocstring.parse_google("Summary.\n\nArgs:\n    x (int):")
+        descriptions = []
+
+        class V(pydocstring.Visitor):
+            def enter_google_arg(self, arg, ctx):
+                descriptions.append(arg.description)
+
+        pydocstring.walk(doc, V())
+        block = descriptions[0]
+        assert block is not None
+        assert block.is_missing()
+        assert block.range.is_empty()
+        assert block.text == ""
+        assert block.lines == []
 
     def test_is_missing_false_for_present_token(self):
         doc = pydocstring.parse_google("Summary.\n\nArgs:\n    x (int): Desc.")

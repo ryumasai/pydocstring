@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..125 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..124 {
@@ -18,7 +20,9 @@ NUMPY_DOCSTRING@0..125 {
       TYPE: "bool"@52..56
       NEWLINE: "\n"@56..57
       WHITESPACE: "    "@57..61
-      DESCRIPTION: "Enable debug mode."@61..79
+      DESCRIPTION@61..79 {
+        TEXT_LINE: "Enable debug mode."@61..79
+      }
     }
     NEWLINE: "\n"@79..80
     NUMPY_PARAMETER@80..124 {
@@ -31,7 +35,9 @@ NUMPY_DOCSTRING@0..125 {
       OPTIONAL: "optional"@96..104
       NEWLINE: "\n"@104..105
       WHITESPACE: "    "@105..109
-      DESCRIPTION: "Verbose output."@109..124
+      DESCRIPTION@109..124 {
+        TEXT_LINE: "Verbose output."@109..124
+      }
     }
   }
   NEWLINE: "\n"@124..125

@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..110 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..110 {
@@ -18,7 +20,9 @@ GOOGLE_DOCSTRING@0..110 {
       CLOSE_BRACKET: ")"@43..44
       COLON: ":"@44..45
       WHITESPACE: " "@45..46
-      DESCRIPTION: "Enable debug mode."@46..64
+      DESCRIPTION@46..64 {
+        TEXT_LINE: "Enable debug mode."@46..64
+      }
     }
     NEWLINE: "\n"@64..65
     WHITESPACE: "    "@65..69
@@ -32,7 +36,9 @@ GOOGLE_DOCSTRING@0..110 {
       CLOSE_BRACKET: ")"@92..93
       COLON: ":"@93..94
       WHITESPACE: " "@94..95
-      DESCRIPTION: "Verbose output."@95..110
+      DESCRIPTION@95..110 {
+        TEXT_LINE: "Verbose output."@95..110
+      }
     }
   }
 }

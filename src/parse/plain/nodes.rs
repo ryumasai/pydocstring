@@ -1,8 +1,9 @@
 //! Typed wrapper for the plain-style docstring root node.
 
+use crate::parse::text_block::TextBlock;
+use crate::parse::text_block::find_text_block;
 use crate::syntax::SyntaxKind;
 use crate::syntax::SyntaxNode;
-use crate::syntax::SyntaxToken;
 
 // =============================================================================
 // PlainDocstring
@@ -23,13 +24,13 @@ impl<'a> PlainDocstring<'a> {
         self.0
     }
 
-    /// Brief summary token, if present.
-    pub fn summary(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::SUMMARY)
+    /// Brief summary block, if present.
+    pub fn summary(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::SUMMARY)
     }
 
-    /// Extended summary token, if present.
-    pub fn extended_summary(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::EXTENDED_SUMMARY)
+    /// Extended summary block, if present.
+    pub fn extended_summary(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::EXTENDED_SUMMARY)
     }
 }

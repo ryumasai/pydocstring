@@ -1,9 +1,13 @@
 === CST ===
 NUMPY_DOCSTRING@0..111 {
-  SUMMARY: "add(a, b)"@0..9
+  SUMMARY@0..9 {
+    TEXT_LINE: "add(a, b)"@0..9
+  }
   NEWLINE: "\n"@9..10
   BLANK_LINE: "\n"@10..11
-  EXTENDED_SUMMARY: "The sum of two numbers."@11..34
+  EXTENDED_SUMMARY@11..34 {
+    TEXT_LINE: "The sum of two numbers."@11..34
+  }
   NEWLINE: "\n"@34..35
   BLANK_LINE: "\n"@35..36
   NUMPY_SECTION@36..110 {
@@ -21,7 +25,9 @@ NUMPY_DOCSTRING@0..111 {
       TYPE: "int"@62..65
       NEWLINE: "\n"@65..66
       WHITESPACE: "    "@66..70
-      DESCRIPTION: "First number."@70..83
+      DESCRIPTION@70..83 {
+        TEXT_LINE: "First number."@70..83
+      }
     }
     NEWLINE: "\n"@83..84
     NUMPY_PARAMETER@84..110 {
@@ -32,7 +38,9 @@ NUMPY_DOCSTRING@0..111 {
       TYPE: "int"@88..91
       NEWLINE: "\n"@91..92
       WHITESPACE: "    "@92..96
-      DESCRIPTION: "Second number."@96..110
+      DESCRIPTION@96..110 {
+        TEXT_LINE: "Second number."@96..110
+      }
     }
   }
   NEWLINE: "\n"@110..111

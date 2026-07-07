@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..60 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..60 {
@@ -14,7 +16,9 @@ NUMPY_DOCSTRING@0..60 {
       TYPE: "ValueError"@24..34
       NEWLINE: "\n"@34..35
       WHITESPACE: "\t"@35..36
-      DESCRIPTION: "If the input is invalid."@36..60
+      DESCRIPTION@36..60 {
+        TEXT_LINE: "If the input is invalid."@36..60
+      }
     }
   }
 }

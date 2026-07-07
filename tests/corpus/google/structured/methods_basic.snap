@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..88 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..88 {
@@ -14,7 +16,9 @@ GOOGLE_DOCSTRING@0..88 {
       NAME: "reset()"@23..30
       COLON: ":"@30..31
       WHITESPACE: " "@31..32
-      DESCRIPTION: "Reset the state."@32..48
+      DESCRIPTION@32..48 {
+        TEXT_LINE: "Reset the state."@32..48
+      }
     }
     NEWLINE: "\n"@48..49
     WHITESPACE: "    "@49..53
@@ -22,7 +26,9 @@ GOOGLE_DOCSTRING@0..88 {
       NAME: "update(data)"@53..65
       COLON: ":"@65..66
       WHITESPACE: " "@66..67
-      DESCRIPTION: "Update with new data."@67..88
+      DESCRIPTION@67..88 {
+        TEXT_LINE: "Update with new data."@67..88
+      }
     }
   }
 }

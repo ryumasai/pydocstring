@@ -1,13 +1,15 @@
-//! Trivia token spec tests and corpus-wide invariants (#37).
+//! Trivia and text block spec tests and corpus-wide invariants (#37, #38).
 //!
 //! After parsing, the CST carries flat trivia tokens (`WHITESPACE`,
-//! `NEWLINE`, `BLANK_LINE`) for the gap bytes between content tokens. These
-//! tests pin the lexing rules on hand-written inputs and enforce, for every
-//! corpus input, the structural invariants the trivia pass guarantees:
+//! `NEWLINE`, `BLANK_LINE`) for the gap bytes between content tokens, and
+//! multi-line content lives in text block nodes (`SUMMARY`,
+//! `EXTENDED_SUMMARY`, `DESCRIPTION`, `BODY_TEXT`, `CONTENT`) wrapping one
+//! `TEXT_LINE` token per content line. These tests pin the lexing rules on
+//! hand-written inputs and enforce, for every corpus input, the structural
+//! invariants the trivia pass guarantees:
 //!
-//! 1. No token contains `\n`, except `NEWLINE` / `BLANK_LINE` and the
-//!    multi-line content kinds listed in [`MULTILINE_TOKEN_KINDS`] (to be
-//!    split in #38).
+//! 1. No token contains `\n`, except `NEWLINE` / `BLANK_LINE`. This
+//!    invariant is absolute.
 //! 2. Tokens never overlap and appear in source order; trivia tokens fall
 //!    inside their parent node's range.
 //! 3. Every whitespace byte of the source is covered by some token
@@ -21,23 +23,12 @@ use std::fs;
 use common::collect_inputs;
 use common::corpus_name;
 use common::style_dirs;
+use pydocstring::parse::TextBlock;
 use pydocstring::syntax::Parsed;
 use pydocstring::syntax::SyntaxElement;
 use pydocstring::syntax::SyntaxKind;
 use pydocstring::syntax::SyntaxNode;
 use pydocstring::syntax::SyntaxToken;
-
-/// Content token kinds still permitted to contain embedded newlines.
-///
-/// These are the multi-line content tokens; #38 splits them into
-/// one-line-per-token form, at which point each entry must be removed.
-const MULTILINE_TOKEN_KINDS: &[SyntaxKind] = &[
-    SyntaxKind::SUMMARY,          // split in #38
-    SyntaxKind::EXTENDED_SUMMARY, // split in #38
-    SyntaxKind::DESCRIPTION,      // split in #38
-    SyntaxKind::BODY_TEXT,        // split in #38
-    SyntaxKind::CONTENT,          // split in #38
-];
 
 fn parse_for_style(style: &str, input: &str) -> Parsed {
     match style {
@@ -65,12 +56,11 @@ fn check_invariants(name: &str, parsed: &Parsed) -> Vec<String> {
     let mut tokens = Vec::new();
     collect_tokens(parsed.root(), &mut tokens);
 
-    // Invariant 1: only NEWLINE / BLANK_LINE / known multi-line content
-    // kinds may contain a newline.
+    // Invariant 1 (absolute): only NEWLINE / BLANK_LINE may contain a
+    // newline.
     for (_, token) in &tokens {
         let kind = token.kind();
-        let exempt =
-            matches!(kind, SyntaxKind::NEWLINE | SyntaxKind::BLANK_LINE) || MULTILINE_TOKEN_KINDS.contains(&kind);
+        let exempt = matches!(kind, SyntaxKind::NEWLINE | SyntaxKind::BLANK_LINE);
         if !exempt && token.text(source).contains('\n') {
             violations.push(format!("{name}: {kind} token {} contains a newline", token.range()));
         }
@@ -245,9 +235,14 @@ fn trailing_newline_becomes_newline_token() {
 fn consecutive_blank_lines_yield_one_token_each() {
     let input = "Summary.\n\n\n   \nExtended.\n";
     let parsed = pydocstring::parse::plain::parse_plain(input);
-    let tokens = token_children(parsed.root(), parsed.source());
+    let elements: Vec<_> = parsed
+        .root()
+        .children()
+        .iter()
+        .map(|c| (c.kind(), c.range().source_text(parsed.source()).to_owned()))
+        .collect();
     assert_eq!(
-        tokens,
+        elements,
         vec![
             (SyntaxKind::SUMMARY, "Summary.".to_owned()),
             (SyntaxKind::NEWLINE, "\n".to_owned()),
@@ -264,9 +259,14 @@ fn consecutive_blank_lines_yield_one_token_each() {
 fn leading_blank_lines_live_at_root_level() {
     let input = "\n\nSummary.";
     let parsed = pydocstring::parse::plain::parse_plain(input);
-    let tokens = token_children(parsed.root(), parsed.source());
+    let elements: Vec<_> = parsed
+        .root()
+        .children()
+        .iter()
+        .map(|c| (c.kind(), c.range().source_text(parsed.source()).to_owned()))
+        .collect();
     assert_eq!(
-        tokens,
+        elements,
         vec![
             (SyntaxKind::BLANK_LINE, "\n".to_owned()),
             (SyntaxKind::BLANK_LINE, "\n".to_owned()),
@@ -290,4 +290,83 @@ fn numpy_underline_gaps_are_newlines() {
     let texts: String = tokens.iter().map(|(_, t)| t.text(parsed.source())).collect();
     // Concatenating all tokens reproduces the whole input: nothing dropped.
     assert_eq!(texts, input);
+}
+
+// =============================================================================
+// Spec tests: text block nodes (#38)
+// =============================================================================
+
+#[test]
+fn multi_line_description_yields_one_text_line_token_per_line() {
+    let input = "Summary.\n\nArgs:\n    x: First line of desc\n        cont.\n";
+    let parsed = pydocstring::parse::google::parse_google(input);
+    let source = parsed.source();
+    let section = parsed.root().find_node(SyntaxKind::GOOGLE_SECTION).unwrap();
+    let arg = section.find_node(SyntaxKind::GOOGLE_ARG).unwrap();
+    let desc = TextBlock::cast(arg.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
+
+    let lines: Vec<_> = desc.lines().map(|t| t.text(source)).collect();
+    assert_eq!(lines, vec!["First line of desc", "cont."]);
+
+    // Raw text() is the byte-identical source slice of the block's range,
+    // including the interior newline and indentation.
+    assert_eq!(desc.text(source), "First line of desc\n        cont.");
+
+    // Interior newline + indentation are trivia tokens inside the node.
+    let tokens = token_children(desc.syntax(), source);
+    assert_eq!(
+        tokens,
+        vec![
+            (SyntaxKind::TEXT_LINE, "First line of desc".to_owned()),
+            (SyntaxKind::NEWLINE, "\n".to_owned()),
+            (SyntaxKind::WHITESPACE, "        ".to_owned()),
+            (SyntaxKind::TEXT_LINE, "cont.".to_owned()),
+        ]
+    );
+}
+
+#[test]
+fn single_line_summary_is_still_a_block_with_one_text_line() {
+    let parsed = pydocstring::parse::plain::parse_plain("Summary.");
+    let block = TextBlock::cast(parsed.root().find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
+    let lines: Vec<_> = block.lines().map(|t| t.text(parsed.source())).collect();
+    assert_eq!(lines, vec!["Summary."]);
+    assert_eq!(block.text(parsed.source()), "Summary.");
+}
+
+#[test]
+fn logical_text_dedents_indented_continuation() {
+    let input = "Summary.\n\nArgs:\n    x: First line of desc\n        cont.\n";
+    let parsed = pydocstring::parse::google::parse_google(input);
+    let section = parsed.root().find_node(SyntaxKind::GOOGLE_SECTION).unwrap();
+    let arg = section.find_node(SyntaxKind::GOOGLE_ARG).unwrap();
+    let desc = TextBlock::cast(arg.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
+    // Continuation lines are dedented by their common indentation and
+    // joined with `\n` (convert_multiline_with_indentation semantics).
+    assert_eq!(desc.logical_text(parsed.source()), "First line of desc\ncont.");
+}
+
+#[test]
+fn multi_paragraph_body_contains_blank_line_inside_node() {
+    let input = "Summary.\n\nNotes:\n    Paragraph one.\n\n    Paragraph two.\n";
+    let parsed = pydocstring::parse::google::parse_google(input);
+    let source = parsed.source();
+    let section = parsed.root().find_node(SyntaxKind::GOOGLE_SECTION).unwrap();
+    let body = TextBlock::cast(section.find_node(SyntaxKind::BODY_TEXT).unwrap()).unwrap();
+
+    let lines: Vec<_> = body.lines().map(|t| t.text(source)).collect();
+    assert_eq!(lines, vec!["Paragraph one.", "Paragraph two."]);
+
+    // The paragraph break is a BLANK_LINE token *inside* the block node.
+    let tokens = token_children(body.syntax(), source);
+    assert_eq!(
+        tokens,
+        vec![
+            (SyntaxKind::TEXT_LINE, "Paragraph one.".to_owned()),
+            (SyntaxKind::NEWLINE, "\n".to_owned()),
+            (SyntaxKind::BLANK_LINE, "\n".to_owned()),
+            (SyntaxKind::WHITESPACE, "    ".to_owned()),
+            (SyntaxKind::TEXT_LINE, "Paragraph two.".to_owned()),
+        ]
+    );
 }

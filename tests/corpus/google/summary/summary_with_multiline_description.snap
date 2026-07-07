@@ -1,9 +1,16 @@
 === CST ===
 GOOGLE_DOCSTRING@0..81 {
-  SUMMARY: "Brief summary."@0..14
+  SUMMARY@0..14 {
+    TEXT_LINE: "Brief summary."@0..14
+  }
   NEWLINE: "\n"@14..15
   BLANK_LINE: "\n"@15..16
-  EXTENDED_SUMMARY: "First paragraph of description.\n\nSecond paragraph of description."@16..81
+  EXTENDED_SUMMARY@16..81 {
+    TEXT_LINE: "First paragraph of description."@16..47
+    NEWLINE: "\n"@47..48
+    BLANK_LINE: "\n"@48..49
+    TEXT_LINE: "Second paragraph of description."@49..81
+  }
 }
 === EMIT ===
 Brief summary.

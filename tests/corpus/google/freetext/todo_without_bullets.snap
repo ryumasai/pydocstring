@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..55 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..55 {
@@ -10,7 +12,12 @@ GOOGLE_DOCSTRING@0..55 {
     }
     NEWLINE: "\n"@15..16
     WHITESPACE: "    "@16..20
-    BODY_TEXT: "Implement feature X.\n    Fix bug Y."@20..55
+    BODY_TEXT@20..55 {
+      TEXT_LINE: "Implement feature X."@20..40
+      NEWLINE: "\n"@40..41
+      WHITESPACE: "    "@41..45
+      TEXT_LINE: "Fix bug Y."@45..55
+    }
   }
 }
 === EMIT ===

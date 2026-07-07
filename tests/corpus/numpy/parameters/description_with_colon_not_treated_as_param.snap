@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..92 {
-  SUMMARY: "Brief summary."@0..14
+  SUMMARY@0..14 {
+    TEXT_LINE: "Brief summary."@0..14
+  }
   NEWLINE: "\n"@14..15
   BLANK_LINE: "\n"@15..16
   NUMPY_SECTION@16..91 {
@@ -18,7 +20,9 @@ NUMPY_DOCSTRING@0..92 {
       TYPE: "int"@42..45
       NEWLINE: "\n"@45..46
       WHITESPACE: "    "@46..50
-      DESCRIPTION: "A value like key: value should not split."@50..91
+      DESCRIPTION@50..91 {
+        TEXT_LINE: "A value like key: value should not split."@50..91
+      }
     }
   }
   NEWLINE: "\n"@91..92

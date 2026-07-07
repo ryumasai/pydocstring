@@ -3,7 +3,9 @@ GOOGLE_DOCSTRING@0..32 {
   BLANK_LINE: "\n"@0..1
   BLANK_LINE: "\n"@1..2
   BLANK_LINE: "\n"@2..3
-  SUMMARY: "Summary."@3..11
+  SUMMARY@3..11 {
+    TEXT_LINE: "Summary."@3..11
+  }
   NEWLINE: "\n"@11..12
   BLANK_LINE: "\n"@12..13
   GOOGLE_SECTION@13..32 {
@@ -17,7 +19,9 @@ GOOGLE_DOCSTRING@0..32 {
       NAME: "x"@23..24
       COLON: ":"@24..25
       WHITESPACE: " "@25..26
-      DESCRIPTION: "Value."@26..32
+      DESCRIPTION@26..32 {
+        TEXT_LINE: "Value."@26..32
+      }
     }
   }
 }

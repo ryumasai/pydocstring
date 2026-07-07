@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..131 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..131 {
@@ -17,7 +19,9 @@ GOOGLE_DOCSTRING@0..131 {
       NUMBER: "1"@30..31
       CLOSE_BRACKET: "]"@31..32
       WHITESPACE: " "@32..33
-      CONTENT: "Author A, \"Title A\", 2020."@33..59
+      CONTENT@33..59 {
+        TEXT_LINE: "Author A, \"Title A\", 2020."@33..59
+      }
     }
     NEWLINE: "\n"@59..60
     WHITESPACE: "    "@60..64
@@ -28,7 +32,12 @@ GOOGLE_DOCSTRING@0..131 {
       NUMBER: "2"@68..69
       CLOSE_BRACKET: "]"@69..70
       WHITESPACE: " "@70..71
-      CONTENT: "Author B, \"Title B\", 2021,\n        with a continuation line."@71..131
+      CONTENT@71..131 {
+        TEXT_LINE: "Author B, \"Title B\", 2021,"@71..97
+        NEWLINE: "\n"@97..98
+        WHITESPACE: "        "@98..106
+        TEXT_LINE: "with a continuation line."@106..131
+      }
     }
   }
 }

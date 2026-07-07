@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..75 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..75 {
@@ -10,7 +12,15 @@ GOOGLE_DOCSTRING@0..75 {
     }
     NEWLINE: "\n"@15..16
     WHITESPACE: "    "@16..20
-    BODY_TEXT: "* Item one that\n        continues here.\n    * Item two."@20..75
+    BODY_TEXT@20..75 {
+      TEXT_LINE: "* Item one that"@20..35
+      NEWLINE: "\n"@35..36
+      WHITESPACE: "        "@36..44
+      TEXT_LINE: "continues here."@44..59
+      NEWLINE: "\n"@59..60
+      WHITESPACE: "    "@60..64
+      TEXT_LINE: "* Item two."@64..75
+    }
   }
 }
 === EMIT ===

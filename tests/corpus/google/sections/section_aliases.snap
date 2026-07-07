@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..466 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..44 {
@@ -18,7 +20,9 @@ GOOGLE_DOCSTRING@0..466 {
       CLOSE_BRACKET: ")"@31..32
       COLON: ":"@32..33
       WHITESPACE: " "@33..34
-      DESCRIPTION: "The value."@34..44
+      DESCRIPTION@34..44 {
+        TEXT_LINE: "The value."@34..44
+      }
     }
   }
   NEWLINE: "\n"@44..45
@@ -38,7 +42,9 @@ GOOGLE_DOCSTRING@0..466 {
       CLOSE_BRACKET: ")"@70..71
       COLON: ":"@71..72
       WHITESPACE: " "@72..73
-      DESCRIPTION: "The name."@73..82
+      DESCRIPTION@73..82 {
+        TEXT_LINE: "The name."@73..82
+      }
     }
   }
   NEWLINE: "\n"@82..83
@@ -50,7 +56,12 @@ GOOGLE_DOCSTRING@0..466 {
     }
     NEWLINE: "\n"@93..94
     WHITESPACE: "    "@94..98
-    BODY_TEXT: ">>> 1 + 1\n    2"@98..113
+    BODY_TEXT@98..113 {
+      TEXT_LINE: ">>> 1 + 1"@98..107
+      NEWLINE: "\n"@107..108
+      WHITESPACE: "    "@108..112
+      TEXT_LINE: "2"@112..113
+    }
   }
   NEWLINE: "\n"@113..114
   BLANK_LINE: "\n"@114..115
@@ -69,7 +80,9 @@ GOOGLE_DOCSTRING@0..466 {
       CLOSE_BRACKET: ")"@146..147
       COLON: ":"@147..148
       WHITESPACE: " "@148..149
-      DESCRIPTION: "The key."@149..157
+      DESCRIPTION@149..157 {
+        TEXT_LINE: "The key."@149..157
+      }
     }
   }
   NEWLINE: "\n"@157..158
@@ -81,7 +94,9 @@ GOOGLE_DOCSTRING@0..466 {
     }
     NEWLINE: "\n"@165..166
     WHITESPACE: "    "@166..170
-    BODY_TEXT: "This is also a note."@170..190
+    BODY_TEXT@170..190 {
+      TEXT_LINE: "This is also a note."@170..190
+    }
   }
   NEWLINE: "\n"@190..191
   BLANK_LINE: "\n"@191..192
@@ -100,7 +115,9 @@ GOOGLE_DOCSTRING@0..466 {
       CLOSE_BRACKET: ")"@214..215
       COLON: ":"@215..216
       WHITESPACE: " "@216..217
-      DESCRIPTION: "The value."@217..227
+      DESCRIPTION@217..227 {
+        TEXT_LINE: "The value."@217..227
+      }
     }
   }
   NEWLINE: "\n"@227..228
@@ -120,7 +137,9 @@ GOOGLE_DOCSTRING@0..466 {
       CLOSE_BRACKET: ")"@247..248
       COLON: ":"@248..249
       WHITESPACE: " "@249..250
-      DESCRIPTION: "The value."@250..260
+      DESCRIPTION@250..260 {
+        TEXT_LINE: "The value."@250..260
+      }
     }
   }
   NEWLINE: "\n"@260..261
@@ -136,7 +155,9 @@ GOOGLE_DOCSTRING@0..466 {
       TYPE: "ValueError"@273..283
       COLON: ":"@283..284
       WHITESPACE: " "@284..285
-      DESCRIPTION: "If invalid."@285..296
+      DESCRIPTION@285..296 {
+        TEXT_LINE: "If invalid."@285..296
+      }
     }
   }
   NEWLINE: "\n"@296..297
@@ -156,7 +177,9 @@ GOOGLE_DOCSTRING@0..466 {
       CLOSE_BRACKET: ")"@319..320
       COLON: ":"@320..321
       WHITESPACE: " "@321..322
-      DESCRIPTION: "The message."@322..334
+      DESCRIPTION@322..334 {
+        TEXT_LINE: "The message."@322..334
+      }
     }
   }
   NEWLINE: "\n"@334..335
@@ -172,7 +195,9 @@ GOOGLE_DOCSTRING@0..466 {
       RETURN_TYPE: "int"@348..351
       COLON: ":"@351..352
       WHITESPACE: " "@352..353
-      DESCRIPTION: "The value."@353..363
+      DESCRIPTION@353..363 {
+        TEXT_LINE: "The value."@353..363
+      }
     }
   }
   NEWLINE: "\n"@363..364
@@ -188,7 +213,9 @@ GOOGLE_DOCSTRING@0..466 {
       WARNING_TYPE: "FutureWarning"@375..388
       COLON: ":"@388..389
       WHITESPACE: " "@389..390
-      DESCRIPTION: "Will change."@390..402
+      DESCRIPTION@390..402 {
+        TEXT_LINE: "Will change."@390..402
+      }
     }
   }
   NEWLINE: "\n"@402..403
@@ -200,7 +227,9 @@ GOOGLE_DOCSTRING@0..466 {
     }
     NEWLINE: "\n"@412..413
     WHITESPACE: "    "@413..417
-    BODY_TEXT: "This is deprecated."@417..436
+    BODY_TEXT@417..436 {
+      TEXT_LINE: "This is deprecated."@417..436
+    }
   }
   NEWLINE: "\n"@436..437
   BLANK_LINE: "\n"@437..438
@@ -215,7 +244,9 @@ GOOGLE_DOCSTRING@0..466 {
       RETURN_TYPE: "str"@449..452
       COLON: ":"@452..453
       WHITESPACE: " "@453..454
-      DESCRIPTION: "Next string."@454..466
+      DESCRIPTION@454..466 {
+        TEXT_LINE: "Next string."@454..466
+      }
     }
   }
 }

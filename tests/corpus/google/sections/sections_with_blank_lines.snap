@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..84 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..55 {
@@ -18,7 +20,9 @@ GOOGLE_DOCSTRING@0..84 {
       CLOSE_BRACKET: ")"@26..27
       COLON: ":"@27..28
       WHITESPACE: " "@28..29
-      DESCRIPTION: "Value."@29..35
+      DESCRIPTION@29..35 {
+        TEXT_LINE: "Value."@29..35
+      }
     }
     NEWLINE: "\n"@35..36
     BLANK_LINE: "\n"@36..37
@@ -31,7 +35,9 @@ GOOGLE_DOCSTRING@0..84 {
       CLOSE_BRACKET: ")"@47..48
       COLON: ":"@48..49
       WHITESPACE: " "@49..50
-      DESCRIPTION: "Name."@50..55
+      DESCRIPTION@50..55 {
+        TEXT_LINE: "Name."@50..55
+      }
     }
   }
   NEWLINE: "\n"@55..56
@@ -47,7 +53,9 @@ GOOGLE_DOCSTRING@0..84 {
       RETURN_TYPE: "bool"@70..74
       COLON: ":"@74..75
       WHITESPACE: " "@75..76
-      DESCRIPTION: "Success."@76..84
+      DESCRIPTION@76..84 {
+        TEXT_LINE: "Success."@76..84
+      }
     }
   }
 }

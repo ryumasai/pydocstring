@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..42 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..41 {
@@ -10,7 +12,11 @@ NUMPY_DOCSTRING@0..42 {
       UNDERLINE: "--------"@19..27
     }
     NEWLINE: "\n"@27..28
-    BODY_TEXT: ">>> func(1)\n1"@28..41
+    BODY_TEXT@28..41 {
+      TEXT_LINE: ">>> func(1)"@28..39
+      NEWLINE: "\n"@39..40
+      TEXT_LINE: "1"@40..41
+    }
   }
   NEWLINE: "\n"@41..42
 }
