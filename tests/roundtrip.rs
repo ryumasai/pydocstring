@@ -30,9 +30,6 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     // unambiguous NumPy form — the bare line re-parses as the type
     // (prefer_type, see the #26 discussion).
     "google->numpy: google/returns/returns_without_type.txt",
-    // emit_google/parse_google do not round-trip the deprecation directive.
-    "numpy->google: numpy/edge_cases/indented_with_deprecation.txt",
-    "numpy->google: numpy/sections/deprecation_directive.txt",
     // Google parser reads References as free text, losing the structured
     // Reference entries (number + content) — issue #55. The google->numpy
     // direction of the same asymmetry hits the References section inside

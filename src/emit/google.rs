@@ -1,7 +1,8 @@
 //! Emit a [`Docstring`] as a Google-style docstring.
 
 use crate::model::{
-    Attribute, Docstring, ExceptionEntry, FreeSectionKind, Method, Parameter, Reference, Return, Section, SeeAlsoEntry,
+    Attribute, Deprecation, Docstring, ExceptionEntry, FreeSectionKind, Method, Parameter, Reference, Return, Section,
+    SeeAlsoEntry,
 };
 
 /// Emit a [`Docstring`] as a Google-style docstring string.
@@ -37,6 +38,13 @@ pub fn emit_google(doc: &Docstring, base_indent: usize) -> String {
     if let Some(ref summary) = doc.summary {
         out.push_str(summary);
         out.push('\n');
+    }
+
+    // Deprecation — before the extended summary: the parsers (and numpydoc
+    // convention) only recognize the directive directly after the summary.
+    if let Some(ref dep) = doc.deprecation {
+        out.push('\n');
+        emit_deprecation(&mut out, dep);
     }
 
     // Extended summary
@@ -273,4 +281,21 @@ fn emit_reference(out: &mut String, r: &Reference) {
         emit_multiline_with_indentation(out, content, 8);
     }
     out.push('\n');
+}
+
+/// Google: `.. deprecated:: version\n    Description.` — same rST directive
+/// form as NumPy.
+fn emit_deprecation(out: &mut String, dep: &Deprecation) {
+    out.push_str(".. deprecated:: ");
+    out.push_str(&dep.version);
+    out.push('\n');
+    if let Some(ref desc) = dep.description {
+        for line in desc.lines() {
+            if !line.is_empty() {
+                out.push_str("    ");
+                out.push_str(line);
+            }
+            out.push('\n');
+        }
+    }
 }

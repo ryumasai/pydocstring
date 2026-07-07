@@ -1,0 +1,7 @@
+Summary.
+
+.. deprecated:: 1.6.0
+    Use new_func instead.
+
+Args:
+    x (int): The value.

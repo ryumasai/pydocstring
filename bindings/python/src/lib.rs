@@ -925,6 +925,67 @@ fn build_google_section(py: Python<'_>, sec: &gn::GoogleSection<'_>, source: &st
     )
 }
 
+// ─── GoogleDeprecation ───────────────────────────────────────────────────────
+
+#[pyclass(frozen, skip_from_py_object, name = "GoogleDeprecation")]
+struct PyGoogleDeprecation {
+    range: TextRange,
+    directive_marker: Option<Py<PyToken>>,
+    keyword: Option<Py<PyToken>>,
+    double_colon: Option<Py<PyToken>>,
+    version: Py<PyToken>,
+    description: Option<Py<PyToken>>,
+}
+
+#[pymethods]
+impl PyGoogleDeprecation {
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        Py::new(py, PyTextRange::from(self.range))
+    }
+    #[getter]
+    fn directive_marker(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+        self.directive_marker.as_ref().map(|t| t.clone_ref(py))
+    }
+    #[getter]
+    fn keyword(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+        self.keyword.as_ref().map(|t| t.clone_ref(py))
+    }
+    #[getter]
+    fn double_colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+        self.double_colon.as_ref().map(|t| t.clone_ref(py))
+    }
+    #[getter]
+    fn version(&self, py: Python<'_>) -> Py<PyToken> {
+        self.version.clone_ref(py)
+    }
+    #[getter]
+    fn description(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+        self.description.as_ref().map(|t| t.clone_ref(py))
+    }
+    fn __repr__(&self, py: Python<'_>) -> String {
+        format!("GoogleDeprecation({:?})", self.version.borrow(py).text)
+    }
+}
+
+fn build_google_deprecation(
+    py: Python<'_>,
+    dep: &gn::GoogleDeprecation<'_>,
+    source: &str,
+) -> PyResult<Py<PyGoogleDeprecation>> {
+    Py::new(
+        py,
+        PyGoogleDeprecation {
+            range: *dep.syntax().range(),
+            directive_marker: mk_token_opt(py, dep.directive_marker(), source)?,
+            keyword: mk_token_opt(py, dep.keyword(), source)?,
+            double_colon: mk_token_opt(py, dep.double_colon(), source)?,
+            version: mk_token(py, dep.version(), source)?,
+            description: mk_token_opt(py, dep.description(), source)?,
+        },
+    )
+}
+
 // ─── GoogleDocstring ─────────────────────────────────────────────────────────
 
 #[pyclass(frozen, skip_from_py_object, name = "GoogleDocstring")]
@@ -932,6 +993,7 @@ struct PyGoogleDocstring {
     range: TextRange,
     summary: Option<Py<PyToken>>,
     extended_summary: Option<Py<PyToken>>,
+    deprecation: Option<Py<PyGoogleDeprecation>>,
     stray_lines: Vec<Py<PyToken>>,
     sections: Vec<Py<PyGoogleSection>>,
     source: String,
@@ -952,6 +1014,10 @@ impl PyGoogleDocstring {
     #[getter]
     fn extended_summary(&self, py: Python<'_>) -> Option<Py<PyToken>> {
         self.extended_summary.as_ref().map(|t| t.clone_ref(py))
+    }
+    #[getter]
+    fn deprecation(&self, py: Python<'_>) -> Option<Py<PyGoogleDeprecation>> {
+        self.deprecation.as_ref().map(|d| d.clone_ref(py))
     }
     #[getter]
     fn stray_lines(&self, py: Python<'_>) -> Vec<Py<PyToken>> {
@@ -991,6 +1057,10 @@ fn build_google_docstring_node(
 ) -> PyResult<Py<PyGoogleDocstring>> {
     let summary = mk_token_opt(py, doc.summary(), source)?;
     let extended_summary = mk_token_opt(py, doc.extended_summary(), source)?;
+    let deprecation = doc
+        .deprecation()
+        .map(|dep| build_google_deprecation(py, &dep, source))
+        .transpose()?;
     let stray_lines = mk_tokens(py, doc.stray_lines(), source)?;
     let sections = doc
         .sections()
@@ -1002,6 +1072,7 @@ fn build_google_docstring_node(
             range: *doc.syntax().range(),
             summary,
             extended_summary,
+            deprecation,
             stray_lines,
             sections,
             source: source.to_string(),
@@ -3406,6 +3477,7 @@ impl PyWalkContext {
 struct ActiveMethods {
     // Google (enter)
     google_docstring: bool,
+    google_deprecation: bool,
     google_section: bool,
     google_arg: bool,
     google_return: bool,
@@ -3417,6 +3489,7 @@ struct ActiveMethods {
     google_method: bool,
     // Google (exit)
     exit_google_docstring: bool,
+    exit_google_deprecation: bool,
     exit_google_section: bool,
     exit_google_arg: bool,
     exit_google_return: bool,
@@ -3474,6 +3547,7 @@ fn collect_active(py: Python<'_>, visitor: &Py<PyAny>) -> PyResult<ActiveMethods
     Ok(ActiveMethods {
         // Google (enter)
         google_docstring: has("enter_google_docstring"),
+        google_deprecation: has("enter_google_deprecation"),
         google_section: has("enter_google_section"),
         google_arg: has("enter_google_arg"),
         google_return: has("enter_google_return"),
@@ -3485,6 +3559,7 @@ fn collect_active(py: Python<'_>, visitor: &Py<PyAny>) -> PyResult<ActiveMethods
         google_method: has("enter_google_method"),
         // Google (exit)
         exit_google_docstring: has("exit_google_docstring"),
+        exit_google_deprecation: has("exit_google_deprecation"),
         exit_google_section: has("exit_google_section"),
         exit_google_arg: has("exit_google_arg"),
         exit_google_return: has("exit_google_return"),
@@ -3661,6 +3736,17 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             exit_google_docstring,
             build_google_docstring_node(self.py, doc, source, Arc::clone(&self.arc)),
             doc.syntax()
+        )
+    }
+
+    fn visit_google_deprecation(&mut self, source: &str, dep: &gn::GoogleDeprecation<'_>) -> Result<(), PyErr> {
+        visit_node!(
+            self,
+            source,
+            google_deprecation,
+            exit_google_deprecation,
+            build_google_deprecation(self.py, dep, source),
+            dep.syntax()
         )
     }
 
@@ -3928,10 +4014,10 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
 /// ```
 ///
 /// Google `enter_*` / `exit_*` methods:
-/// `enter_google_docstring`, `enter_google_section`, `enter_google_arg`,
-/// `enter_google_return`, `enter_google_yield`, `enter_google_exception`,
-/// `enter_google_warning`, `enter_google_see_also_item`,
-/// `enter_google_attribute`, `enter_google_method`
+/// `enter_google_docstring`, `enter_google_section`, `enter_google_deprecation`,
+/// `enter_google_arg`, `enter_google_return`, `enter_google_yield`,
+/// `enter_google_exception`, `enter_google_warning`,
+/// `enter_google_see_also_item`, `enter_google_attribute`, `enter_google_method`
 ///
 /// NumPy `enter_*` / `exit_*` methods:
 /// `enter_numpy_docstring`, `enter_numpy_section`, `enter_numpy_deprecation`,
@@ -4014,6 +4100,7 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Google CST wrappers
     m.add_class::<PyGoogleDocstring>()?;
     m.add_class::<PyGoogleSection>()?;
+    m.add_class::<PyGoogleDeprecation>()?;
     m.add_class::<PyGoogleArg>()?;
     m.add_class::<PyGoogleReturn>()?;
     m.add_class::<PyGoogleYield>()?;

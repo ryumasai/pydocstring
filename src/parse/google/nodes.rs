@@ -48,6 +48,13 @@ impl<'a> GoogleDocstring<'a> {
         self.0.find_token(SyntaxKind::EXTENDED_SUMMARY)
     }
 
+    /// Deprecation node, if present.
+    pub fn deprecation(&self) -> Option<GoogleDeprecation<'a>> {
+        self.0
+            .find_node(SyntaxKind::GOOGLE_DEPRECATION)
+            .and_then(GoogleDeprecation::cast)
+    }
+
     /// Iterate over all section nodes.
     pub fn sections(&self) -> impl Iterator<Item = GoogleSection<'a>> {
         self.0.nodes(SyntaxKind::GOOGLE_SECTION).filter_map(GoogleSection::cast)
@@ -56,6 +63,39 @@ impl<'a> GoogleDocstring<'a> {
     /// Iterate over stray line tokens.
     pub fn stray_lines(&self) -> impl Iterator<Item = &'a SyntaxToken> {
         self.0.tokens(SyntaxKind::STRAY_LINE)
+    }
+}
+
+// =============================================================================
+// GoogleDeprecation
+// =============================================================================
+
+define_node!(GoogleDeprecation, GOOGLE_DEPRECATION);
+
+impl<'a> GoogleDeprecation<'a> {
+    /// The `..` RST directive marker.
+    pub fn directive_marker(&self) -> Option<&'a SyntaxToken> {
+        self.0.find_token(SyntaxKind::DIRECTIVE_MARKER)
+    }
+
+    /// The `deprecated` keyword.
+    pub fn keyword(&self) -> Option<&'a SyntaxToken> {
+        self.0.find_token(SyntaxKind::KEYWORD)
+    }
+
+    /// The `::` double-colon separator.
+    pub fn double_colon(&self) -> Option<&'a SyntaxToken> {
+        self.0.find_token(SyntaxKind::DOUBLE_COLON)
+    }
+
+    /// Version when deprecated.
+    pub fn version(&self) -> &'a SyntaxToken {
+        self.0.required_token(SyntaxKind::VERSION)
+    }
+
+    /// Description / reason for deprecation.
+    pub fn description(&self) -> Option<&'a SyntaxToken> {
+        self.0.find_token(SyntaxKind::DESCRIPTION)
     }
 }
 

@@ -82,6 +82,8 @@ pub enum SyntaxKind {
     GOOGLE_SECTION,
     /// Section header (`Args:`, `Returns:`, etc.).
     GOOGLE_SECTION_HEADER,
+    /// Deprecation directive block.
+    GOOGLE_DEPRECATION,
     /// A single argument entry.
     GOOGLE_ARG,
     /// A single return value entry.
@@ -143,6 +145,7 @@ impl SyntaxKind {
                 | Self::GOOGLE_DOCSTRING
                 | Self::GOOGLE_SECTION
                 | Self::GOOGLE_SECTION_HEADER
+                | Self::GOOGLE_DEPRECATION
                 | Self::GOOGLE_ARG
                 | Self::GOOGLE_RETURNS
                 | Self::GOOGLE_YIELDS
@@ -205,6 +208,7 @@ impl SyntaxKind {
             Self::GOOGLE_DOCSTRING => "GOOGLE_DOCSTRING",
             Self::GOOGLE_SECTION => "GOOGLE_SECTION",
             Self::GOOGLE_SECTION_HEADER => "GOOGLE_SECTION_HEADER",
+            Self::GOOGLE_DEPRECATION => "GOOGLE_DEPRECATION",
             Self::GOOGLE_ARG => "GOOGLE_ARG",
             Self::GOOGLE_RETURNS => "GOOGLE_RETURNS",
             Self::GOOGLE_YIELDS => "GOOGLE_YIELDS",

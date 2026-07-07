@@ -5,6 +5,7 @@ from ._pydocstring import (
     ExceptionEntry,
     GoogleArg,
     GoogleAttribute,
+    GoogleDeprecation,
     GoogleDocstring,
     GoogleException,
     GoogleMethod,
@@ -66,6 +67,7 @@ __all__ = [
     # ── Google CST wrappers ───────────────────────────────────────────────
     "GoogleDocstring",
     "GoogleSection",
+    "GoogleDeprecation",
     "GoogleArg",
     "GoogleReturn",
     "GoogleYield",

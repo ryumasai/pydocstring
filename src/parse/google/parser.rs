@@ -7,6 +7,7 @@ use crate::cursor::{LineCursor, indent_len};
 use crate::parse::google::kind::GoogleSectionKind;
 use crate::parse::utils::{
     find_colon_ignoring_parens, find_entry_open_bracket, find_matching_close, find_term_colon, strip_optional,
+    try_parse_deprecation_directive,
 };
 use crate::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use crate::text::TextRange;
@@ -715,6 +716,7 @@ pub fn parse_google(input: &str) -> Parsed {
     }
 
     let mut summary_done = false;
+    let mut deprecation_done = false;
     let mut extended_done = false;
     let mut summary_first: Option<usize> = None;
     let mut summary_last: usize = 0;
@@ -737,6 +739,24 @@ pub fn parse_google(input: &str) -> Parsed {
                 summary_done = true;
             }
             line_cursor.advance();
+            continue;
+        }
+
+        // --- Deprecation directive (mirrors the NumPy parser) ---
+        // Recognized only between the summary and the extended summary; a
+        // `.. deprecated::` line never matches section-header detection (a
+        // header name must start with an ASCII letter), so checking first is
+        // safe. The helper consumes the directive line plus its more-indented
+        // description lines.
+        if summary_done
+            && !deprecation_done
+            && !extended_done
+            && ext_first.is_none()
+            && current_header.is_none()
+            && let Some(node) = try_parse_deprecation_directive(&mut line_cursor, SyntaxKind::GOOGLE_DEPRECATION)
+        {
+            root_children.push(SyntaxElement::Node(node));
+            deprecation_done = true;
             continue;
         }
 

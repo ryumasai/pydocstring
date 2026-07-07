@@ -40,17 +40,18 @@ pub fn emit_numpy(doc: &Docstring, base_indent: usize) -> String {
         out.push('\n');
     }
 
+    // Deprecation — before the extended summary: the parsers (and numpydoc
+    // convention) only recognize the directive directly after the summary.
+    if let Some(ref dep) = doc.deprecation {
+        out.push('\n');
+        emit_deprecation(&mut out, dep);
+    }
+
     // Extended summary
     if let Some(ref ext) = doc.extended_summary {
         out.push('\n');
         out.push_str(ext);
         out.push('\n');
-    }
-
-    // Deprecation
-    if let Some(ref dep) = doc.deprecation {
-        out.push('\n');
-        emit_deprecation(&mut out, dep);
     }
 
     // Sections
