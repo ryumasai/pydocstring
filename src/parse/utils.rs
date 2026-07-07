@@ -296,39 +296,159 @@ pub(crate) fn find_matching_close(s: &str, open_pos: usize) -> Option<usize> {
 }
 
 // =============================================================================
-// Optional marker stripping
+// Marker scanning (`optional` / `default …` segments in a type annotation)
 // =============================================================================
 
-/// Strip a trailing `optional` marker from a type annotation.
+/// One `optional` / `default …` marker occurrence found in a type annotation.
 ///
-/// Uses bracket-aware comma splitting so that commas inside type
-/// annotations like `Dict[str, int]` are never mistaken for the
-/// separator before `optional`.
+/// All byte offsets are relative to the scanned type text. Markers are
+/// repeatable: the scanner records **every** occurrence, in source order, so
+/// each one can become a token/node and every byte stays covered (#76).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum MarkerSegment {
+    /// An `optional` marker; `offset` points at the `o`.
+    Optional {
+        /// Byte offset of the `optional` keyword.
+        offset: usize,
+    },
+    /// A `default …` marker (`default X`, `default=X`, or `default: X`).
+    Default {
+        /// Byte offset of the `default` keyword.
+        keyword: usize,
+        /// Byte offset of the `=` / `:` separator, if present.
+        separator: Option<usize>,
+        /// `(byte_offset, len)` of the value text; `len == 0` is the
+        /// zero-length placeholder for a separator without a value.
+        value: Option<(usize, usize)>,
+    },
+}
+
+/// The result of scanning a type annotation for trailing marker segments.
+pub(crate) struct TypeMarkers<'a> {
+    /// Type text with the `optional` / `default …` segments stripped.
+    /// When no marker is present this is the input text unchanged.
+    pub clean_type: &'a str,
+    /// Byte offsets of the top-level separator commas after the clean type
+    /// (e.g. the comma before `optional`).
+    pub commas: Vec<usize>,
+    /// Every marker occurrence, in source order.
+    pub markers: Vec<MarkerSegment>,
+}
+
+/// Split a type annotation into the type itself and trailing `optional` /
+/// `default X` marker segments (comma-separated, bracket-aware).
 ///
-/// Returns `(clean_type, optional_byte_offset)` where the offset is
-/// relative to the start of `type_content` and points to the `o` in
-/// `optional`.
-pub(crate) fn strip_optional(type_content: &str) -> (&str, Option<usize>) {
-    let parts = split_comma_parts(type_content);
-    let mut optional_offset = None;
+/// Shared by all three entry-parsing paths (the Google header parser, the
+/// NumPy segment scanner, and [`try_parse_bracket_entry`]) so the boundary
+/// rule cannot drift between them. Accepts the separator forms `default X`,
+/// `default=X`, and `default: X`.
+pub(crate) fn scan_type_markers(type_content: &str) -> TypeMarkers<'_> {
+    let mut markers = Vec::new();
     let mut type_end = 0;
 
-    for &(seg_offset, seg_raw) in &parts {
+    for (seg_offset, seg_raw) in split_comma_parts(type_content) {
         let seg = seg_raw.trim();
+        if seg.is_empty() {
+            continue;
+        }
+        let seg_off = seg_offset + (seg_raw.len() - seg_raw.trim_start().len());
         if seg == "optional" {
-            let ws_lead = seg_raw.len() - seg_raw.trim_start().len();
-            optional_offset = Some(seg_offset + ws_lead);
-        } else if !seg.is_empty() {
+            markers.push(MarkerSegment::Optional { offset: seg_off });
+        } else if let Some(after_kw) = seg
+            .strip_prefix("default")
+            // Boundary guard: a type like `defaultdict` is not a default marker.
+            .filter(|rest| rest.is_empty() || rest.starts_with([' ', '\t', '=', ':']))
+        {
+            let rest = after_kw.trim_start();
+            let rest_off = seg_off + "default".len() + (after_kw.len() - rest.len());
+            let (separator, value) = if let Some(val) = rest.strip_prefix(['=', ':']) {
+                let val_trimmed = val.trim_start();
+                let value = if val_trimmed.is_empty() {
+                    // Separator present but value absent: zero-length placeholder.
+                    (rest_off + 1, 0)
+                } else {
+                    (rest_off + 1 + (val.len() - val_trimmed.len()), val_trimmed.len())
+                };
+                (Some(rest_off), Some(value))
+            } else if !rest.is_empty() {
+                (None, Some((rest_off, rest.len())))
+            } else {
+                (None, None)
+            };
+            markers.push(MarkerSegment::Default {
+                keyword: seg_off,
+                separator,
+                value,
+            });
+        } else {
             type_end = seg_offset + seg_raw.trim_end().len();
         }
     }
 
-    if let Some(opt) = optional_offset {
-        let clean = type_content[..type_end].trim_end_matches(',').trim_end();
-        (clean, Some(opt))
+    let clean_type = if markers.is_empty() {
+        // No marker segments: keep the content exactly as-is.
+        type_content
     } else {
-        (type_content, None)
+        type_content[..type_end].trim_end_matches(',').trim_end()
+    };
+
+    TypeMarkers {
+        clean_type,
+        commas: separator_comma_offsets(type_content, clean_type.len()),
+        markers,
     }
+}
+
+/// Build the syntax elements for scanned markers: one `OPTIONAL` token per
+/// `optional` occurrence and one `DEFAULT` node (wrapping `DEFAULT_KEYWORD`,
+/// optional `DEFAULT_SEPARATOR`, and `DEFAULT_VALUE`) per `default …`
+/// occurrence, in source order.
+///
+/// `base` is the absolute byte offset of the scanned type text within the
+/// source; the marker offsets are relative to it.
+pub(crate) fn marker_syntax_elements(markers: &[MarkerSegment], base: usize) -> Vec<SyntaxElement> {
+    markers
+        .iter()
+        .map(|marker| match *marker {
+            MarkerSegment::Optional { offset } => SyntaxElement::Token(SyntaxToken::new(
+                SyntaxKind::OPTIONAL,
+                TextRange::from_offset_len(base + offset, "optional".len()),
+            )),
+            MarkerSegment::Default {
+                keyword,
+                separator,
+                value,
+            } => {
+                let kw_range = TextRange::from_offset_len(base + keyword, "default".len());
+                let mut children = vec![SyntaxElement::Token(SyntaxToken::new(
+                    SyntaxKind::DEFAULT_KEYWORD,
+                    kw_range,
+                ))];
+                let mut end = kw_range.end();
+                if let Some(sep) = separator {
+                    let sep_range = TextRange::from_offset_len(base + sep, 1);
+                    end = end.max(sep_range.end());
+                    children.push(SyntaxElement::Token(SyntaxToken::new(
+                        SyntaxKind::DEFAULT_SEPARATOR,
+                        sep_range,
+                    )));
+                }
+                if let Some((off, len)) = value {
+                    let val_range = TextRange::from_offset_len(base + off, len);
+                    end = end.max(val_range.end());
+                    children.push(SyntaxElement::Token(SyntaxToken::new(
+                        SyntaxKind::DEFAULT_VALUE,
+                        val_range,
+                    )));
+                }
+                SyntaxElement::Node(SyntaxNode::new(
+                    SyntaxKind::DEFAULT,
+                    TextRange::new(kw_range.start(), end),
+                    children,
+                ))
+            }
+        })
+        .collect()
 }
 
 // =============================================================================
@@ -352,8 +472,9 @@ pub(crate) struct BracketEntry<'a> {
     /// Byte offsets of top-level separator commas after the clean type
     /// (e.g. the comma before `optional`).
     pub commas: Vec<usize>,
-    /// Byte offset of `optional` keyword, if present.
-    pub optional_offset: Option<usize>,
+    /// Marker occurrences (`optional` / `default …`), in source order, with
+    /// offsets relative to [`type_offset`](Self::type_offset).
+    pub markers: Vec<MarkerSegment>,
     /// Byte offset of the colon after the close bracket, if present.
     pub colon: Option<usize>,
     /// Description text after the colon (trimmed), if present.
@@ -425,22 +546,18 @@ pub(crate) fn try_parse_bracket_entry(text: &str) -> Option<BracketEntry<'_>> {
     let leading_ws = type_raw.len() - type_raw.trim_start().len();
     let type_offset = bracket_pos + 1 + leading_ws;
 
-    let (clean_type, opt_rel) = strip_optional(type_trimmed);
-    let optional_offset = opt_rel.map(|r| type_offset + r);
+    let scanned = scan_type_markers(type_trimmed);
 
-    let commas: Vec<usize> = separator_comma_offsets(type_trimmed, clean_type.len())
-        .into_iter()
-        .map(|rel| type_offset + rel)
-        .collect();
+    let commas: Vec<usize> = scanned.commas.into_iter().map(|rel| type_offset + rel).collect();
 
     Some(BracketEntry {
         name,
         open_bracket: bracket_pos,
         close_bracket: close_pos,
-        clean_type,
+        clean_type: scanned.clean_type,
         type_offset,
         commas,
-        optional_offset,
+        markers: scanned.markers,
         colon,
         description,
         description_offset,
@@ -767,17 +884,117 @@ mod tests {
         assert_eq!(find_matching_close("<int>", 0), Some(4));
     }
 
-    // ---- strip_optional ----
+    // ---- scan_type_markers ----
+
+    fn optional_offsets(text: &str) -> Vec<usize> {
+        scan_type_markers(text)
+            .markers
+            .iter()
+            .filter_map(|m| match m {
+                MarkerSegment::Optional { offset } => Some(*offset),
+                _ => None,
+            })
+            .collect()
+    }
 
     #[test]
-    fn test_strip_optional_basic() {
-        assert_eq!(strip_optional("int, optional"), ("int", Some(5)));
-        assert_eq!(strip_optional("int"), ("int", None));
-        assert_eq!(strip_optional("Dict[str, int], optional"), ("Dict[str, int]", Some(16)));
-        assert_eq!(strip_optional("optional"), ("", Some(0)));
-        assert_eq!(strip_optional("int,optional"), ("int", Some(4)));
-        assert_eq!(strip_optional("int,  optional"), ("int", Some(6)));
-        assert_eq!(strip_optional("int, optional  "), ("int", Some(5)));
+    fn test_scan_type_markers_optional() {
+        assert_eq!(scan_type_markers("int, optional").clean_type, "int");
+        assert_eq!(optional_offsets("int, optional"), vec![5]);
+        assert_eq!(scan_type_markers("int").clean_type, "int");
+        assert!(scan_type_markers("int").markers.is_empty());
+        assert_eq!(
+            scan_type_markers("Dict[str, int], optional").clean_type,
+            "Dict[str, int]"
+        );
+        assert_eq!(optional_offsets("Dict[str, int], optional"), vec![16]);
+        assert_eq!(scan_type_markers("optional").clean_type, "");
+        assert_eq!(optional_offsets("optional"), vec![0]);
+        assert_eq!(optional_offsets("int,optional"), vec![4]);
+        assert_eq!(optional_offsets("int,  optional"), vec![6]);
+        assert_eq!(optional_offsets("int, optional  "), vec![5]);
+    }
+
+    #[test]
+    fn test_scan_type_markers_default_forms() {
+        // `default X`: keyword + value, no separator.
+        let m = scan_type_markers("int, default 5");
+        assert_eq!(m.clean_type, "int");
+        assert_eq!(
+            m.markers,
+            vec![MarkerSegment::Default {
+                keyword: 5,
+                separator: None,
+                value: Some((13, 1)),
+            }]
+        );
+        // `default=X` and `default: X`: keyword + separator + value.
+        let m = scan_type_markers("int, default=5");
+        assert_eq!(
+            m.markers,
+            vec![MarkerSegment::Default {
+                keyword: 5,
+                separator: Some(12),
+                value: Some((13, 1)),
+            }]
+        );
+        let m = scan_type_markers("int, default: 5");
+        assert_eq!(
+            m.markers,
+            vec![MarkerSegment::Default {
+                keyword: 5,
+                separator: Some(12),
+                value: Some((14, 1)),
+            }]
+        );
+        // Separator without value: zero-length placeholder.
+        let m = scan_type_markers("int, default=");
+        assert_eq!(
+            m.markers,
+            vec![MarkerSegment::Default {
+                keyword: 5,
+                separator: Some(12),
+                value: Some((13, 0)),
+            }]
+        );
+        // `defaultdict` is a type, not a marker.
+        let m = scan_type_markers("defaultdict");
+        assert_eq!(m.clean_type, "defaultdict");
+        assert!(m.markers.is_empty());
+    }
+
+    /// Repeated markers produce one `MarkerSegment` per occurrence, in
+    /// source order (#76).
+    #[test]
+    fn test_scan_type_markers_repeated() {
+        let m = scan_type_markers("int, default 1, default 2");
+        assert_eq!(m.clean_type, "int");
+        assert_eq!(m.commas, vec![3, 14]);
+        assert_eq!(
+            m.markers,
+            vec![
+                MarkerSegment::Default {
+                    keyword: 5,
+                    separator: None,
+                    value: Some((13, 1)),
+                },
+                MarkerSegment::Default {
+                    keyword: 16,
+                    separator: None,
+                    value: Some((24, 1)),
+                },
+            ]
+        );
+
+        let m = scan_type_markers("int, optional, optional");
+        assert_eq!(m.clean_type, "int");
+        assert_eq!(
+            m.markers,
+            vec![
+                MarkerSegment::Optional { offset: 5 },
+                MarkerSegment::Optional { offset: 15 },
+            ]
+        );
     }
 
     // ---- try_parse_bracket_entry ----
@@ -801,7 +1018,8 @@ mod tests {
     fn test_bracket_entry_optional() {
         let e = try_parse_bracket_entry("name (int, optional): desc").unwrap();
         assert_eq!(e.clean_type, "int");
-        assert!(e.optional_offset.is_some());
+        // Marker offsets are relative to the type text (`e.type_offset`).
+        assert_eq!(e.markers, vec![MarkerSegment::Optional { offset: 5 }]);
     }
 
     #[test]

@@ -7,6 +7,7 @@ use crate::parse::EntryRole;
 use crate::parse::google::kind::GoogleSectionKind;
 use crate::parse::text_block::TextBlock;
 use crate::parse::text_block::find_text_block;
+use crate::parse::unified::Default;
 use crate::syntax::SyntaxKind;
 use crate::syntax::SyntaxNode;
 use crate::syntax::SyntaxToken;
@@ -282,24 +283,42 @@ impl<'a> GoogleArg<'a> {
         find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 
-    /// `optional` marker token, if present.
+    /// First `optional` marker token, if present.
+    ///
+    /// Markers are repeatable; use [`GoogleArg::optionals`] to see every
+    /// occurrence.
     pub fn optional(&self) -> Option<&'a SyntaxToken> {
         self.0.find_token(SyntaxKind::OPTIONAL)
     }
 
-    /// `default` keyword token, if present.
+    /// All `optional` marker tokens, one per occurrence, in source order.
+    pub fn optionals(&self) -> impl Iterator<Item = &'a SyntaxToken> {
+        self.0.tokens(SyntaxKind::OPTIONAL)
+    }
+
+    /// All `default …` markers, one [`Default`] per occurrence, in source
+    /// order.
+    pub fn defaults(&self) -> impl Iterator<Item = Default<'a>> {
+        self.0.nodes(SyntaxKind::DEFAULT).filter_map(Default::cast)
+    }
+
+    /// The first `default …` marker's keyword token, if present.
     pub fn default_keyword(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DEFAULT_KEYWORD)
+        self.defaults().next().map(|d| d.keyword())
     }
 
-    /// Default value separator token (`=` or `:`), if present.
+    /// The first `default …` marker's separator token (`=` or `:`), if
+    /// present.
     pub fn default_separator(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DEFAULT_SEPARATOR)
+        self.defaults().next().and_then(|d| d.separator())
     }
 
-    /// Default value text token, if present.
+    /// The first `default …` marker's value token, if present.
+    ///
+    /// First occurrence wins — the same normalization rule the model layer
+    /// applies. Use [`GoogleArg::defaults`] to see every occurrence.
     pub fn default_value(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DEFAULT_VALUE)
+        self.defaults().next().and_then(|d| d.value())
     }
 }
 

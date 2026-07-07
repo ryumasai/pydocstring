@@ -4,12 +4,12 @@ use crate::model::Attribute;
 use crate::model::Deprecation;
 use crate::model::Docstring;
 use crate::model::ExceptionEntry;
-use crate::model::FreeSectionKind;
 use crate::model::Method;
 use crate::model::Parameter;
 use crate::model::Reference;
 use crate::model::Return;
 use crate::model::Section;
+use crate::model::SectionKind;
 use crate::model::SeeAlsoEntry;
 use crate::parse::numpy::kind::NumPySectionKind;
 use crate::parse::numpy::nodes::NumPyDocstring;
@@ -171,19 +171,8 @@ fn convert_section(section: &NumPySection<'_>, source: &str) -> Section {
                 .body_text()
                 .map(|t| t.text(source).to_owned())
                 .unwrap_or_default();
-            let free_kind = match kind {
-                NumPySectionKind::Notes => FreeSectionKind::Notes,
-                NumPySectionKind::Examples => FreeSectionKind::Examples,
-                NumPySectionKind::Warnings => FreeSectionKind::Warnings,
-                NumPySectionKind::Todo => FreeSectionKind::Todo,
-                NumPySectionKind::Attention => FreeSectionKind::Attention,
-                NumPySectionKind::Caution => FreeSectionKind::Caution,
-                NumPySectionKind::Danger => FreeSectionKind::Danger,
-                NumPySectionKind::Error => FreeSectionKind::Error,
-                NumPySectionKind::Hint => FreeSectionKind::Hint,
-                NumPySectionKind::Important => FreeSectionKind::Important,
-                NumPySectionKind::Tip => FreeSectionKind::Tip,
-                NumPySectionKind::Unknown => FreeSectionKind::Unknown(section.header().name().text(source).to_owned()),
+            let free_kind = match kind.to_section_kind(section.header().name().text(source)) {
+                SectionKind::FreeText(k) => k,
                 _ => unreachable!(),
             };
             Section::FreeText { kind: free_kind, body }

@@ -19,9 +19,11 @@ DOCUMENT@0..67 {
       TYPE: "{'C', 'F'}"@27..37
       COMMA: ","@37..38
       WHITESPACE: " "@38..39
-      DEFAULT_KEYWORD: "default"@39..46
-      WHITESPACE: " "@46..47
-      DEFAULT_VALUE: "'C'"@47..50
+      DEFAULT@39..50 {
+        DEFAULT_KEYWORD: "default"@39..46
+        WHITESPACE: " "@46..47
+        DEFAULT_VALUE: "'C'"@47..50
+      }
       CLOSE_BRACKET: ")"@50..51
       COLON: ":"@51..52
       WHITESPACE: " "@52..53

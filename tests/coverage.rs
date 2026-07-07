@@ -238,3 +238,76 @@ fn optional_marker_comma_is_a_comma_token() {
     );
     assert!(tokens.iter().all(|(k, _)| *k != SyntaxKind::COMMA));
 }
+
+// =============================================================================
+// Spec tests: markers are repeatable nodes (#41/#76)
+// =============================================================================
+
+/// SPEC: every `default …` occurrence becomes its own `DEFAULT` node (one
+/// per occurrence, in source order) wrapping `DEFAULT_KEYWORD` /
+/// `DEFAULT_SEPARATOR`? / `DEFAULT_VALUE`, so a repeated marker keeps every
+/// byte in the tree — the #76 fix. The model takes the first occurrence
+/// (pinned in tests/model.rs).
+#[test]
+fn repeated_default_markers_one_node_per_occurrence() {
+    let input = "Summary.\n\nParameters\n----------\nx : int, default 1, default 2\n    Desc.\n";
+    let parsed = pydocstring::parse::numpy::parse_numpy(input);
+    assert!(check_coverage(&parsed).is_empty(), "coverage violated: {input:?}");
+
+    let entry = parsed
+        .root()
+        .find_node(SyntaxKind::SECTION)
+        .unwrap()
+        .find_node(SyntaxKind::ENTRY)
+        .unwrap();
+    let defaults: Vec<_> = entry.nodes(SyntaxKind::DEFAULT).collect();
+    assert_eq!(defaults.len(), 2);
+    let values: Vec<_> = defaults
+        .iter()
+        .map(|d| {
+            d.find_token(SyntaxKind::DEFAULT_VALUE)
+                .unwrap()
+                .text(parsed.source())
+                .to_owned()
+        })
+        .collect();
+    assert_eq!(values, vec!["1", "2"]);
+
+    let input = "Summary.\n\nArgs:\n    x (int, default 1, default 2): Desc.\n";
+    let parsed = pydocstring::parse::google::parse_google(input);
+    assert!(check_coverage(&parsed).is_empty(), "coverage violated: {input:?}");
+    let entry = parsed
+        .root()
+        .find_node(SyntaxKind::SECTION)
+        .unwrap()
+        .find_node(SyntaxKind::ENTRY)
+        .unwrap();
+    assert_eq!(entry.nodes(SyntaxKind::DEFAULT).count(), 2);
+}
+
+/// SPEC: every `optional` occurrence becomes its own `OPTIONAL` token, in
+/// both styles.
+#[test]
+fn repeated_optional_markers_one_token_per_occurrence() {
+    let input = "Summary.\n\nParameters\n----------\nx : int, optional, optional\n    Desc.\n";
+    let parsed = pydocstring::parse::numpy::parse_numpy(input);
+    assert!(check_coverage(&parsed).is_empty(), "coverage violated: {input:?}");
+    let entry = parsed
+        .root()
+        .find_node(SyntaxKind::SECTION)
+        .unwrap()
+        .find_node(SyntaxKind::ENTRY)
+        .unwrap();
+    assert_eq!(entry.tokens(SyntaxKind::OPTIONAL).count(), 2);
+
+    let input = "Summary.\n\nArgs:\n    x (int, optional, optional): Desc.\n";
+    let parsed = pydocstring::parse::google::parse_google(input);
+    assert!(check_coverage(&parsed).is_empty(), "coverage violated: {input:?}");
+    let entry = parsed
+        .root()
+        .find_node(SyntaxKind::SECTION)
+        .unwrap()
+        .find_node(SyntaxKind::ENTRY)
+        .unwrap();
+    assert_eq!(entry.tokens(SyntaxKind::OPTIONAL).count(), 2);
+}

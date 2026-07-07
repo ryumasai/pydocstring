@@ -625,13 +625,12 @@ fn build_google_arg(py: Python<'_>, arg: &gn::GoogleArg<'_>, source: &str) -> Py
             optional: mk_token_opt(py, arg.optional(), source)?,
             default_keyword: mk_token_opt(py, arg.default_keyword(), source)?,
             default_separator: mk_token_opt(py, arg.default_separator(), source)?,
-            default_value: mk_token_or_missing(
-                py,
-                arg.default_value(),
-                arg.syntax(),
-                SyntaxKind::DEFAULT_VALUE,
-                source,
-            )?,
+            // First DEFAULT occurrence wins (markers are repeatable, #41);
+            // a missing (zero-length) value token lives inside that node.
+            default_value: match arg.defaults().next() {
+                Some(d) => mk_token_or_missing(py, d.value(), d.syntax(), SyntaxKind::DEFAULT_VALUE, source)?,
+                None => None,
+            },
         },
     )
 }
@@ -1412,13 +1411,12 @@ fn build_numpy_parameter(py: Python<'_>, prm: &nn::NumPyParameter<'_>, source: &
             optional: mk_token_opt(py, prm.optional(), source)?,
             default_keyword: mk_token_opt(py, prm.default_keyword(), source)?,
             default_separator: mk_token_opt(py, prm.default_separator(), source)?,
-            default_value: mk_token_or_missing(
-                py,
-                prm.default_value(),
-                prm.syntax(),
-                SyntaxKind::DEFAULT_VALUE,
-                source,
-            )?,
+            // First DEFAULT occurrence wins (markers are repeatable, #41);
+            // a missing (zero-length) value token lives inside that node.
+            default_value: match prm.defaults().next() {
+                Some(d) => mk_token_or_missing(py, d.value(), d.syntax(), SyntaxKind::DEFAULT_VALUE, source)?,
+                None => None,
+            },
         },
     )
 }

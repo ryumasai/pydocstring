@@ -12,10 +12,16 @@ pub mod numpy;
 pub mod plain;
 pub mod text_block;
 pub(crate) mod trivia;
+pub mod unified;
 pub(crate) mod utils;
 pub mod visitor;
 
 pub use text_block::TextBlock;
+pub use unified::Citation;
+pub use unified::Directive;
+pub use unified::Document;
+pub use unified::Entry;
+pub use unified::Section;
 
 // =============================================================================
 // Style

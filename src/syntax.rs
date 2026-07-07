@@ -126,6 +126,13 @@ pub enum SyntaxKind {
     /// A citation/footnote entry in a References section
     /// (`.. [label] content`).
     CITATION,
+    /// One `default …` marker occurrence inside a type annotation, wrapping
+    /// its [`SyntaxKind::DEFAULT_KEYWORD`], optional
+    /// [`SyntaxKind::DEFAULT_SEPARATOR`], and [`SyntaxKind::DEFAULT_VALUE`]
+    /// tokens. Markers are repeatable: `x : int, default 1, default 2`
+    /// produces one `DEFAULT` node per occurrence, in source order (which
+    /// occurrence *wins* is a model-layer rule: the first).
+    DEFAULT,
 }
 
 impl SyntaxKind {
@@ -142,6 +149,7 @@ impl SyntaxKind {
                 | Self::ENTRY
                 | Self::DIRECTIVE
                 | Self::CITATION
+                | Self::DEFAULT
         )
     }
 
@@ -198,6 +206,7 @@ impl SyntaxKind {
             Self::ENTRY => "ENTRY",
             Self::DIRECTIVE => "DIRECTIVE",
             Self::CITATION => "CITATION",
+            Self::DEFAULT => "DEFAULT",
         }
     }
 }

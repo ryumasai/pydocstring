@@ -4,12 +4,12 @@ use crate::model::Attribute;
 use crate::model::Deprecation;
 use crate::model::Docstring;
 use crate::model::ExceptionEntry;
-use crate::model::FreeSectionKind;
 use crate::model::Method;
 use crate::model::Parameter;
 use crate::model::Reference;
 use crate::model::Return;
 use crate::model::Section;
+use crate::model::SectionKind;
 use crate::model::SeeAlsoEntry;
 use crate::parse::google::kind::GoogleSectionKind;
 use crate::parse::google::nodes::GoogleDocstring;
@@ -161,19 +161,8 @@ fn convert_section(section: &GoogleSection<'_>, source: &str) -> Section {
                 .body_text()
                 .map(|t| convert_multiline_with_indentation(t.text(source)))
                 .unwrap_or_default();
-            let free_kind = match kind {
-                GoogleSectionKind::Notes => FreeSectionKind::Notes,
-                GoogleSectionKind::Examples => FreeSectionKind::Examples,
-                GoogleSectionKind::Todo => FreeSectionKind::Todo,
-                GoogleSectionKind::Warnings => FreeSectionKind::Warnings,
-                GoogleSectionKind::Attention => FreeSectionKind::Attention,
-                GoogleSectionKind::Caution => FreeSectionKind::Caution,
-                GoogleSectionKind::Danger => FreeSectionKind::Danger,
-                GoogleSectionKind::Error => FreeSectionKind::Error,
-                GoogleSectionKind::Hint => FreeSectionKind::Hint,
-                GoogleSectionKind::Important => FreeSectionKind::Important,
-                GoogleSectionKind::Tip => FreeSectionKind::Tip,
-                GoogleSectionKind::Unknown => FreeSectionKind::Unknown(section.header().name().text(source).to_owned()),
+            let free_kind = match kind.to_section_kind(section.header().name().text(source)) {
+                SectionKind::FreeText(k) => k,
                 _ => unreachable!(),
             };
             Section::FreeText { kind: free_kind, body }

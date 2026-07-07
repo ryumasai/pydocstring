@@ -627,3 +627,49 @@ fn numpy_google_style_optional_to_model() {
     assert_eq!(params[0].type_annotation.as_deref(), Some("str"));
     assert!(params[0].is_optional);
 }
+
+// =============================================================================
+// Repeated markers: model normalization takes the FIRST occurrence (#41/#76)
+// =============================================================================
+
+/// SPEC: when a `default …` marker is repeated, the model's `default_value`
+/// is the FIRST occurrence, in both styles. The CST keeps every occurrence
+/// (pinned in tests/coverage.rs); which one wins is this model-layer rule.
+#[test]
+fn repeated_default_markers_first_occurrence_wins() {
+    let parsed = parse_numpy("Summary.\n\nParameters\n----------\nx : int, default 1, default 2\n    Desc.\n");
+    let doc = numpy_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::Parameters(params) => {
+            assert_eq!(params[0].type_annotation.as_deref(), Some("int"));
+            assert_eq!(params[0].default_value.as_deref(), Some("1"));
+        }
+        other => panic!("expected Parameters, got {:?}", other),
+    }
+
+    let parsed = parse_google("Summary.\n\nArgs:\n    x (int, optional, default 1, default 2): Desc.\n");
+    let doc = google_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::Parameters(params) => {
+            assert_eq!(params[0].type_annotation.as_deref(), Some("int"));
+            assert!(params[0].is_optional);
+            assert_eq!(params[0].default_value.as_deref(), Some("1"));
+        }
+        other => panic!("expected Parameters, got {:?}", other),
+    }
+}
+
+/// SPEC: a repeated `optional` marker still reads as one `is_optional` flag
+/// (the first occurrence wins; repetition adds no information).
+#[test]
+fn repeated_optional_markers_first_occurrence_wins() {
+    let parsed = parse_numpy("Summary.\n\nParameters\n----------\nx : int, optional, optional\n    Desc.\n");
+    let doc = numpy_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::Parameters(params) => {
+            assert_eq!(params[0].type_annotation.as_deref(), Some("int"));
+            assert!(params[0].is_optional);
+        }
+        other => panic!("expected Parameters, got {:?}", other),
+    }
+}
