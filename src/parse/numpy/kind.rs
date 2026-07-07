@@ -7,6 +7,7 @@ use core::fmt;
 /// Each variant represents a recognised section name (or group of aliases),
 /// or [`Unknown`](Self::Unknown) for unrecognised names.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum NumPySectionKind {
     /// `Parameters` / `Params`
     Parameters,

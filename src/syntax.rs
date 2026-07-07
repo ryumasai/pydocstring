@@ -24,6 +24,7 @@ use crate::text::TextRange;
 /// `JsIfStatement` and `TsInterface` in one `SyntaxKind`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[allow(non_camel_case_types)]
+#[non_exhaustive]
 pub enum SyntaxKind {
     // ── Common tokens ──────────────────────────────────────────────────
     /// Section name, parameter name, exception type name, etc.
