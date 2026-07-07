@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-07-07
+
+**The lossless-CST release** — phase 1 of the v2 roadmap
+([#48](https://github.com/ryumasai/pydocstring/issues/48)). The syntax tree
+now accounts for every byte of the input: three invariants hold for the whole
+test corpus and are enforced in CI.
+
+1. Concatenating all tokens in source order reproduces the input
+   byte-for-byte — no gaps, no overlaps.
+2. No token contains a newline, except the trivia kinds `NEWLINE` and
+   `BLANK_LINE`.
+3. Trivia never overlaps content and always sits inside its parent's range.
+
+### Changed (breaking)
+
+- The CST now contains **trivia tokens**: `WHITESPACE` (intra-line runs),
+  `NEWLINE`, and `BLANK_LINE` (a whitespace-only line including its newline).
+  `children()` and token iteration yield them; kind-filtered accessors are
+  unaffected. Blank lines between sections live at docstring level, entry
+  indentation inside its section (syntactic ownership).
+- **Multi-line content is split per line**: `SUMMARY`, `EXTENDED_SUMMARY`,
+  `DESCRIPTION`, `BODY_TEXT` and `CONTENT` are now *nodes* wrapping one
+  `TEXT_LINE` token per content line (plus interior trivia). Typed accessors
+  keep their names but return the new `TextBlock` wrapper: `text(source)`
+  yields the same raw slice as before, `lines()` iterates per-line tokens,
+  `logical_text(source)` returns the dedented join. Python bindings expose the
+  same as a `TextBlock` class (`.text` unchanged in value, plus `.lines` /
+  `.logical_text`).
+- The root node's range now spans the entire input, including the trailing
+  newline.
+- NumPy google-style entries store children in source order (`COLON` no
+  longer precedes `TYPE`), with missing-type placeholders anchored after the
+  open bracket, matching the Google parser.
+- `SyntaxKind`, `GoogleSectionKind`, `NumPySectionKind`, `SectionKind` and
+  `FreeSectionKind` are now `#[non_exhaustive]`, as announced in 0.1.15 —
+  future kind additions will no longer break exhaustive matches.
+- New `SyntaxKind` variants: `WHITESPACE`, `NEWLINE`, `BLANK_LINE`,
+  `TEXT_LINE`, `COMMA`.
+
+### Fixed
+
+- NumPy `Methods`: inline text after a colon (`reset() : Reset the state.`)
+  was silently discarded; it is now the method's description
+  ([#39](https://github.com/ryumasai/pydocstring/issues/39)).
+- NumPy entries with a colon but the description on the next line no longer
+  leak a leading newline into the model.
+- Separator commas (between names, before `optional` / `default` markers) and
+  the brackets of google-style entries inside NumPy sections are now real
+  tokens; previously those bytes were unaccounted for.
+
+### Added
+
+- `TextBlock` (Rust and Python): `lines()`, raw `text()`, dedented
+  `logical_text()`, `is_missing()`.
+- `SyntaxKind::is_trivia()`.
+- Test infrastructure: byte-coverage law (`tests/coverage.rs`), trivia
+  invariants and lexing spec tests (`tests/trivia.rs`).
+
 ## [0.1.15] - 2026-07-07
 
 Bug-fix release: everything flushed out by the new corpus/round-trip test
