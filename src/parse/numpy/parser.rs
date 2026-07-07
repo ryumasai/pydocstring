@@ -888,7 +888,11 @@ fn process_reference_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, e
     if is_directive {
         let rel_open = trimmed.find('[').unwrap();
         let abs_open = cursor.substr_offset(trimmed) + rel_open;
-        if let Some(abs_close) = find_matching_close(cursor.source(), abs_open) {
+        // Bound the close-bracket search to the current line: a `]` on a later
+        // line must not match, or the content slice below would panic. An
+        // unmatched marker falls through to the plain-text reference path.
+        let line_end = cursor.substr_offset(cursor.current_line_text()) + cursor.current_line_text().len();
+        if let Some(abs_close) = find_matching_close(&cursor.source()[..line_end], abs_open) {
             let directive_marker = cursor.make_line_range(cursor.line, col, 2);
             let open_bracket = TextRange::from_offset_len(abs_open, 1);
             let close_bracket = TextRange::from_offset_len(abs_close, 1);

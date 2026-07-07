@@ -48,6 +48,7 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     // Reference entries (number + content).
     "numpy->google: numpy/freetext/references_directive_markers.txt",
     "numpy->google: numpy/freetext/references_parsing.txt",
+    "numpy->google: numpy/freetext/references_unclosed_bracket.txt",
     // Google parser does not split comma-separated parameter names.
     "numpy->google: numpy/parameters/multiple_parameter_names.txt",
     // default_value is lost on the Google round trip.
