@@ -909,7 +909,8 @@ pub fn parse_numpy(input: &str) -> Parsed {
 
     cursor.skip_blanks();
     if cursor.is_eof() {
-        let root = SyntaxNode::new(SyntaxKind::NUMPY_DOCSTRING, cursor.full_range(), root_children);
+        let mut root = SyntaxNode::new(SyntaxKind::NUMPY_DOCSTRING, cursor.full_range(), root_children);
+        crate::parse::trivia::attach_trivia(&mut root, input);
         return Parsed::new(input.to_string(), root);
     }
 
@@ -1031,7 +1032,8 @@ pub fn parse_numpy(input: &str) -> Parsed {
         root_children.push(SyntaxElement::Node(section_node));
     }
 
-    let root = SyntaxNode::new(SyntaxKind::NUMPY_DOCSTRING, cursor.full_range(), root_children);
+    let mut root = SyntaxNode::new(SyntaxKind::NUMPY_DOCSTRING, cursor.full_range(), root_children);
+    crate::parse::trivia::attach_trivia(&mut root, input);
     Parsed::new(input.to_string(), root)
 }
 

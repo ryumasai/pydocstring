@@ -1,18 +1,27 @@
 === CST ===
-NUMPY_DOCSTRING@0..61 {
+NUMPY_DOCSTRING@0..62 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..61 {
     NUMPY_SECTION_HEADER@10..23 {
       NAME: "Yields"@10..16
+      NEWLINE: "\n"@16..17
       UNDERLINE: "------"@17..23
     }
+    NEWLINE: "\n"@23..24
     NUMPY_YIELDS@24..61 {
       NAME: "value"@24..29
+      WHITESPACE: " "@29..30
       COLON: ":"@30..31
+      WHITESPACE: " "@31..32
       RETURN_TYPE: "str"@32..35
+      NEWLINE: "\n"@35..36
+      WHITESPACE: "    "@36..40
       DESCRIPTION: "The generated string."@40..61
     }
   }
+  NEWLINE: "\n"@61..62
 }
 === EMIT ===
 Summary.

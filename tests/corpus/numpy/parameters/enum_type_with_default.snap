@@ -1,17 +1,27 @@
 === CST ===
 NUMPY_DOCSTRING@0..87 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..87 {
     NUMPY_SECTION_HEADER@10..31 {
       NAME: "Parameters"@10..20
+      NEWLINE: "\n"@20..21
       UNDERLINE: "----------"@21..31
     }
+    NEWLINE: "\n"@31..32
     NUMPY_PARAMETER@32..87 {
       NAME: "order"@32..37
+      WHITESPACE: " "@37..38
       COLON: ":"@38..39
+      WHITESPACE: " "@39..40
       TYPE: "{'C', 'F', 'A'}"@40..55
+      WHITESPACE: " "@56..57
       DEFAULT_KEYWORD: "default"@57..64
+      WHITESPACE: " "@64..65
       DEFAULT_VALUE: "'C'"@65..68
+      NEWLINE: "\n"@68..69
+      WHITESPACE: "    "@69..73
       DESCRIPTION: "Memory layout."@73..87
     }
   }

@@ -1,19 +1,30 @@
 === CST ===
-NUMPY_DOCSTRING@0..78 {
+NUMPY_DOCSTRING@0..79 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   EXTENDED_SUMMARY: "This line is not a section."@10..37
+  NEWLINE: "\n"@37..38
+  BLANK_LINE: "\n"@38..39
   NUMPY_SECTION@39..78 {
     NUMPY_SECTION_HEADER@39..60 {
       NAME: "Parameters"@39..49
+      NEWLINE: "\n"@49..50
       UNDERLINE: "----------"@50..60
     }
+    NEWLINE: "\n"@60..61
     NUMPY_PARAMETER@61..78 {
       NAME: "x"@61..62
+      WHITESPACE: " "@62..63
       COLON: ":"@63..64
+      WHITESPACE: " "@64..65
       TYPE: "int"@65..68
+      NEWLINE: "\n"@68..69
+      WHITESPACE: "    "@69..73
       DESCRIPTION: "Desc."@73..78
     }
   }
+  NEWLINE: "\n"@78..79
 }
 === EMIT ===
 Summary.

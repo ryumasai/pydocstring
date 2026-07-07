@@ -49,6 +49,20 @@ pub enum SyntaxKind {
     /// Stray line between sections.
     STRAY_LINE,
 
+    // ── Trivia tokens ──────────────────────────────────────────────────
+    /// A run of spaces/tabs within a line (indentation, inter-token
+    /// spacing). Never contains a newline.
+    WHITESPACE,
+    /// A single line break: `\n` (or `\r\n` as one two-byte token).
+    /// Never part of a blank line — see [`SyntaxKind::BLANK_LINE`].
+    NEWLINE,
+    /// One entire line consisting only of whitespace, *including* its
+    /// terminating newline (a whitespace-only line at end of input keeps
+    /// no newline). A zero-width line — a bare `\n` at line start — is
+    /// also a blank line. Consecutive blank lines yield one `BLANK_LINE`
+    /// token per line.
+    BLANK_LINE,
+
     // ── Google-specific tokens ─────────────────────────────────────────
     /// Warning type (e.g. `UserWarning`).
     WARNING_TYPE,
@@ -180,6 +194,14 @@ impl SyntaxKind {
         !self.is_node()
     }
 
+    /// Whether this kind is a trivia token (whitespace, newline, blank line).
+    ///
+    /// Trivia tokens carry no docstring content; they account for the layout
+    /// bytes between content tokens.
+    pub const fn is_trivia(self) -> bool {
+        matches!(self, Self::WHITESPACE | Self::NEWLINE | Self::BLANK_LINE)
+    }
+
     /// Display name for pretty-printing (e.g. `"GOOGLE_ARG"`, `"NAME"`).
     pub const fn name(self) -> &'static str {
         match self {
@@ -195,6 +217,10 @@ impl SyntaxKind {
             Self::SUMMARY => "SUMMARY",
             Self::EXTENDED_SUMMARY => "EXTENDED_SUMMARY",
             Self::STRAY_LINE => "STRAY_LINE",
+            // Trivia tokens
+            Self::WHITESPACE => "WHITESPACE",
+            Self::NEWLINE => "NEWLINE",
+            Self::BLANK_LINE => "BLANK_LINE",
             // Google tokens
             Self::WARNING_TYPE => "WARNING_TYPE",
             // NumPy tokens
@@ -292,6 +318,18 @@ impl SyntaxNode {
     /// Append a child element.
     pub fn push_child(&mut self, child: SyntaxElement) {
         self.children.push(child);
+    }
+
+    /// Take ownership of the child list, leaving it empty.
+    ///
+    /// Used by the trivia pass to splice trivia tokens between children.
+    pub(crate) fn take_children(&mut self) -> Vec<SyntaxElement> {
+        core::mem::take(&mut self.children)
+    }
+
+    /// Replace the child list.
+    pub(crate) fn set_children(&mut self, children: Vec<SyntaxElement>) {
+        self.children = children;
     }
 
     /// Extend this node's range end to `end`.

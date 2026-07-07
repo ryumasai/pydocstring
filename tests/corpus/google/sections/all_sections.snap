@@ -1,63 +1,93 @@
 === CST ===
 GOOGLE_DOCSTRING@0..283 {
   SUMMARY: "Calculate the sum."@0..18
+  NEWLINE: "\n"@18..19
+  BLANK_LINE: "\n"@19..20
   EXTENDED_SUMMARY: "This function adds two numbers."@20..51
+  NEWLINE: "\n"@51..52
+  BLANK_LINE: "\n"@52..53
   GOOGLE_SECTION@53..121 {
     GOOGLE_SECTION_HEADER@53..58 {
       NAME: "Args"@53..57
       COLON: ":"@57..58
     }
+    NEWLINE: "\n"@58..59
+    WHITESPACE: "    "@59..63
     GOOGLE_ARG@63..89 {
       NAME: "a"@63..64
+      WHITESPACE: " "@64..65
       OPEN_BRACKET: "("@65..66
       TYPE: "int"@66..69
       CLOSE_BRACKET: ")"@69..70
       COLON: ":"@70..71
+      WHITESPACE: " "@71..72
       DESCRIPTION: "The first number."@72..89
     }
+    NEWLINE: "\n"@89..90
+    WHITESPACE: "    "@90..94
     GOOGLE_ARG@94..121 {
       NAME: "b"@94..95
+      WHITESPACE: " "@95..96
       OPEN_BRACKET: "("@96..97
       TYPE: "int"@97..100
       CLOSE_BRACKET: ")"@100..101
       COLON: ":"@101..102
+      WHITESPACE: " "@102..103
       DESCRIPTION: "The second number."@103..121
     }
   }
+  NEWLINE: "\n"@121..122
+  BLANK_LINE: "\n"@122..123
   GOOGLE_SECTION@123..160 {
     GOOGLE_SECTION_HEADER@123..131 {
       NAME: "Returns"@123..130
       COLON: ":"@130..131
     }
+    NEWLINE: "\n"@131..132
+    WHITESPACE: "    "@132..136
     GOOGLE_RETURNS@136..160 {
       RETURN_TYPE: "int"@136..139
       COLON: ":"@139..140
+      WHITESPACE: " "@140..141
       DESCRIPTION: "The sum of a and b."@141..160
     }
   }
+  NEWLINE: "\n"@160..161
+  BLANK_LINE: "\n"@161..162
   GOOGLE_SECTION@162..211 {
     GOOGLE_SECTION_HEADER@162..169 {
       NAME: "Raises"@162..168
       COLON: ":"@168..169
     }
+    NEWLINE: "\n"@169..170
+    WHITESPACE: "    "@170..174
     GOOGLE_EXCEPTION@174..211 {
       TYPE: "TypeError"@174..183
       COLON: ":"@183..184
+      WHITESPACE: " "@184..185
       DESCRIPTION: "If inputs are not numbers."@185..211
     }
   }
+  NEWLINE: "\n"@211..212
+  BLANK_LINE: "\n"@212..213
   GOOGLE_SECTION@213..245 {
     GOOGLE_SECTION_HEADER@213..221 {
       NAME: "Example"@213..220
       COLON: ":"@220..221
     }
+    NEWLINE: "\n"@221..222
+    WHITESPACE: "    "@222..226
     BODY_TEXT: ">>> add(1, 2)\n    3"@226..245
   }
+  NEWLINE: "\n"@245..246
+  BLANK_LINE: "\n"@246..247
   GOOGLE_SECTION@247..283 {
     GOOGLE_SECTION_HEADER@247..252 {
       NAME: "Note"@247..251
       COLON: ":"@251..252
     }
+    NEWLINE: "\n"@252..253
+    WHITESPACE: "    "@253..257
     BODY_TEXT: "This is a simple function."@257..283
   }
 }

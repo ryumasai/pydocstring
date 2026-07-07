@@ -1,18 +1,25 @@
 === CST ===
 GOOGLE_DOCSTRING@0..45 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..45 {
     GOOGLE_SECTION_HEADER@10..15 {
       NAME: "Args"@10..14
       COLON: ":"@14..15
     }
+    NEWLINE: "\n"@15..16
+    WHITESPACE: "    "@16..20
     GOOGLE_ARG@20..45 {
       NAME: "x1"@20..22
+      WHITESPACE: " "@23..24
       NAME: "x2"@24..26
+      WHITESPACE: " "@26..27
       OPEN_BRACKET: "("@27..28
       TYPE: "int"@28..31
       CLOSE_BRACKET: ")"@31..32
       COLON: ":"@32..33
+      WHITESPACE: " "@33..34
       DESCRIPTION: "The values."@34..45
     }
   }

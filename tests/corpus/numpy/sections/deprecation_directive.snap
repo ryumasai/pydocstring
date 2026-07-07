@@ -1,25 +1,40 @@
 === CST ===
-NUMPY_DOCSTRING@0..100 {
+NUMPY_DOCSTRING@0..101 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   NUMPY_DEPRECATION@10..59 {
     DIRECTIVE_MARKER: ".."@10..12
+    WHITESPACE: " "@12..13
     KEYWORD: "deprecated"@13..23
     DOUBLE_COLON: "::"@23..25
+    WHITESPACE: " "@25..26
     VERSION: "1.6.0"@26..31
+    NEWLINE: "\n"@31..32
+    WHITESPACE: "    "@32..36
     DESCRIPTION: "Use `new_func` instead."@36..59
   }
+  NEWLINE: "\n"@59..60
+  BLANK_LINE: "\n"@60..61
   NUMPY_SECTION@61..100 {
     NUMPY_SECTION_HEADER@61..82 {
       NAME: "Parameters"@61..71
+      NEWLINE: "\n"@71..72
       UNDERLINE: "----------"@72..82
     }
+    NEWLINE: "\n"@82..83
     NUMPY_PARAMETER@83..100 {
       NAME: "x"@83..84
+      WHITESPACE: " "@84..85
       COLON: ":"@85..86
+      WHITESPACE: " "@86..87
       TYPE: "int"@87..90
+      NEWLINE: "\n"@90..91
+      WHITESPACE: "    "@91..95
       DESCRIPTION: "Desc."@95..100
     }
   }
+  NEWLINE: "\n"@100..101
 }
 === EMIT ===
 Summary.

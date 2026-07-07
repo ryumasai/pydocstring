@@ -1,23 +1,35 @@
 === CST ===
-NUMPY_DOCSTRING@0..182 {
+NUMPY_DOCSTRING@0..183 {
   SUMMARY: "Function with role references."@0..30
+  NEWLINE: "\n"@30..31
+  BLANK_LINE: "\n"@31..32
   NUMPY_SECTION@32..182 {
     NUMPY_SECTION_HEADER@32..47 {
       NAME: "Returns"@32..39
+      NEWLINE: "\n"@39..40
       UNDERLINE: "-------"@40..47
     }
+    NEWLINE: "\n"@47..48
     NUMPY_RETURNS@48..76 {
       RETURN_TYPE: "Description with attributes:"@48..76
     }
+    NEWLINE: "\n"@76..77
+    BLANK_LINE: "\n"@77..78
     NUMPY_RETURNS@78..129 {
       RETURN_TYPE: ":attr:`~module.ClassName.attr1`"@78..109
+      NEWLINE: "\n"@109..110
+      WHITESPACE: "    "@110..114
       DESCRIPTION: "First attribute"@114..129
     }
+    NEWLINE: "\n"@129..130
     NUMPY_RETURNS@130..182 {
       RETURN_TYPE: ":attr:`~module.ClassName.attr2`"@130..161
+      NEWLINE: "\n"@161..162
+      WHITESPACE: "    "@162..166
       DESCRIPTION: "Second attribute"@166..182
     }
   }
+  NEWLINE: "\n"@182..183
 }
 === EMIT ===
 Function with role references.

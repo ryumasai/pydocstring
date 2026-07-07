@@ -1,34 +1,54 @@
 === CST ===
-NUMPY_DOCSTRING@0..162 {
+NUMPY_DOCSTRING@0..163 {
   SUMMARY: "Calculate the sum of two numbers."@0..33
+  NEWLINE: "\n"@33..34
+  BLANK_LINE: "\n"@34..35
   NUMPY_SECTION@35..117 {
     NUMPY_SECTION_HEADER@35..56 {
       NAME: "Parameters"@35..45
+      NEWLINE: "\n"@45..46
       UNDERLINE: "----------"@46..56
     }
+    NEWLINE: "\n"@56..57
     NUMPY_PARAMETER@57..86 {
       NAME: "x"@57..58
+      WHITESPACE: " "@58..59
       COLON: ":"@59..60
+      WHITESPACE: " "@60..61
       TYPE: "int"@61..64
+      NEWLINE: "\n"@64..65
+      WHITESPACE: "    "@65..69
       DESCRIPTION: "The first number."@69..86
     }
+    NEWLINE: "\n"@86..87
     NUMPY_PARAMETER@87..117 {
       NAME: "y"@87..88
+      WHITESPACE: " "@88..89
       COLON: ":"@89..90
+      WHITESPACE: " "@90..91
       TYPE: "int"@91..94
+      NEWLINE: "\n"@94..95
+      WHITESPACE: "    "@95..99
       DESCRIPTION: "The second number."@99..117
     }
   }
+  NEWLINE: "\n"@117..118
+  BLANK_LINE: "\n"@118..119
   NUMPY_SECTION@119..162 {
     NUMPY_SECTION_HEADER@119..134 {
       NAME: "Returns"@119..126
+      NEWLINE: "\n"@126..127
       UNDERLINE: "-------"@127..134
     }
+    NEWLINE: "\n"@134..135
     NUMPY_RETURNS@135..162 {
       RETURN_TYPE: "int"@135..138
+      NEWLINE: "\n"@138..139
+      WHITESPACE: "    "@139..143
       DESCRIPTION: "The sum of x and y."@143..162
     }
   }
+  NEWLINE: "\n"@162..163
 }
 === EMIT ===
 Calculate the sum of two numbers.

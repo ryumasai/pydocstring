@@ -1,11 +1,15 @@
 === CST ===
 GOOGLE_DOCSTRING@0..40 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..40 {
     GOOGLE_SECTION_HEADER@10..18 {
       NAME: "Example"@10..17
       COLON: ":"@17..18
     }
+    NEWLINE: "\n"@18..19
+    WHITESPACE: "    "@19..23
     BODY_TEXT: ">>> func(1)\n    1"@23..40
   }
 }

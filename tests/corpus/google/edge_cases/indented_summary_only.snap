@@ -1,5 +1,6 @@
 === CST ===
 GOOGLE_DOCSTRING@0..12 {
+  WHITESPACE: "    "@0..4
   SUMMARY: "Summary."@4..12
 }
 === EMIT ===
