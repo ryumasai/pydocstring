@@ -706,7 +706,8 @@ fn sphinx_emit_with_base_indent() {
 
 #[test]
 fn google_to_sphinx_conversion() {
-    use pydocstring::parse::google::{parse_google, to_model::to_model};
+    use pydocstring::parse::google::parse_google;
+    use pydocstring::parse::google::to_model::to_model;
 
     let google_input = "Summary.\n\nArgs:\n    x (int): The value.\n\nReturns:\n    str: The result.";
     let doc = to_model(&parse_google(google_input)).unwrap();
@@ -719,7 +720,8 @@ fn google_to_sphinx_conversion() {
 
 #[test]
 fn numpy_to_sphinx_conversion() {
-    use pydocstring::parse::numpy::{parse_numpy, to_model::to_model};
+    use pydocstring::parse::numpy::parse_numpy;
+    use pydocstring::parse::numpy::to_model::to_model;
 
     let numpy_input = "Summary.\n\nParameters\n----------\nx : int\n    The value.\n";
     let doc = to_model(&parse_numpy(numpy_input)).unwrap();
@@ -734,7 +736,8 @@ fn numpy_to_sphinx_conversion() {
 
 #[test]
 fn google_roundtrip_summary() {
-    use pydocstring::parse::google::{parse_google, to_model::to_model};
+    use pydocstring::parse::google::parse_google;
+    use pydocstring::parse::google::to_model::to_model;
 
     let input = "Summary line.";
     let doc = to_model(&parse_google(input)).unwrap();
@@ -744,7 +747,8 @@ fn google_roundtrip_summary() {
 
 #[test]
 fn numpy_roundtrip_summary() {
-    use pydocstring::parse::numpy::{parse_numpy, to_model::to_model};
+    use pydocstring::parse::numpy::parse_numpy;
+    use pydocstring::parse::numpy::to_model::to_model;
 
     let input = "Summary line.";
     let doc = to_model(&parse_numpy(input)).unwrap();
@@ -761,7 +765,8 @@ fn numpy_roundtrip_summary() {
 /// of the `:attr:` lines must survive a parse → emit round-trip.
 #[test]
 fn numpy_roundtrip_rst_role_colons() {
-    use pydocstring::parse::numpy::{parse_numpy, to_model::to_model};
+    use pydocstring::parse::numpy::parse_numpy;
+    use pydocstring::parse::numpy::to_model::to_model;
 
     let input = "Returns\n-------\nDescription with attributes:\n:attr:`~module.ClassName.attr1`\n    First attribute\n:attr:`~module.ClassName.attr2`\n    Second attribute\n";
     let output = emit_numpy(&to_model(&parse_numpy(input)).unwrap(), 0);
@@ -782,7 +787,8 @@ fn numpy_roundtrip_rst_role_colons() {
 /// Google Returns section with a leading `:attr:` rST role must keep its colon.
 #[test]
 fn google_roundtrip_rst_role_colons() {
-    use pydocstring::parse::google::{parse_google, to_model::to_model};
+    use pydocstring::parse::google::parse_google;
+    use pydocstring::parse::google::to_model::to_model;
 
     let input = "Summary.\n\nReturns:\n    :attr:`~module.ClassName.attr1`\n        First attribute\n";
     let output = emit_google(&to_model(&parse_google(input)).unwrap(), 0);
@@ -798,7 +804,8 @@ fn google_roundtrip_rst_role_colons() {
 
 #[test]
 fn google_to_numpy_conversion() {
-    use pydocstring::parse::google::{parse_google, to_model::to_model};
+    use pydocstring::parse::google::parse_google;
+    use pydocstring::parse::google::to_model::to_model;
 
     let google_input = "Summary.\n\nArgs:\n    x (int): The value.";
     let doc = to_model(&parse_google(google_input)).unwrap();
@@ -809,7 +816,8 @@ fn google_to_numpy_conversion() {
 
 #[test]
 fn numpy_to_google_conversion() {
-    use pydocstring::parse::numpy::{parse_numpy, to_model::to_model};
+    use pydocstring::parse::numpy::parse_numpy;
+    use pydocstring::parse::numpy::to_model::to_model;
 
     let numpy_input = "Summary.\n\nParameters\n----------\nx : int\n    The value.\n";
     let doc = to_model(&parse_numpy(numpy_input)).unwrap();

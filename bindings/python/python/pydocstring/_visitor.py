@@ -5,34 +5,32 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from . import (
-        GoogleArg,
-        GoogleAttribute,
-        GoogleDeprecation,
-        GoogleDocstring,
-        GoogleException,
-        GoogleMethod,
-        GoogleReference,
-        GoogleReturn,
-        GoogleSection,
-        GoogleSeeAlsoItem,
-        GoogleWarning,
-        GoogleYield,
-        NumPyAttribute,
-        NumPyDeprecation,
-        NumPyDocstring,
-        NumPyException,
-        NumPyMethod,
-        NumPyParameter,
-        NumPyReference,
-        NumPyReturns,
-        NumPySection,
-        NumPySeeAlsoItem,
-        NumPyWarning,
-        NumPyYields,
-        PlainDocstring,
-        WalkContext,
-    )
+    from . import GoogleArg
+    from . import GoogleAttribute
+    from . import GoogleDeprecation
+    from . import GoogleDocstring
+    from . import GoogleException
+    from . import GoogleMethod
+    from . import GoogleReference
+    from . import GoogleReturn
+    from . import GoogleSection
+    from . import GoogleSeeAlsoItem
+    from . import GoogleWarning
+    from . import GoogleYield
+    from . import NumPyAttribute
+    from . import NumPyDeprecation
+    from . import NumPyDocstring
+    from . import NumPyException
+    from . import NumPyMethod
+    from . import NumPyParameter
+    from . import NumPyReference
+    from . import NumPyReturns
+    from . import NumPySection
+    from . import NumPySeeAlsoItem
+    from . import NumPyWarning
+    from . import NumPyYields
+    from . import PlainDocstring
+    from . import WalkContext
 
 
 def _pydocstring_noop(fn):  # type: ignore[no-untyped-def]

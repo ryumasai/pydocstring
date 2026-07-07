@@ -1,11 +1,19 @@
 //! Convert a Google-style AST into the style-independent [`Docstring`] model.
 
-use crate::model::{
-    Attribute, Deprecation, Docstring, ExceptionEntry, FreeSectionKind, Method, Parameter, Reference, Return, Section,
-    SeeAlsoEntry,
-};
+use crate::model::Attribute;
+use crate::model::Deprecation;
+use crate::model::Docstring;
+use crate::model::ExceptionEntry;
+use crate::model::FreeSectionKind;
+use crate::model::Method;
+use crate::model::Parameter;
+use crate::model::Reference;
+use crate::model::Return;
+use crate::model::Section;
+use crate::model::SeeAlsoEntry;
 use crate::parse::google::kind::GoogleSectionKind;
-use crate::parse::google::nodes::{GoogleDocstring, GoogleSection};
+use crate::parse::google::nodes::GoogleDocstring;
+use crate::parse::google::nodes::GoogleSection;
 use crate::parse::utils::convert_multiline_with_indentation;
 use crate::syntax::Parsed;
 

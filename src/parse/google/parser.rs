@@ -3,13 +3,21 @@
 //! Parses docstrings in Google format and produces a [`Parsed`] result
 //! containing a tree of [`SyntaxNode`]s and [`SyntaxToken`]s.
 
-use crate::cursor::{LineCursor, indent_len};
+use crate::cursor::LineCursor;
+use crate::cursor::indent_len;
 use crate::parse::google::kind::GoogleSectionKind;
-use crate::parse::utils::{
-    find_colon_ignoring_parens, find_entry_open_bracket, find_matching_close, find_term_colon, process_reference_line,
-    split_comma_parts, try_parse_deprecation_directive,
-};
-use crate::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
+use crate::parse::utils::find_colon_ignoring_parens;
+use crate::parse::utils::find_entry_open_bracket;
+use crate::parse::utils::find_matching_close;
+use crate::parse::utils::find_term_colon;
+use crate::parse::utils::process_reference_line;
+use crate::parse::utils::split_comma_parts;
+use crate::parse::utils::try_parse_deprecation_directive;
+use crate::syntax::Parsed;
+use crate::syntax::SyntaxElement;
+use crate::syntax::SyntaxKind;
+use crate::syntax::SyntaxNode;
+use crate::syntax::SyntaxToken;
 use crate::text::TextRange;
 
 // =============================================================================

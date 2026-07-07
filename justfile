@@ -10,11 +10,11 @@ default:
 
 # Format Rust sources
 fmt:
-    cargo fmt --all
+    cargo +nightly fmt --all
 
 # Check formatting without modifying files
 fmt-check:
-    cargo fmt --all -- --check
+    cargo +nightly fmt --all -- --check
 
 # Lint with clippy (warnings are errors)
 lint:

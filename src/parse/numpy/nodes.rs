@@ -4,7 +4,9 @@
 //! for the node's children (tokens and sub-nodes).
 
 use crate::parse::numpy::kind::NumPySectionKind;
-use crate::syntax::{SyntaxKind, SyntaxNode, SyntaxToken};
+use crate::syntax::SyntaxKind;
+use crate::syntax::SyntaxNode;
+use crate::syntax::SyntaxToken;
 
 // =============================================================================
 // Macro for defining typed node wrappers

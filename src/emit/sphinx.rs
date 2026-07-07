@@ -1,9 +1,16 @@
 //! Emit a [`Docstring`] as a Sphinx-style (reStructuredText) docstring.
 
-use crate::model::{
-    Attribute, Deprecation, Docstring, ExceptionEntry, FreeSectionKind, Method, Parameter, Reference, Return, Section,
-    SeeAlsoEntry,
-};
+use crate::model::Attribute;
+use crate::model::Deprecation;
+use crate::model::Docstring;
+use crate::model::ExceptionEntry;
+use crate::model::FreeSectionKind;
+use crate::model::Method;
+use crate::model::Parameter;
+use crate::model::Reference;
+use crate::model::Return;
+use crate::model::Section;
+use crate::model::SeeAlsoEntry;
 
 /// Emit a [`Docstring`] as a Sphinx-style (reStructuredText field list) string.
 ///

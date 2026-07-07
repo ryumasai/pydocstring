@@ -19,7 +19,10 @@
 
 mod common;
 
-use common::{collect_inputs, corpus_name, diff, style_dirs};
+use common::collect_inputs;
+use common::corpus_name;
+use common::diff;
+use common::style_dirs;
 use pydocstring::model::Docstring;
 
 const KNOWN_IDEMPOTENCE_FAILURES: &[&str] = &[];

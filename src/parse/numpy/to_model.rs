@@ -1,11 +1,19 @@
 //! Convert a NumPy-style AST into the style-independent [`Docstring`] model.
 
-use crate::model::{
-    Attribute, Deprecation, Docstring, ExceptionEntry, FreeSectionKind, Method, Parameter, Reference, Return, Section,
-    SeeAlsoEntry,
-};
+use crate::model::Attribute;
+use crate::model::Deprecation;
+use crate::model::Docstring;
+use crate::model::ExceptionEntry;
+use crate::model::FreeSectionKind;
+use crate::model::Method;
+use crate::model::Parameter;
+use crate::model::Reference;
+use crate::model::Return;
+use crate::model::Section;
+use crate::model::SeeAlsoEntry;
 use crate::parse::numpy::kind::NumPySectionKind;
-use crate::parse::numpy::nodes::{NumPyDocstring, NumPySection};
+use crate::parse::numpy::nodes::NumPyDocstring;
+use crate::parse::numpy::nodes::NumPySection;
 use crate::parse::utils::convert_multiline_with_indentation;
 use crate::syntax::Parsed;
 

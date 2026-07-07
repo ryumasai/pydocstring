@@ -1,7 +1,12 @@
 //! Shared utilities for docstring style parsers.
 
-use crate::cursor::{LineCursor, indent_columns, indent_len};
-use crate::syntax::{SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
+use crate::cursor::LineCursor;
+use crate::cursor::indent_columns;
+use crate::cursor::indent_len;
+use crate::syntax::SyntaxElement;
+use crate::syntax::SyntaxKind;
+use crate::syntax::SyntaxNode;
+use crate::syntax::SyntaxToken;
 use crate::text::TextRange;
 
 // =============================================================================

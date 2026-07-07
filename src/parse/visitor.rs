@@ -40,16 +40,34 @@
 //! printer.visit_google_docstring(result.source(), &doc).unwrap();
 //! ```
 
-use crate::parse::google::nodes::{
-    GoogleArg, GoogleAttribute, GoogleDeprecation, GoogleDocstring, GoogleException, GoogleMethod, GoogleReference,
-    GoogleReturn, GoogleSection, GoogleSeeAlsoItem, GoogleWarning, GoogleYield,
-};
-use crate::parse::numpy::nodes::{
-    NumPyAttribute, NumPyDeprecation, NumPyDocstring, NumPyException, NumPyMethod, NumPyParameter, NumPyReference,
-    NumPyReturns, NumPySection, NumPySeeAlsoItem, NumPyWarning, NumPyYields,
-};
+use crate::parse::google::nodes::GoogleArg;
+use crate::parse::google::nodes::GoogleAttribute;
+use crate::parse::google::nodes::GoogleDeprecation;
+use crate::parse::google::nodes::GoogleDocstring;
+use crate::parse::google::nodes::GoogleException;
+use crate::parse::google::nodes::GoogleMethod;
+use crate::parse::google::nodes::GoogleReference;
+use crate::parse::google::nodes::GoogleReturn;
+use crate::parse::google::nodes::GoogleSection;
+use crate::parse::google::nodes::GoogleSeeAlsoItem;
+use crate::parse::google::nodes::GoogleWarning;
+use crate::parse::google::nodes::GoogleYield;
+use crate::parse::numpy::nodes::NumPyAttribute;
+use crate::parse::numpy::nodes::NumPyDeprecation;
+use crate::parse::numpy::nodes::NumPyDocstring;
+use crate::parse::numpy::nodes::NumPyException;
+use crate::parse::numpy::nodes::NumPyMethod;
+use crate::parse::numpy::nodes::NumPyParameter;
+use crate::parse::numpy::nodes::NumPyReference;
+use crate::parse::numpy::nodes::NumPyReturns;
+use crate::parse::numpy::nodes::NumPySection;
+use crate::parse::numpy::nodes::NumPySeeAlsoItem;
+use crate::parse::numpy::nodes::NumPyWarning;
+use crate::parse::numpy::nodes::NumPyYields;
 use crate::parse::plain::nodes::PlainDocstring;
-use crate::syntax::{SyntaxElement, SyntaxKind, SyntaxNode};
+use crate::syntax::SyntaxElement;
+use crate::syntax::SyntaxKind;
+use crate::syntax::SyntaxNode;
 
 /// Unified typed visitor for Google-style and NumPy-style docstring ASTs.
 ///

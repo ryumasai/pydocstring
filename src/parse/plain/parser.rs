@@ -5,8 +5,13 @@
 //! contain a [`SyntaxKind::SUMMARY`] token and an
 //! [`SyntaxKind::EXTENDED_SUMMARY`] token.
 
-use crate::cursor::{LineCursor, indent_len};
-use crate::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
+use crate::cursor::LineCursor;
+use crate::cursor::indent_len;
+use crate::syntax::Parsed;
+use crate::syntax::SyntaxElement;
+use crate::syntax::SyntaxKind;
+use crate::syntax::SyntaxNode;
+use crate::syntax::SyntaxToken;
 use crate::text::TextRange;
 
 // =============================================================================

@@ -1,8 +1,11 @@
 //! Integration tests for the style-independent document model (IR).
 
-use pydocstring::model::{FreeSectionKind, Section};
-use pydocstring::parse::google::{parse_google, to_model::to_model as google_to_model};
-use pydocstring::parse::numpy::{parse_numpy, to_model::to_model as numpy_to_model};
+use pydocstring::model::FreeSectionKind;
+use pydocstring::model::Section;
+use pydocstring::parse::google::parse_google;
+use pydocstring::parse::google::to_model::to_model as google_to_model;
+use pydocstring::parse::numpy::parse_numpy;
+use pydocstring::parse::numpy::to_model::to_model as numpy_to_model;
 
 // =============================================================================
 // Google → IR: Summary & Extended Summary

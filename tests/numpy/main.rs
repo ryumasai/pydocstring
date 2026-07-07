@@ -3,15 +3,22 @@
 //! Exhaustive input coverage lives in tests/corpus/numpy/ + tests/snapshots.rs;
 //! the tests here pin deliberate spec decisions and the typed-accessor contract.
 
-pub use pydocstring::parse::numpy::{
-    kind::NumPySectionKind,
-    nodes::{
-        NumPyAttribute, NumPyDeprecation, NumPyDocstring, NumPyException, NumPyMethod, NumPyParameter, NumPyReference,
-        NumPyReturns, NumPySection, NumPySeeAlsoItem, NumPyWarning, NumPyYields,
-    },
-    parse_numpy,
-};
-pub use pydocstring::syntax::{Parsed, SyntaxToken};
+pub use pydocstring::parse::numpy::kind::NumPySectionKind;
+pub use pydocstring::parse::numpy::nodes::NumPyAttribute;
+pub use pydocstring::parse::numpy::nodes::NumPyDeprecation;
+pub use pydocstring::parse::numpy::nodes::NumPyDocstring;
+pub use pydocstring::parse::numpy::nodes::NumPyException;
+pub use pydocstring::parse::numpy::nodes::NumPyMethod;
+pub use pydocstring::parse::numpy::nodes::NumPyParameter;
+pub use pydocstring::parse::numpy::nodes::NumPyReference;
+pub use pydocstring::parse::numpy::nodes::NumPyReturns;
+pub use pydocstring::parse::numpy::nodes::NumPySection;
+pub use pydocstring::parse::numpy::nodes::NumPySeeAlsoItem;
+pub use pydocstring::parse::numpy::nodes::NumPyWarning;
+pub use pydocstring::parse::numpy::nodes::NumPyYields;
+pub use pydocstring::parse::numpy::parse_numpy;
+pub use pydocstring::syntax::Parsed;
+pub use pydocstring::syntax::SyntaxToken;
 pub use pydocstring::text::TextSize;
 
 mod edge_cases;

@@ -1,4 +1,6 @@
-use pydocstring::parse::{Style, detect_style, parse};
+use pydocstring::parse::Style;
+use pydocstring::parse::detect_style;
+use pydocstring::parse::parse;
 use pydocstring::syntax::SyntaxKind;
 
 #[test]
