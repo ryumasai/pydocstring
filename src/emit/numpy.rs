@@ -260,12 +260,28 @@ fn emit_reference(out: &mut String, r: &Reference) {
         out.push(']');
         if let Some(ref content) = r.content {
             out.push(' ');
-            out.push_str(content);
+            emit_reference_content(out, content);
         }
     } else if let Some(ref content) = r.content {
-        out.push_str(content);
+        emit_reference_content(out, content);
     }
     out.push('\n');
+}
+
+/// Emit reference content, indenting continuation lines so they re-parse as
+/// part of the same entry (deeper than the entry line, like descriptions).
+fn emit_reference_content(out: &mut String, content: &str) {
+    let mut lines = content.lines();
+    if let Some(first_line) = lines.next() {
+        out.push_str(first_line);
+        for line in lines {
+            out.push('\n');
+            if !line.is_empty() {
+                out.push_str("    ");
+                out.push_str(line);
+            }
+        }
+    }
 }
 
 /// NumPy: `.. deprecated:: version\n    Description.`

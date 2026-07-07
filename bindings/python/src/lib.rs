@@ -773,6 +773,63 @@ fn build_google_see_also_item(
     )
 }
 
+// ─── GoogleReference ─────────────────────────────────────────────────────────
+
+#[pyclass(frozen, skip_from_py_object, name = "GoogleReference")]
+struct PyGoogleReference {
+    range: TextRange,
+    directive_marker: Option<Py<PyToken>>,
+    open_bracket: Option<Py<PyToken>>,
+    number: Option<Py<PyToken>>,
+    close_bracket: Option<Py<PyToken>>,
+    content: Option<Py<PyToken>>,
+}
+
+#[pymethods]
+impl PyGoogleReference {
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        Py::new(py, PyTextRange::from(self.range))
+    }
+    #[getter]
+    fn directive_marker(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+        self.directive_marker.as_ref().map(|t| t.clone_ref(py))
+    }
+    #[getter]
+    fn open_bracket(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+        self.open_bracket.as_ref().map(|t| t.clone_ref(py))
+    }
+    #[getter]
+    fn number(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+        self.number.as_ref().map(|t| t.clone_ref(py))
+    }
+    #[getter]
+    fn close_bracket(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+        self.close_bracket.as_ref().map(|t| t.clone_ref(py))
+    }
+    #[getter]
+    fn content(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+        self.content.as_ref().map(|t| t.clone_ref(py))
+    }
+    fn __repr__(&self) -> &'static str {
+        "GoogleReference(...)"
+    }
+}
+
+fn build_google_reference(py: Python<'_>, r: &gn::GoogleReference<'_>, source: &str) -> PyResult<Py<PyGoogleReference>> {
+    Py::new(
+        py,
+        PyGoogleReference {
+            range: *r.syntax().range(),
+            directive_marker: mk_token_opt(py, r.directive_marker(), source)?,
+            open_bracket: mk_token_opt(py, r.open_bracket(), source)?,
+            number: mk_token_opt(py, r.number(), source)?,
+            close_bracket: mk_token_opt(py, r.close_bracket(), source)?,
+            content: mk_token_opt(py, r.content(), source)?,
+        },
+    )
+}
+
 // ─── GoogleAttribute ─────────────────────────────────────────────────────────
 
 #[pyclass(frozen, skip_from_py_object, name = "GoogleAttribute")]
@@ -3515,6 +3572,7 @@ struct ActiveMethods {
     google_exception: bool,
     google_warning: bool,
     google_see_also_item: bool,
+    google_reference: bool,
     google_attribute: bool,
     google_method: bool,
     // Google (exit)
@@ -3527,6 +3585,7 @@ struct ActiveMethods {
     exit_google_exception: bool,
     exit_google_warning: bool,
     exit_google_see_also_item: bool,
+    exit_google_reference: bool,
     exit_google_attribute: bool,
     exit_google_method: bool,
     // NumPy (enter)
@@ -3585,6 +3644,7 @@ fn collect_active(py: Python<'_>, visitor: &Py<PyAny>) -> PyResult<ActiveMethods
         google_exception: has("enter_google_exception"),
         google_warning: has("enter_google_warning"),
         google_see_also_item: has("enter_google_see_also_item"),
+        google_reference: has("enter_google_reference"),
         google_attribute: has("enter_google_attribute"),
         google_method: has("enter_google_method"),
         // Google (exit)
@@ -3597,6 +3657,7 @@ fn collect_active(py: Python<'_>, visitor: &Py<PyAny>) -> PyResult<ActiveMethods
         exit_google_exception: has("exit_google_exception"),
         exit_google_warning: has("exit_google_warning"),
         exit_google_see_also_item: has("exit_google_see_also_item"),
+        exit_google_reference: has("exit_google_reference"),
         exit_google_attribute: has("exit_google_attribute"),
         exit_google_method: has("exit_google_method"),
         // NumPy (enter)
@@ -3857,6 +3918,17 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
+    fn visit_google_reference(&mut self, source: &str, r#ref: &gn::GoogleReference<'_>) -> Result<(), PyErr> {
+        visit_node!(
+            self,
+            source,
+            google_reference,
+            exit_google_reference,
+            build_google_reference(self.py, r#ref, source),
+            r#ref.syntax()
+        )
+    }
+
     fn visit_google_attribute(&mut self, source: &str, att: &gn::GoogleAttribute<'_>) -> Result<(), PyErr> {
         visit_node!(
             self,
@@ -4047,7 +4119,8 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
 /// `enter_google_docstring`, `enter_google_section`, `enter_google_deprecation`,
 /// `enter_google_arg`, `enter_google_return`, `enter_google_yield`,
 /// `enter_google_exception`, `enter_google_warning`,
-/// `enter_google_see_also_item`, `enter_google_attribute`, `enter_google_method`
+/// `enter_google_see_also_item`, `enter_google_reference`,
+/// `enter_google_attribute`, `enter_google_method`
 ///
 /// NumPy `enter_*` / `exit_*` methods:
 /// `enter_numpy_docstring`, `enter_numpy_section`, `enter_numpy_deprecation`,
@@ -4137,6 +4210,7 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyGoogleException>()?;
     m.add_class::<PyGoogleWarning>()?;
     m.add_class::<PyGoogleSeeAlsoItem>()?;
+    m.add_class::<PyGoogleReference>()?;
     m.add_class::<PyGoogleAttribute>()?;
     m.add_class::<PyGoogleMethod>()?;
     // NumPy CST wrappers

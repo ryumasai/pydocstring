@@ -5,8 +5,8 @@
 //! modules here pin deliberate spec decisions and the typed-accessor contract.
 
 pub use pydocstring::parse::google::{
-    GoogleArg, GoogleAttribute, GoogleDocstring, GoogleException, GoogleMethod, GoogleReturn, GoogleSection,
-    GoogleSectionKind, GoogleSeeAlsoItem, GoogleWarning, GoogleYield, parse_google,
+    GoogleArg, GoogleAttribute, GoogleDocstring, GoogleException, GoogleMethod, GoogleReference, GoogleReturn,
+    GoogleSection, GoogleSectionKind, GoogleSeeAlsoItem, GoogleWarning, GoogleYield, parse_google,
 };
 pub use pydocstring::syntax::{Parsed, SyntaxKind, SyntaxToken};
 pub use pydocstring::text::TextSize;
@@ -108,6 +108,14 @@ pub fn methods<'a>(result: &'a Parsed) -> Vec<GoogleMethod<'a>> {
         .sections()
         .filter(|s| matches!(s.section_kind(result.source()), GoogleSectionKind::Methods))
         .flat_map(|s| s.methods().collect::<Vec<_>>())
+        .collect()
+}
+
+pub fn references<'a>(result: &'a Parsed) -> Vec<GoogleReference<'a>> {
+    doc(result)
+        .sections()
+        .filter(|s| matches!(s.section_kind(result.source()), GoogleSectionKind::References))
+        .flat_map(|s| s.references().collect::<Vec<_>>())
         .collect()
 }
 

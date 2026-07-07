@@ -1,0 +1,31 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..131 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..131 {
+    GOOGLE_SECTION_HEADER@10..21 {
+      NAME: "References"@10..20
+      COLON: ":"@20..21
+    }
+    GOOGLE_REFERENCE@26..59 {
+      DIRECTIVE_MARKER: ".."@26..28
+      OPEN_BRACKET: "["@29..30
+      NUMBER: "1"@30..31
+      CLOSE_BRACKET: "]"@31..32
+      CONTENT: "Author A, \"Title A\", 2020."@33..59
+    }
+    GOOGLE_REFERENCE@64..131 {
+      DIRECTIVE_MARKER: ".."@64..66
+      OPEN_BRACKET: "["@67..68
+      NUMBER: "2"@68..69
+      CLOSE_BRACKET: "]"@69..70
+      CONTENT: "Author B, \"Title B\", 2021,\n        with a continuation line."@71..131
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+References:
+    .. [1] Author A, "Title A", 2020.
+    .. [2] Author B, "Title B", 2021,
+        with a continuation line.

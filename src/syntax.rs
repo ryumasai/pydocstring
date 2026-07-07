@@ -96,6 +96,8 @@ pub enum SyntaxKind {
     GOOGLE_WARNING,
     /// A single "See Also" item.
     GOOGLE_SEE_ALSO_ITEM,
+    /// A single reference entry.
+    GOOGLE_REFERENCE,
     /// A single attribute entry.
     GOOGLE_ATTRIBUTE,
     /// A single method entry.
@@ -152,6 +154,7 @@ impl SyntaxKind {
                 | Self::GOOGLE_EXCEPTION
                 | Self::GOOGLE_WARNING
                 | Self::GOOGLE_SEE_ALSO_ITEM
+                | Self::GOOGLE_REFERENCE
                 | Self::GOOGLE_ATTRIBUTE
                 | Self::GOOGLE_METHOD
                 | Self::NUMPY_DOCSTRING
@@ -215,6 +218,7 @@ impl SyntaxKind {
             Self::GOOGLE_EXCEPTION => "GOOGLE_EXCEPTION",
             Self::GOOGLE_WARNING => "GOOGLE_WARNING",
             Self::GOOGLE_SEE_ALSO_ITEM => "GOOGLE_SEE_ALSO_ITEM",
+            Self::GOOGLE_REFERENCE => "GOOGLE_REFERENCE",
             Self::GOOGLE_ATTRIBUTE => "GOOGLE_ATTRIBUTE",
             Self::GOOGLE_METHOD => "GOOGLE_METHOD",
             // Plain node

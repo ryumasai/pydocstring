@@ -1,7 +1,7 @@
 //! Convert a Google-style AST into the style-independent [`Docstring`] model.
 
 use crate::model::{
-    Attribute, Deprecation, Docstring, ExceptionEntry, FreeSectionKind, Method, Parameter, Return, Section,
+    Attribute, Deprecation, Docstring, ExceptionEntry, FreeSectionKind, Method, Parameter, Reference, Return, Section,
     SeeAlsoEntry,
 };
 use crate::parse::google::kind::GoogleSectionKind;
@@ -119,6 +119,15 @@ fn convert_section(section: &GoogleSection<'_>, source: &str) -> Section {
                 })
                 .collect(),
         ),
+        GoogleSectionKind::References => Section::References(
+            section
+                .references()
+                .map(|r| Reference {
+                    number: r.number().map(|t| t.text(source).to_owned()),
+                    content: r.content().map(|t| convert_multiline_with_indentation(t.text(source))),
+                })
+                .collect(),
+        ),
         GoogleSectionKind::Methods => Section::Methods(
             section
                 .methods()
@@ -141,7 +150,6 @@ fn convert_section(section: &GoogleSection<'_>, source: &str) -> Section {
                 GoogleSectionKind::Notes => FreeSectionKind::Notes,
                 GoogleSectionKind::Examples => FreeSectionKind::Examples,
                 GoogleSectionKind::Todo => FreeSectionKind::Todo,
-                GoogleSectionKind::References => FreeSectionKind::Unknown("References".into()),
                 GoogleSectionKind::Warnings => FreeSectionKind::Warnings,
                 GoogleSectionKind::Attention => FreeSectionKind::Attention,
                 GoogleSectionKind::Caution => FreeSectionKind::Caution,

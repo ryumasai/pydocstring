@@ -1,0 +1,6 @@
+Summary.
+
+References:
+    .. [1] Author A, "Title A", 2020.
+    .. [2] Author B, "Title B", 2021,
+        with a continuation line.

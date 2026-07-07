@@ -147,6 +147,7 @@ impl GoogleSectionKind {
                 | Self::Attributes
                 | Self::Methods
                 | Self::SeeAlso
+                | Self::References
         )
     }
 
