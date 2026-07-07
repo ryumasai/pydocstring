@@ -156,6 +156,29 @@ class TestParseGoogle:
         assert len(sections) == 1
         assert sections[0].section_kind == pydocstring.GoogleSectionKind.NOTES
 
+    def test_references(self):
+        doc = pydocstring.parse_google(
+            'Summary.\n\nReferences:\n    .. [1] Author A, "Title A", 2020.\n    Plain reference line.'
+        )
+        section = doc.sections[0]
+        assert section.section_kind == pydocstring.GoogleSectionKind.REFERENCES
+
+        class Collector(pydocstring.Visitor):
+            def __init__(self):
+                self.refs = []
+
+            def enter_google_reference(self, ref, ctx):
+                self.refs.append(ref)
+
+        refs = pydocstring.walk(doc, Collector()).refs
+        assert len(refs) == 2
+        assert refs[0].directive_marker.text == ".."
+        assert refs[0].number.text == "1"
+        assert refs[0].content.text == 'Author A, "Title A", 2020.'
+        assert refs[1].directive_marker is None
+        assert refs[1].number is None
+        assert refs[1].content.text == "Plain reference line."
+
     def test_pretty_print(self):
         doc = pydocstring.parse_google("Summary.\n\nArgs:\n    x: Desc.")
         output = doc.pretty_print()

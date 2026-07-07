@@ -158,6 +158,13 @@ impl<'a> GoogleSection<'a> {
             .filter_map(GoogleSeeAlsoItem::cast)
     }
 
+    /// Iterate over reference nodes.
+    pub fn references(&self) -> impl Iterator<Item = GoogleReference<'a>> {
+        self.0
+            .nodes(SyntaxKind::GOOGLE_REFERENCE)
+            .filter_map(GoogleReference::cast)
+    }
+
     /// Iterate over attribute entry nodes.
     pub fn attributes(&self) -> impl Iterator<Item = GoogleAttribute<'a>> {
         self.0
@@ -372,6 +379,39 @@ impl<'a> GoogleSeeAlsoItem<'a> {
     /// Description text token, if present.
     pub fn description(&self) -> Option<&'a SyntaxToken> {
         self.0.find_token(SyntaxKind::DESCRIPTION)
+    }
+}
+
+// =============================================================================
+// GoogleReference
+// =============================================================================
+
+define_node!(GoogleReference, GOOGLE_REFERENCE);
+
+impl<'a> GoogleReference<'a> {
+    /// RST directive marker (`..`), if present.
+    pub fn directive_marker(&self) -> Option<&'a SyntaxToken> {
+        self.0.find_token(SyntaxKind::DIRECTIVE_MARKER)
+    }
+
+    /// Opening bracket token, if present.
+    pub fn open_bracket(&self) -> Option<&'a SyntaxToken> {
+        self.0.find_token(SyntaxKind::OPEN_BRACKET)
+    }
+
+    /// Reference number token, if present.
+    pub fn number(&self) -> Option<&'a SyntaxToken> {
+        self.0.find_token(SyntaxKind::NUMBER)
+    }
+
+    /// Closing bracket token, if present.
+    pub fn close_bracket(&self) -> Option<&'a SyntaxToken> {
+        self.0.find_token(SyntaxKind::CLOSE_BRACKET)
+    }
+
+    /// Reference content text token, if present.
+    pub fn content(&self) -> Option<&'a SyntaxToken> {
+        self.0.find_token(SyntaxKind::CONTENT)
     }
 }
 

@@ -6,7 +6,8 @@
 use crate::cursor::{LineCursor, indent_len};
 use crate::parse::numpy::kind::NumPySectionKind;
 use crate::parse::utils::{
-    find_matching_close, find_term_colon, split_comma_parts, try_parse_bracket_entry, try_parse_deprecation_directive,
+    find_term_colon, process_reference_line, split_comma_parts, try_parse_bracket_entry,
+    try_parse_deprecation_directive,
 };
 use crate::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use crate::text::TextRange;
@@ -483,41 +484,6 @@ fn build_method_node(name: TextRange, colon: Option<TextRange>, range: TextRange
     SyntaxNode::new(SyntaxKind::NUMPY_METHOD, range, children)
 }
 
-fn build_reference_node_rst(
-    directive_marker: TextRange,
-    open_bracket: TextRange,
-    number: Option<TextRange>,
-    close_bracket: TextRange,
-    content: Option<TextRange>,
-    range: TextRange,
-) -> SyntaxNode {
-    let mut children = Vec::new();
-    children.push(SyntaxElement::Token(SyntaxToken::new(
-        SyntaxKind::DIRECTIVE_MARKER,
-        directive_marker,
-    )));
-    children.push(SyntaxElement::Token(SyntaxToken::new(
-        SyntaxKind::OPEN_BRACKET,
-        open_bracket,
-    )));
-    if let Some(n) = number {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::NUMBER, n)));
-    }
-    children.push(SyntaxElement::Token(SyntaxToken::new(
-        SyntaxKind::CLOSE_BRACKET,
-        close_bracket,
-    )));
-    if let Some(c) = content {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::CONTENT, c)));
-    }
-    SyntaxNode::new(SyntaxKind::NUMPY_REFERENCE, range, children)
-}
-
-fn build_reference_node_plain(content: TextRange, range: TextRange) -> SyntaxNode {
-    let children = vec![SyntaxElement::Token(SyntaxToken::new(SyntaxKind::CONTENT, content))];
-    SyntaxNode::new(SyntaxKind::NUMPY_REFERENCE, range, children)
-}
-
 // =============================================================================
 // Per-line section body processors
 // =============================================================================
@@ -536,26 +502,6 @@ fn extend_last_node_description(nodes: &mut [SyntaxElement], cont: TextRange) {
         }
         if !found_desc {
             node.push_child(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, cont)));
-        }
-        node.extend_range_to(cont.end());
-    }
-}
-
-/// Extend `content` field on a reference node.
-fn extend_last_ref_content(nodes: &mut [SyntaxElement], cont: TextRange) {
-    if let Some(SyntaxElement::Node(node)) = nodes.last_mut() {
-        let mut found_content = false;
-        for child in node.children_mut() {
-            if let SyntaxElement::Token(t) = child {
-                if t.kind() == SyntaxKind::CONTENT {
-                    t.extend_range(cont);
-                    found_content = true;
-                    break;
-                }
-            }
-        }
-        if !found_content {
-            node.push_child(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::CONTENT, cont)));
         }
         node.extend_range_to(cont.end());
     }
@@ -847,72 +793,6 @@ fn process_method_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entr
     nodes.push(SyntaxElement::Node(build_method_node(name, colon, entry_range)));
 }
 
-fn process_reference_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
-    let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_ref_content(nodes, cursor.current_trimmed_range());
-            return;
-        }
-    }
-    if entry_indent.is_none() {
-        *entry_indent = Some(indent_cols);
-    }
-
-    let col = cursor.current_indent();
-    let trimmed = cursor.current_trimmed();
-    let is_directive = trimmed.starts_with("..") && trimmed[2..].trim_start().starts_with('[');
-
-    if is_directive {
-        let rel_open = trimmed.find('[').unwrap();
-        let abs_open = cursor.substr_offset(trimmed) + rel_open;
-        // Bound the close-bracket search to the current line: a `]` on a later
-        // line must not match, or the content slice below would panic. An
-        // unmatched marker falls through to the plain-text reference path.
-        let line_end = cursor.substr_offset(cursor.current_line_text()) + cursor.current_line_text().len();
-        if let Some(abs_close) = find_matching_close(&cursor.source()[..line_end], abs_open) {
-            let directive_marker = cursor.make_line_range(cursor.line, col, 2);
-            let open_bracket = TextRange::from_offset_len(abs_open, 1);
-            let close_bracket = TextRange::from_offset_len(abs_close, 1);
-            let num_raw = &cursor.source()[abs_open + 1..abs_close];
-            let num_str = num_raw.trim();
-            let number = if !num_str.is_empty() {
-                let num_abs = cursor.substr_offset(num_str);
-                Some(TextRange::from_offset_len(num_abs, num_str.len()))
-            } else {
-                None
-            };
-            let line_end_offset = cursor.substr_offset(cursor.current_line_text()) + cursor.current_line_text().len();
-            let after_on_line = &cursor.source()[abs_close + 1..line_end_offset.min(cursor.source().len())];
-            let content_str = after_on_line.trim();
-            let content = if !content_str.is_empty() {
-                Some(TextRange::from_offset_len(
-                    cursor.substr_offset(content_str),
-                    content_str.len(),
-                ))
-            } else {
-                None
-            };
-
-            nodes.push(SyntaxElement::Node(build_reference_node_rst(
-                directive_marker,
-                open_bracket,
-                number,
-                close_bracket,
-                content,
-                cursor.current_trimmed_range(),
-            )));
-            return;
-        }
-    }
-
-    // Plain text reference
-    nodes.push(SyntaxElement::Node(build_reference_node_plain(
-        cursor.current_trimmed_range(),
-        cursor.current_trimmed_range(),
-    )));
-}
-
 // =============================================================================
 // Section body kind tracking
 // =============================================================================
@@ -957,7 +837,7 @@ impl SectionBody {
             Self::Raises(nodes) => process_raises_line(cursor, nodes, entry_indent),
             Self::Warns(nodes) => process_warning_line(cursor, nodes, entry_indent),
             Self::SeeAlso(nodes) => process_see_also_line(cursor, nodes, entry_indent),
-            Self::References(nodes) => process_reference_line(cursor, nodes, entry_indent),
+            Self::References(nodes) => process_reference_line(cursor, SyntaxKind::NUMPY_REFERENCE, nodes, entry_indent),
             Self::Attributes(nodes) => process_attribute_line(cursor, nodes, entry_indent),
             Self::Methods(nodes) => process_method_line(cursor, nodes, entry_indent),
             Self::FreeText(range) => {

@@ -1,0 +1,22 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..76 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..76 {
+    GOOGLE_SECTION_HEADER@10..21 {
+      NAME: "References"@10..20
+      COLON: ":"@20..21
+    }
+    GOOGLE_REFERENCE@26..47 {
+      CONTENT: ".. [1 unclosed marker"@26..47
+    }
+    GOOGLE_REFERENCE@52..76 {
+      CONTENT: "plain ref with ] bracket"@52..76
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+References:
+    .. [1 unclosed marker
+    plain ref with ] bracket

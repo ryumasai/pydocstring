@@ -30,14 +30,6 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     // unambiguous NumPy form — the bare line re-parses as the type
     // (prefer_type, see the #26 discussion).
     "google->numpy: google/returns/returns_without_type.txt",
-    // Google parser reads References as free text, losing the structured
-    // Reference entries (number + content) — issue #55. The google->numpy
-    // direction of the same asymmetry hits the References section inside
-    // freetext_sections.txt.
-    "google->numpy: google/freetext/freetext_sections.txt",
-    "numpy->google: numpy/freetext/references_directive_markers.txt",
-    "numpy->google: numpy/freetext/references_parsing.txt",
-    "numpy->google: numpy/freetext/references_unclosed_bracket.txt",
     // Named / multiple / type-only Returns and Yields entries do not survive
     // the Google round trip (Google's entry syntax cannot express all of
     // them, and emit_google/parse_google disagree on the rest).

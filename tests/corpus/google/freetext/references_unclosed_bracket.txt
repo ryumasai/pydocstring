@@ -1,0 +1,5 @@
+Summary.
+
+References:
+    .. [1 unclosed marker
+    plain ref with ] bracket

@@ -69,7 +69,9 @@ GOOGLE_DOCSTRING@0..407 {
       NAME: "References"@371..381
       COLON: ":"@381..382
     }
-    BODY_TEXT: "Author, Title, 2024."@387..407
+    GOOGLE_REFERENCE@387..407 {
+      CONTENT: "Author, Title, 2024."@387..407
+    }
   }
 }
 === EMIT ===

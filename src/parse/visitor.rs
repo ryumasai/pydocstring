@@ -41,8 +41,8 @@
 //! ```
 
 use crate::parse::google::nodes::{
-    GoogleArg, GoogleAttribute, GoogleDeprecation, GoogleDocstring, GoogleException, GoogleMethod, GoogleReturn,
-    GoogleSection, GoogleSeeAlsoItem, GoogleWarning, GoogleYield,
+    GoogleArg, GoogleAttribute, GoogleDeprecation, GoogleDocstring, GoogleException, GoogleMethod, GoogleReference,
+    GoogleReturn, GoogleSection, GoogleSeeAlsoItem, GoogleWarning, GoogleYield,
 };
 use crate::parse::numpy::nodes::{
     NumPyAttribute, NumPyDeprecation, NumPyDocstring, NumPyException, NumPyMethod, NumPyParameter, NumPyReference,
@@ -108,6 +108,10 @@ pub trait DocstringVisitor: Sized {
     /// Called for each See Also item.
     fn visit_google_see_also_item(&mut self, source: &str, sai: &GoogleSeeAlsoItem<'_>) -> Result<(), Self::Error> {
         walk_children(source, sai.syntax(), self)
+    }
+    /// Called for each reference entry.
+    fn visit_google_reference(&mut self, source: &str, r#ref: &GoogleReference<'_>) -> Result<(), Self::Error> {
+        walk_children(source, r#ref.syntax(), self)
     }
     /// Called for each attribute entry.
     fn visit_google_attribute(&mut self, source: &str, att: &GoogleAttribute<'_>) -> Result<(), Self::Error> {
@@ -192,6 +196,7 @@ pub fn walk<V: DocstringVisitor>(source: &str, node: &SyntaxNode, visitor: &mut 
         SyntaxKind::GOOGLE_EXCEPTION => visitor.visit_google_exception(source, &GoogleException(node))?,
         SyntaxKind::GOOGLE_WARNING => visitor.visit_google_warning(source, &GoogleWarning(node))?,
         SyntaxKind::GOOGLE_SEE_ALSO_ITEM => visitor.visit_google_see_also_item(source, &GoogleSeeAlsoItem(node))?,
+        SyntaxKind::GOOGLE_REFERENCE => visitor.visit_google_reference(source, &GoogleReference(node))?,
         SyntaxKind::GOOGLE_ATTRIBUTE => visitor.visit_google_attribute(source, &GoogleAttribute(node))?,
         SyntaxKind::GOOGLE_METHOD => visitor.visit_google_method(source, &GoogleMethod(node))?,
         // NumPy inner nodes

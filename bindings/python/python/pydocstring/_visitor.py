@@ -12,6 +12,7 @@ if TYPE_CHECKING:
         GoogleDocstring,
         GoogleException,
         GoogleMethod,
+        GoogleReference,
         GoogleReturn,
         GoogleSection,
         GoogleSeeAlsoItem,
@@ -59,6 +60,8 @@ _ALL_VISITOR_METHODS: frozenset[str] = frozenset(
         "exit_google_warning",
         "enter_google_see_also_item",
         "exit_google_see_also_item",
+        "enter_google_reference",
+        "exit_google_reference",
         "enter_google_attribute",
         "exit_google_attribute",
         "enter_google_method",
@@ -195,6 +198,14 @@ class Visitor:
 
     @_pydocstring_noop
     def exit_google_see_also_item(self, node: GoogleSeeAlsoItem, ctx: WalkContext, /) -> None:
+        pass
+
+    @_pydocstring_noop
+    def enter_google_reference(self, node: GoogleReference, ctx: WalkContext, /) -> None:
+        pass
+
+    @_pydocstring_noop
+    def exit_google_reference(self, node: GoogleReference, ctx: WalkContext, /) -> None:
         pass
 
     @_pydocstring_noop

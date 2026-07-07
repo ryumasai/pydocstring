@@ -9,6 +9,7 @@ from ._pydocstring import (
     GoogleDocstring,
     GoogleException,
     GoogleMethod,
+    GoogleReference,
     GoogleReturn,
     GoogleSection,
     GoogleSectionKind,
@@ -74,6 +75,7 @@ __all__ = [
     "GoogleException",
     "GoogleWarning",
     "GoogleSeeAlsoItem",
+    "GoogleReference",
     "GoogleAttribute",
     "GoogleMethod",
     # ── NumPy CST wrappers ────────────────────────────────────────────────

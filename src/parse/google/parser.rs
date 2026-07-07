@@ -6,8 +6,8 @@
 use crate::cursor::{LineCursor, indent_len};
 use crate::parse::google::kind::GoogleSectionKind;
 use crate::parse::utils::{
-    find_colon_ignoring_parens, find_entry_open_bracket, find_matching_close, find_term_colon, split_comma_parts,
-    try_parse_deprecation_directive,
+    find_colon_ignoring_parens, find_entry_open_bracket, find_matching_close, find_term_colon, process_reference_line,
+    split_comma_parts, try_parse_deprecation_directive,
 };
 use crate::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use crate::text::TextRange;
@@ -745,6 +745,8 @@ enum SectionBody {
     Warns(Vec<SyntaxElement>),
     /// SeeAlso
     SeeAlso(Vec<SyntaxElement>),
+    /// References
+    References(Vec<SyntaxElement>),
     /// Free-text (Notes, Examples, etc.)
     FreeText(Option<TextRange>),
 }
@@ -764,6 +766,7 @@ impl SectionBody {
             GoogleSectionKind::Raises => Self::Raises(Vec::new()),
             GoogleSectionKind::Warns => Self::Warns(Vec::new()),
             GoogleSectionKind::SeeAlso => Self::SeeAlso(Vec::new()),
+            GoogleSectionKind::References => Self::References(Vec::new()),
             _ => Self::FreeText(None),
         }
     }
@@ -776,6 +779,7 @@ impl SectionBody {
             Self::Raises(nodes) => process_exception_line(cursor, nodes, entry_indent),
             Self::Warns(nodes) => process_warning_line(cursor, nodes, entry_indent),
             Self::SeeAlso(nodes) => process_see_also_line(cursor, nodes, entry_indent),
+            Self::References(nodes) => process_reference_line(cursor, SyntaxKind::GOOGLE_REFERENCE, nodes, entry_indent),
             Self::FreeText(range) => {
                 let r = cursor.current_trimmed_range();
                 match range {
@@ -796,6 +800,7 @@ impl SectionBody {
             Self::Raises(nodes) => nodes,
             Self::Warns(nodes) => nodes,
             Self::SeeAlso(nodes) => nodes,
+            Self::References(nodes) => nodes,
             Self::FreeText(range) => match range {
                 Some(r) => vec![SyntaxElement::Token(SyntaxToken::new(SyntaxKind::BODY_TEXT, r))],
                 None => vec![],
