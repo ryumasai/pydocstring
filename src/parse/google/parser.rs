@@ -6,12 +6,16 @@
 use crate::cursor::LineCursor;
 use crate::cursor::indent_len;
 use crate::parse::google::kind::GoogleSectionKind;
+use crate::parse::utils::build_text_block;
+use crate::parse::utils::extend_text_block;
 use crate::parse::utils::find_colon_ignoring_parens;
 use crate::parse::utils::find_entry_open_bracket;
 use crate::parse::utils::find_matching_close;
 use crate::parse::utils::find_term_colon;
+use crate::parse::utils::missing_text_block;
 use crate::parse::utils::process_reference_line;
 use crate::parse::utils::split_comma_parts;
+use crate::parse::utils::text_block_single;
 use crate::parse::utils::try_parse_deprecation_directive;
 use crate::syntax::Parsed;
 use crate::syntax::SyntaxElement;
@@ -465,13 +469,13 @@ fn build_arg_node(kind: SyntaxKind, header: &EntryHeader, range: TextRange, sour
         )));
     }
     if let Some(desc) = header.first_description {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, desc)));
+        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, desc)));
     } else if let Some(colon) = header.colon {
         // Colon present but no description: zero-length placeholder so callers
-        // can distinguish `a (int):` from `a (int)` via find_missing(DESCRIPTION).
-        children.push(SyntaxElement::Token(SyntaxToken::new(
+        // can distinguish `a (int):` from `a (int)`.
+        children.push(SyntaxElement::Node(missing_text_block(
             SyntaxKind::DESCRIPTION,
-            TextRange::new(colon.end(), colon.end()),
+            colon.end(),
         )));
     }
     // Ensure children are in source order (needed when colon/description
@@ -488,11 +492,11 @@ fn build_exception_node(header: &EntryHeader, range: TextRange) -> SyntaxNode {
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, colon)));
     }
     if let Some(desc) = header.first_description {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, desc)));
+        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, desc)));
     } else if let Some(colon) = header.colon {
-        children.push(SyntaxElement::Token(SyntaxToken::new(
+        children.push(SyntaxElement::Node(missing_text_block(
             SyntaxKind::DESCRIPTION,
-            TextRange::new(colon.end(), colon.end()),
+            colon.end(),
         )));
     }
     SyntaxNode::new(SyntaxKind::GOOGLE_EXCEPTION, range, children)
@@ -509,11 +513,11 @@ fn build_warning_node(header: &EntryHeader, range: TextRange) -> SyntaxNode {
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, colon)));
     }
     if let Some(desc) = header.first_description {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, desc)));
+        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, desc)));
     } else if let Some(colon) = header.colon {
-        children.push(SyntaxElement::Token(SyntaxToken::new(
+        children.push(SyntaxElement::Node(missing_text_block(
             SyntaxKind::DESCRIPTION,
-            TextRange::new(colon.end(), colon.end()),
+            colon.end(),
         )));
     }
     SyntaxNode::new(SyntaxKind::GOOGLE_WARNING, range, children)
@@ -528,11 +532,11 @@ fn build_see_also_node(header: &EntryHeader, range: TextRange, source: &str) -> 
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, colon)));
     }
     if let Some(desc) = header.first_description {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, desc)));
+        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, desc)));
     } else if let Some(colon) = header.colon {
-        children.push(SyntaxElement::Token(SyntaxToken::new(
+        children.push(SyntaxElement::Node(missing_text_block(
             SyntaxKind::DESCRIPTION,
-            TextRange::new(colon.end(), colon.end()),
+            colon.end(),
         )));
     }
     SyntaxNode::new(SyntaxKind::GOOGLE_SEE_ALSO_ITEM, range, children)
@@ -568,20 +572,20 @@ fn build_content_range(cursor: &LineCursor, first: Option<usize>, last: usize) -
 // Per-line section body processors
 // =============================================================================
 
-/// Extend the DESCRIPTION token of the last child node, or add one.
+/// Extend the DESCRIPTION block of the last child node, or add one.
 fn extend_last_node_description(nodes: &mut [SyntaxElement], cont: TextRange) {
     if let Some(SyntaxElement::Node(node)) = nodes.last_mut() {
-        // Find or add description token, extend range
+        // Find or add description block, extend range
         let mut found_desc = false;
         for child in node.children_mut() {
-            if let SyntaxElement::Token(t) = child {
-                if t.kind() == SyntaxKind::DESCRIPTION {
-                    if t.is_missing() {
-                        // Zero-length placeholder: replace range entirely rather
-                        // than extending from the old (wrong) start position.
-                        *t = SyntaxToken::new(SyntaxKind::DESCRIPTION, cont);
+            if let SyntaxElement::Node(n) = child {
+                if n.kind() == SyntaxKind::DESCRIPTION {
+                    if n.range().is_empty() {
+                        // Zero-length placeholder: replace the block entirely
+                        // rather than extending from the old (wrong) start.
+                        *n = text_block_single(SyntaxKind::DESCRIPTION, cont);
                     } else {
-                        t.extend_range(cont);
+                        extend_text_block(n, cont);
                     }
                     found_desc = true;
                     break;
@@ -589,7 +593,7 @@ fn extend_last_node_description(nodes: &mut [SyntaxElement], cont: TextRange) {
             }
         }
         if !found_desc {
-            node.push_child(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, cont)));
+            node.push_child(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, cont)));
         }
         // Extend node range
         node.extend_range_to(cont.end());
@@ -721,7 +725,7 @@ impl ReturnsState {
         }
     }
 
-    fn into_node(self, kind: SyntaxKind) -> Option<SyntaxNode> {
+    fn into_node(self, kind: SyntaxKind, source: &str) -> Option<SyntaxNode> {
         let range = self.range?;
         let mut children = Vec::new();
         if let Some(rt) = self.return_type {
@@ -731,7 +735,11 @@ impl ReturnsState {
             children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, colon)));
         }
         if let Some(desc) = self.description {
-            children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, desc)));
+            children.push(SyntaxElement::Node(build_text_block(
+                SyntaxKind::DESCRIPTION,
+                desc,
+                source,
+            )));
         }
         Some(SyntaxNode::new(kind, range, children))
     }
@@ -798,10 +806,10 @@ impl SectionBody {
         }
     }
 
-    fn into_children(self) -> Vec<SyntaxElement> {
+    fn into_children(self, source: &str) -> Vec<SyntaxElement> {
         match self {
             Self::Args(_, nodes) => nodes,
-            Self::Returns(kind, state) => match state.into_node(kind) {
+            Self::Returns(kind, state) => match state.into_node(kind, source) {
                 Some(node) => vec![SyntaxElement::Node(node)],
                 None => vec![],
             },
@@ -810,7 +818,7 @@ impl SectionBody {
             Self::SeeAlso(nodes) => nodes,
             Self::References(nodes) => nodes,
             Self::FreeText(range) => match range {
-                Some(r) => vec![SyntaxElement::Token(SyntaxToken::new(SyntaxKind::BODY_TEXT, r))],
+                Some(r) => vec![SyntaxElement::Node(build_text_block(SyntaxKind::BODY_TEXT, r, source))],
                 None => vec![],
             },
         }
@@ -834,8 +842,8 @@ impl SectionBody {
 /// let source = parsed.source();
 /// let root = parsed.root();
 ///
-/// // Access summary
-/// let summary = root.find_token(SyntaxKind::SUMMARY).unwrap();
+/// // Access summary (a text block node wrapping per-line TEXT_LINE tokens)
+/// let summary = pydocstring::parse::TextBlock::cast(root.find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
 /// assert_eq!(summary.text(source), "Summary.");
 ///
 /// // Access sections
@@ -870,9 +878,10 @@ pub fn parse_google(input: &str) -> Parsed {
         // --- Blank lines ---
         if line_cursor.current_trimmed().is_empty() {
             if !summary_done && summary_first.is_some() {
-                root_children.push(SyntaxElement::Token(SyntaxToken::new(
+                root_children.push(SyntaxElement::Node(build_text_block(
                     SyntaxKind::SUMMARY,
                     build_content_range(&line_cursor, summary_first, summary_last).unwrap(),
+                    input,
                 )));
                 summary_done = true;
             }
@@ -909,18 +918,20 @@ pub fn parse_google(input: &str) -> Parsed {
             // Finalise pending pre-section content
             if !summary_done {
                 if summary_first.is_some() {
-                    root_children.push(SyntaxElement::Token(SyntaxToken::new(
+                    root_children.push(SyntaxElement::Node(build_text_block(
                         SyntaxKind::SUMMARY,
                         build_content_range(&line_cursor, summary_first, summary_last).unwrap(),
+                        input,
                     )));
                 }
                 summary_done = true;
             }
             if !extended_done {
                 if ext_first.is_some() {
-                    root_children.push(SyntaxElement::Token(SyntaxToken::new(
+                    root_children.push(SyntaxElement::Node(build_text_block(
                         SyntaxKind::EXTENDED_SUMMARY,
                         build_content_range(&line_cursor, ext_first, ext_last).unwrap(),
+                        input,
                     )));
                 }
                 extended_done = true;
@@ -1008,15 +1019,17 @@ pub fn parse_google(input: &str) -> Parsed {
 
     // Finalise at EOF
     if !summary_done && summary_first.is_some() {
-        root_children.push(SyntaxElement::Token(SyntaxToken::new(
+        root_children.push(SyntaxElement::Node(build_text_block(
             SyntaxKind::SUMMARY,
             build_content_range(&line_cursor, summary_first, summary_last).unwrap(),
+            input,
         )));
     }
     if !extended_done && ext_first.is_some() {
-        root_children.push(SyntaxElement::Token(SyntaxToken::new(
+        root_children.push(SyntaxElement::Node(build_text_block(
             SyntaxKind::EXTENDED_SUMMARY,
             build_content_range(&line_cursor, ext_first, ext_last).unwrap(),
+            input,
         )));
     }
 
@@ -1036,7 +1049,7 @@ fn flush_section(
 
     let header_node = build_section_header_node(&header_info);
     let mut section_children = vec![SyntaxElement::Node(header_node)];
-    section_children.extend(body.into_children());
+    section_children.extend(body.into_children(cursor.source()));
 
     root_children.push(SyntaxElement::Node(SyntaxNode::new(
         SyntaxKind::GOOGLE_SECTION,

@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..153 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..85 {
@@ -18,7 +20,9 @@ NUMPY_DOCSTRING@0..153 {
       TYPE: "float"@58..63
       NEWLINE: "\n"@63..64
       WHITESPACE: "    "@64..68
-      DESCRIPTION: "How long to wait."@68..85
+      DESCRIPTION@68..85 {
+        TEXT_LINE: "How long to wait."@68..85
+      }
     }
   }
   NEWLINE: "\n"@85..86
@@ -30,7 +34,9 @@ NUMPY_DOCSTRING@0..153 {
       UNDERLINE: "----"@92..96
     }
     NEWLINE: "\n"@96..97
-    BODY_TEXT: "* Refactor this."@97..113
+    BODY_TEXT@97..113 {
+      TEXT_LINE: "* Refactor this."@97..113
+    }
   }
   NEWLINE: "\n"@113..114
   BLANK_LINE: "\n"@114..115
@@ -41,7 +47,9 @@ NUMPY_DOCSTRING@0..153 {
       UNDERLINE: "---------"@125..134
     }
     NEWLINE: "\n"@134..135
-    BODY_TEXT: "Handle with care."@135..152
+    BODY_TEXT@135..152 {
+      TEXT_LINE: "Handle with care."@135..152
+    }
   }
   NEWLINE: "\n"@152..153
 }

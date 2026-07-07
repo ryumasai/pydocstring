@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..85 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..84 {
@@ -18,7 +20,9 @@ NUMPY_DOCSTRING@0..85 {
       TYPE: "str"@34..37
       NEWLINE: "\n"@37..38
       WHITESPACE: "    "@38..42
-      DESCRIPTION: "The message."@42..54
+      DESCRIPTION@42..54 {
+        TEXT_LINE: "The message."@42..54
+      }
     }
     NEWLINE: "\n"@54..55
     NUMPY_PARAMETER@55..84 {
@@ -29,7 +33,9 @@ NUMPY_DOCSTRING@0..85 {
       TYPE: "bytes"@62..67
       NEWLINE: "\n"@67..68
       WHITESPACE: "    "@68..72
-      DESCRIPTION: "The payload."@72..84
+      DESCRIPTION@72..84 {
+        TEXT_LINE: "The payload."@72..84
+      }
     }
   }
   NEWLINE: "\n"@84..85

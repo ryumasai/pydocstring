@@ -15,7 +15,9 @@ GOOGLE_DOCSTRING@0..25 {
       CLOSE_BRACKET: ")"@16..17
       COLON: ":"@17..18
       WHITESPACE: " "@18..19
-      DESCRIPTION: "Value."@19..25
+      DESCRIPTION@19..25 {
+        TEXT_LINE: "Value."@19..25
+      }
     }
   }
 }

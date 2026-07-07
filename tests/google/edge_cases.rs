@@ -387,7 +387,7 @@ fn test_freetext_description_blank_line_continuation() {
         .iter()
         .find(|s| s.header().name().text(result.source()) == "Notes");
     assert!(notes_sec.is_some(), "Notes section should be present");
-    let body = notes_sec.unwrap().syntax().find_token(SyntaxKind::BODY_TEXT).unwrap();
+    let body = notes_sec.unwrap().body_text().unwrap();
     let body_text = body.text(result.source());
     assert!(body_text.contains("Paragraph one."), "body = {:?}", body_text);
     assert!(body_text.contains("Paragraph two."), "body = {:?}", body_text);

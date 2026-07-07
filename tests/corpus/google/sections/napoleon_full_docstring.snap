@@ -1,9 +1,13 @@
 === CST ===
 GOOGLE_DOCSTRING@0..372 {
-  SUMMARY: "Calculate something."@0..20
+  SUMMARY@0..20 {
+    TEXT_LINE: "Calculate something."@0..20
+  }
   NEWLINE: "\n"@20..21
   BLANK_LINE: "\n"@21..22
-  EXTENDED_SUMMARY: "Extended description."@22..43
+  EXTENDED_SUMMARY@22..43 {
+    TEXT_LINE: "Extended description."@22..43
+  }
   NEWLINE: "\n"@43..44
   BLANK_LINE: "\n"@44..45
   GOOGLE_SECTION@45..79 {
@@ -21,7 +25,9 @@ GOOGLE_DOCSTRING@0..372 {
       CLOSE_BRACKET: ")"@61..62
       COLON: ":"@62..63
       WHITESPACE: " "@63..64
-      DESCRIPTION: "First argument."@64..79
+      DESCRIPTION@64..79 {
+        TEXT_LINE: "First argument."@64..79
+      }
     }
   }
   NEWLINE: "\n"@79..80
@@ -41,7 +47,9 @@ GOOGLE_DOCSTRING@0..372 {
       CLOSE_BRACKET: ")"@113..114
       COLON: ":"@114..115
       WHITESPACE: " "@115..116
-      DESCRIPTION: "Timeout value."@116..130
+      DESCRIPTION@116..130 {
+        TEXT_LINE: "Timeout value."@116..130
+      }
     }
   }
   NEWLINE: "\n"@130..131
@@ -57,7 +65,9 @@ GOOGLE_DOCSTRING@0..372 {
       RETURN_TYPE: "int"@145..148
       COLON: ":"@148..149
       WHITESPACE: " "@149..150
-      DESCRIPTION: "The result."@150..161
+      DESCRIPTION@150..161 {
+        TEXT_LINE: "The result."@150..161
+      }
     }
   }
   NEWLINE: "\n"@161..162
@@ -73,7 +83,9 @@ GOOGLE_DOCSTRING@0..372 {
       TYPE: "ValueError"@175..185
       COLON: ":"@185..186
       WHITESPACE: " "@186..187
-      DESCRIPTION: "If x is negative."@187..204
+      DESCRIPTION@187..204 {
+        TEXT_LINE: "If x is negative."@187..204
+      }
     }
   }
   NEWLINE: "\n"@204..205
@@ -89,7 +101,9 @@ GOOGLE_DOCSTRING@0..372 {
       WARNING_TYPE: "DeprecationWarning"@217..235
       COLON: ":"@235..236
       WHITESPACE: " "@236..237
-      DESCRIPTION: "If old API is used."@237..256
+      DESCRIPTION@237..256 {
+        TEXT_LINE: "If old API is used."@237..256
+      }
     }
   }
   NEWLINE: "\n"@256..257
@@ -105,7 +119,9 @@ GOOGLE_DOCSTRING@0..372 {
       NAME: "other_func"@272..282
       COLON: ":"@282..283
       WHITESPACE: " "@283..284
-      DESCRIPTION: "Related function."@284..301
+      DESCRIPTION@284..301 {
+        TEXT_LINE: "Related function."@284..301
+      }
     }
   }
   NEWLINE: "\n"@301..302
@@ -117,7 +133,9 @@ GOOGLE_DOCSTRING@0..372 {
     }
     NEWLINE: "\n"@308..309
     WHITESPACE: "    "@309..313
-    BODY_TEXT: "Implementation detail."@313..335
+    BODY_TEXT@313..335 {
+      TEXT_LINE: "Implementation detail."@313..335
+    }
   }
   NEWLINE: "\n"@335..336
   BLANK_LINE: "\n"@336..337
@@ -128,7 +146,12 @@ GOOGLE_DOCSTRING@0..372 {
     }
     NEWLINE: "\n"@345..346
     WHITESPACE: "    "@346..350
-    BODY_TEXT: ">>> calculate(1)\n    1"@350..372
+    BODY_TEXT@350..372 {
+      TEXT_LINE: ">>> calculate(1)"@350..366
+      NEWLINE: "\n"@366..367
+      WHITESPACE: "    "@367..371
+      TEXT_LINE: "1"@371..372
+    }
   }
 }
 === EMIT ===

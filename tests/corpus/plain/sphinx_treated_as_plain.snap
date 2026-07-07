@@ -1,7 +1,13 @@
 === CST ===
 PLAIN_DOCSTRING@0..44 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  EXTENDED_SUMMARY: ":param x: Description.\n:rtype: int"@10..44
+  EXTENDED_SUMMARY@10..44 {
+    TEXT_LINE: ":param x: Description."@10..32
+    NEWLINE: "\n"@32..33
+    TEXT_LINE: ":rtype: int"@33..44
+  }
 }

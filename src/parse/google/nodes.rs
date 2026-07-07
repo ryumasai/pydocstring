@@ -4,6 +4,8 @@
 //! for the node's children (tokens and sub-nodes).
 
 use crate::parse::google::kind::GoogleSectionKind;
+use crate::parse::text_block::TextBlock;
+use crate::parse::text_block::find_text_block;
 use crate::syntax::SyntaxKind;
 use crate::syntax::SyntaxNode;
 use crate::syntax::SyntaxToken;
@@ -40,14 +42,14 @@ macro_rules! define_node {
 define_node!(GoogleDocstring, GOOGLE_DOCSTRING);
 
 impl<'a> GoogleDocstring<'a> {
-    /// Brief summary token, if present.
-    pub fn summary(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::SUMMARY)
+    /// Brief summary block, if present.
+    pub fn summary(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::SUMMARY)
     }
 
-    /// Extended summary token, if present.
-    pub fn extended_summary(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::EXTENDED_SUMMARY)
+    /// Extended summary block, if present.
+    pub fn extended_summary(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::EXTENDED_SUMMARY)
     }
 
     /// Deprecation node, if present.
@@ -96,8 +98,8 @@ impl<'a> GoogleDeprecation<'a> {
     }
 
     /// Description / reason for deprecation.
-    pub fn description(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DESCRIPTION)
+    pub fn description(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 }
 
@@ -179,9 +181,9 @@ impl<'a> GoogleSection<'a> {
         self.0.nodes(SyntaxKind::GOOGLE_METHOD).filter_map(GoogleMethod::cast)
     }
 
-    /// Free-text body content, if this is a free-text section.
-    pub fn body_text(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::BODY_TEXT)
+    /// Free-text body content block, if this is a free-text section.
+    pub fn body_text(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::BODY_TEXT)
     }
 }
 
@@ -243,9 +245,9 @@ impl<'a> GoogleArg<'a> {
         self.0.find_token(SyntaxKind::COLON)
     }
 
-    /// Description text token, if present.
-    pub fn description(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DESCRIPTION)
+    /// Description text block, if present.
+    pub fn description(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 
     /// `optional` marker token, if present.
@@ -286,9 +288,9 @@ impl<'a> GoogleReturn<'a> {
         self.0.find_token(SyntaxKind::COLON)
     }
 
-    /// Description text token, if present.
-    pub fn description(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DESCRIPTION)
+    /// Description text block, if present.
+    pub fn description(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 }
 
@@ -309,9 +311,9 @@ impl<'a> GoogleYield<'a> {
         self.0.find_token(SyntaxKind::COLON)
     }
 
-    /// Description text token, if present.
-    pub fn description(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DESCRIPTION)
+    /// Description text block, if present.
+    pub fn description(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 }
 
@@ -332,9 +334,9 @@ impl<'a> GoogleException<'a> {
         self.0.find_token(SyntaxKind::COLON)
     }
 
-    /// Description text token, if present.
-    pub fn description(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DESCRIPTION)
+    /// Description text block, if present.
+    pub fn description(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 }
 
@@ -355,9 +357,9 @@ impl<'a> GoogleWarning<'a> {
         self.0.find_token(SyntaxKind::COLON)
     }
 
-    /// Description text token, if present.
-    pub fn description(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DESCRIPTION)
+    /// Description text block, if present.
+    pub fn description(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 }
 
@@ -378,9 +380,9 @@ impl<'a> GoogleSeeAlsoItem<'a> {
         self.0.find_token(SyntaxKind::COLON)
     }
 
-    /// Description text token, if present.
-    pub fn description(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DESCRIPTION)
+    /// Description text block, if present.
+    pub fn description(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 }
 
@@ -411,9 +413,9 @@ impl<'a> GoogleReference<'a> {
         self.0.find_token(SyntaxKind::CLOSE_BRACKET)
     }
 
-    /// Reference content text token, if present.
-    pub fn content(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::CONTENT)
+    /// Reference content text block, if present.
+    pub fn content(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::CONTENT)
     }
 }
 
@@ -449,9 +451,9 @@ impl<'a> GoogleAttribute<'a> {
         self.0.find_token(SyntaxKind::COLON)
     }
 
-    /// Description text token, if present.
-    pub fn description(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DESCRIPTION)
+    /// Description text block, if present.
+    pub fn description(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 }
 
@@ -487,8 +489,8 @@ impl<'a> GoogleMethod<'a> {
         self.0.find_token(SyntaxKind::COLON)
     }
 
-    /// Description text token, if present.
-    pub fn description(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DESCRIPTION)
+    /// Description text block, if present.
+    pub fn description(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 }

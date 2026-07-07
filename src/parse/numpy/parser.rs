@@ -6,9 +6,13 @@
 use crate::cursor::LineCursor;
 use crate::cursor::indent_len;
 use crate::parse::numpy::kind::NumPySectionKind;
+use crate::parse::utils::build_text_block;
+use crate::parse::utils::extend_text_block;
 use crate::parse::utils::find_term_colon;
+use crate::parse::utils::missing_text_block;
 use crate::parse::utils::process_reference_line;
 use crate::parse::utils::split_comma_parts;
+use crate::parse::utils::text_block_single;
 use crate::parse::utils::try_parse_bracket_entry;
 use crate::parse::utils::try_parse_deprecation_directive;
 use crate::syntax::Parsed;
@@ -324,7 +328,7 @@ fn build_parameter_node(parts: &ParamHeaderParts, range: TextRange) -> SyntaxNod
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DEFAULT_VALUE, dv)));
     }
     if let Some(desc) = parts.first_description {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, desc)));
+        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, desc)));
     }
     SyntaxNode::new(SyntaxKind::NUMPY_PARAMETER, range, children)
 }
@@ -394,13 +398,13 @@ fn build_exception_node(
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, c)));
     }
     if let Some(d) = first_desc {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, d)));
+        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, d)));
     } else if let Some(c) = colon {
         // Colon present but no description: zero-length placeholder so callers
         // can distinguish `Exc:` (missing description) from `Exc` (no colon).
-        children.push(SyntaxElement::Token(SyntaxToken::new(
+        children.push(SyntaxElement::Node(missing_text_block(
             SyntaxKind::DESCRIPTION,
-            TextRange::new(c.end(), c.end()),
+            c.end(),
         )));
     }
     SyntaxNode::new(SyntaxKind::NUMPY_EXCEPTION, range, children)
@@ -418,12 +422,12 @@ fn build_warning_node(
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, c)));
     }
     if let Some(d) = first_desc {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, d)));
+        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, d)));
     } else if let Some(c) = colon {
         // Colon present but no description: zero-length placeholder.
-        children.push(SyntaxElement::Token(SyntaxToken::new(
+        children.push(SyntaxElement::Node(missing_text_block(
             SyntaxKind::DESCRIPTION,
-            TextRange::new(c.end(), c.end()),
+            c.end(),
         )));
     }
     SyntaxNode::new(SyntaxKind::NUMPY_WARNING, range, children)
@@ -447,12 +451,12 @@ fn build_see_also_node(
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, c)));
     }
     if let Some(d) = description {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, d)));
+        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, d)));
     } else if let Some(c) = colon {
         // Colon present but no description: zero-length placeholder.
-        children.push(SyntaxElement::Token(SyntaxToken::new(
+        children.push(SyntaxElement::Node(missing_text_block(
             SyntaxKind::DESCRIPTION,
-            TextRange::new(c.end(), c.end()),
+            c.end(),
         )));
     }
     SyntaxNode::new(SyntaxKind::NUMPY_SEE_ALSO_ITEM, range, children)
@@ -498,16 +502,22 @@ fn extend_last_node_description(nodes: &mut [SyntaxElement], cont: TextRange) {
     if let Some(SyntaxElement::Node(node)) = nodes.last_mut() {
         let mut found_desc = false;
         for child in node.children_mut() {
-            if let SyntaxElement::Token(t) = child {
-                if t.kind() == SyntaxKind::DESCRIPTION {
-                    t.extend_range(cont);
+            if let SyntaxElement::Node(n) = child {
+                if n.kind() == SyntaxKind::DESCRIPTION {
+                    if n.range().is_empty() {
+                        // Zero-length placeholder: replace the block entirely
+                        // rather than extending from the old (wrong) start.
+                        *n = text_block_single(SyntaxKind::DESCRIPTION, cont);
+                    } else {
+                        extend_text_block(n, cont);
+                    }
                     found_desc = true;
                     break;
                 }
             }
         }
         if !found_desc {
-            node.push_child(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, cont)));
+            node.push_child(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, cont)));
         }
         node.extend_range_to(cont.end());
     }
@@ -856,7 +866,7 @@ impl SectionBody {
         }
     }
 
-    fn into_children(self) -> Vec<SyntaxElement> {
+    fn into_children(self, source: &str) -> Vec<SyntaxElement> {
         match self {
             Self::Parameters(nodes) => nodes,
             Self::Returns(nodes) => nodes,
@@ -869,7 +879,7 @@ impl SectionBody {
             Self::Methods(nodes) => nodes,
             Self::FreeText(range) => {
                 if let Some(r) = range {
-                    vec![SyntaxElement::Token(SyntaxToken::new(SyntaxKind::BODY_TEXT, r))]
+                    vec![SyntaxElement::Node(build_text_block(SyntaxKind::BODY_TEXT, r, source))]
                 } else {
                     vec![]
                 }
@@ -895,8 +905,8 @@ impl SectionBody {
 /// let source = parsed.source();
 /// let root = parsed.root();
 ///
-/// // Access summary
-/// let summary = root.find_token(SyntaxKind::SUMMARY).unwrap();
+/// // Access summary (a text block node wrapping per-line TEXT_LINE tokens)
+/// let summary = pydocstring::parse::TextBlock::cast(root.find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
 /// assert_eq!(summary.text(source), "Summary.");
 ///
 /// // Access sections
@@ -938,7 +948,7 @@ pub fn parse_numpy(input: &str) -> Parsed {
             let last_col = indent_len(last_text) + last_text.trim().len();
             let range = cursor.make_range(start_line, start_col, last_line, last_col);
             if !range.is_empty() {
-                root_children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::SUMMARY, range)));
+                root_children.push(SyntaxElement::Node(build_text_block(SyntaxKind::SUMMARY, range, input)));
             }
         }
     }
@@ -978,9 +988,10 @@ pub fn parse_numpy(input: &str) -> Parsed {
             let last_line = cursor.line_text(last_non_empty_line);
             let last_col = indent_len(last_line) + last_line.trim().len();
             let range = cursor.make_range(start_line, first_col, last_non_empty_line, last_col);
-            root_children.push(SyntaxElement::Token(SyntaxToken::new(
+            root_children.push(SyntaxElement::Node(build_text_block(
                 SyntaxKind::EXTENDED_SUMMARY,
                 range,
+                input,
             )));
         }
     }
@@ -1043,7 +1054,7 @@ fn flush_section(cursor: &LineCursor, header: SectionHeaderInfo, body: SectionBo
 
     let mut section_children = Vec::new();
     section_children.push(SyntaxElement::Node(build_section_header_node(&header)));
-    section_children.extend(body.into_children());
+    section_children.extend(body.into_children(cursor.source()));
 
     SyntaxNode::new(SyntaxKind::NUMPY_SECTION, section_range, section_children)
 }
@@ -1125,7 +1136,7 @@ mod tests {
         let parsed = parse_numpy(input);
         let root = parsed.root();
         assert_eq!(root.kind(), SyntaxKind::NUMPY_DOCSTRING);
-        let summary = root.find_token(SyntaxKind::SUMMARY).unwrap();
+        let summary = crate::parse::text_block::TextBlock::cast(root.find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
         assert_eq!(summary.text(parsed.source()), "Summary.");
         let sections: Vec<_> = root.nodes(SyntaxKind::NUMPY_SECTION).collect();
         assert_eq!(sections.len(), 1);

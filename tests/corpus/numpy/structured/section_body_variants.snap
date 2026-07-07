@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..387 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..50 {
@@ -18,7 +20,9 @@ NUMPY_DOCSTRING@0..387 {
       TYPE: "int"@36..39
       NEWLINE: "\n"@39..40
       WHITESPACE: "    "@40..44
-      DESCRIPTION: "Value."@44..50
+      DESCRIPTION@44..50 {
+        TEXT_LINE: "Value."@44..50
+      }
     }
   }
   NEWLINE: "\n"@50..51
@@ -30,7 +34,9 @@ NUMPY_DOCSTRING@0..387 {
       UNDERLINE: "--------"@61..69
     }
     NEWLINE: "\n"@69..70
-    BODY_TEXT: ">>> pass"@70..78
+    BODY_TEXT@70..78 {
+      TEXT_LINE: ">>> pass"@70..78
+    }
   }
   NEWLINE: "\n"@78..79
   BLANK_LINE: "\n"@79..80
@@ -45,7 +51,9 @@ NUMPY_DOCSTRING@0..387 {
       NAME: "foo()"@96..101
       NEWLINE: "\n"@101..102
       WHITESPACE: "    "@102..106
-      DESCRIPTION: "Does bar."@106..115
+      DESCRIPTION@106..115 {
+        TEXT_LINE: "Does bar."@106..115
+      }
     }
   }
   NEWLINE: "\n"@115..116
@@ -65,7 +73,9 @@ NUMPY_DOCSTRING@0..387 {
       TYPE: "int"@155..158
       NEWLINE: "\n"@158..159
       WHITESPACE: "    "@159..163
-      DESCRIPTION: "Extra."@163..169
+      DESCRIPTION@163..169 {
+        TEXT_LINE: "Extra."@163..169
+      }
     }
   }
   NEWLINE: "\n"@169..170
@@ -85,7 +95,9 @@ NUMPY_DOCSTRING@0..387 {
       TYPE: "bytes"@196..201
       NEWLINE: "\n"@201..202
       WHITESPACE: "    "@202..206
-      DESCRIPTION: "Payload."@206..214
+      DESCRIPTION@206..214 {
+        TEXT_LINE: "Payload."@206..214
+      }
     }
   }
   NEWLINE: "\n"@214..215
@@ -102,7 +114,9 @@ NUMPY_DOCSTRING@0..387 {
       WHITESPACE: " "@240..241
       COLON: ":"@241..242
       WHITESPACE: " "@242..243
-      DESCRIPTION: "Desc."@243..248
+      DESCRIPTION@243..248 {
+        TEXT_LINE: "Desc."@243..248
+      }
     }
   }
   NEWLINE: "\n"@248..249
@@ -114,7 +128,9 @@ NUMPY_DOCSTRING@0..387 {
       UNDERLINE: "-------------"@264..277
     }
     NEWLINE: "\n"@277..278
-    BODY_TEXT: "Some content."@278..291
+    BODY_TEXT@278..291 {
+      TEXT_LINE: "Some content."@278..291
+    }
   }
   NEWLINE: "\n"@291..292
   BLANK_LINE: "\n"@292..293
@@ -125,7 +141,9 @@ NUMPY_DOCSTRING@0..387 {
       UNDERLINE: "--------"@302..310
     }
     NEWLINE: "\n"@310..311
-    BODY_TEXT: "Do not use."@311..322
+    BODY_TEXT@311..322 {
+      TEXT_LINE: "Do not use."@311..322
+    }
   }
   NEWLINE: "\n"@322..323
   BLANK_LINE: "\n"@323..324
@@ -140,7 +158,9 @@ NUMPY_DOCSTRING@0..387 {
       TYPE: "UserWarning"@336..347
       NEWLINE: "\n"@347..348
       WHITESPACE: "    "@348..352
-      DESCRIPTION: "Bad."@352..356
+      DESCRIPTION@352..356 {
+        TEXT_LINE: "Bad."@352..356
+      }
     }
   }
   NEWLINE: "\n"@356..357
@@ -156,7 +176,9 @@ NUMPY_DOCSTRING@0..387 {
       RETURN_TYPE: "int"@372..375
       NEWLINE: "\n"@375..376
       WHITESPACE: "    "@376..380
-      DESCRIPTION: "Value."@380..386
+      DESCRIPTION@380..386 {
+        TEXT_LINE: "Value."@380..386
+      }
     }
   }
   NEWLINE: "\n"@386..387

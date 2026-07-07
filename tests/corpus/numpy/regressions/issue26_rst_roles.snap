@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..183 {
-  SUMMARY: "Function with role references."@0..30
+  SUMMARY@0..30 {
+    TEXT_LINE: "Function with role references."@0..30
+  }
   NEWLINE: "\n"@30..31
   BLANK_LINE: "\n"@31..32
   NUMPY_SECTION@32..182 {
@@ -19,14 +21,18 @@ NUMPY_DOCSTRING@0..183 {
       RETURN_TYPE: ":attr:`~module.ClassName.attr1`"@78..109
       NEWLINE: "\n"@109..110
       WHITESPACE: "    "@110..114
-      DESCRIPTION: "First attribute"@114..129
+      DESCRIPTION@114..129 {
+        TEXT_LINE: "First attribute"@114..129
+      }
     }
     NEWLINE: "\n"@129..130
     NUMPY_RETURNS@130..182 {
       RETURN_TYPE: ":attr:`~module.ClassName.attr2`"@130..161
       NEWLINE: "\n"@161..162
       WHITESPACE: "    "@162..166
-      DESCRIPTION: "Second attribute"@166..182
+      DESCRIPTION@166..182 {
+        TEXT_LINE: "Second attribute"@166..182
+      }
     }
   }
   NEWLINE: "\n"@182..183

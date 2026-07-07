@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..94 {
-  SUMMARY: "Compute values."@0..15
+  SUMMARY@0..15 {
+    TEXT_LINE: "Compute values."@0..15
+  }
   NEWLINE: "\n"@15..16
   BLANK_LINE: "\n"@16..17
   NUMPY_SECTION@17..93 {
@@ -18,7 +20,9 @@ NUMPY_DOCSTRING@0..94 {
       RETURN_TYPE: "int"@37..40
       NEWLINE: "\n"@40..41
       WHITESPACE: "    "@41..45
-      DESCRIPTION: "The first value."@45..61
+      DESCRIPTION@45..61 {
+        TEXT_LINE: "The first value."@45..61
+      }
     }
     NEWLINE: "\n"@61..62
     NUMPY_RETURNS@62..93 {
@@ -29,7 +33,9 @@ NUMPY_DOCSTRING@0..94 {
       RETURN_TYPE: "float"@66..71
       NEWLINE: "\n"@71..72
       WHITESPACE: "    "@72..76
-      DESCRIPTION: "The second value."@76..93
+      DESCRIPTION@76..93 {
+        TEXT_LINE: "The second value."@76..93
+      }
     }
   }
   NEWLINE: "\n"@93..94

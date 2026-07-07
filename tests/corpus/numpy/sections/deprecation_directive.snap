@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..101 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   NUMPY_DEPRECATION@10..59 {
@@ -12,7 +14,9 @@ NUMPY_DOCSTRING@0..101 {
     VERSION: "1.6.0"@26..31
     NEWLINE: "\n"@31..32
     WHITESPACE: "    "@32..36
-    DESCRIPTION: "Use `new_func` instead."@36..59
+    DESCRIPTION@36..59 {
+      TEXT_LINE: "Use `new_func` instead."@36..59
+    }
   }
   NEWLINE: "\n"@59..60
   BLANK_LINE: "\n"@60..61
@@ -31,7 +35,9 @@ NUMPY_DOCSTRING@0..101 {
       TYPE: "int"@87..90
       NEWLINE: "\n"@90..91
       WHITESPACE: "    "@91..95
-      DESCRIPTION: "Desc."@95..100
+      DESCRIPTION@95..100 {
+        TEXT_LINE: "Desc."@95..100
+      }
     }
   }
   NEWLINE: "\n"@100..101

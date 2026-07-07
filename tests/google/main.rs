@@ -16,6 +16,7 @@ pub use pydocstring::parse::google::GoogleSectionKind;
 pub use pydocstring::parse::google::GoogleSeeAlsoItem;
 pub use pydocstring::parse::google::GoogleWarning;
 pub use pydocstring::parse::google::GoogleYield;
+pub use pydocstring::parse::google::TextBlock;
 pub use pydocstring::parse::google::parse_google;
 pub use pydocstring::syntax::Parsed;
 pub use pydocstring::syntax::SyntaxKind;
@@ -130,14 +131,14 @@ pub fn references<'a>(result: &'a Parsed) -> Vec<GoogleReference<'a>> {
         .collect()
 }
 
-pub fn notes(result: &Parsed) -> Option<&SyntaxToken> {
+pub fn notes<'a>(result: &'a Parsed) -> Option<TextBlock<'a>> {
     doc(result)
         .sections()
         .find(|s| matches!(s.section_kind(result.source()), GoogleSectionKind::Notes))
         .and_then(|s| s.body_text())
 }
 
-pub fn examples(result: &Parsed) -> Option<&SyntaxToken> {
+pub fn examples<'a>(result: &'a Parsed) -> Option<TextBlock<'a>> {
     doc(result)
         .sections()
         .find(|s| matches!(s.section_kind(result.source()), GoogleSectionKind::Examples))

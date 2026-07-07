@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..171 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..41 {
@@ -18,7 +20,9 @@ GOOGLE_DOCSTRING@0..171 {
       CLOSE_BRACKET: ")"@34..35
       COLON: ":"@35..36
       WHITESPACE: " "@36..37
-      DESCRIPTION: "Key."@37..41
+      DESCRIPTION@37..41 {
+        TEXT_LINE: "Key."@37..41
+      }
     }
   }
   NEWLINE: "\n"@41..42
@@ -34,7 +38,9 @@ GOOGLE_DOCSTRING@0..171 {
       NAME: "foo()"@56..61
       COLON: ":"@61..62
       WHITESPACE: " "@62..63
-      DESCRIPTION: "Does bar."@63..72
+      DESCRIPTION@63..72 {
+        TEXT_LINE: "Does bar."@63..72
+      }
     }
   }
   NEWLINE: "\n"@72..73
@@ -54,7 +60,9 @@ GOOGLE_DOCSTRING@0..171 {
       CLOSE_BRACKET: ")"@102..103
       COLON: ":"@103..104
       WHITESPACE: " "@104..105
-      DESCRIPTION: "Extra."@105..111
+      DESCRIPTION@105..111 {
+        TEXT_LINE: "Extra."@105..111
+      }
     }
   }
   NEWLINE: "\n"@111..112
@@ -70,7 +78,9 @@ GOOGLE_DOCSTRING@0..171 {
       NAME: "func_a"@127..133
       COLON: ":"@133..134
       WHITESPACE: " "@134..135
-      DESCRIPTION: "Desc."@135..140
+      DESCRIPTION@135..140 {
+        TEXT_LINE: "Desc."@135..140
+      }
     }
   }
   NEWLINE: "\n"@140..141
@@ -86,7 +96,9 @@ GOOGLE_DOCSTRING@0..171 {
       WARNING_TYPE: "UserWarning"@153..164
       COLON: ":"@164..165
       WHITESPACE: " "@165..166
-      DESCRIPTION: "Desc."@166..171
+      DESCRIPTION@166..171 {
+        TEXT_LINE: "Desc."@166..171
+      }
     }
   }
 }

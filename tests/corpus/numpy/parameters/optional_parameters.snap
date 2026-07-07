@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..151 {
-  SUMMARY: "Function with optional parameters."@0..34
+  SUMMARY@0..34 {
+    TEXT_LINE: "Function with optional parameters."@0..34
+  }
   NEWLINE: "\n"@34..35
   BLANK_LINE: "\n"@35..36
   NUMPY_SECTION@36..150 {
@@ -18,7 +20,9 @@ NUMPY_DOCSTRING@0..151 {
       TYPE: "str"@69..72
       NEWLINE: "\n"@72..73
       WHITESPACE: "    "@73..77
-      DESCRIPTION: "A required parameter."@77..98
+      DESCRIPTION@77..98 {
+        TEXT_LINE: "A required parameter."@77..98
+      }
     }
     NEWLINE: "\n"@98..99
     NUMPY_PARAMETER@99..150 {
@@ -31,7 +35,9 @@ NUMPY_DOCSTRING@0..151 {
       OPTIONAL: "optional"@115..123
       NEWLINE: "\n"@123..124
       WHITESPACE: "    "@124..128
-      DESCRIPTION: "An optional parameter."@128..150
+      DESCRIPTION@128..150 {
+        TEXT_LINE: "An optional parameter."@128..150
+      }
     }
   }
   NEWLINE: "\n"@150..151

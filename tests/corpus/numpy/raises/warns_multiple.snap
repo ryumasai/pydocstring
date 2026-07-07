@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..81 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..80 {
@@ -14,14 +16,18 @@ NUMPY_DOCSTRING@0..81 {
       TYPE: "DeprecationWarning"@22..40
       NEWLINE: "\n"@40..41
       WHITESPACE: "    "@41..45
-      DESCRIPTION: "Old API."@45..53
+      DESCRIPTION@45..53 {
+        TEXT_LINE: "Old API."@45..53
+      }
     }
     NEWLINE: "\n"@53..54
     NUMPY_WARNING@54..80 {
       TYPE: "UserWarning"@54..65
       NEWLINE: "\n"@65..66
       WHITESPACE: "    "@66..70
-      DESCRIPTION: "Bad usage."@70..80
+      DESCRIPTION@70..80 {
+        TEXT_LINE: "Bad usage."@70..80
+      }
     }
   }
   NEWLINE: "\n"@80..81

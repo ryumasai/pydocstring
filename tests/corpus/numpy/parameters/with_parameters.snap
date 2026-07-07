@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..163 {
-  SUMMARY: "Calculate the sum of two numbers."@0..33
+  SUMMARY@0..33 {
+    TEXT_LINE: "Calculate the sum of two numbers."@0..33
+  }
   NEWLINE: "\n"@33..34
   BLANK_LINE: "\n"@34..35
   NUMPY_SECTION@35..117 {
@@ -18,7 +20,9 @@ NUMPY_DOCSTRING@0..163 {
       TYPE: "int"@61..64
       NEWLINE: "\n"@64..65
       WHITESPACE: "    "@65..69
-      DESCRIPTION: "The first number."@69..86
+      DESCRIPTION@69..86 {
+        TEXT_LINE: "The first number."@69..86
+      }
     }
     NEWLINE: "\n"@86..87
     NUMPY_PARAMETER@87..117 {
@@ -29,7 +33,9 @@ NUMPY_DOCSTRING@0..163 {
       TYPE: "int"@91..94
       NEWLINE: "\n"@94..95
       WHITESPACE: "    "@95..99
-      DESCRIPTION: "The second number."@99..117
+      DESCRIPTION@99..117 {
+        TEXT_LINE: "The second number."@99..117
+      }
     }
   }
   NEWLINE: "\n"@117..118
@@ -45,7 +51,9 @@ NUMPY_DOCSTRING@0..163 {
       RETURN_TYPE: "int"@135..138
       NEWLINE: "\n"@138..139
       WHITESPACE: "    "@139..143
-      DESCRIPTION: "The sum of x and y."@143..162
+      DESCRIPTION@143..162 {
+        TEXT_LINE: "The sum of x and y."@143..162
+      }
     }
   }
   NEWLINE: "\n"@162..163

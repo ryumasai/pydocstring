@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..58 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..58 {
@@ -14,7 +16,9 @@ GOOGLE_DOCSTRING@0..58 {
       WARNING_TYPE: "DeprecationWarning"@21..39
       COLON: ":"@39..40
       WHITESPACE: " "@40..41
-      DESCRIPTION: "If using old API."@41..58
+      DESCRIPTION@41..58 {
+        TEXT_LINE: "If using old API."@41..58
+      }
     }
   }
 }

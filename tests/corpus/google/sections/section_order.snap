@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..55 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..34 {
@@ -14,7 +16,9 @@ GOOGLE_DOCSTRING@0..55 {
       RETURN_TYPE: "int"@23..26
       COLON: ":"@26..27
       WHITESPACE: " "@27..28
-      DESCRIPTION: "Value."@28..34
+      DESCRIPTION@28..34 {
+        TEXT_LINE: "Value."@28..34
+      }
     }
   }
   NEWLINE: "\n"@34..35
@@ -30,7 +34,9 @@ GOOGLE_DOCSTRING@0..55 {
       NAME: "x"@46..47
       COLON: ":"@47..48
       WHITESPACE: " "@48..49
-      DESCRIPTION: "Input."@49..55
+      DESCRIPTION@49..55 {
+        TEXT_LINE: "Input."@49..55
+      }
     }
   }
 }

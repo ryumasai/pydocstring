@@ -38,6 +38,7 @@ from ._pydocstring import Section
 from ._pydocstring import SectionKind
 from ._pydocstring import SeeAlsoEntry
 from ._pydocstring import Style
+from ._pydocstring import TextBlock
 from ._pydocstring import TextRange
 from ._pydocstring import Token
 from ._pydocstring import WalkContext
@@ -57,6 +58,7 @@ __all__ = [
     "TextRange",
     "LineColumn",
     "WalkContext",
+    "TextBlock",
     "Token",
     "Style",
     # ── Section kinds ─────────────────────────────────────────────────────

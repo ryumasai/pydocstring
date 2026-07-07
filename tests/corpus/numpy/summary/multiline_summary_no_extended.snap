@@ -1,6 +1,10 @@
 === CST ===
 NUMPY_DOCSTRING@0..32 {
-  SUMMARY: "Summary line one\ncontinues here."@0..32
+  SUMMARY@0..32 {
+    TEXT_LINE: "Summary line one"@0..16
+    NEWLINE: "\n"@16..17
+    TEXT_LINE: "continues here."@17..32
+  }
 }
 === EMIT ===
 Summary line one

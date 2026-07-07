@@ -32,7 +32,8 @@ pub enum SyntaxKind {
     TYPE,
     /// `:` separator.
     COLON,
-    /// Description text.
+    /// Description text block (node wrapping one [`SyntaxKind::TEXT_LINE`]
+    /// token per content line).
     DESCRIPTION,
     /// Opening bracket: `(`, `[`, `{`, or `<`.
     OPEN_BRACKET,
@@ -40,14 +41,23 @@ pub enum SyntaxKind {
     CLOSE_BRACKET,
     /// `optional` marker.
     OPTIONAL,
-    /// Free-text section body.
+    /// Free-text section body (node wrapping one
+    /// [`SyntaxKind::TEXT_LINE`] token per content line).
     BODY_TEXT,
-    /// Summary line.
+    /// Summary block (node wrapping one [`SyntaxKind::TEXT_LINE`] token per
+    /// content line).
     SUMMARY,
-    /// Extended summary paragraph.
+    /// Extended summary paragraph (node wrapping one
+    /// [`SyntaxKind::TEXT_LINE`] token per content line).
     EXTENDED_SUMMARY,
     /// Stray line between sections.
     STRAY_LINE,
+    /// The content span of one line inside a text block node
+    /// ([`SyntaxKind::SUMMARY`], [`SyntaxKind::EXTENDED_SUMMARY`],
+    /// [`SyntaxKind::DESCRIPTION`], [`SyntaxKind::BODY_TEXT`],
+    /// [`SyntaxKind::CONTENT`]): excludes leading indentation and the
+    /// trailing newline. Never contains a newline.
+    TEXT_LINE,
 
     // ── Trivia tokens ──────────────────────────────────────────────────
     /// A run of spaces/tabs within a line (indentation, inter-token
@@ -88,7 +98,8 @@ pub enum SyntaxKind {
     DEFAULT_VALUE,
     /// Reference number.
     NUMBER,
-    /// Reference content text.
+    /// Reference content text block (node wrapping one
+    /// [`SyntaxKind::TEXT_LINE`] token per content line).
     CONTENT,
 
     // ── Google nodes ───────────────────────────────────────────────────
@@ -159,7 +170,12 @@ impl SyntaxKind {
     pub const fn is_node(self) -> bool {
         matches!(
             self,
-            Self::PLAIN_DOCSTRING
+            Self::SUMMARY
+                | Self::EXTENDED_SUMMARY
+                | Self::DESCRIPTION
+                | Self::BODY_TEXT
+                | Self::CONTENT
+                | Self::PLAIN_DOCSTRING
                 | Self::GOOGLE_DOCSTRING
                 | Self::GOOGLE_SECTION
                 | Self::GOOGLE_SECTION_HEADER
@@ -217,6 +233,7 @@ impl SyntaxKind {
             Self::SUMMARY => "SUMMARY",
             Self::EXTENDED_SUMMARY => "EXTENDED_SUMMARY",
             Self::STRAY_LINE => "STRAY_LINE",
+            Self::TEXT_LINE => "TEXT_LINE",
             // Trivia tokens
             Self::WHITESPACE => "WHITESPACE",
             Self::NEWLINE => "NEWLINE",
@@ -621,7 +638,7 @@ mod tests {
                     TextRange::new(TextSize::new(3), TextSize::new(4)),
                 )),
                 SyntaxElement::Token(SyntaxToken::new(
-                    SyntaxKind::DESCRIPTION,
+                    SyntaxKind::TEXT_LINE,
                     TextRange::new(TextSize::new(5), TextSize::new(10)),
                 )),
             ],
@@ -691,7 +708,7 @@ mod tests {
                                 TextRange::new(TextSize::new(11), TextSize::new(12)),
                             )),
                             SyntaxElement::Token(SyntaxToken::new(
-                                SyntaxKind::DESCRIPTION,
+                                SyntaxKind::TEXT_LINE,
                                 TextRange::new(TextSize::new(13), TextSize::new(source.len() as u32)),
                             )),
                         ],
@@ -711,7 +728,7 @@ mod tests {
         assert!(output.contains("NAME: \"Args\"@"));
         assert!(output.contains("COLON: \":\"@"));
         assert!(output.contains("NAME: \"x\"@"));
-        assert!(output.contains("DESCRIPTION: \"int\"@"));
+        assert!(output.contains("TEXT_LINE: \"int\"@"));
     }
 
     #[test]
@@ -721,7 +738,7 @@ mod tests {
             SyntaxKind::GOOGLE_DOCSTRING,
             TextRange::new(TextSize::new(0), TextSize::new(5)),
             vec![SyntaxElement::Token(SyntaxToken::new(
-                SyntaxKind::SUMMARY,
+                SyntaxKind::TEXT_LINE,
                 TextRange::new(TextSize::new(0), TextSize::new(5)),
             ))],
         );
@@ -745,7 +762,7 @@ mod tests {
         assert_eq!(counter.tokens, 1);
 
         // verify text extraction
-        let tok = root.required_token(SyntaxKind::SUMMARY);
+        let tok = root.required_token(SyntaxKind::TEXT_LINE);
         assert_eq!(tok.text(source), "hello");
     }
 }

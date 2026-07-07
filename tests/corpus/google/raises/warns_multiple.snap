@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..78 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..78 {
@@ -14,7 +16,9 @@ GOOGLE_DOCSTRING@0..78 {
       WARNING_TYPE: "DeprecationWarning"@21..39
       COLON: ":"@39..40
       WHITESPACE: " "@40..41
-      DESCRIPTION: "Old API."@41..49
+      DESCRIPTION@41..49 {
+        TEXT_LINE: "Old API."@41..49
+      }
     }
     NEWLINE: "\n"@49..50
     WHITESPACE: "    "@50..54
@@ -22,7 +26,9 @@ GOOGLE_DOCSTRING@0..78 {
       WARNING_TYPE: "UserWarning"@54..65
       COLON: ":"@65..66
       WHITESPACE: " "@66..67
-      DESCRIPTION: "Bad config."@67..78
+      DESCRIPTION@67..78 {
+        TEXT_LINE: "Bad config."@67..78
+      }
     }
   }
 }

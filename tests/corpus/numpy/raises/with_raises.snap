@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..127 {
-  SUMMARY: "Function that may raise exceptions."@0..35
+  SUMMARY@0..35 {
+    TEXT_LINE: "Function that may raise exceptions."@0..35
+  }
   NEWLINE: "\n"@35..36
   BLANK_LINE: "\n"@36..37
   NUMPY_SECTION@37..126 {
@@ -14,14 +16,18 @@ NUMPY_DOCSTRING@0..127 {
       TYPE: "ValueError"@51..61
       NEWLINE: "\n"@61..62
       WHITESPACE: "    "@62..66
-      DESCRIPTION: "If the input is invalid."@66..90
+      DESCRIPTION@66..90 {
+        TEXT_LINE: "If the input is invalid."@66..90
+      }
     }
     NEWLINE: "\n"@90..91
     NUMPY_EXCEPTION@91..126 {
       TYPE: "TypeError"@91..100
       NEWLINE: "\n"@100..101
       WHITESPACE: "    "@101..105
-      DESCRIPTION: "If the type is wrong."@105..126
+      DESCRIPTION@105..126 {
+        TEXT_LINE: "If the type is wrong."@105..126
+      }
     }
   }
   NEWLINE: "\n"@126..127

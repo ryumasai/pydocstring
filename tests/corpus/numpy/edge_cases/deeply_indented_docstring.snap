@@ -1,7 +1,9 @@
 === CST ===
 NUMPY_DOCSTRING@0..165 {
   WHITESPACE: "        "@0..8
-  SUMMARY: "Brief."@8..14
+  SUMMARY@8..14 {
+    TEXT_LINE: "Brief."@8..14
+  }
   NEWLINE: "\n"@14..15
   BLANK_LINE: "\n"@15..16
   WHITESPACE: "        "@16..24
@@ -22,7 +24,9 @@ NUMPY_DOCSTRING@0..165 {
       TYPE: "float"@66..71
       NEWLINE: "\n"@71..72
       WHITESPACE: "            "@72..84
-      DESCRIPTION: "The value."@84..94
+      DESCRIPTION@84..94 {
+        TEXT_LINE: "The value."@84..94
+      }
     }
   }
   NEWLINE: "\n"@94..95
@@ -41,7 +45,9 @@ NUMPY_DOCSTRING@0..165 {
       TYPE: "ValueError"@134..144
       NEWLINE: "\n"@144..145
       WHITESPACE: "            "@145..157
-      DESCRIPTION: "If bad."@157..164
+      DESCRIPTION@157..164 {
+        TEXT_LINE: "If bad."@157..164
+      }
     }
   }
   NEWLINE: "\n"@164..165

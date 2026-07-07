@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..57 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..32 {
@@ -10,7 +12,9 @@ GOOGLE_DOCSTRING@0..57 {
     }
     NEWLINE: "\n"@21..22
     WHITESPACE: "    "@22..26
-    BODY_TEXT: "First."@26..32
+    BODY_TEXT@26..32 {
+      TEXT_LINE: "First."@26..32
+    }
   }
   NEWLINE: "\n"@32..33
   BLANK_LINE: "\n"@33..34
@@ -21,7 +25,9 @@ GOOGLE_DOCSTRING@0..57 {
     }
     NEWLINE: "\n"@45..46
     WHITESPACE: "    "@46..50
-    BODY_TEXT: "Second."@50..57
+    BODY_TEXT@50..57 {
+      TEXT_LINE: "Second."@50..57
+    }
   }
 }
 === EMIT ===

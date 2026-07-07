@@ -1,9 +1,15 @@
 === CST ===
 NUMPY_DOCSTRING@0..92 {
-  SUMMARY: "Brief summary."@0..14
+  SUMMARY@0..14 {
+    TEXT_LINE: "Brief summary."@0..14
+  }
   NEWLINE: "\n"@14..15
   BLANK_LINE: "\n"@15..16
-  EXTENDED_SUMMARY: "This is a longer description that provides\nmore details about the function."@16..91
+  EXTENDED_SUMMARY@16..91 {
+    TEXT_LINE: "This is a longer description that provides"@16..58
+    NEWLINE: "\n"@58..59
+    TEXT_LINE: "more details about the function."@59..91
+  }
   NEWLINE: "\n"@91..92
 }
 === EMIT ===

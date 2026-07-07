@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..407 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..56 {
@@ -10,7 +12,9 @@ GOOGLE_DOCSTRING@0..407 {
     }
     NEWLINE: "\n"@20..21
     WHITESPACE: "    "@21..25
-    BODY_TEXT: "This requires careful handling."@25..56
+    BODY_TEXT@25..56 {
+      TEXT_LINE: "This requires careful handling."@25..56
+    }
   }
   NEWLINE: "\n"@56..57
   BLANK_LINE: "\n"@57..58
@@ -21,7 +25,9 @@ GOOGLE_DOCSTRING@0..407 {
     }
     NEWLINE: "\n"@66..67
     WHITESPACE: "    "@67..71
-    BODY_TEXT: "Use with care."@71..85
+    BODY_TEXT@71..85 {
+      TEXT_LINE: "Use with care."@71..85
+    }
   }
   NEWLINE: "\n"@85..86
   BLANK_LINE: "\n"@86..87
@@ -32,7 +38,9 @@ GOOGLE_DOCSTRING@0..407 {
     }
     NEWLINE: "\n"@94..95
     WHITESPACE: "    "@95..99
-    BODY_TEXT: "May cause data loss."@99..119
+    BODY_TEXT@99..119 {
+      TEXT_LINE: "May cause data loss."@99..119
+    }
   }
   NEWLINE: "\n"@119..120
   BLANK_LINE: "\n"@120..121
@@ -43,7 +51,9 @@ GOOGLE_DOCSTRING@0..407 {
     }
     NEWLINE: "\n"@127..128
     WHITESPACE: "    "@128..132
-    BODY_TEXT: "Known issue with large inputs."@132..162
+    BODY_TEXT@132..162 {
+      TEXT_LINE: "Known issue with large inputs."@132..162
+    }
   }
   NEWLINE: "\n"@162..163
   BLANK_LINE: "\n"@163..164
@@ -54,7 +64,9 @@ GOOGLE_DOCSTRING@0..407 {
     }
     NEWLINE: "\n"@169..170
     WHITESPACE: "    "@170..174
-    BODY_TEXT: "Try using a smaller batch size."@174..205
+    BODY_TEXT@174..205 {
+      TEXT_LINE: "Try using a smaller batch size."@174..205
+    }
   }
   NEWLINE: "\n"@205..206
   BLANK_LINE: "\n"@206..207
@@ -65,7 +77,9 @@ GOOGLE_DOCSTRING@0..407 {
     }
     NEWLINE: "\n"@217..218
     WHITESPACE: "    "@218..222
-    BODY_TEXT: "Must be called before init()."@222..251
+    BODY_TEXT@222..251 {
+      TEXT_LINE: "Must be called before init()."@222..251
+    }
   }
   NEWLINE: "\n"@251..252
   BLANK_LINE: "\n"@252..253
@@ -76,7 +90,9 @@ GOOGLE_DOCSTRING@0..407 {
     }
     NEWLINE: "\n"@258..259
     WHITESPACE: "    "@259..263
-    BODY_TEXT: "This is a note."@263..278
+    BODY_TEXT@263..278 {
+      TEXT_LINE: "This is a note."@263..278
+    }
   }
   NEWLINE: "\n"@278..279
   BLANK_LINE: "\n"@279..280
@@ -87,7 +103,9 @@ GOOGLE_DOCSTRING@0..407 {
     }
     NEWLINE: "\n"@284..285
     WHITESPACE: "    "@285..289
-    BODY_TEXT: "Use vectorized operations for speed."@289..325
+    BODY_TEXT@289..325 {
+      TEXT_LINE: "Use vectorized operations for speed."@289..325
+    }
   }
   NEWLINE: "\n"@325..326
   BLANK_LINE: "\n"@326..327
@@ -98,7 +116,9 @@ GOOGLE_DOCSTRING@0..407 {
     }
     NEWLINE: "\n"@336..337
     WHITESPACE: "    "@337..341
-    BODY_TEXT: "This function is deprecated."@341..369
+    BODY_TEXT@341..369 {
+      TEXT_LINE: "This function is deprecated."@341..369
+    }
   }
   NEWLINE: "\n"@369..370
   BLANK_LINE: "\n"@370..371
@@ -110,7 +130,9 @@ GOOGLE_DOCSTRING@0..407 {
     NEWLINE: "\n"@382..383
     WHITESPACE: "    "@383..387
     GOOGLE_REFERENCE@387..407 {
-      CONTENT: "Author, Title, 2024."@387..407
+      CONTENT@387..407 {
+        TEXT_LINE: "Author, Title, 2024."@387..407
+      }
     }
   }
 }

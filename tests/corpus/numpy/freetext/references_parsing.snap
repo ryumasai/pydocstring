@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..100 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..99 {
@@ -17,7 +19,9 @@ NUMPY_DOCSTRING@0..100 {
       NUMBER: "1"@36..37
       CLOSE_BRACKET: "]"@37..38
       WHITESPACE: " "@38..39
-      CONTENT: "Author A, \"Title A\", 2020."@39..65
+      CONTENT@39..65 {
+        TEXT_LINE: "Author A, \"Title A\", 2020."@39..65
+      }
     }
     NEWLINE: "\n"@65..66
     NUMPY_REFERENCE@66..99 {
@@ -27,7 +31,9 @@ NUMPY_DOCSTRING@0..100 {
       NUMBER: "2"@70..71
       CLOSE_BRACKET: "]"@71..72
       WHITESPACE: " "@72..73
-      CONTENT: "Author B, \"Title B\", 2021."@73..99
+      CONTENT@73..99 {
+        TEXT_LINE: "Author B, \"Title B\", 2021."@73..99
+      }
     }
   }
   NEWLINE: "\n"@99..100

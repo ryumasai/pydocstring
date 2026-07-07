@@ -1,9 +1,15 @@
 === CST ===
 NUMPY_DOCSTRING@0..67 {
-  SUMMARY: "This is a long summary\nthat spans two lines."@0..44
+  SUMMARY@0..44 {
+    TEXT_LINE: "This is a long summary"@0..22
+    NEWLINE: "\n"@22..23
+    TEXT_LINE: "that spans two lines."@23..44
+  }
   NEWLINE: "\n"@44..45
   BLANK_LINE: "\n"@45..46
-  EXTENDED_SUMMARY: "Extended description."@46..67
+  EXTENDED_SUMMARY@46..67 {
+    TEXT_LINE: "Extended description."@46..67
+  }
 }
 === EMIT ===
 This is a long summary

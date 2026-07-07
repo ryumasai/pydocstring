@@ -1,26 +1,28 @@
 === CST ===
-NUMPY_DOCSTRING@0..63 {
+NUMPY_DOCSTRING@0..59 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  NUMPY_SECTION@10..63 {
+  NUMPY_SECTION@10..58 {
     NUMPY_SECTION_HEADER@10..23 {
       NAME: "Raises"@10..16
       NEWLINE: "\n"@16..17
       UNDERLINE: "------"@17..23
     }
     NEWLINE: "\n"@23..24
-    NUMPY_EXCEPTION@24..63 {
+    NUMPY_EXCEPTION@24..58 {
       TYPE: "ValueError"@24..34
-      NEWLINE: "\n"@34..35
-      WHITESPACE: "    "@35..39
-      DESCRIPTION@39..63 {
-        TEXT_LINE: "If the input is invalid."@39..63
+      COLON: ":"@34..35
+      NEWLINE: "\n"@35..36
+      WHITESPACE: "    "@36..40
+      DESCRIPTION@40..58 {
+        TEXT_LINE: "Later description."@40..58
       }
     }
   }
+  NEWLINE: "\n"@58..59
 }
 === EMIT ===
 Summary.
@@ -28,4 +30,4 @@ Summary.
 Raises
 ------
 ValueError
-    If the input is invalid.
+    Later description.

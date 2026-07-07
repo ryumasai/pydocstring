@@ -7,6 +7,7 @@ pub mod nodes;
 pub mod parser;
 pub mod to_model;
 
+pub use crate::parse::text_block::TextBlock;
 pub use crate::parse::visitor::DocstringVisitor;
 pub use crate::parse::visitor::walk;
 pub use kind::NumPySectionKind;

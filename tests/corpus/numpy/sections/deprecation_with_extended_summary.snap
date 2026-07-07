@@ -1,6 +1,8 @@
 === CST ===
 NUMPY_DOCSTRING@0..97 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   NUMPY_DEPRECATION@10..57 {
@@ -12,11 +14,15 @@ NUMPY_DOCSTRING@0..97 {
     VERSION: "1.6.0"@26..31
     NEWLINE: "\n"@31..32
     WHITESPACE: "    "@32..36
-    DESCRIPTION: "Use new_func instead."@36..57
+    DESCRIPTION@36..57 {
+      TEXT_LINE: "Use new_func instead."@36..57
+    }
   }
   NEWLINE: "\n"@57..58
   BLANK_LINE: "\n"@58..59
-  EXTENDED_SUMMARY: "Extended description of the function."@59..96
+  EXTENDED_SUMMARY@59..96 {
+    TEXT_LINE: "Extended description of the function."@59..96
+  }
   NEWLINE: "\n"@96..97
 }
 === EMIT ===

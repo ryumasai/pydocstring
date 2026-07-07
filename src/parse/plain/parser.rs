@@ -2,16 +2,16 @@
 //!
 //! Parses docstrings that contain no NumPy or Google style section markers.
 //! Produces a [`Parsed`] with a [`SyntaxKind::PLAIN_DOCSTRING`] root that may
-//! contain a [`SyntaxKind::SUMMARY`] token and an
-//! [`SyntaxKind::EXTENDED_SUMMARY`] token.
+//! contain a [`SyntaxKind::SUMMARY`] node and an
+//! [`SyntaxKind::EXTENDED_SUMMARY`] node.
 
 use crate::cursor::LineCursor;
 use crate::cursor::indent_len;
+use crate::parse::utils::build_text_block;
 use crate::syntax::Parsed;
 use crate::syntax::SyntaxElement;
 use crate::syntax::SyntaxKind;
 use crate::syntax::SyntaxNode;
-use crate::syntax::SyntaxToken;
 use crate::text::TextRange;
 
 // =============================================================================
@@ -32,7 +32,7 @@ fn build_content_range(cursor: &LineCursor, first: Option<usize>, last: usize) -
 /// Parse a plain docstring (no NumPy or Google section markers).
 ///
 /// The returned [`Parsed`] has a [`SyntaxKind::PLAIN_DOCSTRING`] root that
-/// contains at most one `SUMMARY` token and one `EXTENDED_SUMMARY` token.
+/// contains at most one `SUMMARY` node and one `EXTENDED_SUMMARY` node.
 /// Unrecognised styles (e.g. Sphinx) are also parsed this way.
 ///
 /// # Example
@@ -69,9 +69,10 @@ pub fn parse_plain(input: &str) -> Parsed {
         if line_cursor.current_trimmed().is_empty() {
             // Blank line: flush summary if not done yet.
             if !summary_done && summary_first.is_some() {
-                root_children.push(SyntaxElement::Token(SyntaxToken::new(
+                root_children.push(SyntaxElement::Node(build_text_block(
                     SyntaxKind::SUMMARY,
                     build_content_range(&line_cursor, summary_first, summary_last).unwrap(),
+                    input,
                 )));
                 summary_done = true;
             }
@@ -96,15 +97,17 @@ pub fn parse_plain(input: &str) -> Parsed {
 
     // Finalise at EOF.
     if !summary_done && summary_first.is_some() {
-        root_children.push(SyntaxElement::Token(SyntaxToken::new(
+        root_children.push(SyntaxElement::Node(build_text_block(
             SyntaxKind::SUMMARY,
             build_content_range(&line_cursor, summary_first, summary_last).unwrap(),
+            input,
         )));
     }
     if ext_first.is_some() {
-        root_children.push(SyntaxElement::Token(SyntaxToken::new(
+        root_children.push(SyntaxElement::Node(build_text_block(
             SyntaxKind::EXTENDED_SUMMARY,
             build_content_range(&line_cursor, ext_first, ext_last).unwrap(),
+            input,
         )));
     }
 

@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..76 {
-  SUMMARY: "Summary."@0..8
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..76 {
@@ -11,12 +13,16 @@ GOOGLE_DOCSTRING@0..76 {
     NEWLINE: "\n"@21..22
     WHITESPACE: "    "@22..26
     GOOGLE_REFERENCE@26..47 {
-      CONTENT: ".. [1 unclosed marker"@26..47
+      CONTENT@26..47 {
+        TEXT_LINE: ".. [1 unclosed marker"@26..47
+      }
     }
     NEWLINE: "\n"@47..48
     WHITESPACE: "    "@48..52
     GOOGLE_REFERENCE@52..76 {
-      CONTENT: "plain ref with ] bracket"@52..76
+      CONTENT@52..76 {
+        TEXT_LINE: "plain ref with ] bracket"@52..76
+      }
     }
   }
 }

@@ -10,6 +10,57 @@ use crate::syntax::SyntaxToken;
 use crate::text::TextRange;
 
 // =============================================================================
+// Text block builders (shared by all parsers)
+// =============================================================================
+
+/// Build a text block node of `kind` wrapping one [`SyntaxKind::TEXT_LINE`]
+/// token per content line of `source[range]`.
+///
+/// `range` must span from the start of the first content line's text to the
+/// end of the last content line's text (the parsers' trimmed content-range
+/// convention). Interior indentation, newlines, and blank lines are *not*
+/// tokenized here; the trivia pass fills those gaps inside the node.
+pub(crate) fn build_text_block(kind: SyntaxKind, range: TextRange, source: &str) -> SyntaxNode {
+    let start = usize::from(range.start());
+    let end = usize::from(range.end());
+    let mut children = Vec::new();
+    let mut line_start = start;
+    for line in source[start..end].split_inclusive('\n') {
+        let content = line.trim();
+        if !content.is_empty() {
+            let lead = line.len() - line.trim_start().len();
+            children.push(SyntaxElement::Token(SyntaxToken::new(
+                SyntaxKind::TEXT_LINE,
+                TextRange::from_offset_len(line_start + lead, content.len()),
+            )));
+        }
+        line_start += line.len();
+    }
+    SyntaxNode::new(kind, range, children)
+}
+
+/// Build a single-line text block node of `kind` whose one `TEXT_LINE`
+/// token covers exactly `range` (a trimmed span within one line).
+pub(crate) fn text_block_single(kind: SyntaxKind, range: TextRange) -> SyntaxNode {
+    let children = vec![SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TEXT_LINE, range))];
+    SyntaxNode::new(kind, range, children)
+}
+
+/// Build a zero-length placeholder text block node of `kind` at `pos`,
+/// representing a syntactically missing element (no `TEXT_LINE` children).
+pub(crate) fn missing_text_block(kind: SyntaxKind, pos: crate::text::TextSize) -> SyntaxNode {
+    SyntaxNode::new(kind, TextRange::new(pos, pos), Vec::new())
+}
+
+/// Append a continuation line to an existing text block node: push a
+/// `TEXT_LINE` token covering `cont` (a trimmed single-line span) and extend
+/// the node's range to include it.
+pub(crate) fn extend_text_block(block: &mut SyntaxNode, cont: TextRange) {
+    block.push_child(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TEXT_LINE, cont)));
+    block.extend_range_to(cont.end());
+}
+
+// =============================================================================
 // Deprecation directive parsing (shared by the NumPy and Google parsers)
 // =============================================================================
 
@@ -95,7 +146,11 @@ pub(crate) fn try_parse_deprecation_directive(cursor: &mut LineCursor, node_kind
     let desc_range = collect_description(cursor, indent_columns(line));
 
     if let Some(desc) = desc_range {
-        dep_children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DESCRIPTION, desc)));
+        dep_children.push(SyntaxElement::Node(build_text_block(
+            SyntaxKind::DESCRIPTION,
+            desc,
+            cursor.source(),
+        )));
     }
 
     // Compute deprecation span
@@ -462,32 +517,32 @@ fn build_reference_node_rst(
         close_bracket,
     )));
     if let Some(c) = content {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::CONTENT, c)));
+        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::CONTENT, c)));
     }
     SyntaxNode::new(kind, range, children)
 }
 
 /// Build a reference node of `kind` for a plain-text line (content only).
 fn build_reference_node_plain(kind: SyntaxKind, content: TextRange, range: TextRange) -> SyntaxNode {
-    let children = vec![SyntaxElement::Token(SyntaxToken::new(SyntaxKind::CONTENT, content))];
+    let children = vec![SyntaxElement::Node(text_block_single(SyntaxKind::CONTENT, content))];
     SyntaxNode::new(kind, range, children)
 }
 
-/// Extend the `CONTENT` token of the last reference node, or add one.
+/// Extend the `CONTENT` block of the last reference node, or add one.
 fn extend_last_ref_content(nodes: &mut [SyntaxElement], cont: TextRange) {
     if let Some(SyntaxElement::Node(node)) = nodes.last_mut() {
         let mut found_content = false;
         for child in node.children_mut() {
-            if let SyntaxElement::Token(t) = child {
-                if t.kind() == SyntaxKind::CONTENT {
-                    t.extend_range(cont);
+            if let SyntaxElement::Node(n) = child {
+                if n.kind() == SyntaxKind::CONTENT {
+                    extend_text_block(n, cont);
                     found_content = true;
                     break;
                 }
             }
         }
         if !found_content {
-            node.push_child(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::CONTENT, cont)));
+            node.push_child(SyntaxElement::Node(text_block_single(SyntaxKind::CONTENT, cont)));
         }
         node.extend_range_to(cont.end());
     }
