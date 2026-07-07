@@ -305,3 +305,16 @@ fn test_google_style_entry_no_colon_after_bracket() {
     assert_eq!(params[0].r#type().map(|t| t.text(result.source())), Some("int"));
     assert_eq!(params[0].description().map(|t| t.text(result.source())), Some("Desc."));
 }
+
+/// SPEC: a type whose name merely starts with `default` (e.g. `defaultdict`)
+/// is a type, not a default-value marker (#64).
+#[test]
+fn test_defaultdict_type_not_default_marker() {
+    let docstring = "Summary.\n\nParameters\n----------\nx : defaultdict\n    A mapping.\n";
+    let result = parse_numpy(docstring);
+    let params = parameters(&result);
+    assert_eq!(params.len(), 1);
+    assert_eq!(params[0].r#type().unwrap().text(result.source()), "defaultdict");
+    assert!(params[0].default_value().is_none());
+    assert!(params[0].default_keyword().is_none());
+}

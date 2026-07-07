@@ -1,0 +1,6 @@
+Summary.
+
+Parameters
+----------
+x : defaultdict
+    A mapping.
