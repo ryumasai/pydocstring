@@ -33,14 +33,21 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     // unambiguous NumPy form — the bare line re-parses as the type
     // (prefer_type, see the #26 discussion).
     "google->numpy: google/returns/returns_without_type.txt",
-    // Named / multiple / type-only Returns and Yields entries do not survive
-    // the Google round trip (Google's entry syntax cannot express all of
-    // them, and emit_google/parse_google disagree on the rest).
+    // Representational limits of the Google format (#58): both sides are
+    // individually faithful to napoleon, so these are permanent — a lossless
+    // encoding would be a deliberate spec departure (v2 material, see #48).
+    //
+    // (a) Google Returns/Yields is a SINGLE entry — later `type:` lines fold
+    // into the description (pinned by test_returns_multiple_lines), so
+    // multiple numpy entries cannot survive.
     "numpy->google: numpy/regressions/issue26_rst_roles.txt",
     "numpy->google: numpy/returns/parse_named_returns.txt",
+    "numpy->google: numpy/returns/yields_multiple.txt",
+    // (b) Google has no named-return syntax — Return::name is dropped by
+    // emit_return (a `name (type): desc` spelling would re-parse as pure
+    // description, matching napoleon). Also contributes to the (a) cases.
     "numpy->google: numpy/returns/returns_multiline_description.txt",
     "numpy->google: numpy/returns/returns_no_spaces_around_colon.txt",
-    "numpy->google: numpy/returns/yields_multiple.txt",
     "numpy->google: numpy/returns/yields_named.txt",
 ];
 
