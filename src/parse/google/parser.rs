@@ -14,6 +14,7 @@ use crate::parse::utils::find_matching_close;
 use crate::parse::utils::find_term_colon;
 use crate::parse::utils::missing_text_block;
 use crate::parse::utils::process_reference_line;
+use crate::parse::utils::separator_comma_offsets;
 use crate::parse::utils::split_comma_parts;
 use crate::parse::utils::text_block_single;
 use crate::parse::utils::try_parse_deprecation_directive;
@@ -89,12 +90,7 @@ fn split_type_markers(type_content: &str) -> TypeMarkers<'_> {
     let mut default_value = None;
     let mut type_end = 0;
 
-    let parts = split_comma_parts(type_content);
-    // The separator comma before each part after the first sits one byte
-    // before that part.
-    let comma_positions: Vec<usize> = parts.iter().skip(1).map(|(seg_offset, _)| seg_offset - 1).collect();
-
-    for (seg_offset, seg_raw) in parts {
+    for (seg_offset, seg_raw) in split_comma_parts(type_content) {
         let seg = seg_raw.trim();
         if seg.is_empty() {
             continue;
@@ -131,16 +127,9 @@ fn split_type_markers(type_content: &str) -> TypeMarkers<'_> {
         type_content[..type_end].trim_end_matches(',').trim_end()
     };
 
-    // Separator commas after the clean type become COMMA tokens; commas
-    // inside the clean type stay covered by the TYPE token.
-    let commas: Vec<usize> = comma_positions
-        .into_iter()
-        .filter(|&pos| pos >= clean_type.len())
-        .collect();
-
     TypeMarkers {
         clean_type,
-        commas,
+        commas: separator_comma_offsets(type_content, clean_type.len()),
         optional,
         default_keyword,
         default_separator,

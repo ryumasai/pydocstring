@@ -42,11 +42,10 @@ pub(crate) fn attach_trivia(root: &mut SyntaxNode, source: &str) {
 /// Recursively splice trivia into `node`'s child list.
 ///
 /// Gaps are the bytes inside the node's range that no child covers. They
-/// are computed over the child ranges *sorted by position*: some parsers
-/// store entry children in canonical rather than source order (e.g. a
-/// google-style `name (type):` entry in a NumPy section lists `COLON`
-/// before `TYPE`), and a later-listed child must still shield its bytes
-/// from being lexed as trivia.
+/// are computed over the child ranges *sorted by position* — defensive:
+/// the parsers produce children in source order, but a later-listed child
+/// must still shield its bytes from being lexed as trivia if one ever
+/// slips out of order.
 fn attach(node: &mut SyntaxNode, source: &str) {
     let mut old = node.take_children();
     for child in &mut old {

@@ -244,6 +244,28 @@ pub(crate) fn split_comma_parts(text: &str) -> Vec<(usize, &str)> {
     parts
 }
 
+/// Byte offsets of the *separator* commas in a type annotation `text`:
+/// the top-level commas at or after `clean_len`, the end of the clean type
+/// (the part left once trailing `optional` / `default …` marker segments
+/// are stripped).
+///
+/// These commas become `COMMA` tokens; commas *before* the boundary lie
+/// inside the clean type (e.g. `Dict[str, int]`, or a multi-segment type
+/// kept whole) and stay covered by the `TYPE` token. All three parsers of
+/// this logic family (google `split_type_markers`, the NumPy segment
+/// scanner, and [`try_parse_bracket_entry`]) share this boundary rule so
+/// it cannot drift between them.
+pub(crate) fn separator_comma_offsets(text: &str, clean_len: usize) -> Vec<usize> {
+    // The separator comma before each part after the first sits one byte
+    // before that part.
+    split_comma_parts(text)
+        .iter()
+        .skip(1)
+        .map(|(seg_offset, _)| seg_offset - 1)
+        .filter(|&pos| pos >= clean_len)
+        .collect()
+}
+
 /// Find the matching closing bracket for an opening bracket at `open_pos`.
 ///
 /// Only tracks the *same* bracket kind: `(` is matched by `)`, `[` by `]`,
@@ -407,14 +429,8 @@ pub(crate) fn try_parse_bracket_entry(text: &str) -> Option<BracketEntry<'_>> {
     let (clean_type, opt_rel) = strip_optional(type_trimmed);
     let optional_offset = opt_rel.map(|r| type_offset + r);
 
-    // Top-level separator commas after the clean type (commas inside the
-    // clean type, e.g. `Dict[str, int]` or a multi-segment type kept whole,
-    // stay covered by the TYPE token).
-    let commas: Vec<usize> = split_comma_parts(type_trimmed)
-        .iter()
-        .skip(1)
-        .map(|(seg_offset, _)| seg_offset - 1)
-        .filter(|&rel| rel >= clean_type.len())
+    let commas: Vec<usize> = separator_comma_offsets(type_trimmed, clean_type.len())
+        .into_iter()
         .map(|rel| type_offset + rel)
         .collect();
 
@@ -710,6 +726,19 @@ mod tests {
         let parts = split_comma_parts("int, optional");
         assert_eq!(parts[0].0, 0);
         assert_eq!(parts[1].0, 4);
+    }
+
+    #[test]
+    fn test_separator_comma_offsets() {
+        // Comma before the `optional` marker is a separator.
+        assert_eq!(separator_comma_offsets("int, optional", 3), vec![3]);
+        assert_eq!(separator_comma_offsets("Dict[str, int], optional", 14), vec![14]);
+        // Comma inside the clean type is not.
+        assert_eq!(separator_comma_offsets("int, float", 10), Vec::<usize>::new());
+        // No markers stripped: whole text is the clean type.
+        assert_eq!(separator_comma_offsets("int", 3), Vec::<usize>::new());
+        // Two separators: before `optional` and before `default 5`.
+        assert_eq!(separator_comma_offsets("int, optional, default 5", 3), vec![3, 13]);
     }
 
     #[test]

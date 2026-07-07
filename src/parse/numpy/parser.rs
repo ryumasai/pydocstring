@@ -11,6 +11,7 @@ use crate::parse::utils::extend_text_block;
 use crate::parse::utils::find_term_colon;
 use crate::parse::utils::missing_text_block;
 use crate::parse::utils::process_reference_line;
+use crate::parse::utils::separator_comma_offsets;
 use crate::parse::utils::split_comma_parts;
 use crate::parse::utils::text_block_single;
 use crate::parse::utils::try_parse_bracket_entry;
@@ -154,12 +155,7 @@ fn parse_name_and_type(text: &str, line_idx: usize, col_base: usize, cursor: &Li
     let mut default_value: Option<TextRange> = None;
     let mut type_parts_end: usize = 0;
 
-    let parts = split_comma_parts(type_text);
-    // The separator comma before each part after the first sits one byte
-    // before that part.
-    let comma_positions: Vec<usize> = parts.iter().skip(1).map(|(seg_offset, _)| seg_offset - 1).collect();
-
-    for (seg_offset, seg_raw) in parts {
+    for (seg_offset, seg_raw) in split_comma_parts(type_text) {
         let seg = seg_raw.trim();
         if seg.is_empty() {
             continue;
@@ -229,11 +225,8 @@ fn parse_name_and_type(text: &str, line_idx: usize, col_base: usize, cursor: &Li
         )
     };
 
-    // Separator commas after the clean type become COMMA tokens; commas
-    // inside the clean type stay covered by the TYPE token.
-    let type_commas: Vec<TextRange> = comma_positions
+    let type_commas: Vec<TextRange> = separator_comma_offsets(type_text, clean_len)
         .into_iter()
-        .filter(|&rel| rel >= clean_len)
         .map(|rel| TextRange::from_offset_len(type_abs_start + rel, 1))
         .collect();
 
@@ -360,36 +353,38 @@ fn build_parameter_node(parts: &ParamHeaderParts, range: TextRange) -> SyntaxNod
     }
     if let Some(t) = parts.param_type {
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TYPE, t)));
-    } else if let Some(c) = parts.colon {
-        // Colon present but no type: zero-length placeholder so callers can
-        // distinguish `name :` (missing type) from `name` (no type at all).
-        let missing_pos = c.end();
+    } else if parts.colon.is_some() || parts.open_bracket.is_some() {
+        // Colon (or empty brackets) present but no type: zero-length
+        // placeholder so callers can distinguish `name :` / `name ()`
+        // (missing type) from `name` (no type at all). Anchored where the
+        // type would appear: right after the open bracket for bracketed
+        // entries, right after the colon otherwise.
+        let missing_pos = parts
+            .open_bracket
+            .map(|ob| ob.end())
+            .unwrap_or_else(|| parts.colon.unwrap().end());
         children.push(SyntaxElement::Token(SyntaxToken::new(
             SyntaxKind::TYPE,
             TextRange::new(missing_pos, missing_pos),
         )));
     }
-    // Marker tokens (separator commas, `optional`, `default …`) in source
-    // order after the type.
-    let mut markers: Vec<(SyntaxKind, TextRange)> = Vec::new();
     for comma in &parts.type_commas {
-        markers.push((SyntaxKind::COMMA, *comma));
+        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COMMA, *comma)));
     }
     if let Some(opt) = parts.optional {
-        markers.push((SyntaxKind::OPTIONAL, opt));
+        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::OPTIONAL, opt)));
     }
     if let Some(dk) = parts.default_keyword {
-        markers.push((SyntaxKind::DEFAULT_KEYWORD, dk));
+        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DEFAULT_KEYWORD, dk)));
     }
     if let Some(ds) = parts.default_separator {
-        markers.push((SyntaxKind::DEFAULT_SEPARATOR, ds));
+        children.push(SyntaxElement::Token(SyntaxToken::new(
+            SyntaxKind::DEFAULT_SEPARATOR,
+            ds,
+        )));
     }
     if let Some(dv) = parts.default_value {
-        markers.push((SyntaxKind::DEFAULT_VALUE, dv));
-    }
-    markers.sort_by_key(|(_, r)| r.start());
-    for (kind, range) in markers {
-        children.push(SyntaxElement::Token(SyntaxToken::new(kind, range)));
+        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DEFAULT_VALUE, dv)));
     }
     if let Some(cb) = parts.close_bracket {
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::CLOSE_BRACKET, cb)));
@@ -397,6 +392,11 @@ fn build_parameter_node(parts: &ParamHeaderParts, range: TextRange) -> SyntaxNod
     if let Some(desc) = parts.first_description {
         children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, desc)));
     }
+    // The tree stores children in source order. Google-style entries collect
+    // them out of order above (COLON is found after the close bracket but
+    // pushed before TYPE), so sort by position; zero-length placeholders
+    // sort before a token starting at the same offset.
+    children.sort_by_key(|c| (c.range().start(), c.range().end()));
     SyntaxNode::new(SyntaxKind::NUMPY_PARAMETER, range, children)
 }
 
@@ -1235,5 +1235,55 @@ mod tests {
         assert_eq!(summary.text(parsed.source()), "Summary.");
         let sections: Vec<_> = root.nodes(SyntaxKind::NUMPY_SECTION).collect();
         assert_eq!(sections.len(), 1);
+    }
+
+    /// A google-style entry in a NumPy section stores its children in source
+    /// order: the COLON (found after the close bracket) must not precede TYPE.
+    #[test]
+    fn test_google_style_entry_children_in_source_order() {
+        let input = "Summary.\n\nParameters\n----------\nname (str): The name.\n";
+        let parsed = parse_numpy(input);
+        let section = parsed.root().find_node(SyntaxKind::NUMPY_SECTION).unwrap();
+        let param = section.find_node(SyntaxKind::NUMPY_PARAMETER).unwrap();
+        let mut last_start = None;
+        for child in param.children() {
+            assert!(
+                last_start.is_none_or(|prev| prev <= child.range().start()),
+                "children out of source order: {:?}",
+                param
+            );
+            last_start = Some(child.range().start());
+        }
+        let kinds: Vec<SyntaxKind> = param
+            .children()
+            .iter()
+            .filter(|c| !c.kind().is_trivia())
+            .map(|c| c.kind())
+            .collect();
+        assert_eq!(
+            kinds,
+            vec![
+                SyntaxKind::NAME,
+                SyntaxKind::OPEN_BRACKET,
+                SyntaxKind::TYPE,
+                SyntaxKind::CLOSE_BRACKET,
+                SyntaxKind::COLON,
+                SyntaxKind::DESCRIPTION,
+            ]
+        );
+    }
+
+    /// Empty brackets: the zero-length missing TYPE placeholder is anchored
+    /// right after the open bracket (where the type would appear), not at
+    /// the colon.
+    #[test]
+    fn test_google_style_entry_missing_type_anchored_after_open_bracket() {
+        let input = "Summary.\n\nParameters\n----------\nname (): The name.\n";
+        let parsed = parse_numpy(input);
+        let section = parsed.root().find_node(SyntaxKind::NUMPY_SECTION).unwrap();
+        let param = section.find_node(SyntaxKind::NUMPY_PARAMETER).unwrap();
+        let open = param.find_token(SyntaxKind::OPEN_BRACKET).unwrap();
+        let missing = param.find_missing(SyntaxKind::TYPE).unwrap();
+        assert_eq!(missing.range().start(), open.range().end());
     }
 }

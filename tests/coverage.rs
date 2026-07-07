@@ -51,8 +51,8 @@ fn check_coverage(parsed: &Parsed) -> Vec<String> {
 
     let mut tokens = Vec::new();
     collect_tokens(parsed.root(), &mut tokens);
-    // Some parsers store entry children in canonical rather than source
-    // order, so sort by position before checking adjacency.
+    // Defensive: the parsers produce children in source order, but the law
+    // is about coverage, not tree order — sort before checking adjacency.
     tokens.sort_by_key(|t| (t.range().start(), t.range().end()));
 
     if source.is_empty() {

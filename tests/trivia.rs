@@ -66,9 +66,9 @@ fn check_invariants(name: &str, parsed: &Parsed) -> Vec<String> {
         }
     }
 
-    // Invariant 2: tokens never overlap (checked in source order — some
-    // parsers store entry children in canonical rather than source order);
-    // trivia tokens fall inside their parent node's range.
+    // Invariant 2: tokens never overlap (checked in source order, sorting
+    // defensively rather than trusting tree order); trivia tokens fall
+    // inside their parent node's range.
     let mut sorted: Vec<&SyntaxToken> = tokens.iter().map(|(_, t)| *t).collect();
     sorted.sort_by_key(|t| (t.range().start(), t.range().end()));
     for pair in sorted.windows(2) {
