@@ -18,6 +18,8 @@ pub enum NumPySectionKind {
     Receives,
     /// `Other Parameters` / `Other Params`
     OtherParameters,
+    /// `Keyword Parameters` / `Keyword Arguments` / `Keyword Args`
+    KeywordParameters,
     /// `Raises` / `Raise`
     Raises,
     /// `Warns` / `Warn`
@@ -36,6 +38,22 @@ pub enum NumPySectionKind {
     Attributes,
     /// `Methods`
     Methods,
+    /// `Todo`
+    Todo,
+    /// `Attention`
+    Attention,
+    /// `Caution`
+    Caution,
+    /// `Danger`
+    Danger,
+    /// `Error`
+    Error,
+    /// `Hint`
+    Hint,
+    /// `Important`
+    Important,
+    /// `Tip`
+    Tip,
     /// Unrecognised section name.
     Unknown,
 }
@@ -48,6 +66,7 @@ impl NumPySectionKind {
         Self::Yields,
         Self::Receives,
         Self::OtherParameters,
+        Self::KeywordParameters,
         Self::Raises,
         Self::Warns,
         Self::Warnings,
@@ -57,6 +76,14 @@ impl NumPySectionKind {
         Self::Examples,
         Self::Attributes,
         Self::Methods,
+        Self::Todo,
+        Self::Attention,
+        Self::Caution,
+        Self::Danger,
+        Self::Error,
+        Self::Hint,
+        Self::Important,
+        Self::Tip,
     ];
 
     /// Convert a **lowercased** section name to a [`NumPySectionKind`].
@@ -70,6 +97,8 @@ impl NumPySectionKind {
             "receives" | "receive" => Self::Receives,
             "other parameters" | "other parameter" | "other params" | "other param" => Self::OtherParameters,
             "other arguments" | "other argument" | "other args" | "other arg" => Self::OtherParameters,
+            "keyword parameters" | "keyword parameter" | "keyword params" | "keyword param" => Self::KeywordParameters,
+            "keyword arguments" | "keyword argument" | "keyword args" | "keyword arg" => Self::KeywordParameters,
             "raises" | "raise" => Self::Raises,
             "warns" | "warn" => Self::Warns,
             "warnings" | "warning" => Self::Warnings,
@@ -79,6 +108,14 @@ impl NumPySectionKind {
             "examples" | "example" => Self::Examples,
             "attributes" | "attribute" => Self::Attributes,
             "methods" | "method" => Self::Methods,
+            "todo" => Self::Todo,
+            "attention" => Self::Attention,
+            "caution" => Self::Caution,
+            "danger" => Self::Danger,
+            "error" => Self::Error,
+            "hint" => Self::Hint,
+            "important" => Self::Important,
+            "tip" => Self::Tip,
             _ => Self::Unknown,
         }
     }
@@ -97,6 +134,7 @@ impl NumPySectionKind {
                 | Self::Yields
                 | Self::Receives
                 | Self::OtherParameters
+                | Self::KeywordParameters
                 | Self::Raises
                 | Self::Warns
                 | Self::SeeAlso
@@ -108,7 +146,21 @@ impl NumPySectionKind {
 
     /// Whether this section kind has free-text body.
     pub fn is_freetext(&self) -> bool {
-        matches!(self, Self::Notes | Self::Examples | Self::Warnings | Self::Unknown)
+        matches!(
+            self,
+            Self::Notes
+                | Self::Examples
+                | Self::Warnings
+                | Self::Todo
+                | Self::Attention
+                | Self::Caution
+                | Self::Danger
+                | Self::Error
+                | Self::Hint
+                | Self::Important
+                | Self::Tip
+                | Self::Unknown
+        )
     }
 }
 
@@ -120,6 +172,7 @@ impl fmt::Display for NumPySectionKind {
             Self::Yields => "Yields",
             Self::Receives => "Receives",
             Self::OtherParameters => "Other Parameters",
+            Self::KeywordParameters => "Keyword Parameters",
             Self::Raises => "Raises",
             Self::Warns => "Warns",
             Self::Warnings => "Warnings",
@@ -129,6 +182,14 @@ impl fmt::Display for NumPySectionKind {
             Self::Examples => "Examples",
             Self::Attributes => "Attributes",
             Self::Methods => "Methods",
+            Self::Todo => "Todo",
+            Self::Attention => "Attention",
+            Self::Caution => "Caution",
+            Self::Danger => "Danger",
+            Self::Error => "Error",
+            Self::Hint => "Hint",
+            Self::Important => "Important",
+            Self::Tip => "Tip",
             Self::Unknown => "Unknown",
         };
         write!(f, "{}", s)

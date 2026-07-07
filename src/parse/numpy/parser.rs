@@ -958,6 +958,7 @@ impl SectionBody {
             NumPySectionKind::Parameters => Self::Parameters(Vec::new()),
             NumPySectionKind::OtherParameters => Self::Parameters(Vec::new()),
             NumPySectionKind::Receives => Self::Parameters(Vec::new()),
+            NumPySectionKind::KeywordParameters => Self::Parameters(Vec::new()),
             NumPySectionKind::Returns => Self::Returns(Vec::new()),
             NumPySectionKind::Yields => Self::Yields(Vec::new()),
             NumPySectionKind::Raises => Self::Raises(Vec::new()),

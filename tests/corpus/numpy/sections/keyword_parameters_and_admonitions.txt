@@ -1,0 +1,14 @@
+Summary.
+
+Keyword Parameters
+------------------
+timeout : float
+    How long to wait.
+
+Todo
+----
+* Refactor this.
+
+Attention
+---------
+Handle with care.

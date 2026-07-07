@@ -98,6 +98,7 @@ class NumPySectionKind:
     YIELDS: NumPySectionKind
     RECEIVES: NumPySectionKind
     OTHER_PARAMETERS: NumPySectionKind
+    KEYWORD_PARAMETERS: NumPySectionKind
     RAISES: NumPySectionKind
     WARNS: NumPySectionKind
     WARNINGS: NumPySectionKind
@@ -107,6 +108,14 @@ class NumPySectionKind:
     EXAMPLES: NumPySectionKind
     ATTRIBUTES: NumPySectionKind
     METHODS: NumPySectionKind
+    TODO: NumPySectionKind
+    ATTENTION: NumPySectionKind
+    CAUTION: NumPySectionKind
+    DANGER: NumPySectionKind
+    ERROR: NumPySectionKind
+    HINT: NumPySectionKind
+    IMPORTANT: NumPySectionKind
+    TIP: NumPySectionKind
     UNKNOWN: NumPySectionKind
     def __repr__(self) -> str: ...
 
