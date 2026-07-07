@@ -202,8 +202,16 @@ define_node!(GoogleArg, GOOGLE_ARG);
 
 impl<'a> GoogleArg<'a> {
     /// Argument name token.
+    ///
+    /// When the entry declares several comma-separated names, this returns
+    /// the first one; use [`GoogleArg::names`] to access all of them.
     pub fn name(&self) -> &'a SyntaxToken {
         self.0.required_token(SyntaxKind::NAME)
+    }
+
+    /// All argument name tokens (can be multiple, e.g. `x1, x2`).
+    pub fn names(&self) -> impl Iterator<Item = &'a SyntaxToken> {
+        self.0.tokens(SyntaxKind::NAME)
     }
 
     /// Opening bracket token (e.g. `(`), if present.
@@ -234,6 +242,21 @@ impl<'a> GoogleArg<'a> {
     /// `optional` marker token, if present.
     pub fn optional(&self) -> Option<&'a SyntaxToken> {
         self.0.find_token(SyntaxKind::OPTIONAL)
+    }
+
+    /// `default` keyword token, if present.
+    pub fn default_keyword(&self) -> Option<&'a SyntaxToken> {
+        self.0.find_token(SyntaxKind::DEFAULT_KEYWORD)
+    }
+
+    /// Default value separator token (`=` or `:`), if present.
+    pub fn default_separator(&self) -> Option<&'a SyntaxToken> {
+        self.0.find_token(SyntaxKind::DEFAULT_SEPARATOR)
+    }
+
+    /// Default value text token, if present.
+    pub fn default_value(&self) -> Option<&'a SyntaxToken> {
+        self.0.find_token(SyntaxKind::DEFAULT_VALUE)
     }
 }
 

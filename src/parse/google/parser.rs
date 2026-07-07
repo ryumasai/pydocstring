@@ -6,7 +6,7 @@
 use crate::cursor::{LineCursor, indent_len};
 use crate::parse::google::kind::GoogleSectionKind;
 use crate::parse::utils::{
-    find_colon_ignoring_parens, find_entry_open_bracket, find_matching_close, find_term_colon, strip_optional,
+    find_colon_ignoring_parens, find_entry_open_bracket, find_matching_close, find_term_colon, split_comma_parts,
     try_parse_deprecation_directive,
 };
 use crate::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
@@ -38,6 +38,85 @@ struct TypeInfo {
     r#type: Option<TextRange>,
     close_bracket: Option<TextRange>,
     optional: Option<TextRange>,
+    default_keyword: Option<TextRange>,
+    default_separator: Option<TextRange>,
+    default_value: Option<TextRange>,
+}
+
+/// Marker segments extracted from a bracketed type annotation, e.g.
+/// `int, optional, default 5`. All offsets are relative to the input.
+struct TypeMarkers<'a> {
+    /// Type text with the `optional` / `default ...` segments stripped.
+    clean_type: &'a str,
+    /// Byte offset of the `optional` keyword, if present.
+    optional: Option<usize>,
+    /// Byte offset of the `default` keyword, if present.
+    default_keyword: Option<usize>,
+    /// Byte offset of the `=` / `:` separator after `default`, if present.
+    default_separator: Option<usize>,
+    /// `(byte_offset, len)` of the default value text, if present.
+    default_value: Option<(usize, usize)>,
+}
+
+/// Split a type annotation into the type itself and trailing `optional` /
+/// `default X` marker segments (comma-separated, bracket-aware).
+///
+/// Accepts the same separator forms as the NumPy parser: `default X`,
+/// `default=X`, and `default: X`.
+fn split_type_markers(type_content: &str) -> TypeMarkers<'_> {
+    // Byte offset of a subslice within `type_content`.
+    let rel = |s: &str| s.as_ptr() as usize - type_content.as_ptr() as usize;
+
+    let mut optional = None;
+    let mut default_keyword = None;
+    let mut default_separator = None;
+    let mut default_value = None;
+    let mut type_end = 0;
+
+    for (seg_offset, seg_raw) in split_comma_parts(type_content) {
+        let seg = seg_raw.trim();
+        if seg.is_empty() {
+            continue;
+        }
+        if seg == "optional" {
+            optional = Some(rel(seg));
+        } else if let Some(after_kw) = seg
+            .strip_prefix("default")
+            .filter(|rest| rest.is_empty() || rest.starts_with([' ', '\t', '=', ':']))
+        {
+            default_keyword = Some(rel(seg));
+            let rest = after_kw.trim_start();
+            if let Some(val) = rest.strip_prefix(['=', ':']) {
+                default_separator = Some(rel(rest));
+                let val_trimmed = val.trim_start();
+                if val_trimmed.is_empty() {
+                    // Separator present but value absent: zero-length placeholder.
+                    default_value = Some((rel(rest) + 1, 0));
+                } else {
+                    default_value = Some((rel(val_trimmed), val_trimmed.len()));
+                }
+            } else if !rest.is_empty() {
+                default_value = Some((rel(rest), rest.len()));
+            }
+        } else {
+            type_end = seg_offset + seg_raw.trim_end().len();
+        }
+    }
+
+    let clean_type = if optional.is_none() && default_keyword.is_none() {
+        // No marker segments: keep the content exactly as-is.
+        type_content
+    } else {
+        type_content[..type_end].trim_end_matches(',').trim_end()
+    };
+
+    TypeMarkers {
+        clean_type,
+        optional,
+        default_keyword,
+        default_separator,
+        default_value,
+    }
 }
 
 /// Parsed components of a Google-style entry header.
@@ -124,20 +203,27 @@ fn parse_entry_header(cursor: &LineCursor, parse_type: bool) -> EntryHeader {
             let type_trimmed = type_text.trim();
             let leading_ws = type_text.len() - type_text.trim_start().len();
             let type_offset = bracket_pos + 1 + leading_ws;
-            let (clean_type, opt_rel) = strip_optional(type_trimmed);
+            let markers = split_type_markers(type_trimmed);
 
-            let type_span = if !clean_type.is_empty() {
-                Some(TextRange::from_offset_len(entry_start + type_offset, clean_type.len()))
+            let type_span = if !markers.clean_type.is_empty() {
+                Some(TextRange::from_offset_len(
+                    entry_start + type_offset,
+                    markers.clean_type.len(),
+                ))
             } else {
                 None
             };
-            let opt_span = opt_rel.map(|r| TextRange::from_offset_len(entry_start + type_offset + r, "optional".len()));
+            let marker_span = |r: usize, len: usize| TextRange::from_offset_len(entry_start + type_offset + r, len);
+            let opt_span = markers.optional.map(|r| marker_span(r, "optional".len()));
 
             let type_info = Some(TypeInfo {
                 open_bracket,
                 r#type: type_span,
                 close_bracket,
                 optional: opt_span,
+                default_keyword: markers.default_keyword.map(|r| marker_span(r, "default".len())),
+                default_separator: markers.default_separator.map(|r| marker_span(r, 1)),
+                default_value: markers.default_value.map(|(r, len)| marker_span(r, len)),
             });
 
             let range_end = first_description
@@ -275,10 +361,44 @@ fn build_section_header_node(info: &SectionHeaderInfo) -> SyntaxNode {
     SyntaxNode::new(SyntaxKind::GOOGLE_SECTION_HEADER, info.range, children)
 }
 
+/// Split a NAME range on commas into individual NAME tokens with per-part
+/// spans (e.g. `x1, x2` → two tokens), mirroring NumPy's handling of
+/// multiple parameter names.
+///
+/// Falls back to a single token covering the whole range when no non-empty
+/// part is found, so `required_token(NAME)` callers keep working.
+fn push_comma_separated_names(children: &mut Vec<SyntaxElement>, name: TextRange, source: &str) {
+    let name_text = name.source_text(source);
+    let base = name.start().raw() as usize;
+    let mut offset = 0;
+    let mut pushed = false;
+    for part in name_text.split(',') {
+        let trimmed = part.trim();
+        if !trimmed.is_empty() {
+            let lead = part.len() - part.trim_start().len();
+            children.push(SyntaxElement::Token(SyntaxToken::new(
+                SyntaxKind::NAME,
+                TextRange::from_offset_len(base + offset + lead, trimmed.len()),
+            )));
+            pushed = true;
+        }
+        offset += part.len() + 1;
+    }
+    if !pushed {
+        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::NAME, name)));
+    }
+}
+
 /// Build a SyntaxNode for an arg-like entry (GoogleArg, GoogleAttribute, GoogleMethod).
-fn build_arg_node(kind: SyntaxKind, header: &EntryHeader, range: TextRange) -> SyntaxNode {
+fn build_arg_node(kind: SyntaxKind, header: &EntryHeader, range: TextRange, source: &str) -> SyntaxNode {
     let mut children = Vec::new();
-    children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::NAME, header.name)));
+    if kind == SyntaxKind::GOOGLE_ARG {
+        // Arg entries support comma-separated names (`x1, x2 (int): ...`),
+        // like NumPy parameters. Attribute / method names stay whole.
+        push_comma_separated_names(&mut children, header.name, source);
+    } else {
+        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::NAME, header.name)));
+    }
     if let Some(ti) = &header.type_info {
         children.push(SyntaxElement::Token(SyntaxToken::new(
             SyntaxKind::OPEN_BRACKET,
@@ -307,6 +427,18 @@ fn build_arg_node(kind: SyntaxKind, header: &EntryHeader, range: TextRange) -> S
         }
         if let Some(opt) = ti.optional {
             children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::OPTIONAL, opt)));
+        }
+        if let Some(dk) = ti.default_keyword {
+            children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DEFAULT_KEYWORD, dk)));
+        }
+        if let Some(ds) = ti.default_separator {
+            children.push(SyntaxElement::Token(SyntaxToken::new(
+                SyntaxKind::DEFAULT_SEPARATOR,
+                ds,
+            )));
+        }
+        if let Some(dv) = ti.default_value {
+            children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DEFAULT_VALUE, dv)));
         }
     }
     if let Some(colon) = header.colon {
@@ -383,20 +515,7 @@ fn build_warning_node(header: &EntryHeader, range: TextRange) -> SyntaxNode {
 fn build_see_also_node(header: &EntryHeader, range: TextRange, source: &str) -> SyntaxNode {
     let mut children = Vec::new();
     // Split name by comma into individual name tokens
-    let name_text = header.name.source_text(source);
-    let base = header.name.start().raw() as usize;
-    let mut offset = 0;
-    for part in name_text.split(',') {
-        let name = part.trim();
-        if !name.is_empty() {
-            let lead = part.len() - part.trim_start().len();
-            children.push(SyntaxElement::Token(SyntaxToken::new(
-                SyntaxKind::NAME,
-                TextRange::from_offset_len(base + offset + lead, name.len()),
-            )));
-        }
-        offset += part.len() + 1;
-    }
+    push_comma_separated_names(&mut children, header.name, source);
     if let Some(colon) = header.colon {
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, colon)));
     }
@@ -486,7 +605,12 @@ fn process_arg_line(
         *entry_indent = Some(indent_cols);
     }
     let (header, entry_range) = parse_entry(cursor, node_kind != SyntaxKind::GOOGLE_METHOD);
-    nodes.push(SyntaxElement::Node(build_arg_node(node_kind, &header, entry_range)));
+    nodes.push(SyntaxElement::Node(build_arg_node(
+        node_kind,
+        &header,
+        entry_range,
+        cursor.source(),
+    )));
 }
 
 fn process_exception_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {

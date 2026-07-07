@@ -160,13 +160,13 @@ fn convert_section(section: &GoogleSection<'_>, source: &str) -> Section {
 
 fn convert_arg(arg: &crate::parse::google::nodes::GoogleArg<'_>, source: &str) -> Parameter {
     Parameter {
-        names: vec![arg.name().text(source).to_owned()],
+        names: arg.names().map(|n| n.text(source).to_owned()).collect(),
         type_annotation: arg.r#type().map(|t| t.text(source).to_owned()),
         description: arg
             .description()
             .map(|t| convert_multiline_with_indentation(t.text(source))),
         is_optional: arg.optional().is_some(),
-        default_value: None,
+        default_value: arg.default_value().map(|t| t.text(source).to_owned()),
     }
 }
 

@@ -441,12 +441,16 @@ fn numpy_section_kind_to_py(kind: NumPySectionKind) -> PyNumPySectionKind {
 struct PyGoogleArg {
     range: TextRange,
     name: Py<PyToken>,
+    names: Vec<Py<PyToken>>,
     open_bracket: Option<Py<PyToken>>,
     r#type: Option<Py<PyToken>>,
     close_bracket: Option<Py<PyToken>>,
     colon: Option<Py<PyToken>>,
     description: Option<Py<PyToken>>,
     optional: Option<Py<PyToken>>,
+    default_keyword: Option<Py<PyToken>>,
+    default_separator: Option<Py<PyToken>>,
+    default_value: Option<Py<PyToken>>,
 }
 
 #[pymethods]
@@ -458,6 +462,10 @@ impl PyGoogleArg {
     #[getter]
     fn name(&self, py: Python<'_>) -> Py<PyToken> {
         self.name.clone_ref(py)
+    }
+    #[getter]
+    fn names(&self, py: Python<'_>) -> Vec<Py<PyToken>> {
+        self.names.iter().map(|n| n.clone_ref(py)).collect()
     }
     #[getter]
     fn open_bracket(&self, py: Python<'_>) -> Option<Py<PyToken>> {
@@ -483,6 +491,18 @@ impl PyGoogleArg {
     fn optional(&self, py: Python<'_>) -> Option<Py<PyToken>> {
         self.optional.as_ref().map(|t| t.clone_ref(py))
     }
+    #[getter]
+    fn default_keyword(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+        self.default_keyword.as_ref().map(|t| t.clone_ref(py))
+    }
+    #[getter]
+    fn default_separator(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+        self.default_separator.as_ref().map(|t| t.clone_ref(py))
+    }
+    #[getter]
+    fn default_value(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+        self.default_value.as_ref().map(|t| t.clone_ref(py))
+    }
     fn __repr__(&self, py: Python<'_>) -> String {
         format!("GoogleArg({:?})", self.name.borrow(py).text)
     }
@@ -494,6 +514,7 @@ fn build_google_arg(py: Python<'_>, arg: &gn::GoogleArg<'_>, source: &str) -> Py
         PyGoogleArg {
             range: *arg.syntax().range(),
             name: mk_token(py, arg.name(), source)?,
+            names: mk_tokens(py, arg.names(), source)?,
             open_bracket: mk_token_opt(py, arg.open_bracket(), source)?,
             r#type: mk_token_or_missing(py, arg.r#type(), arg.syntax(), SyntaxKind::TYPE, source)?,
             close_bracket: mk_token_or_missing(
@@ -506,6 +527,15 @@ fn build_google_arg(py: Python<'_>, arg: &gn::GoogleArg<'_>, source: &str) -> Py
             colon: mk_token_or_missing(py, arg.colon(), arg.syntax(), SyntaxKind::COLON, source)?,
             description: mk_token_or_missing(py, arg.description(), arg.syntax(), SyntaxKind::DESCRIPTION, source)?,
             optional: mk_token_opt(py, arg.optional(), source)?,
+            default_keyword: mk_token_opt(py, arg.default_keyword(), source)?,
+            default_separator: mk_token_opt(py, arg.default_separator(), source)?,
+            default_value: mk_token_or_missing(
+                py,
+                arg.default_value(),
+                arg.syntax(),
+                SyntaxKind::DEFAULT_VALUE,
+                source,
+            )?,
         },
     )
 }

@@ -42,6 +42,68 @@ fn test_args_no_bracket_fields_when_no_type() {
 }
 
 // =============================================================================
+// Comma-separated names (spec)
+// =============================================================================
+
+/// `x1, x2 (int): ...` yields one NAME token per comma-separated name;
+/// `name()` keeps returning the first for API compatibility.
+#[test]
+fn test_args_multiple_names() {
+    let docstring = "Summary.\n\nArgs:\n    x1, x2 (int): The values.";
+    let result = parse_google(docstring);
+    let a = args(&result);
+    assert_eq!(a.len(), 1);
+    let names: Vec<_> = a[0].names().map(|n| n.text(result.source())).collect();
+    assert_eq!(names, vec!["x1", "x2"]);
+    assert_eq!(a[0].name().text(result.source()), "x1");
+    assert_eq!(a[0].r#type().unwrap().text(result.source()), "int");
+}
+
+/// A comma inside a bracketed type must NOT split the type or the name.
+#[test]
+fn test_args_comma_inside_type_not_split() {
+    let docstring = "Summary.\n\nArgs:\n    data (Dict[str, int]): Values.";
+    let result = parse_google(docstring);
+    let a = args(&result);
+    let names: Vec<_> = a[0].names().map(|n| n.text(result.source())).collect();
+    assert_eq!(names, vec!["data"]);
+    assert_eq!(a[0].r#type().unwrap().text(result.source()), "Dict[str, int]");
+}
+
+// =============================================================================
+// Default value inside type brackets (spec)
+// =============================================================================
+
+/// `(int, optional, default 5)` — optional marker and default value both
+/// extracted; the TYPE token keeps only the type itself.
+#[test]
+fn test_args_default_value() {
+    let docstring = "Summary.\n\nArgs:\n    x (int, optional, default 5): The value.";
+    let result = parse_google(docstring);
+    let a = args(&result);
+    assert_eq!(a[0].name().text(result.source()), "x");
+    assert_eq!(a[0].r#type().unwrap().text(result.source()), "int");
+    assert!(a[0].optional().is_some());
+    assert_eq!(a[0].default_keyword().unwrap().text(result.source()), "default");
+    assert!(a[0].default_separator().is_none());
+    assert_eq!(a[0].default_value().unwrap().text(result.source()), "5");
+}
+
+/// The `default=X` and `default: X` separator forms are also recognised.
+#[test]
+fn test_args_default_value_separator_forms() {
+    for (form, sep) in [("default=5", "="), ("default: 5", ":")] {
+        let input = format!("Summary.\n\nArgs:\n    x (int, {form}): The value.");
+        let result = parse_google(&input);
+        let a = args(&result);
+        assert_eq!(a[0].r#type().unwrap().text(result.source()), "int", "{form}");
+        assert_eq!(a[0].default_keyword().unwrap().text(result.source()), "default");
+        assert_eq!(a[0].default_separator().unwrap().text(result.source()), sep);
+        assert_eq!(a[0].default_value().unwrap().text(result.source()), "5", "{form}");
+    }
+}
+
+// =============================================================================
 // Colon-separator rules (spec)
 // =============================================================================
 

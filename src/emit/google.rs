@@ -171,11 +171,11 @@ fn emit_section(out: &mut String, section: &Section) {
     }
 }
 
-/// Google: `    name (type, optional): Description.`
+/// Google: `    name (type, optional, default value): Description.`
 fn emit_parameter(out: &mut String, p: &Parameter) {
     out.push_str("    ");
     out.push_str(&p.names.join(", "));
-    if p.type_annotation.is_some() || p.is_optional {
+    if p.type_annotation.is_some() || p.is_optional || p.default_value.is_some() {
         out.push_str(" (");
         if let Some(ref ty) = p.type_annotation {
             out.push_str(ty);
@@ -185,6 +185,13 @@ fn emit_parameter(out: &mut String, p: &Parameter) {
                 out.push_str(", ");
             }
             out.push_str("optional");
+        }
+        if let Some(ref dv) = p.default_value {
+            if p.type_annotation.is_some() || p.is_optional {
+                out.push_str(", ");
+            }
+            out.push_str("default ");
+            out.push_str(dv);
         }
         out.push(')');
     }
