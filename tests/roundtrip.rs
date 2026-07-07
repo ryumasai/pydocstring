@@ -38,10 +38,6 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     "numpy->google: numpy/freetext/references_directive_markers.txt",
     "numpy->google: numpy/freetext/references_parsing.txt",
     "numpy->google: numpy/freetext/references_unclosed_bracket.txt",
-    // Google parser does not split comma-separated parameter names.
-    "numpy->google: numpy/parameters/multiple_parameter_names.txt",
-    // default_value is lost on the Google round trip.
-    "numpy->google: numpy/parameters/enum_type_with_default.txt",
     // Named / multiple / type-only Returns and Yields entries do not survive
     // the Google round trip (Google's entry syntax cannot express all of
     // them, and emit_google/parse_google disagree on the rest).

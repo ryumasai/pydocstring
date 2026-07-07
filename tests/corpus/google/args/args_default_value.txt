@@ -1,0 +1,4 @@
+Summary.
+
+Args:
+    order ({'C', 'F'}, default 'C'): Memory layout.

@@ -1,0 +1,25 @@
+=== CST ===
+GOOGLE_DOCSTRING@0..67 {
+  SUMMARY: "Summary."@0..8
+  GOOGLE_SECTION@10..67 {
+    GOOGLE_SECTION_HEADER@10..15 {
+      NAME: "Args"@10..14
+      COLON: ":"@14..15
+    }
+    GOOGLE_ARG@20..67 {
+      NAME: "order"@20..25
+      OPEN_BRACKET: "("@26..27
+      TYPE: "{'C', 'F'}"@27..37
+      DEFAULT_KEYWORD: "default"@39..46
+      DEFAULT_VALUE: "'C'"@47..50
+      CLOSE_BRACKET: ")"@50..51
+      COLON: ":"@51..52
+      DESCRIPTION: "Memory layout."@53..67
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Args:
+    order ({'C', 'F'}, default 'C'): Memory layout.

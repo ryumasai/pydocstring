@@ -54,6 +54,32 @@ class TestParseGoogle:
         assert args[1].name.text == "y"
         assert args[1].type.text == "str"
 
+    def test_args_multiple_names_and_default_value(self):
+        doc = pydocstring.parse_google(
+            "Summary.\n\nArgs:\n    x1, x2 (int): The values.\n    order (str, optional, default 'C'): Layout."
+        )
+
+        class Collector(pydocstring.Visitor):
+            def __init__(self):
+                self.args = []
+
+            def enter_google_arg(self, arg, ctx):
+                self.args.append(arg)
+
+        args = pydocstring.walk(doc, Collector()).args
+        assert len(args) == 2
+        assert [n.text for n in args[0].names] == ["x1", "x2"]
+        assert args[0].name.text == "x1"
+        assert args[0].default_value is None
+        assert [n.text for n in args[1].names] == ["order"]
+        assert args[1].type.text == "str"
+        assert args[1].optional is not None
+        assert args[1].default_keyword is not None
+        assert args[1].default_keyword.text == "default"
+        assert args[1].default_separator is None
+        assert args[1].default_value is not None
+        assert args[1].default_value.text == "'C'"
+
     def test_returns(self):
         doc = pydocstring.parse_google("Summary.\n\nReturns:\n    bool: True if successful.")
         section = doc.sections[0]
