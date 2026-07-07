@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "pydocstring-rs"
-version = "0.1.14"
+version = "0.1.15"
 description = "Python bindings for pydocstring — a zero-dependency Rust parser for Python docstrings (Google and NumPy styles) with a unified syntax tree and byte-precise source locations"
 license = {text = "MIT"}
 authors = [{name = "Ryuma Asai"}]

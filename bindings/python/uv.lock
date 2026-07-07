@@ -76,7 +76,7 @@ wheels = [
 
 [[package]]
 name = "pydocstring-rs"
-version = "0.1.14"
+version = "0.1.15"
 source = { virtual = "." }
 
 [package.dev-dependencies]
