@@ -9,7 +9,7 @@ if command -v just >/dev/null 2>&1; then
     just pre-commit
 else
     echo "(just not found — running cargo directly)"
-    cargo fmt --all
+    cargo +nightly fmt --all
     cargo clippy --all-targets -- -D warnings
 fi
 echo "OK"

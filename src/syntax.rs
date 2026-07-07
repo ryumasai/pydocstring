@@ -10,7 +10,9 @@
 use core::fmt;
 use core::fmt::Write;
 
-use crate::text::{LineColumn, LineIndex, TextRange};
+use crate::text::LineColumn;
+use crate::text::LineIndex;
+use crate::text::TextRange;
 
 // =============================================================================
 // SyntaxKind
@@ -541,7 +543,8 @@ pub fn walk(node: &SyntaxNode, visitor: &mut dyn Visitor) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::text::{TextRange, TextSize};
+    use crate::text::TextRange;
+    use crate::text::TextSize;
 
     #[test]
     fn test_syntax_kind_name() {

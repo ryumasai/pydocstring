@@ -2,7 +2,8 @@
 //! (`tests/snapshots.rs`, `tests/roundtrip.rs`).
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
+use std::path::PathBuf;
 
 /// Root of the corpus: `tests/corpus`.
 pub fn corpus_dir() -> PathBuf {

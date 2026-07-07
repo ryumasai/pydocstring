@@ -4,7 +4,8 @@
 //! line position into a single struct, eliminating the need to thread
 //! `(source, &offsets, total_lines)` through every helper function.
 
-use crate::text::{TextRange, TextSize};
+use crate::text::TextRange;
+use crate::text::TextSize;
 
 // =============================================================================
 // LineCursor

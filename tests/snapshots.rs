@@ -18,7 +18,10 @@ mod common;
 
 use std::fs;
 
-use common::{collect_inputs, corpus_name, diff, style_dirs};
+use common::collect_inputs;
+use common::corpus_name;
+use common::diff;
+use common::style_dirs;
 use pydocstring::syntax::Parsed;
 
 /// Renders the snapshot text for one input: CST shape, then (for styles with

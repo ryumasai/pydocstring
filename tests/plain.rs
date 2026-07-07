@@ -1,4 +1,6 @@
-use pydocstring::parse::plain::{nodes::PlainDocstring, parse_plain, to_model::to_model};
+use pydocstring::parse::plain::nodes::PlainDocstring;
+use pydocstring::parse::plain::parse_plain;
+use pydocstring::parse::plain::to_model::to_model;
 use pydocstring::syntax::SyntaxKind;
 
 #[test]

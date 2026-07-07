@@ -1,6 +1,8 @@
 //! Typed wrapper for the plain-style docstring root node.
 
-use crate::syntax::{SyntaxKind, SyntaxNode, SyntaxToken};
+use crate::syntax::SyntaxKind;
+use crate::syntax::SyntaxNode;
+use crate::syntax::SyntaxToken;
 
 // =============================================================================
 // PlainDocstring

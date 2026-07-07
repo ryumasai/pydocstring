@@ -2,7 +2,8 @@
 //!
 //! Shows the raw docstring text, then the detailed parsed AST.
 
-use pydocstring::parse::numpy::{NumPyDocstring, parse_numpy};
+use pydocstring::parse::numpy::NumPyDocstring;
+use pydocstring::parse::numpy::parse_numpy;
 
 fn main() {
     let docstring = r#"

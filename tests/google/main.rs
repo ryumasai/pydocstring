@@ -4,11 +4,22 @@
 //! and tests/snapshots.rs (full CST and emit pinned per corpus file). The
 //! modules here pin deliberate spec decisions and the typed-accessor contract.
 
-pub use pydocstring::parse::google::{
-    GoogleArg, GoogleAttribute, GoogleDocstring, GoogleException, GoogleMethod, GoogleReference, GoogleReturn,
-    GoogleSection, GoogleSectionKind, GoogleSeeAlsoItem, GoogleWarning, GoogleYield, parse_google,
-};
-pub use pydocstring::syntax::{Parsed, SyntaxKind, SyntaxToken};
+pub use pydocstring::parse::google::GoogleArg;
+pub use pydocstring::parse::google::GoogleAttribute;
+pub use pydocstring::parse::google::GoogleDocstring;
+pub use pydocstring::parse::google::GoogleException;
+pub use pydocstring::parse::google::GoogleMethod;
+pub use pydocstring::parse::google::GoogleReference;
+pub use pydocstring::parse::google::GoogleReturn;
+pub use pydocstring::parse::google::GoogleSection;
+pub use pydocstring::parse::google::GoogleSectionKind;
+pub use pydocstring::parse::google::GoogleSeeAlsoItem;
+pub use pydocstring::parse::google::GoogleWarning;
+pub use pydocstring::parse::google::GoogleYield;
+pub use pydocstring::parse::google::parse_google;
+pub use pydocstring::syntax::Parsed;
+pub use pydocstring::syntax::SyntaxKind;
+pub use pydocstring::syntax::SyntaxToken;
 pub use pydocstring::text::TextSize;
 
 mod args;
