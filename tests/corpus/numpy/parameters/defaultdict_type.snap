@@ -1,0 +1,23 @@
+=== CST ===
+NUMPY_DOCSTRING@0..62 {
+  SUMMARY: "Summary."@0..8
+  NUMPY_SECTION@10..62 {
+    NUMPY_SECTION_HEADER@10..31 {
+      NAME: "Parameters"@10..20
+      UNDERLINE: "----------"@21..31
+    }
+    NUMPY_PARAMETER@32..62 {
+      NAME: "x"@32..33
+      COLON: ":"@34..35
+      TYPE: "defaultdict"@36..47
+      DESCRIPTION: "A mapping."@52..62
+    }
+  }
+}
+=== EMIT ===
+Summary.
+
+Parameters
+----------
+x : defaultdict
+    A mapping.

@@ -140,7 +140,14 @@ fn parse_name_and_type(text: &str, line_idx: usize, col_base: usize, cursor: &Li
         if seg == "optional" {
             let seg_abs = type_abs_start + seg_offset + (seg_raw.len() - seg_raw.trim_start().len());
             optional = Some(TextRange::from_offset_len(seg_abs, "optional".len()));
-        } else if let Some(stripped) = seg.strip_prefix("default") {
+        } else if seg.starts_with("default")
+            && seg["default".len()..]
+                .chars()
+                .next()
+                .is_none_or(|c| matches!(c, ' ' | '\t' | '=' | ':'))
+        {
+            // Boundary guard: a type like `defaultdict` is not a default marker.
+            let stripped = &seg["default".len()..];
             let ws_lead = seg_raw.len() - seg_raw.trim_start().len();
             let kw_abs = type_abs_start + seg_offset + ws_lead;
             default_keyword = Some(TextRange::from_offset_len(kw_abs, "default".len()));
