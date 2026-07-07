@@ -98,6 +98,7 @@ impl Section {
 
 /// Unified section kind identifier (style-independent).
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum SectionKind {
     /// `Args` / `Parameters`
     Parameters,
@@ -133,6 +134,7 @@ pub enum SectionKind {
 
 /// Kind of a free-text (non-structured) section.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum FreeSectionKind {
     /// `Notes`
     Notes,

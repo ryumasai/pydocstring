@@ -401,6 +401,8 @@ fn google_section_kind_to_py(kind: GoogleSectionKind) -> PyGoogleSectionKind {
         GoogleSectionKind::Important => PyGoogleSectionKind::Important,
         GoogleSectionKind::Tip => PyGoogleSectionKind::Tip,
         GoogleSectionKind::Unknown => PyGoogleSectionKind::Unknown,
+        // GoogleSectionKind is #[non_exhaustive]; surface future kinds as Unknown.
+        _ => PyGoogleSectionKind::Unknown,
     }
 }
 
@@ -520,6 +522,8 @@ fn numpy_section_kind_to_py(kind: NumPySectionKind) -> PyNumPySectionKind {
         NumPySectionKind::Important => PyNumPySectionKind::Important,
         NumPySectionKind::Tip => PyNumPySectionKind::Tip,
         NumPySectionKind::Unknown => PyNumPySectionKind::Unknown,
+        // NumPySectionKind is #[non_exhaustive]; surface future kinds as Unknown.
+        _ => PyNumPySectionKind::Unknown,
     }
 }
 
@@ -3176,6 +3180,12 @@ impl TryFrom<&model::Section> for PyModelSection {
                         kind: PySectionKind::Unknown,
                         body: body.into_pyobject(py)?.unbind(),
                         name: Some(name.into_pyobject(py)?.unbind()),
+                    },
+                    // FreeSectionKind is #[non_exhaustive]; surface future kinds as Unknown.
+                    _ => PyModelSection::FreeText {
+                        kind: PySectionKind::Unknown,
+                        body: body.into_pyobject(py)?.unbind(),
+                        name: None,
                     },
                 }),
             }

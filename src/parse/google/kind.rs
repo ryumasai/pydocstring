@@ -12,6 +12,7 @@ use core::fmt;
 /// Having an enum instead of a plain string list gives compile-time
 /// exhaustiveness checks: every variant must be handled when matching.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum GoogleSectionKind {
     /// `Args` / `Arguments` / `Parameters` / `Params`
     Args,
