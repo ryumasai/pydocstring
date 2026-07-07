@@ -37,11 +37,11 @@ dependencies = [
 
 [[package]]
 name = "pydocstring"
-version = "0.1.14"
+version = "0.1.15"
 
 [[package]]
 name = "pydocstring-python"
-version = "0.1.14"
+version = "0.1.15"
 dependencies = [
  "pydocstring",
  "pyo3",

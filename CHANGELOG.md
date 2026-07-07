@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.15] - 2026-07-07
+
+Bug-fix release: everything flushed out by the new corpus/round-trip test
+infrastructure ([#59](https://github.com/ryumasai/pydocstring/issues/59)).
+
+### Fixed
+
+- Python bindings: `to_model()` mislabeled Yields sections as Returns and
+  Warns as Raises ([#50](https://github.com/ryumasai/pydocstring/pull/50)).
+- NumPy parser: recognizes the `Keyword Parameters` / `Keyword Arguments`
+  section headers (parsed as parameter entries) and the Google-style
+  admonition headers (`Todo`, `Attention`, `Caution`, `Danger`, `Error`,
+  `Hint`, `Important`, `Tip`) instead of degrading them to `Unknown`
+  ([#52](https://github.com/ryumasai/pydocstring/issues/52),
+  [#53](https://github.com/ryumasai/pydocstring/issues/53)).
+- Google parser/emitter: the `.. deprecated::` directive now round-trips
+  (`model.deprecation` was silently dropped); both emitters also write the
+  directive before the extended summary, matching the parsers and numpydoc
+  convention ([#54](https://github.com/ryumasai/pydocstring/issues/54)).
+- Google parser: References sections parse into structured
+  `Reference { number, content }` entries instead of free text
+  ([#55](https://github.com/ryumasai/pydocstring/issues/55)).
+- Google parser: comma-separated parameter names split into individual
+  names, and a `default X` / `default=X` / `default: X` segment in the type
+  parentheses round-trips as `Parameter::default_value`
+  ([#56](https://github.com/ryumasai/pydocstring/issues/56),
+  [#57](https://github.com/ryumasai/pydocstring/issues/57)).
+- NumPy parser: a type whose name merely starts with `default`
+  (e.g. `defaultdict`) was eaten as a default-value marker, leaving the type
+  empty ([#64](https://github.com/ryumasai/pydocstring/issues/64)).
+- Parsers no longer panic on a malformed reStructuredText reference marker
+  (`.. [1` without a closing bracket on the same line)
+  ([#67](https://github.com/ryumasai/pydocstring/issues/67)).
+
+### Added
+
+- Typed CST nodes and accessors: `GoogleDeprecation`, `GoogleReference` (with
+  `GoogleSection::references()`), `GoogleArg::names()` /
+  `default_keyword()` / `default_separator()` / `default_value()`; mirrored in
+  the Python bindings.
+
+### Changed
+
+- **Technically breaking for exhaustive `match`es in Rust**: new variants on
+  the public enums `NumPySectionKind` (`KeywordParameters` + eight admonition
+  kinds) and `SyntaxKind` (`GOOGLE_DEPRECATION`, `GOOGLE_REFERENCE`). Accepted
+  in this patch release given the crate's age; 0.2.0 will add
+  `#[non_exhaustive]` to prevent this class of breakage going forward.
+  Python users are unaffected.
+
+### Internal
+
+- Test suite rebuilt around a shared corpus: snapshot harness
+  (`tests/corpus/` + `tests/snapshots.rs`), round-trip law tests
+  (idempotence / model stability / cross-style conversion with a burn-down
+  allowlist), and a Python parity suite that checks the bindings
+  byte-for-byte against the Rust snapshots.
+
 ## [0.1.14] - 2026-07-06
 
 ### Fixed
