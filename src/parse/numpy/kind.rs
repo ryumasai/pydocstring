@@ -60,6 +60,29 @@ pub enum NumPySectionKind {
 }
 
 impl NumPySectionKind {
+    /// The [`EntryRole`](crate::parse::EntryRole) of this section's body
+    /// entries.
+    ///
+    /// Shared by the visitor's `ENTRY` routing and the typed section
+    /// accessors' role guards.
+    pub(crate) fn entry_role(self) -> crate::parse::EntryRole {
+        use crate::parse::EntryRole;
+        match self {
+            Self::Parameters | Self::OtherParameters | Self::Receives | Self::KeywordParameters => EntryRole::Parameter,
+            Self::Returns => EntryRole::Return,
+            Self::Yields => EntryRole::Yield,
+            Self::Raises => EntryRole::Exception,
+            Self::Warns => EntryRole::Warning,
+            Self::SeeAlso => EntryRole::SeeAlsoItem,
+            Self::Attributes => EntryRole::Attribute,
+            Self::Methods => EntryRole::Method,
+            Self::References => EntryRole::Citation,
+            // Notes, Examples, Todo, Warnings, admonitions, Unknown, and any
+            // future kinds: free-text body, no entries.
+            _ => EntryRole::FreeText,
+        }
+    }
+
     /// All known section kinds.
     pub const ALL: &[NumPySectionKind] = &[
         Self::Parameters,

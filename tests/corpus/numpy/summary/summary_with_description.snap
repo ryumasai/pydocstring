@@ -1,5 +1,5 @@
 === CST ===
-NUMPY_DOCSTRING@0..92 {
+DOCUMENT@0..92 {
   SUMMARY@0..14 {
     TEXT_LINE: "Brief summary."@0..14
   }

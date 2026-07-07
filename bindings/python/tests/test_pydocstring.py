@@ -182,7 +182,7 @@ class TestParseGoogle:
     def test_pretty_print(self):
         doc = pydocstring.parse_google("Summary.\n\nArgs:\n    x: Desc.")
         output = doc.pretty_print()
-        assert "GOOGLE_DOCSTRING" in output
+        assert "DOCUMENT" in output
         assert "SUMMARY" in output
 
     def test_source(self):
@@ -286,7 +286,7 @@ class TestParseNumPy:
     def test_pretty_print(self):
         doc = pydocstring.parse_numpy("Summary.\n\nParameters\n----------\nx : int\n    Desc.")
         output = doc.pretty_print()
-        assert "NUMPY_DOCSTRING" in output
+        assert "DOCUMENT" in output
 
     def test_source(self):
         text = "Summary.\n\nParameters\n----------\nx : int\n    Desc."
@@ -705,7 +705,7 @@ class TestParsePlain:
     def test_pretty_print(self):
         doc = pydocstring.parse_plain("Summary.\n\nExtended.")
         output = doc.pretty_print()
-        assert "PLAIN_DOCSTRING" in output
+        assert "DOCUMENT" in output
         assert "SUMMARY" in output
         assert "EXTENDED_SUMMARY" in output
 

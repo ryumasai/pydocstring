@@ -1,17 +1,17 @@
 === CST ===
-GOOGLE_DOCSTRING@0..96 {
+DOCUMENT@0..96 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  GOOGLE_DEPRECATION@10..57 {
+  DIRECTIVE@10..57 {
     DIRECTIVE_MARKER: ".."@10..12
     WHITESPACE: " "@12..13
     KEYWORD: "deprecated"@13..23
     DOUBLE_COLON: "::"@23..25
     WHITESPACE: " "@25..26
-    VERSION: "1.6.0"@26..31
+    ARGUMENT: "1.6.0"@26..31
     NEWLINE: "\n"@31..32
     WHITESPACE: "    "@32..36
     DESCRIPTION@36..57 {

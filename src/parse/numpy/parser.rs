@@ -337,7 +337,7 @@ fn build_section_header_node(info: &SectionHeaderInfo) -> SyntaxNode {
         SyntaxElement::Token(SyntaxToken::new(SyntaxKind::NAME, info.name)),
         SyntaxElement::Token(SyntaxToken::new(SyntaxKind::UNDERLINE, info.underline)),
     ];
-    SyntaxNode::new(SyntaxKind::NUMPY_SECTION_HEADER, info.range, children)
+    SyntaxNode::new(SyntaxKind::SECTION_HEADER, info.range, children)
 }
 
 fn build_parameter_node(parts: &ParamHeaderParts, range: TextRange) -> SyntaxNode {
@@ -397,7 +397,7 @@ fn build_parameter_node(parts: &ParamHeaderParts, range: TextRange) -> SyntaxNod
     // pushed before TYPE), so sort by position; zero-length placeholders
     // sort before a token starting at the same offset.
     children.sort_by_key(|c| (c.range().start(), c.range().end()));
-    SyntaxNode::new(SyntaxKind::NUMPY_PARAMETER, range, children)
+    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
 fn build_returns_node(
@@ -424,7 +424,7 @@ fn build_returns_node(
             TextRange::new(missing_pos, missing_pos),
         )));
     }
-    SyntaxNode::new(SyntaxKind::NUMPY_RETURNS, range, children)
+    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
 fn build_yields_node(
@@ -450,7 +450,7 @@ fn build_yields_node(
             TextRange::new(missing_pos, missing_pos),
         )));
     }
-    SyntaxNode::new(SyntaxKind::NUMPY_YIELDS, range, children)
+    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
 fn build_exception_node(
@@ -474,7 +474,7 @@ fn build_exception_node(
             c.end(),
         )));
     }
-    SyntaxNode::new(SyntaxKind::NUMPY_EXCEPTION, range, children)
+    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
 fn build_warning_node(
@@ -497,7 +497,7 @@ fn build_warning_node(
             c.end(),
         )));
     }
-    SyntaxNode::new(SyntaxKind::NUMPY_WARNING, range, children)
+    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
 fn build_see_also_node(
@@ -526,7 +526,7 @@ fn build_see_also_node(
             c.end(),
         )));
     }
-    SyntaxNode::new(SyntaxKind::NUMPY_SEE_ALSO_ITEM, range, children)
+    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
 fn build_attribute_node(parts: &ParamHeaderParts, range: TextRange) -> SyntaxNode {
@@ -549,7 +549,7 @@ fn build_attribute_node(parts: &ParamHeaderParts, range: TextRange) -> SyntaxNod
             TextRange::new(missing_pos, missing_pos),
         )));
     }
-    SyntaxNode::new(SyntaxKind::NUMPY_ATTRIBUTE, range, children)
+    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
 fn build_method_node(
@@ -572,7 +572,7 @@ fn build_method_node(
             c.end(),
         )));
     }
-    SyntaxNode::new(SyntaxKind::NUMPY_METHOD, range, children)
+    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
 // =============================================================================
@@ -948,7 +948,7 @@ impl SectionBody {
             Self::Raises(nodes) => process_raises_line(cursor, nodes, entry_indent),
             Self::Warns(nodes) => process_warning_line(cursor, nodes, entry_indent),
             Self::SeeAlso(nodes) => process_see_also_line(cursor, nodes, entry_indent),
-            Self::References(nodes) => process_reference_line(cursor, SyntaxKind::NUMPY_REFERENCE, nodes, entry_indent),
+            Self::References(nodes) => process_reference_line(cursor, nodes, entry_indent),
             Self::Attributes(nodes) => process_attribute_line(cursor, nodes, entry_indent),
             Self::Methods(nodes) => process_method_line(cursor, nodes, entry_indent),
             Self::FreeText(range) => {
@@ -974,7 +974,11 @@ impl SectionBody {
             Self::Methods(nodes) => nodes,
             Self::FreeText(range) => {
                 if let Some(r) = range {
-                    vec![SyntaxElement::Node(build_text_block(SyntaxKind::BODY_TEXT, r, source))]
+                    vec![SyntaxElement::Node(build_text_block(
+                        SyntaxKind::DESCRIPTION,
+                        r,
+                        source,
+                    ))]
                 } else {
                     vec![]
                 }
@@ -1005,7 +1009,7 @@ impl SectionBody {
 /// assert_eq!(summary.text(source), "Summary.");
 ///
 /// // Access sections
-/// let sections: Vec<_> = root.nodes(SyntaxKind::NUMPY_SECTION).collect();
+/// let sections: Vec<_> = root.nodes(SyntaxKind::SECTION).collect();
 /// assert_eq!(sections.len(), 1);
 /// ```
 pub fn parse_numpy(input: &str) -> Parsed {
@@ -1014,9 +1018,9 @@ pub fn parse_numpy(input: &str) -> Parsed {
 
     cursor.skip_blanks();
     if cursor.is_eof() {
-        let mut root = SyntaxNode::new(SyntaxKind::NUMPY_DOCSTRING, cursor.full_range(), root_children);
+        let mut root = SyntaxNode::new(SyntaxKind::DOCUMENT, cursor.full_range(), root_children);
         crate::parse::trivia::attach_trivia(&mut root, input);
-        return Parsed::new(input.to_string(), root);
+        return Parsed::new(input.to_string(), root, crate::parse::Style::NumPy);
     }
 
     // --- Summary (all lines until blank line or section header) ---
@@ -1053,7 +1057,7 @@ pub fn parse_numpy(input: &str) -> Parsed {
     // --- Deprecation directive ---
     if !cursor.is_eof()
         && try_detect_header(&cursor).is_none()
-        && let Some(node) = try_parse_deprecation_directive(&mut cursor, SyntaxKind::NUMPY_DEPRECATION)
+        && let Some(node) = try_parse_deprecation_directive(&mut cursor)
     {
         root_children.push(SyntaxElement::Node(node));
         cursor.skip_blanks();
@@ -1138,9 +1142,9 @@ pub fn parse_numpy(input: &str) -> Parsed {
         root_children.push(SyntaxElement::Node(section_node));
     }
 
-    let mut root = SyntaxNode::new(SyntaxKind::NUMPY_DOCSTRING, cursor.full_range(), root_children);
+    let mut root = SyntaxNode::new(SyntaxKind::DOCUMENT, cursor.full_range(), root_children);
     crate::parse::trivia::attach_trivia(&mut root, input);
-    Parsed::new(input.to_string(), root)
+    Parsed::new(input.to_string(), root, crate::parse::Style::NumPy)
 }
 
 fn flush_section(cursor: &LineCursor, header: SectionHeaderInfo, body: SectionBody) -> SyntaxNode {
@@ -1151,7 +1155,7 @@ fn flush_section(cursor: &LineCursor, header: SectionHeaderInfo, body: SectionBo
     section_children.push(SyntaxElement::Node(build_section_header_node(&header)));
     section_children.extend(body.into_children(cursor.source()));
 
-    SyntaxNode::new(SyntaxKind::NUMPY_SECTION, section_range, section_children)
+    SyntaxNode::new(SyntaxKind::SECTION, section_range, section_children)
 }
 
 // =============================================================================
@@ -1230,10 +1234,10 @@ mod tests {
         let input = "Summary.\n\nParameters\n----------\nx : int\n    The value.\n";
         let parsed = parse_numpy(input);
         let root = parsed.root();
-        assert_eq!(root.kind(), SyntaxKind::NUMPY_DOCSTRING);
+        assert_eq!(root.kind(), SyntaxKind::DOCUMENT);
         let summary = crate::parse::text_block::TextBlock::cast(root.find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
         assert_eq!(summary.text(parsed.source()), "Summary.");
-        let sections: Vec<_> = root.nodes(SyntaxKind::NUMPY_SECTION).collect();
+        let sections: Vec<_> = root.nodes(SyntaxKind::SECTION).collect();
         assert_eq!(sections.len(), 1);
     }
 
@@ -1243,8 +1247,8 @@ mod tests {
     fn test_google_style_entry_children_in_source_order() {
         let input = "Summary.\n\nParameters\n----------\nname (str): The name.\n";
         let parsed = parse_numpy(input);
-        let section = parsed.root().find_node(SyntaxKind::NUMPY_SECTION).unwrap();
-        let param = section.find_node(SyntaxKind::NUMPY_PARAMETER).unwrap();
+        let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
+        let param = section.find_node(SyntaxKind::ENTRY).unwrap();
         let mut last_start = None;
         for child in param.children() {
             assert!(
@@ -1280,8 +1284,8 @@ mod tests {
     fn test_google_style_entry_missing_type_anchored_after_open_bracket() {
         let input = "Summary.\n\nParameters\n----------\nname (): The name.\n";
         let parsed = parse_numpy(input);
-        let section = parsed.root().find_node(SyntaxKind::NUMPY_SECTION).unwrap();
-        let param = section.find_node(SyntaxKind::NUMPY_PARAMETER).unwrap();
+        let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
+        let param = section.find_node(SyntaxKind::ENTRY).unwrap();
         let open = param.find_token(SyntaxKind::OPEN_BRACKET).unwrap();
         let missing = param.find_missing(SyntaxKind::TYPE).unwrap();
         assert_eq!(missing.range().start(), open.range().end());

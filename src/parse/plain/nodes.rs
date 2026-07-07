@@ -9,14 +9,14 @@ use crate::syntax::SyntaxNode;
 // PlainDocstring
 // =============================================================================
 
-/// Typed wrapper for [`SyntaxKind::PLAIN_DOCSTRING`] nodes.
+/// Typed wrapper for plain-style [`SyntaxKind::DOCUMENT`] nodes.
 #[derive(Debug)]
 pub struct PlainDocstring<'a>(pub(crate) &'a SyntaxNode);
 
 impl<'a> PlainDocstring<'a> {
     /// Try to cast a `SyntaxNode` reference into this typed wrapper.
     pub fn cast(node: &'a SyntaxNode) -> Option<Self> {
-        (node.kind() == SyntaxKind::PLAIN_DOCSTRING).then_some(Self(node))
+        (node.kind() == SyntaxKind::DOCUMENT).then_some(Self(node))
     }
 
     /// Access the underlying `SyntaxNode`.

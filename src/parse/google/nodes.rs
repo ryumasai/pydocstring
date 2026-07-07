@@ -3,6 +3,7 @@
 //! Each wrapper is a newtype over `&SyntaxNode` that provides typed accessors
 //! for the node's children (tokens and sub-nodes).
 
+use crate::parse::EntryRole;
 use crate::parse::google::kind::GoogleSectionKind;
 use crate::parse::text_block::TextBlock;
 use crate::parse::text_block::find_text_block;
@@ -39,7 +40,7 @@ macro_rules! define_node {
 // GoogleDocstring
 // =============================================================================
 
-define_node!(GoogleDocstring, GOOGLE_DOCSTRING);
+define_node!(GoogleDocstring, DOCUMENT);
 
 impl<'a> GoogleDocstring<'a> {
     /// Brief summary block, if present.
@@ -55,13 +56,13 @@ impl<'a> GoogleDocstring<'a> {
     /// Deprecation node, if present.
     pub fn deprecation(&self) -> Option<GoogleDeprecation<'a>> {
         self.0
-            .find_node(SyntaxKind::GOOGLE_DEPRECATION)
+            .find_node(SyntaxKind::DIRECTIVE)
             .and_then(GoogleDeprecation::cast)
     }
 
     /// Iterate over all section nodes.
     pub fn sections(&self) -> impl Iterator<Item = GoogleSection<'a>> {
-        self.0.nodes(SyntaxKind::GOOGLE_SECTION).filter_map(GoogleSection::cast)
+        self.0.nodes(SyntaxKind::SECTION).filter_map(GoogleSection::cast)
     }
 
     /// Iterate over stray line tokens.
@@ -74,7 +75,7 @@ impl<'a> GoogleDocstring<'a> {
 // GoogleDeprecation
 // =============================================================================
 
-define_node!(GoogleDeprecation, GOOGLE_DEPRECATION);
+define_node!(GoogleDeprecation, DIRECTIVE);
 
 impl<'a> GoogleDeprecation<'a> {
     /// The `..` RST directive marker.
@@ -94,7 +95,7 @@ impl<'a> GoogleDeprecation<'a> {
 
     /// Version when deprecated.
     pub fn version(&self) -> &'a SyntaxToken {
-        self.0.required_token(SyntaxKind::VERSION)
+        self.0.required_token(SyntaxKind::ARGUMENT)
     }
 
     /// Description / reason for deprecation.
@@ -107,15 +108,15 @@ impl<'a> GoogleDeprecation<'a> {
 // GoogleSection
 // =============================================================================
 
-define_node!(GoogleSection, GOOGLE_SECTION);
+define_node!(GoogleSection, SECTION);
 
 impl<'a> GoogleSection<'a> {
     /// The section header node.
     pub fn header(&self) -> GoogleSectionHeader<'a> {
         GoogleSectionHeader::cast(
             self.0
-                .find_node(SyntaxKind::GOOGLE_SECTION_HEADER)
-                .expect("GOOGLE_SECTION must have a GOOGLE_SECTION_HEADER child"),
+                .find_node(SyntaxKind::SECTION_HEADER)
+                .expect("SECTION must have a SECTION_HEADER child"),
         )
         .unwrap()
     }
@@ -126,64 +127,95 @@ impl<'a> GoogleSection<'a> {
         GoogleSectionKind::from_name(&name_text.to_ascii_lowercase())
     }
 
+    /// Iterate over the `ENTRY` children when this section's entries have
+    /// `role`; empty for any other section kind.
+    ///
+    /// All entries share the `ENTRY` node kind, so without this guard a
+    /// mismatched accessor (e.g. `args()` on a `Raises:` section) would wrap
+    /// foreign entries whose typed accessors then panic in `required_token`.
+    fn entries_with_role(&self, source: &str, role: EntryRole) -> impl Iterator<Item = &'a SyntaxNode> {
+        let matches = self.section_kind(source).entry_role() == role;
+        self.0.nodes(SyntaxKind::ENTRY).filter(move |_| matches)
+    }
+
     /// Iterate over arg entry nodes in this section.
-    pub fn args(&self) -> impl Iterator<Item = GoogleArg<'a>> {
-        self.0.nodes(SyntaxKind::GOOGLE_ARG).filter_map(GoogleArg::cast)
+    ///
+    /// Empty when this is not an Args-like section (Args, Keyword Args,
+    /// Other Parameters, Receives).
+    pub fn args(&self, source: &str) -> impl Iterator<Item = GoogleArg<'a>> {
+        self.entries_with_role(source, EntryRole::Parameter)
+            .filter_map(GoogleArg::cast)
     }
 
     /// Returns entry node in this section, if present.
-    pub fn returns(&self) -> Option<GoogleReturn<'a>> {
-        self.0
-            .find_node(SyntaxKind::GOOGLE_RETURNS)
+    ///
+    /// `None` when this is not a Returns section.
+    pub fn returns(&self, source: &str) -> Option<GoogleReturn<'a>> {
+        self.entries_with_role(source, EntryRole::Return)
+            .next()
             .and_then(GoogleReturn::cast)
     }
 
     /// Yields entry node in this section, if present.
-    pub fn yields(&self) -> Option<GoogleYield<'a>> {
-        self.0.find_node(SyntaxKind::GOOGLE_YIELDS).and_then(GoogleYield::cast)
+    ///
+    /// `None` when this is not a Yields section.
+    pub fn yields(&self, source: &str) -> Option<GoogleYield<'a>> {
+        self.entries_with_role(source, EntryRole::Yield)
+            .next()
+            .and_then(GoogleYield::cast)
     }
 
     /// Iterate over exception entry nodes.
-    pub fn exceptions(&self) -> impl Iterator<Item = GoogleException<'a>> {
-        self.0
-            .nodes(SyntaxKind::GOOGLE_EXCEPTION)
+    ///
+    /// Empty when this is not a Raises section.
+    pub fn exceptions(&self, source: &str) -> impl Iterator<Item = GoogleException<'a>> {
+        self.entries_with_role(source, EntryRole::Exception)
             .filter_map(GoogleException::cast)
     }
 
     /// Iterate over warning entry nodes.
-    pub fn warnings(&self) -> impl Iterator<Item = GoogleWarning<'a>> {
-        self.0.nodes(SyntaxKind::GOOGLE_WARNING).filter_map(GoogleWarning::cast)
+    ///
+    /// Empty when this is not a Warns section.
+    pub fn warnings(&self, source: &str) -> impl Iterator<Item = GoogleWarning<'a>> {
+        self.entries_with_role(source, EntryRole::Warning)
+            .filter_map(GoogleWarning::cast)
     }
 
     /// Iterate over see-also item nodes.
-    pub fn see_also_items(&self) -> impl Iterator<Item = GoogleSeeAlsoItem<'a>> {
-        self.0
-            .nodes(SyntaxKind::GOOGLE_SEE_ALSO_ITEM)
+    ///
+    /// Empty when this is not a See Also section.
+    pub fn see_also_items(&self, source: &str) -> impl Iterator<Item = GoogleSeeAlsoItem<'a>> {
+        self.entries_with_role(source, EntryRole::SeeAlsoItem)
             .filter_map(GoogleSeeAlsoItem::cast)
     }
 
     /// Iterate over reference nodes.
+    ///
+    /// `CITATION` nodes only occur in References sections, so no section-kind
+    /// guard is needed: other sections have no such children.
     pub fn references(&self) -> impl Iterator<Item = GoogleReference<'a>> {
-        self.0
-            .nodes(SyntaxKind::GOOGLE_REFERENCE)
-            .filter_map(GoogleReference::cast)
+        self.0.nodes(SyntaxKind::CITATION).filter_map(GoogleReference::cast)
     }
 
     /// Iterate over attribute entry nodes.
-    pub fn attributes(&self) -> impl Iterator<Item = GoogleAttribute<'a>> {
-        self.0
-            .nodes(SyntaxKind::GOOGLE_ATTRIBUTE)
+    ///
+    /// Empty when this is not an Attributes section.
+    pub fn attributes(&self, source: &str) -> impl Iterator<Item = GoogleAttribute<'a>> {
+        self.entries_with_role(source, EntryRole::Attribute)
             .filter_map(GoogleAttribute::cast)
     }
 
     /// Iterate over method entry nodes.
-    pub fn methods(&self) -> impl Iterator<Item = GoogleMethod<'a>> {
-        self.0.nodes(SyntaxKind::GOOGLE_METHOD).filter_map(GoogleMethod::cast)
+    ///
+    /// Empty when this is not a Methods section.
+    pub fn methods(&self, source: &str) -> impl Iterator<Item = GoogleMethod<'a>> {
+        self.entries_with_role(source, EntryRole::Method)
+            .filter_map(GoogleMethod::cast)
     }
 
     /// Free-text body content block, if this is a free-text section.
     pub fn body_text(&self) -> Option<TextBlock<'a>> {
-        find_text_block(self.0, SyntaxKind::BODY_TEXT)
+        find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 }
 
@@ -191,7 +223,7 @@ impl<'a> GoogleSection<'a> {
 // GoogleSectionHeader
 // =============================================================================
 
-define_node!(GoogleSectionHeader, GOOGLE_SECTION_HEADER);
+define_node!(GoogleSectionHeader, SECTION_HEADER);
 
 impl<'a> GoogleSectionHeader<'a> {
     /// Section name token (e.g. "Args", "Returns").
@@ -209,7 +241,7 @@ impl<'a> GoogleSectionHeader<'a> {
 // GoogleArg
 // =============================================================================
 
-define_node!(GoogleArg, GOOGLE_ARG);
+define_node!(GoogleArg, ENTRY);
 
 impl<'a> GoogleArg<'a> {
     /// Argument name token.
@@ -275,7 +307,7 @@ impl<'a> GoogleArg<'a> {
 // GoogleReturn
 // =============================================================================
 
-define_node!(GoogleReturn, GOOGLE_RETURNS);
+define_node!(GoogleReturn, ENTRY);
 
 impl<'a> GoogleReturn<'a> {
     /// Return type annotation token, if present.
@@ -298,7 +330,7 @@ impl<'a> GoogleReturn<'a> {
 // GoogleYield
 // =============================================================================
 
-define_node!(GoogleYield, GOOGLE_YIELDS);
+define_node!(GoogleYield, ENTRY);
 
 impl<'a> GoogleYield<'a> {
     /// Yield type annotation token, if present.
@@ -321,7 +353,7 @@ impl<'a> GoogleYield<'a> {
 // GoogleException
 // =============================================================================
 
-define_node!(GoogleException, GOOGLE_EXCEPTION);
+define_node!(GoogleException, ENTRY);
 
 impl<'a> GoogleException<'a> {
     /// Exception type name token.
@@ -344,7 +376,7 @@ impl<'a> GoogleException<'a> {
 // GoogleWarning
 // =============================================================================
 
-define_node!(GoogleWarning, GOOGLE_WARNING);
+define_node!(GoogleWarning, ENTRY);
 
 impl<'a> GoogleWarning<'a> {
     /// Warning type name token (e.g. `UserWarning`).
@@ -367,7 +399,7 @@ impl<'a> GoogleWarning<'a> {
 // GoogleSeeAlsoItem
 // =============================================================================
 
-define_node!(GoogleSeeAlsoItem, GOOGLE_SEE_ALSO_ITEM);
+define_node!(GoogleSeeAlsoItem, ENTRY);
 
 impl<'a> GoogleSeeAlsoItem<'a> {
     /// All name tokens (can be multiple, e.g. `func_a, func_b`).
@@ -390,7 +422,7 @@ impl<'a> GoogleSeeAlsoItem<'a> {
 // GoogleReference
 // =============================================================================
 
-define_node!(GoogleReference, GOOGLE_REFERENCE);
+define_node!(GoogleReference, CITATION);
 
 impl<'a> GoogleReference<'a> {
     /// RST directive marker (`..`), if present.
@@ -405,7 +437,7 @@ impl<'a> GoogleReference<'a> {
 
     /// Reference number token, if present.
     pub fn number(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::NUMBER)
+        self.0.find_token(SyntaxKind::LABEL)
     }
 
     /// Closing bracket token, if present.
@@ -415,7 +447,7 @@ impl<'a> GoogleReference<'a> {
 
     /// Reference content text block, if present.
     pub fn content(&self) -> Option<TextBlock<'a>> {
-        find_text_block(self.0, SyntaxKind::CONTENT)
+        find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 }
 
@@ -423,7 +455,7 @@ impl<'a> GoogleReference<'a> {
 // GoogleAttribute
 // =============================================================================
 
-define_node!(GoogleAttribute, GOOGLE_ATTRIBUTE);
+define_node!(GoogleAttribute, ENTRY);
 
 impl<'a> GoogleAttribute<'a> {
     /// Attribute name token.
@@ -461,7 +493,7 @@ impl<'a> GoogleAttribute<'a> {
 // GoogleMethod
 // =============================================================================
 
-define_node!(GoogleMethod, GOOGLE_METHOD);
+define_node!(GoogleMethod, ENTRY);
 
 impl<'a> GoogleMethod<'a> {
     /// Method name token.

@@ -1,18 +1,18 @@
 === CST ===
-GOOGLE_DOCSTRING@0..56 {
+DOCUMENT@0..56 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  GOOGLE_SECTION@10..56 {
-    GOOGLE_SECTION_HEADER@10..19 {
+  SECTION@10..56 {
+    SECTION_HEADER@10..19 {
       NAME: "See Also"@10..18
       COLON: ":"@18..19
     }
     NEWLINE: "\n"@19..20
     WHITESPACE: "    "@20..24
-    GOOGLE_SEE_ALSO_ITEM@24..56 {
+    ENTRY@24..56 {
       NAME: "other_func"@24..34
       COLON: ":"@34..35
       WHITESPACE: " "@35..36

@@ -1,7 +1,7 @@
 //! Plain docstring parser (SyntaxNode-based).
 //!
 //! Parses docstrings that contain no NumPy or Google style section markers.
-//! Produces a [`Parsed`] with a [`SyntaxKind::PLAIN_DOCSTRING`] root that may
+//! Produces a [`Parsed`] with a [`SyntaxKind::DOCUMENT`] root that may
 //! contain a [`SyntaxKind::SUMMARY`] node and an
 //! [`SyntaxKind::EXTENDED_SUMMARY`] node.
 
@@ -31,7 +31,7 @@ fn build_content_range(cursor: &LineCursor, first: Option<usize>, last: usize) -
 
 /// Parse a plain docstring (no NumPy or Google section markers).
 ///
-/// The returned [`Parsed`] has a [`SyntaxKind::PLAIN_DOCSTRING`] root that
+/// The returned [`Parsed`] has a [`SyntaxKind::DOCUMENT`] root that
 /// contains at most one `SUMMARY` node and one `EXTENDED_SUMMARY` node.
 /// Unrecognised styles (e.g. Sphinx) are also parsed this way.
 ///
@@ -42,7 +42,7 @@ fn build_content_range(cursor: &LineCursor, first: Option<usize>, last: usize) -
 /// use pydocstring::syntax::SyntaxKind;
 ///
 /// let result = parse_plain("Summary.\n\nMore details here.");
-/// assert_eq!(result.root().kind(), SyntaxKind::PLAIN_DOCSTRING);
+/// assert_eq!(result.root().kind(), SyntaxKind::DOCUMENT);
 ///
 /// let doc = PlainDocstring::cast(result.root()).unwrap();
 /// assert_eq!(doc.summary().unwrap().text(result.source()), "Summary.");
@@ -54,9 +54,9 @@ pub fn parse_plain(input: &str) -> Parsed {
 
     line_cursor.skip_blanks();
     if line_cursor.is_eof() {
-        let mut root = SyntaxNode::new(SyntaxKind::PLAIN_DOCSTRING, line_cursor.full_range(), root_children);
+        let mut root = SyntaxNode::new(SyntaxKind::DOCUMENT, line_cursor.full_range(), root_children);
         crate::parse::trivia::attach_trivia(&mut root, input);
-        return Parsed::new(input.to_string(), root);
+        return Parsed::new(input.to_string(), root, crate::parse::Style::Plain);
     }
 
     let mut summary_done = false;
@@ -111,7 +111,7 @@ pub fn parse_plain(input: &str) -> Parsed {
         )));
     }
 
-    let mut root = SyntaxNode::new(SyntaxKind::PLAIN_DOCSTRING, line_cursor.full_range(), root_children);
+    let mut root = SyntaxNode::new(SyntaxKind::DOCUMENT, line_cursor.full_range(), root_children);
     crate::parse::trivia::attach_trivia(&mut root, input);
-    Parsed::new(input.to_string(), root)
+    Parsed::new(input.to_string(), root, crate::parse::Style::Plain)
 }

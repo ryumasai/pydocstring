@@ -1,18 +1,18 @@
 === CST ===
-NUMPY_DOCSTRING@0..151 {
+DOCUMENT@0..151 {
   SUMMARY@0..34 {
     TEXT_LINE: "Function with optional parameters."@0..34
   }
   NEWLINE: "\n"@34..35
   BLANK_LINE: "\n"@35..36
-  NUMPY_SECTION@36..150 {
-    NUMPY_SECTION_HEADER@36..57 {
+  SECTION@36..150 {
+    SECTION_HEADER@36..57 {
       NAME: "Parameters"@36..46
       NEWLINE: "\n"@46..47
       UNDERLINE: "----------"@47..57
     }
     NEWLINE: "\n"@57..58
-    NUMPY_PARAMETER@58..98 {
+    ENTRY@58..98 {
       NAME: "required"@58..66
       WHITESPACE: " "@66..67
       COLON: ":"@67..68
@@ -25,7 +25,7 @@ NUMPY_DOCSTRING@0..151 {
       }
     }
     NEWLINE: "\n"@98..99
-    NUMPY_PARAMETER@99..150 {
+    ENTRY@99..150 {
       NAME: "optional"@99..107
       WHITESPACE: " "@107..108
       COLON: ":"@108..109

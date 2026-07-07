@@ -10,8 +10,8 @@ use pydocstring_core::parse::numpy::kind::NumPySectionKind;
 use pydocstring_core::parse::numpy::nodes as nn;
 use pydocstring_core::parse::plain::nodes as pn;
 use pydocstring_core::parse::text_block::TextBlock;
-use pydocstring_core::parse::visitor::{DocstringVisitor, walk as core_walk};
-use pydocstring_core::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
+use pydocstring_core::parse::visitor::{DocstringVisitor, walk as core_walk, walk_children};
+use pydocstring_core::syntax::{Parsed, SyntaxKind, SyntaxNode, SyntaxToken};
 use pydocstring_core::text::TextRange;
 
 use std::convert::{TryFrom, TryInto};
@@ -1268,7 +1268,7 @@ fn build_google_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyGoogl
     let arc = Arc::new(parsed);
     let arc2 = Arc::clone(&arc);
     let doc = gn::GoogleDocstring::cast(arc.root())
-        .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not GOOGLE_DOCSTRING"))?;
+        .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not a DOCUMENT node"))?;
     build_google_docstring_node(py, &doc, arc.source(), arc2)
 }
 
@@ -1949,7 +1949,7 @@ fn build_numpy_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyNumPyD
     let arc = Arc::new(parsed);
     let arc2 = Arc::clone(&arc);
     let doc = nn::NumPyDocstring::cast(arc.root())
-        .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not NUMPY_DOCSTRING"))?;
+        .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not a DOCUMENT node"))?;
     build_numpy_docstring_node(py, &doc, arc.source(), arc2)
 }
 
@@ -2007,7 +2007,7 @@ fn build_plain_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyPlainD
     let arc = Arc::new(parsed);
     let source = arc.source();
     let doc = pn::PlainDocstring::cast(arc.root())
-        .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not PLAIN_DOCSTRING"))?;
+        .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not a DOCUMENT node"))?;
     let summary = mk_text_block_opt(py, doc.summary(), source)?;
     let extended_summary = mk_text_block_opt(py, doc.extended_summary(), source)?;
     Py::new(
@@ -3559,13 +3559,12 @@ fn parse_plain(py: Python<'_>, input: &str) -> PyResult<Py<PyPlainDocstring>> {
 /// Use `.style` on the result to distinguish them without `isinstance` checks.
 #[pyfunction]
 fn parse(py: Python<'_>, input: &str) -> PyResult<ParsedDocstring> {
-    use pydocstring_core::syntax::SyntaxKind;
+    use pydocstring_core::parse::Style;
     let parsed = pydocstring_core::parse::parse(input);
-    let kind = parsed.root().kind();
-    match kind {
-        SyntaxKind::GOOGLE_DOCSTRING => Ok(ParsedDocstring::Google(build_google_docstring(py, parsed)?)),
-        SyntaxKind::NUMPY_DOCSTRING => Ok(ParsedDocstring::NumPy(build_numpy_docstring(py, parsed)?)),
-        _ => Ok(ParsedDocstring::Plain(build_plain_docstring(py, parsed)?)),
+    match parsed.style() {
+        Style::Google => Ok(ParsedDocstring::Google(build_google_docstring(py, parsed)?)),
+        Style::NumPy => Ok(ParsedDocstring::NumPy(build_numpy_docstring(py, parsed)?)),
+        Style::Plain => Ok(ParsedDocstring::Plain(build_plain_docstring(py, parsed)?)),
     }
 }
 
@@ -3813,7 +3812,7 @@ fn dispatch_with_ctx<T: pyo3::PyClass>(
 /// `enter_google_section` and per-child `enter_google_*` calls via `clone_ref`.
 /// Walk the children of a section node, dispatching visitor methods.
 ///
-/// Accepts either a `GOOGLE_SECTION` or `NUMPY_SECTION` node.  The section
+/// Accepts a `SECTION` node from either style.  The section
 /// kind is read from `node.kind()` — no per-style function needed.
 /// Each child collection is built at most once and shared between the
 /// section object and per-child dispatches via `clone_ref`.
@@ -3836,30 +3835,18 @@ struct PyDispatcher<'py> {
     ctx: Py<PyWalkContext>,
 }
 
-/// Iterate the children of `node` and dispatch each child via [`core_walk`].
-/// Used by every `enter_*` / `exit_*` override in [`PyDispatcher`] to continue descent.
-#[inline]
-fn walk_children(source: &str, node: &SyntaxNode, dispatcher: &mut PyDispatcher<'_>) -> PyResult<()> {
-    for child in node.children() {
-        if let SyntaxElement::Node(n) = child {
-            core_walk(source, n, dispatcher)?;
-        }
-    }
-    Ok(())
-}
-
 /// Generates a `DocstringVisitor` method body for `PyDispatcher`.
 ///
 /// Variant with children:
-///   `visit_node!(self, source, ENTER_FIELD, EXIT_FIELD, build_expr, syntax_expr)`
+///   `visit_node!(self, parsed, ENTER_FIELD, EXIT_FIELD, build_expr, syntax_expr)`
 ///
 /// Variant without children (Plain):
-///   `visit_node!(self, source, ENTER_FIELD, EXIT_FIELD, build_expr)`
+///   `visit_node!(self, parsed, ENTER_FIELD, EXIT_FIELD, build_expr)`
 ///
 /// The method name strings are derived automatically via `concat!` / `stringify!`.
 macro_rules! visit_node {
     // ── with children ────────────────────────────────────────────────────
-    ($self:ident, $source:expr, $enter:ident, $exit:ident, $build:expr, $syntax:expr) => {{
+    ($self:ident, $parsed:expr, $enter:ident, $exit:ident, $build:expr, $syntax:expr) => {{
         let need = $self.active.$enter || $self.active.$exit;
         let obj: Option<_> = if need { Some($build?) } else { None };
         if $self.active.$enter {
@@ -3873,7 +3860,7 @@ macro_rules! visit_node {
                 )?;
             }
         }
-        walk_children($source, $syntax, $self)?;
+        walk_children($parsed, $syntax, $self)?;
         if $self.active.$exit {
             if let Some(ref o) = obj {
                 dispatch_with_ctx(
@@ -3888,7 +3875,7 @@ macro_rules! visit_node {
         Ok(())
     }};
     // ── without children (Plain) ─────────────────────────────────────────
-    ($self:ident, $source:expr, $enter:ident, $exit:ident, $build:expr) => {{
+    ($self:ident, $parsed:expr, $enter:ident, $exit:ident, $build:expr) => {{
         let need = $self.active.$enter || $self.active.$exit;
         let obj: Option<_> = if need { Some($build?) } else { None };
         if $self.active.$enter {
@@ -3921,10 +3908,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
     type Error = PyErr;
 
     // ── Google ────────────────────────────────────────────────────────────
-    fn visit_google_docstring(&mut self, source: &str, doc: &gn::GoogleDocstring<'_>) -> Result<(), PyErr> {
+    fn visit_google_docstring(&mut self, parsed: &Parsed, doc: &gn::GoogleDocstring<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             google_docstring,
             exit_google_docstring,
             build_google_docstring_node(self.py, doc, source, Arc::clone(&self.arc)),
@@ -3932,10 +3920,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_google_deprecation(&mut self, source: &str, dep: &gn::GoogleDeprecation<'_>) -> Result<(), PyErr> {
+    fn visit_google_deprecation(&mut self, parsed: &Parsed, dep: &gn::GoogleDeprecation<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             google_deprecation,
             exit_google_deprecation,
             build_google_deprecation(self.py, dep, source),
@@ -3943,10 +3932,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_google_section(&mut self, source: &str, sec: &gn::GoogleSection<'_>) -> Result<(), PyErr> {
+    fn visit_google_section(&mut self, parsed: &Parsed, sec: &gn::GoogleSection<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             google_section,
             exit_google_section,
             build_google_section(self.py, sec, source),
@@ -3954,10 +3944,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_google_arg(&mut self, source: &str, arg: &gn::GoogleArg<'_>) -> Result<(), PyErr> {
+    fn visit_google_arg(&mut self, parsed: &Parsed, arg: &gn::GoogleArg<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             google_arg,
             exit_google_arg,
             build_google_arg(self.py, arg, source),
@@ -3965,10 +3956,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_google_return(&mut self, source: &str, rtn: &gn::GoogleReturn<'_>) -> Result<(), PyErr> {
+    fn visit_google_return(&mut self, parsed: &Parsed, rtn: &gn::GoogleReturn<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             google_return,
             exit_google_return,
             build_google_return(self.py, rtn, source),
@@ -3976,10 +3968,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_google_yield(&mut self, source: &str, yld: &gn::GoogleYield<'_>) -> Result<(), PyErr> {
+    fn visit_google_yield(&mut self, parsed: &Parsed, yld: &gn::GoogleYield<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             google_yield,
             exit_google_yield,
             build_google_yield(self.py, yld, source),
@@ -3987,10 +3980,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_google_exception(&mut self, source: &str, exc: &gn::GoogleException<'_>) -> Result<(), PyErr> {
+    fn visit_google_exception(&mut self, parsed: &Parsed, exc: &gn::GoogleException<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             google_exception,
             exit_google_exception,
             build_google_exception(self.py, exc, source),
@@ -3998,10 +3992,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_google_warning(&mut self, source: &str, wrn: &gn::GoogleWarning<'_>) -> Result<(), PyErr> {
+    fn visit_google_warning(&mut self, parsed: &Parsed, wrn: &gn::GoogleWarning<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             google_warning,
             exit_google_warning,
             build_google_warning(self.py, wrn, source),
@@ -4009,10 +4004,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_google_see_also_item(&mut self, source: &str, sai: &gn::GoogleSeeAlsoItem<'_>) -> Result<(), PyErr> {
+    fn visit_google_see_also_item(&mut self, parsed: &Parsed, sai: &gn::GoogleSeeAlsoItem<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             google_see_also_item,
             exit_google_see_also_item,
             build_google_see_also_item(self.py, sai, source),
@@ -4020,10 +4016,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_google_reference(&mut self, source: &str, r#ref: &gn::GoogleReference<'_>) -> Result<(), PyErr> {
+    fn visit_google_reference(&mut self, parsed: &Parsed, r#ref: &gn::GoogleReference<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             google_reference,
             exit_google_reference,
             build_google_reference(self.py, r#ref, source),
@@ -4031,10 +4028,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_google_attribute(&mut self, source: &str, att: &gn::GoogleAttribute<'_>) -> Result<(), PyErr> {
+    fn visit_google_attribute(&mut self, parsed: &Parsed, att: &gn::GoogleAttribute<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             google_attribute,
             exit_google_attribute,
             build_google_attribute(self.py, att, source),
@@ -4042,10 +4040,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_google_method(&mut self, source: &str, mtd: &gn::GoogleMethod<'_>) -> Result<(), PyErr> {
+    fn visit_google_method(&mut self, parsed: &Parsed, mtd: &gn::GoogleMethod<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             google_method,
             exit_google_method,
             build_google_method(self.py, mtd, source),
@@ -4054,10 +4053,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
     }
 
     // ── NumPy ─────────────────────────────────────────────────────────────
-    fn visit_numpy_docstring(&mut self, source: &str, doc: &nn::NumPyDocstring<'_>) -> Result<(), PyErr> {
+    fn visit_numpy_docstring(&mut self, parsed: &Parsed, doc: &nn::NumPyDocstring<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             numpy_docstring,
             exit_numpy_docstring,
             build_numpy_docstring_node(self.py, doc, source, Arc::clone(&self.arc)),
@@ -4065,10 +4065,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_numpy_deprecation(&mut self, source: &str, dep: &nn::NumPyDeprecation<'_>) -> Result<(), PyErr> {
+    fn visit_numpy_deprecation(&mut self, parsed: &Parsed, dep: &nn::NumPyDeprecation<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             numpy_deprecation,
             exit_numpy_deprecation,
             build_numpy_deprecation(self.py, dep, source),
@@ -4076,10 +4077,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_numpy_section(&mut self, source: &str, sec: &nn::NumPySection<'_>) -> Result<(), PyErr> {
+    fn visit_numpy_section(&mut self, parsed: &Parsed, sec: &nn::NumPySection<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             numpy_section,
             exit_numpy_section,
             build_numpy_section(self.py, sec, source),
@@ -4087,10 +4089,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_numpy_parameter(&mut self, source: &str, prm: &nn::NumPyParameter<'_>) -> Result<(), PyErr> {
+    fn visit_numpy_parameter(&mut self, parsed: &Parsed, prm: &nn::NumPyParameter<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             numpy_parameter,
             exit_numpy_parameter,
             build_numpy_parameter(self.py, prm, source),
@@ -4098,10 +4101,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_numpy_returns(&mut self, source: &str, rtn: &nn::NumPyReturns<'_>) -> Result<(), PyErr> {
+    fn visit_numpy_returns(&mut self, parsed: &Parsed, rtn: &nn::NumPyReturns<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             numpy_returns,
             exit_numpy_returns,
             build_numpy_returns(self.py, rtn, source),
@@ -4109,10 +4113,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_numpy_yields(&mut self, source: &str, yld: &nn::NumPyYields<'_>) -> Result<(), PyErr> {
+    fn visit_numpy_yields(&mut self, parsed: &Parsed, yld: &nn::NumPyYields<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             numpy_yields,
             exit_numpy_yields,
             build_numpy_yields(self.py, yld, source),
@@ -4120,10 +4125,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_numpy_exception(&mut self, source: &str, exc: &nn::NumPyException<'_>) -> Result<(), PyErr> {
+    fn visit_numpy_exception(&mut self, parsed: &Parsed, exc: &nn::NumPyException<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             numpy_exception,
             exit_numpy_exception,
             build_numpy_exception(self.py, exc, source),
@@ -4131,10 +4137,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_numpy_warning(&mut self, source: &str, wrn: &nn::NumPyWarning<'_>) -> Result<(), PyErr> {
+    fn visit_numpy_warning(&mut self, parsed: &Parsed, wrn: &nn::NumPyWarning<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             numpy_warning,
             exit_numpy_warning,
             build_numpy_warning(self.py, wrn, source),
@@ -4142,10 +4149,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_numpy_see_also_item(&mut self, source: &str, sai: &nn::NumPySeeAlsoItem<'_>) -> Result<(), PyErr> {
+    fn visit_numpy_see_also_item(&mut self, parsed: &Parsed, sai: &nn::NumPySeeAlsoItem<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             numpy_see_also_item,
             exit_numpy_see_also_item,
             build_numpy_see_also_item(self.py, sai, source),
@@ -4153,10 +4161,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_numpy_reference(&mut self, source: &str, r#ref: &nn::NumPyReference<'_>) -> Result<(), PyErr> {
+    fn visit_numpy_reference(&mut self, parsed: &Parsed, r#ref: &nn::NumPyReference<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             numpy_reference,
             exit_numpy_reference,
             build_numpy_reference(self.py, r#ref, source),
@@ -4164,10 +4173,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_numpy_attribute(&mut self, source: &str, att: &nn::NumPyAttribute<'_>) -> Result<(), PyErr> {
+    fn visit_numpy_attribute(&mut self, parsed: &Parsed, att: &nn::NumPyAttribute<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             numpy_attribute,
             exit_numpy_attribute,
             build_numpy_attribute(self.py, att, source),
@@ -4175,10 +4185,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
-    fn visit_numpy_method(&mut self, source: &str, mtd: &nn::NumPyMethod<'_>) -> Result<(), PyErr> {
+    fn visit_numpy_method(&mut self, parsed: &Parsed, mtd: &nn::NumPyMethod<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             numpy_method,
             exit_numpy_method,
             build_numpy_method(self.py, mtd, source),
@@ -4187,10 +4198,11 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
     }
 
     // ── Plain ─────────────────────────────────────────────────────────────
-    fn visit_plain_docstring(&mut self, source: &str, doc: &pn::PlainDocstring<'_>) -> Result<(), PyErr> {
+    fn visit_plain_docstring(&mut self, parsed: &Parsed, doc: &pn::PlainDocstring<'_>) -> Result<(), PyErr> {
+        let source = parsed.source();
         visit_node!(
             self,
-            source,
+            parsed,
             plain_docstring,
             exit_plain_docstring,
             build_plain_docstring_node(self.py, doc, source, Arc::clone(&self.arc))
@@ -4268,7 +4280,7 @@ fn walk(py: Python<'_>, doc: Py<PyAny>, visitor: Py<PyAny>) -> PyResult<Py<PyAny
         ctx,
     };
 
-    core_walk(&source, root, &mut dispatcher)?;
+    core_walk(&arc, root, &mut dispatcher)?;
 
     Ok(visitor)
 }

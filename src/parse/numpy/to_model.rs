@@ -19,8 +19,12 @@ use crate::syntax::Parsed;
 
 /// Build a [`Docstring`] from a NumPy-style [`Parsed`] result.
 ///
-/// Returns `None` if the root node is not a `NUMPY_DOCSTRING`.
+/// Returns `None` if the docstring was not parsed as
+/// [`Style::NumPy`](crate::parse::Style::NumPy).
 pub fn to_model(parsed: &Parsed) -> Option<Docstring> {
+    if parsed.style() != crate::parse::Style::NumPy {
+        return None;
+    }
     let source = parsed.source();
     let root = NumPyDocstring::cast(parsed.root())?;
 
@@ -47,22 +51,31 @@ fn convert_section(section: &NumPySection<'_>, source: &str) -> Section {
 
     match kind {
         NumPySectionKind::Parameters | NumPySectionKind::Receives => {
-            let entries = section.parameters().map(|p| convert_parameter(&p, source)).collect();
+            let entries = section
+                .parameters(source)
+                .map(|p| convert_parameter(&p, source))
+                .collect();
             match kind {
                 NumPySectionKind::Parameters => Section::Parameters(entries),
                 NumPySectionKind::Receives => Section::Receives(entries),
                 _ => unreachable!(),
             }
         }
-        NumPySectionKind::OtherParameters => {
-            Section::OtherParameters(section.parameters().map(|p| convert_parameter(&p, source)).collect())
-        }
-        NumPySectionKind::KeywordParameters => {
-            Section::KeywordParameters(section.parameters().map(|p| convert_parameter(&p, source)).collect())
-        }
+        NumPySectionKind::OtherParameters => Section::OtherParameters(
+            section
+                .parameters(source)
+                .map(|p| convert_parameter(&p, source))
+                .collect(),
+        ),
+        NumPySectionKind::KeywordParameters => Section::KeywordParameters(
+            section
+                .parameters(source)
+                .map(|p| convert_parameter(&p, source))
+                .collect(),
+        ),
         NumPySectionKind::Returns => {
             let entries: Vec<Return> = section
-                .returns()
+                .returns(source)
                 .map(|r| Return {
                     name: r.name().map(|t| t.text(source).to_owned()),
                     type_annotation: r.return_type().map(|t| t.text(source).to_owned()),
@@ -75,7 +88,7 @@ fn convert_section(section: &NumPySection<'_>, source: &str) -> Section {
         }
         NumPySectionKind::Yields => {
             let entries: Vec<Return> = section
-                .yields()
+                .yields(source)
                 .map(|r| Return {
                     name: r.name().map(|t| t.text(source).to_owned()),
                     type_annotation: r.return_type().map(|t| t.text(source).to_owned()),
@@ -88,7 +101,7 @@ fn convert_section(section: &NumPySection<'_>, source: &str) -> Section {
         }
         NumPySectionKind::Raises => Section::Raises(
             section
-                .exceptions()
+                .exceptions(source)
                 .map(|e| ExceptionEntry {
                     type_name: e.r#type().text(source).to_owned(),
                     description: e
@@ -99,7 +112,7 @@ fn convert_section(section: &NumPySection<'_>, source: &str) -> Section {
         ),
         NumPySectionKind::Warns => Section::Warns(
             section
-                .warnings()
+                .warnings(source)
                 .map(|w| ExceptionEntry {
                     type_name: w.r#type().text(source).to_owned(),
                     description: w
@@ -110,7 +123,7 @@ fn convert_section(section: &NumPySection<'_>, source: &str) -> Section {
         ),
         NumPySectionKind::SeeAlso => Section::SeeAlso(
             section
-                .see_also_items()
+                .see_also_items(source)
                 .map(|item| SeeAlsoEntry {
                     names: item.names().map(|n| n.text(source).to_owned()).collect(),
                     description: item
@@ -130,7 +143,7 @@ fn convert_section(section: &NumPySection<'_>, source: &str) -> Section {
         ),
         NumPySectionKind::Attributes => Section::Attributes(
             section
-                .attributes()
+                .attributes(source)
                 .map(|a| Attribute {
                     name: a.name().text(source).to_owned(),
                     type_annotation: a.r#type().map(|t| t.text(source).to_owned()),
@@ -142,7 +155,7 @@ fn convert_section(section: &NumPySection<'_>, source: &str) -> Section {
         ),
         NumPySectionKind::Methods => Section::Methods(
             section
-                .methods()
+                .methods(source)
                 .map(|m| Method {
                     name: m.name().text(source).to_owned(),
                     type_annotation: None,

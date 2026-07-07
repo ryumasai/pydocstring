@@ -1,5 +1,5 @@
 === CST ===
-GOOGLE_DOCSTRING@0..372 {
+DOCUMENT@0..372 {
   SUMMARY@0..20 {
     TEXT_LINE: "Calculate something."@0..20
   }
@@ -10,14 +10,14 @@ GOOGLE_DOCSTRING@0..372 {
   }
   NEWLINE: "\n"@43..44
   BLANK_LINE: "\n"@44..45
-  GOOGLE_SECTION@45..79 {
-    GOOGLE_SECTION_HEADER@45..50 {
+  SECTION@45..79 {
+    SECTION_HEADER@45..50 {
       NAME: "Args"@45..49
       COLON: ":"@49..50
     }
     NEWLINE: "\n"@50..51
     WHITESPACE: "    "@51..55
-    GOOGLE_ARG@55..79 {
+    ENTRY@55..79 {
       NAME: "x"@55..56
       WHITESPACE: " "@56..57
       OPEN_BRACKET: "("@57..58
@@ -32,14 +32,14 @@ GOOGLE_DOCSTRING@0..372 {
   }
   NEWLINE: "\n"@79..80
   BLANK_LINE: "\n"@80..81
-  GOOGLE_SECTION@81..130 {
-    GOOGLE_SECTION_HEADER@81..94 {
+  SECTION@81..130 {
+    SECTION_HEADER@81..94 {
       NAME: "Keyword Args"@81..93
       COLON: ":"@93..94
     }
     NEWLINE: "\n"@94..95
     WHITESPACE: "    "@95..99
-    GOOGLE_ARG@99..130 {
+    ENTRY@99..130 {
       NAME: "timeout"@99..106
       WHITESPACE: " "@106..107
       OPEN_BRACKET: "("@107..108
@@ -54,14 +54,14 @@ GOOGLE_DOCSTRING@0..372 {
   }
   NEWLINE: "\n"@130..131
   BLANK_LINE: "\n"@131..132
-  GOOGLE_SECTION@132..161 {
-    GOOGLE_SECTION_HEADER@132..140 {
+  SECTION@132..161 {
+    SECTION_HEADER@132..140 {
       NAME: "Returns"@132..139
       COLON: ":"@139..140
     }
     NEWLINE: "\n"@140..141
     WHITESPACE: "    "@141..145
-    GOOGLE_RETURNS@145..161 {
+    ENTRY@145..161 {
       RETURN_TYPE: "int"@145..148
       COLON: ":"@148..149
       WHITESPACE: " "@149..150
@@ -72,14 +72,14 @@ GOOGLE_DOCSTRING@0..372 {
   }
   NEWLINE: "\n"@161..162
   BLANK_LINE: "\n"@162..163
-  GOOGLE_SECTION@163..204 {
-    GOOGLE_SECTION_HEADER@163..170 {
+  SECTION@163..204 {
+    SECTION_HEADER@163..170 {
       NAME: "Raises"@163..169
       COLON: ":"@169..170
     }
     NEWLINE: "\n"@170..171
     WHITESPACE: "    "@171..175
-    GOOGLE_EXCEPTION@175..204 {
+    ENTRY@175..204 {
       TYPE: "ValueError"@175..185
       COLON: ":"@185..186
       WHITESPACE: " "@186..187
@@ -90,14 +90,14 @@ GOOGLE_DOCSTRING@0..372 {
   }
   NEWLINE: "\n"@204..205
   BLANK_LINE: "\n"@205..206
-  GOOGLE_SECTION@206..256 {
-    GOOGLE_SECTION_HEADER@206..212 {
+  SECTION@206..256 {
+    SECTION_HEADER@206..212 {
       NAME: "Warns"@206..211
       COLON: ":"@211..212
     }
     NEWLINE: "\n"@212..213
     WHITESPACE: "    "@213..217
-    GOOGLE_WARNING@217..256 {
+    ENTRY@217..256 {
       WARNING_TYPE: "DeprecationWarning"@217..235
       COLON: ":"@235..236
       WHITESPACE: " "@236..237
@@ -108,14 +108,14 @@ GOOGLE_DOCSTRING@0..372 {
   }
   NEWLINE: "\n"@256..257
   BLANK_LINE: "\n"@257..258
-  GOOGLE_SECTION@258..301 {
-    GOOGLE_SECTION_HEADER@258..267 {
+  SECTION@258..301 {
+    SECTION_HEADER@258..267 {
       NAME: "See Also"@258..266
       COLON: ":"@266..267
     }
     NEWLINE: "\n"@267..268
     WHITESPACE: "    "@268..272
-    GOOGLE_SEE_ALSO_ITEM@272..301 {
+    ENTRY@272..301 {
       NAME: "other_func"@272..282
       COLON: ":"@282..283
       WHITESPACE: " "@283..284
@@ -126,27 +126,27 @@ GOOGLE_DOCSTRING@0..372 {
   }
   NEWLINE: "\n"@301..302
   BLANK_LINE: "\n"@302..303
-  GOOGLE_SECTION@303..335 {
-    GOOGLE_SECTION_HEADER@303..308 {
+  SECTION@303..335 {
+    SECTION_HEADER@303..308 {
       NAME: "Note"@303..307
       COLON: ":"@307..308
     }
     NEWLINE: "\n"@308..309
     WHITESPACE: "    "@309..313
-    BODY_TEXT@313..335 {
+    DESCRIPTION@313..335 {
       TEXT_LINE: "Implementation detail."@313..335
     }
   }
   NEWLINE: "\n"@335..336
   BLANK_LINE: "\n"@336..337
-  GOOGLE_SECTION@337..372 {
-    GOOGLE_SECTION_HEADER@337..345 {
+  SECTION@337..372 {
+    SECTION_HEADER@337..345 {
       NAME: "Example"@337..344
       COLON: ":"@344..345
     }
     NEWLINE: "\n"@345..346
     WHITESPACE: "    "@346..350
-    BODY_TEXT@350..372 {
+    DESCRIPTION@350..372 {
       TEXT_LINE: ">>> calculate(1)"@350..366
       NEWLINE: "\n"@366..367
       WHITESPACE: "    "@367..371

@@ -3,6 +3,7 @@
 //! Each wrapper is a newtype over `&SyntaxNode` that provides typed accessors
 //! for the node's children (tokens and sub-nodes).
 
+use crate::parse::EntryRole;
 use crate::parse::numpy::kind::NumPySectionKind;
 use crate::parse::text_block::TextBlock;
 use crate::parse::text_block::find_text_block;
@@ -38,7 +39,7 @@ macro_rules! define_node {
 // NumPyDocstring
 // =============================================================================
 
-define_node!(NumPyDocstring, NUMPY_DOCSTRING);
+define_node!(NumPyDocstring, DOCUMENT);
 
 impl<'a> NumPyDocstring<'a> {
     /// Brief summary block, if present.
@@ -53,14 +54,12 @@ impl<'a> NumPyDocstring<'a> {
 
     /// Deprecation node, if present.
     pub fn deprecation(&self) -> Option<NumPyDeprecation<'a>> {
-        self.0
-            .find_node(SyntaxKind::NUMPY_DEPRECATION)
-            .and_then(NumPyDeprecation::cast)
+        self.0.find_node(SyntaxKind::DIRECTIVE).and_then(NumPyDeprecation::cast)
     }
 
     /// Iterate over all section nodes.
     pub fn sections(&self) -> impl Iterator<Item = NumPySection<'a>> {
-        self.0.nodes(SyntaxKind::NUMPY_SECTION).filter_map(NumPySection::cast)
+        self.0.nodes(SyntaxKind::SECTION).filter_map(NumPySection::cast)
     }
 
     /// Iterate over stray line tokens.
@@ -73,15 +72,15 @@ impl<'a> NumPyDocstring<'a> {
 // NumPySection
 // =============================================================================
 
-define_node!(NumPySection, NUMPY_SECTION);
+define_node!(NumPySection, SECTION);
 
 impl<'a> NumPySection<'a> {
     /// The section header node.
     pub fn header(&self) -> NumPySectionHeader<'a> {
         NumPySectionHeader::cast(
             self.0
-                .find_node(SyntaxKind::NUMPY_SECTION_HEADER)
-                .expect("NUMPY_SECTION must have a NUMPY_SECTION_HEADER child"),
+                .find_node(SyntaxKind::SECTION_HEADER)
+                .expect("SECTION must have a SECTION_HEADER child"),
         )
         .unwrap()
     }
@@ -92,64 +91,94 @@ impl<'a> NumPySection<'a> {
         NumPySectionKind::from_name(&name_text.to_ascii_lowercase())
     }
 
+    /// Iterate over the `ENTRY` children when this section's entries have
+    /// `role`; empty for any other section kind.
+    ///
+    /// All entries share the `ENTRY` node kind, so without this guard a
+    /// mismatched accessor (e.g. `parameters()` on a Raises section) would
+    /// wrap foreign entries whose typed accessors then panic in
+    /// `required_token`.
+    fn entries_with_role(&self, source: &str, role: EntryRole) -> impl Iterator<Item = &'a SyntaxNode> {
+        let matches = self.section_kind(source).entry_role() == role;
+        self.0.nodes(SyntaxKind::ENTRY).filter(move |_| matches)
+    }
+
     /// Iterate over parameter entry nodes.
-    pub fn parameters(&self) -> impl Iterator<Item = NumPyParameter<'a>> {
-        self.0
-            .nodes(SyntaxKind::NUMPY_PARAMETER)
+    ///
+    /// Empty when this is not a Parameters-like section (Parameters, Other
+    /// Parameters, Keyword Parameters, Receives).
+    pub fn parameters(&self, source: &str) -> impl Iterator<Item = NumPyParameter<'a>> {
+        self.entries_with_role(source, EntryRole::Parameter)
             .filter_map(NumPyParameter::cast)
     }
 
     /// Iterate over returns entry nodes.
-    pub fn returns(&self) -> impl Iterator<Item = NumPyReturns<'a>> {
-        self.0.nodes(SyntaxKind::NUMPY_RETURNS).filter_map(NumPyReturns::cast)
+    ///
+    /// Empty when this is not a Returns section.
+    pub fn returns(&self, source: &str) -> impl Iterator<Item = NumPyReturns<'a>> {
+        self.entries_with_role(source, EntryRole::Return)
+            .filter_map(NumPyReturns::cast)
     }
 
     /// Iterate over yields entry nodes.
-    pub fn yields(&self) -> impl Iterator<Item = NumPyYields<'a>> {
-        self.0.nodes(SyntaxKind::NUMPY_YIELDS).filter_map(NumPyYields::cast)
+    ///
+    /// Empty when this is not a Yields section.
+    pub fn yields(&self, source: &str) -> impl Iterator<Item = NumPyYields<'a>> {
+        self.entries_with_role(source, EntryRole::Yield)
+            .filter_map(NumPyYields::cast)
     }
 
     /// Iterate over exception entry nodes.
-    pub fn exceptions(&self) -> impl Iterator<Item = NumPyException<'a>> {
-        self.0
-            .nodes(SyntaxKind::NUMPY_EXCEPTION)
+    ///
+    /// Empty when this is not a Raises section.
+    pub fn exceptions(&self, source: &str) -> impl Iterator<Item = NumPyException<'a>> {
+        self.entries_with_role(source, EntryRole::Exception)
             .filter_map(NumPyException::cast)
     }
 
     /// Iterate over warning entry nodes.
-    pub fn warnings(&self) -> impl Iterator<Item = NumPyWarning<'a>> {
-        self.0.nodes(SyntaxKind::NUMPY_WARNING).filter_map(NumPyWarning::cast)
+    ///
+    /// Empty when this is not a Warns section.
+    pub fn warnings(&self, source: &str) -> impl Iterator<Item = NumPyWarning<'a>> {
+        self.entries_with_role(source, EntryRole::Warning)
+            .filter_map(NumPyWarning::cast)
     }
 
     /// Iterate over see-also item nodes.
-    pub fn see_also_items(&self) -> impl Iterator<Item = NumPySeeAlsoItem<'a>> {
-        self.0
-            .nodes(SyntaxKind::NUMPY_SEE_ALSO_ITEM)
+    ///
+    /// Empty when this is not a See Also section.
+    pub fn see_also_items(&self, source: &str) -> impl Iterator<Item = NumPySeeAlsoItem<'a>> {
+        self.entries_with_role(source, EntryRole::SeeAlsoItem)
             .filter_map(NumPySeeAlsoItem::cast)
     }
 
     /// Iterate over reference nodes.
+    ///
+    /// `CITATION` nodes only occur in References sections, so no section-kind
+    /// guard is needed: other sections have no such children.
     pub fn references(&self) -> impl Iterator<Item = NumPyReference<'a>> {
-        self.0
-            .nodes(SyntaxKind::NUMPY_REFERENCE)
-            .filter_map(NumPyReference::cast)
+        self.0.nodes(SyntaxKind::CITATION).filter_map(NumPyReference::cast)
     }
 
     /// Iterate over attribute entry nodes.
-    pub fn attributes(&self) -> impl Iterator<Item = NumPyAttribute<'a>> {
-        self.0
-            .nodes(SyntaxKind::NUMPY_ATTRIBUTE)
+    ///
+    /// Empty when this is not an Attributes section.
+    pub fn attributes(&self, source: &str) -> impl Iterator<Item = NumPyAttribute<'a>> {
+        self.entries_with_role(source, EntryRole::Attribute)
             .filter_map(NumPyAttribute::cast)
     }
 
     /// Iterate over method entry nodes.
-    pub fn methods(&self) -> impl Iterator<Item = NumPyMethod<'a>> {
-        self.0.nodes(SyntaxKind::NUMPY_METHOD).filter_map(NumPyMethod::cast)
+    ///
+    /// Empty when this is not a Methods section.
+    pub fn methods(&self, source: &str) -> impl Iterator<Item = NumPyMethod<'a>> {
+        self.entries_with_role(source, EntryRole::Method)
+            .filter_map(NumPyMethod::cast)
     }
 
     /// Free-text body content block, if this is a free-text section.
     pub fn body_text(&self) -> Option<TextBlock<'a>> {
-        find_text_block(self.0, SyntaxKind::BODY_TEXT)
+        find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 }
 
@@ -157,7 +186,7 @@ impl<'a> NumPySection<'a> {
 // NumPySectionHeader
 // =============================================================================
 
-define_node!(NumPySectionHeader, NUMPY_SECTION_HEADER);
+define_node!(NumPySectionHeader, SECTION_HEADER);
 
 impl<'a> NumPySectionHeader<'a> {
     /// Section name token (e.g. "Parameters", "Returns").
@@ -175,7 +204,7 @@ impl<'a> NumPySectionHeader<'a> {
 // NumPyDeprecation
 // =============================================================================
 
-define_node!(NumPyDeprecation, NUMPY_DEPRECATION);
+define_node!(NumPyDeprecation, DIRECTIVE);
 
 impl<'a> NumPyDeprecation<'a> {
     /// The `..` RST directive marker.
@@ -195,7 +224,7 @@ impl<'a> NumPyDeprecation<'a> {
 
     /// Version when deprecated.
     pub fn version(&self) -> &'a SyntaxToken {
-        self.0.required_token(SyntaxKind::VERSION)
+        self.0.required_token(SyntaxKind::ARGUMENT)
     }
 
     /// Description / reason for deprecation.
@@ -208,7 +237,7 @@ impl<'a> NumPyDeprecation<'a> {
 // NumPyParameter
 // =============================================================================
 
-define_node!(NumPyParameter, NUMPY_PARAMETER);
+define_node!(NumPyParameter, ENTRY);
 
 impl<'a> NumPyParameter<'a> {
     /// Parameter name tokens (supports multiple names like `x1, x2`).
@@ -256,7 +285,7 @@ impl<'a> NumPyParameter<'a> {
 // NumPyReturns
 // =============================================================================
 
-define_node!(NumPyReturns, NUMPY_RETURNS);
+define_node!(NumPyReturns, ENTRY);
 
 impl<'a> NumPyReturns<'a> {
     /// Return name token, if present.
@@ -284,7 +313,7 @@ impl<'a> NumPyReturns<'a> {
 // NumPyYields
 // =============================================================================
 
-define_node!(NumPyYields, NUMPY_YIELDS);
+define_node!(NumPyYields, ENTRY);
 
 impl<'a> NumPyYields<'a> {
     /// Yield name token, if present.
@@ -312,7 +341,7 @@ impl<'a> NumPyYields<'a> {
 // NumPyException
 // =============================================================================
 
-define_node!(NumPyException, NUMPY_EXCEPTION);
+define_node!(NumPyException, ENTRY);
 
 impl<'a> NumPyException<'a> {
     /// Exception type name token.
@@ -335,7 +364,7 @@ impl<'a> NumPyException<'a> {
 // NumPyWarning
 // =============================================================================
 
-define_node!(NumPyWarning, NUMPY_WARNING);
+define_node!(NumPyWarning, ENTRY);
 
 impl<'a> NumPyWarning<'a> {
     /// Warning type name token.
@@ -358,7 +387,7 @@ impl<'a> NumPyWarning<'a> {
 // NumPySeeAlsoItem
 // =============================================================================
 
-define_node!(NumPySeeAlsoItem, NUMPY_SEE_ALSO_ITEM);
+define_node!(NumPySeeAlsoItem, ENTRY);
 
 impl<'a> NumPySeeAlsoItem<'a> {
     /// All name tokens (can be multiple, e.g. `func_a, func_b`).
@@ -381,7 +410,7 @@ impl<'a> NumPySeeAlsoItem<'a> {
 // NumPyReference
 // =============================================================================
 
-define_node!(NumPyReference, NUMPY_REFERENCE);
+define_node!(NumPyReference, CITATION);
 
 impl<'a> NumPyReference<'a> {
     /// RST directive marker (`..`), if present.
@@ -396,7 +425,7 @@ impl<'a> NumPyReference<'a> {
 
     /// Reference number token, if present.
     pub fn number(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::NUMBER)
+        self.0.find_token(SyntaxKind::LABEL)
     }
 
     /// Closing bracket token, if present.
@@ -406,7 +435,7 @@ impl<'a> NumPyReference<'a> {
 
     /// Reference content text block, if present.
     pub fn content(&self) -> Option<TextBlock<'a>> {
-        find_text_block(self.0, SyntaxKind::CONTENT)
+        find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 }
 
@@ -414,7 +443,7 @@ impl<'a> NumPyReference<'a> {
 // NumPyAttribute
 // =============================================================================
 
-define_node!(NumPyAttribute, NUMPY_ATTRIBUTE);
+define_node!(NumPyAttribute, ENTRY);
 
 impl<'a> NumPyAttribute<'a> {
     /// Attribute name token.
@@ -442,7 +471,7 @@ impl<'a> NumPyAttribute<'a> {
 // NumPyMethod
 // =============================================================================
 
-define_node!(NumPyMethod, NUMPY_METHOD);
+define_node!(NumPyMethod, ENTRY);
 
 impl<'a> NumPyMethod<'a> {
     /// Method name token.

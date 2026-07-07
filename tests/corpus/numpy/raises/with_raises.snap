@@ -1,18 +1,18 @@
 === CST ===
-NUMPY_DOCSTRING@0..127 {
+DOCUMENT@0..127 {
   SUMMARY@0..35 {
     TEXT_LINE: "Function that may raise exceptions."@0..35
   }
   NEWLINE: "\n"@35..36
   BLANK_LINE: "\n"@36..37
-  NUMPY_SECTION@37..126 {
-    NUMPY_SECTION_HEADER@37..50 {
+  SECTION@37..126 {
+    SECTION_HEADER@37..50 {
       NAME: "Raises"@37..43
       NEWLINE: "\n"@43..44
       UNDERLINE: "------"@44..50
     }
     NEWLINE: "\n"@50..51
-    NUMPY_EXCEPTION@51..90 {
+    ENTRY@51..90 {
       TYPE: "ValueError"@51..61
       NEWLINE: "\n"@61..62
       WHITESPACE: "    "@62..66
@@ -21,7 +21,7 @@ NUMPY_DOCSTRING@0..127 {
       }
     }
     NEWLINE: "\n"@90..91
-    NUMPY_EXCEPTION@91..126 {
+    ENTRY@91..126 {
       TYPE: "TypeError"@91..100
       NEWLINE: "\n"@100..101
       WHITESPACE: "    "@101..105

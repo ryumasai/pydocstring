@@ -3,7 +3,7 @@
 //! After parsing, the CST carries flat trivia tokens (`WHITESPACE`,
 //! `NEWLINE`, `BLANK_LINE`) for the gap bytes between content tokens, and
 //! multi-line content lives in text block nodes (`SUMMARY`,
-//! `EXTENDED_SUMMARY`, `DESCRIPTION`, `BODY_TEXT`, `CONTENT`) wrapping one
+//! `EXTENDED_SUMMARY`, `DESCRIPTION`) wrapping one
 //! `TEXT_LINE` token per content line. These tests pin the lexing rules on
 //! hand-written inputs and enforce, for every corpus input, the structural
 //! invariants the trivia pass guarantees:
@@ -172,7 +172,7 @@ fn blank_line_between_sections_is_docstring_level() {
     assert!(blanks.iter().all(|(_, text)| text == "\n"));
 
     // No BLANK_LINE hides inside a section.
-    for section in parsed.root().nodes(SyntaxKind::GOOGLE_SECTION) {
+    for section in parsed.root().nodes(SyntaxKind::SECTION) {
         let mut tokens = Vec::new();
         collect_tokens(section, &mut tokens);
         assert!(
@@ -186,7 +186,7 @@ fn blank_line_between_sections_is_docstring_level() {
 fn entry_indentation_is_whitespace_inside_section() {
     let input = "Summary.\n\nArgs:\n    x: A.\n";
     let parsed = pydocstring::parse::google::parse_google(input);
-    let section = parsed.root().find_node(SyntaxKind::GOOGLE_SECTION).unwrap();
+    let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
     let tokens = token_children(section, parsed.source());
     assert!(
         tokens.contains(&(SyntaxKind::NEWLINE, "\n".to_owned())),
@@ -202,7 +202,7 @@ fn entry_indentation_is_whitespace_inside_section() {
 fn tab_indentation_is_whitespace() {
     let input = "Summary.\n\nArgs:\n\tx: A.\n";
     let parsed = pydocstring::parse::google::parse_google(input);
-    let section = parsed.root().find_node(SyntaxKind::GOOGLE_SECTION).unwrap();
+    let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
     let tokens = token_children(section, parsed.source());
     assert!(
         tokens.contains(&(SyntaxKind::WHITESPACE, "\t".to_owned())),
@@ -301,8 +301,8 @@ fn multi_line_description_yields_one_text_line_token_per_line() {
     let input = "Summary.\n\nArgs:\n    x: First line of desc\n        cont.\n";
     let parsed = pydocstring::parse::google::parse_google(input);
     let source = parsed.source();
-    let section = parsed.root().find_node(SyntaxKind::GOOGLE_SECTION).unwrap();
-    let arg = section.find_node(SyntaxKind::GOOGLE_ARG).unwrap();
+    let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
+    let arg = section.find_node(SyntaxKind::ENTRY).unwrap();
     let desc = TextBlock::cast(arg.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
 
     let lines: Vec<_> = desc.lines().map(|t| t.text(source)).collect();
@@ -338,8 +338,8 @@ fn single_line_summary_is_still_a_block_with_one_text_line() {
 fn logical_text_dedents_indented_continuation() {
     let input = "Summary.\n\nArgs:\n    x: First line of desc\n        cont.\n";
     let parsed = pydocstring::parse::google::parse_google(input);
-    let section = parsed.root().find_node(SyntaxKind::GOOGLE_SECTION).unwrap();
-    let arg = section.find_node(SyntaxKind::GOOGLE_ARG).unwrap();
+    let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
+    let arg = section.find_node(SyntaxKind::ENTRY).unwrap();
     let desc = TextBlock::cast(arg.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
     // Continuation lines are dedented by their common indentation and
     // joined with `\n` (convert_multiline_with_indentation semantics).
@@ -351,8 +351,8 @@ fn multi_paragraph_body_contains_blank_line_inside_node() {
     let input = "Summary.\n\nNotes:\n    Paragraph one.\n\n    Paragraph two.\n";
     let parsed = pydocstring::parse::google::parse_google(input);
     let source = parsed.source();
-    let section = parsed.root().find_node(SyntaxKind::GOOGLE_SECTION).unwrap();
-    let body = TextBlock::cast(section.find_node(SyntaxKind::BODY_TEXT).unwrap()).unwrap();
+    let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
+    let body = TextBlock::cast(section.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
 
     let lines: Vec<_> = body.lines().map(|t| t.text(source)).collect();
     assert_eq!(lines, vec!["Paragraph one.", "Paragraph two."]);
@@ -377,9 +377,9 @@ fn multi_paragraph_body_contains_blank_line_inside_node() {
 fn content_block_lines_and_logical_text() {
     let src = "Summary.\n\nReferences\n----------\n.. [1] Author A, \"Title\",\n    with a continuation line.\n";
     let parsed = pydocstring::parse::numpy::parse_numpy(src);
-    let section = parsed.root().find_node(SyntaxKind::NUMPY_SECTION).unwrap();
-    let reference = section.find_node(SyntaxKind::NUMPY_REFERENCE).unwrap();
-    let block = TextBlock::cast(reference.find_node(SyntaxKind::CONTENT).unwrap()).unwrap();
+    let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
+    let reference = section.find_node(SyntaxKind::CITATION).unwrap();
+    let block = TextBlock::cast(reference.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
     let lines: Vec<_> = block.lines().map(|t| t.text(parsed.source())).collect();
     assert_eq!(lines, ["Author A, \"Title\",", "with a continuation line."]);
     assert!(block.text(parsed.source()).contains('\n'));

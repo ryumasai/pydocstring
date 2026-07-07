@@ -302,3 +302,44 @@ fn test_section_kind_display() {
     assert_eq!(format!("{}", NumPySectionKind::Methods), "Methods");
     assert_eq!(format!("{}", NumPySectionKind::Unknown), "Unknown");
 }
+
+// =============================================================================
+// SPEC: entry accessors are guarded by the section's kind (#77 review)
+// =============================================================================
+
+/// SPEC: all entries share the `ENTRY` node kind, so a mismatched accessor
+/// (`parameters()` on a Raises section) must return empty instead of wrapping
+/// the foreign entries — pre-unification behavior, and calling typed
+/// accessors on the results must not panic.
+#[test]
+fn spec_mismatched_entry_accessor_returns_empty() {
+    let docstring = "Summary.\n\nRaises\n------\nValueError\n    If the value is bad.\n";
+    let result = parse_numpy(docstring);
+    let source = result.source();
+    let sections = all_sections(&result);
+    let section = &sections[0];
+    assert_eq!(section.section_kind(source), NumPySectionKind::Raises);
+
+    // The matching accessor sees the entry…
+    assert_eq!(section.exceptions(source).count(), 1);
+
+    // …every mismatched accessor returns empty (collecting token accessors
+    // would panic in required_token if a foreign entry leaked through).
+    assert_eq!(section.parameters(source).count(), 0);
+    assert_eq!(section.returns(source).count(), 0);
+    assert_eq!(section.yields(source).count(), 0);
+    assert_eq!(section.warnings(source).count(), 0);
+    assert_eq!(section.see_also_items(source).count(), 0);
+    assert_eq!(section.attributes(source).count(), 0);
+    assert_eq!(section.methods(source).count(), 0);
+    assert_eq!(section.references().count(), 0);
+
+    // And the guard also separates the NAME-carrying roles from each other:
+    // attributes() on a Parameters section is empty.
+    let result = parse_numpy("Summary.\n\nParameters\n----------\nx : int\n    The value.\n");
+    let source = result.source();
+    let sections = all_sections(&result);
+    assert_eq!(sections[0].parameters(source).count(), 1);
+    assert_eq!(sections[0].attributes(source).count(), 0);
+    assert_eq!(sections[0].methods(source).count(), 0);
+}

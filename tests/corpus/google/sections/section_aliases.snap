@@ -1,18 +1,18 @@
 === CST ===
-GOOGLE_DOCSTRING@0..466 {
+DOCUMENT@0..466 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  GOOGLE_SECTION@10..44 {
-    GOOGLE_SECTION_HEADER@10..20 {
+  SECTION@10..44 {
+    SECTION_HEADER@10..20 {
       NAME: "Arguments"@10..19
       COLON: ":"@19..20
     }
     NEWLINE: "\n"@20..21
     WHITESPACE: "    "@21..25
-    GOOGLE_ARG@25..44 {
+    ENTRY@25..44 {
       NAME: "x"@25..26
       WHITESPACE: " "@26..27
       OPEN_BRACKET: "("@27..28
@@ -27,14 +27,14 @@ GOOGLE_DOCSTRING@0..466 {
   }
   NEWLINE: "\n"@44..45
   BLANK_LINE: "\n"@45..46
-  GOOGLE_SECTION@46..82 {
-    GOOGLE_SECTION_HEADER@46..56 {
+  SECTION@46..82 {
+    SECTION_HEADER@46..56 {
       NAME: "Attribute"@46..55
       COLON: ":"@55..56
     }
     NEWLINE: "\n"@56..57
     WHITESPACE: "    "@57..61
-    GOOGLE_ATTRIBUTE@61..82 {
+    ENTRY@61..82 {
       NAME: "name"@61..65
       WHITESPACE: " "@65..66
       OPEN_BRACKET: "("@66..67
@@ -49,14 +49,14 @@ GOOGLE_DOCSTRING@0..466 {
   }
   NEWLINE: "\n"@82..83
   BLANK_LINE: "\n"@83..84
-  GOOGLE_SECTION@84..113 {
-    GOOGLE_SECTION_HEADER@84..93 {
+  SECTION@84..113 {
+    SECTION_HEADER@84..93 {
       NAME: "Examples"@84..92
       COLON: ":"@92..93
     }
     NEWLINE: "\n"@93..94
     WHITESPACE: "    "@94..98
-    BODY_TEXT@98..113 {
+    DESCRIPTION@98..113 {
       TEXT_LINE: ">>> 1 + 1"@98..107
       NEWLINE: "\n"@107..108
       WHITESPACE: "    "@108..112
@@ -65,14 +65,14 @@ GOOGLE_DOCSTRING@0..466 {
   }
   NEWLINE: "\n"@113..114
   BLANK_LINE: "\n"@114..115
-  GOOGLE_SECTION@115..157 {
-    GOOGLE_SECTION_HEADER@115..133 {
+  SECTION@115..157 {
+    SECTION_HEADER@115..133 {
       NAME: "Keyword Arguments"@115..132
       COLON: ":"@132..133
     }
     NEWLINE: "\n"@133..134
     WHITESPACE: "    "@134..138
-    GOOGLE_ARG@138..157 {
+    ENTRY@138..157 {
       NAME: "key"@138..141
       WHITESPACE: " "@141..142
       OPEN_BRACKET: "("@142..143
@@ -87,27 +87,27 @@ GOOGLE_DOCSTRING@0..466 {
   }
   NEWLINE: "\n"@157..158
   BLANK_LINE: "\n"@158..159
-  GOOGLE_SECTION@159..190 {
-    GOOGLE_SECTION_HEADER@159..165 {
+  SECTION@159..190 {
+    SECTION_HEADER@159..165 {
       NAME: "Notes"@159..164
       COLON: ":"@164..165
     }
     NEWLINE: "\n"@165..166
     WHITESPACE: "    "@166..170
-    BODY_TEXT@170..190 {
+    DESCRIPTION@170..190 {
       TEXT_LINE: "This is also a note."@170..190
     }
   }
   NEWLINE: "\n"@190..191
   BLANK_LINE: "\n"@191..192
-  GOOGLE_SECTION@192..227 {
-    GOOGLE_SECTION_HEADER@192..203 {
+  SECTION@192..227 {
+    SECTION_HEADER@192..203 {
       NAME: "Parameters"@192..202
       COLON: ":"@202..203
     }
     NEWLINE: "\n"@203..204
     WHITESPACE: "    "@204..208
-    GOOGLE_ARG@208..227 {
+    ENTRY@208..227 {
       NAME: "x"@208..209
       WHITESPACE: " "@209..210
       OPEN_BRACKET: "("@210..211
@@ -122,14 +122,14 @@ GOOGLE_DOCSTRING@0..466 {
   }
   NEWLINE: "\n"@227..228
   BLANK_LINE: "\n"@228..229
-  GOOGLE_SECTION@229..260 {
-    GOOGLE_SECTION_HEADER@229..236 {
+  SECTION@229..260 {
+    SECTION_HEADER@229..236 {
       NAME: "Params"@229..235
       COLON: ":"@235..236
     }
     NEWLINE: "\n"@236..237
     WHITESPACE: "    "@237..241
-    GOOGLE_ARG@241..260 {
+    ENTRY@241..260 {
       NAME: "x"@241..242
       WHITESPACE: " "@242..243
       OPEN_BRACKET: "("@243..244
@@ -144,14 +144,14 @@ GOOGLE_DOCSTRING@0..466 {
   }
   NEWLINE: "\n"@260..261
   BLANK_LINE: "\n"@261..262
-  GOOGLE_SECTION@262..296 {
-    GOOGLE_SECTION_HEADER@262..268 {
+  SECTION@262..296 {
+    SECTION_HEADER@262..268 {
       NAME: "Raise"@262..267
       COLON: ":"@267..268
     }
     NEWLINE: "\n"@268..269
     WHITESPACE: "    "@269..273
-    GOOGLE_EXCEPTION@273..296 {
+    ENTRY@273..296 {
       TYPE: "ValueError"@273..283
       COLON: ":"@283..284
       WHITESPACE: " "@284..285
@@ -162,14 +162,14 @@ GOOGLE_DOCSTRING@0..466 {
   }
   NEWLINE: "\n"@296..297
   BLANK_LINE: "\n"@297..298
-  GOOGLE_SECTION@298..334 {
-    GOOGLE_SECTION_HEADER@298..306 {
+  SECTION@298..334 {
+    SECTION_HEADER@298..306 {
       NAME: "Receive"@298..305
       COLON: ":"@305..306
     }
     NEWLINE: "\n"@306..307
     WHITESPACE: "    "@307..311
-    GOOGLE_ARG@311..334 {
+    ENTRY@311..334 {
       NAME: "msg"@311..314
       WHITESPACE: " "@314..315
       OPEN_BRACKET: "("@315..316
@@ -184,14 +184,14 @@ GOOGLE_DOCSTRING@0..466 {
   }
   NEWLINE: "\n"@334..335
   BLANK_LINE: "\n"@335..336
-  GOOGLE_SECTION@336..363 {
-    GOOGLE_SECTION_HEADER@336..343 {
+  SECTION@336..363 {
+    SECTION_HEADER@336..343 {
       NAME: "Return"@336..342
       COLON: ":"@342..343
     }
     NEWLINE: "\n"@343..344
     WHITESPACE: "    "@344..348
-    GOOGLE_RETURNS@348..363 {
+    ENTRY@348..363 {
       RETURN_TYPE: "int"@348..351
       COLON: ":"@351..352
       WHITESPACE: " "@352..353
@@ -202,14 +202,14 @@ GOOGLE_DOCSTRING@0..466 {
   }
   NEWLINE: "\n"@363..364
   BLANK_LINE: "\n"@364..365
-  GOOGLE_SECTION@365..402 {
-    GOOGLE_SECTION_HEADER@365..370 {
+  SECTION@365..402 {
+    SECTION_HEADER@365..370 {
       NAME: "Warn"@365..369
       COLON: ":"@369..370
     }
     NEWLINE: "\n"@370..371
     WHITESPACE: "    "@371..375
-    GOOGLE_WARNING@375..402 {
+    ENTRY@375..402 {
       WARNING_TYPE: "FutureWarning"@375..388
       COLON: ":"@388..389
       WHITESPACE: " "@389..390
@@ -220,27 +220,27 @@ GOOGLE_DOCSTRING@0..466 {
   }
   NEWLINE: "\n"@402..403
   BLANK_LINE: "\n"@403..404
-  GOOGLE_SECTION@404..436 {
-    GOOGLE_SECTION_HEADER@404..412 {
+  SECTION@404..436 {
+    SECTION_HEADER@404..412 {
       NAME: "Warning"@404..411
       COLON: ":"@411..412
     }
     NEWLINE: "\n"@412..413
     WHITESPACE: "    "@413..417
-    BODY_TEXT@417..436 {
+    DESCRIPTION@417..436 {
       TEXT_LINE: "This is deprecated."@417..436
     }
   }
   NEWLINE: "\n"@436..437
   BLANK_LINE: "\n"@437..438
-  GOOGLE_SECTION@438..466 {
-    GOOGLE_SECTION_HEADER@438..444 {
+  SECTION@438..466 {
+    SECTION_HEADER@438..444 {
       NAME: "Yield"@438..443
       COLON: ":"@443..444
     }
     NEWLINE: "\n"@444..445
     WHITESPACE: "    "@445..449
-    GOOGLE_YIELDS@449..466 {
+    ENTRY@449..466 {
       RETURN_TYPE: "str"@449..452
       COLON: ":"@452..453
       WHITESPACE: " "@453..454

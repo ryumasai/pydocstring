@@ -1,25 +1,25 @@
 === CST ===
-NUMPY_DOCSTRING@0..49 {
+DOCUMENT@0..49 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  NUMPY_SECTION@10..48 {
-    NUMPY_SECTION_HEADER@10..31 {
+  SECTION@10..48 {
+    SECTION_HEADER@10..31 {
       NAME: "References"@10..20
       NEWLINE: "\n"@20..21
       UNDERLINE: "----------"@21..31
     }
     NEWLINE: "\n"@31..32
-    NUMPY_REFERENCE@32..48 {
+    CITATION@32..48 {
       DIRECTIVE_MARKER: ".."@32..34
       WHITESPACE: " "@34..35
       OPEN_BRACKET: "["@35..36
-      NUMBER: "1"@36..37
+      LABEL: "1"@36..37
       CLOSE_BRACKET: "]"@37..38
       WHITESPACE: " "@38..39
-      CONTENT@39..48 {
+      DESCRIPTION@39..48 {
         TEXT_LINE: "Some ref."@39..48
       }
     }

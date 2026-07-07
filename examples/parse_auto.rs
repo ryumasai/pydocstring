@@ -1,25 +1,23 @@
 //! Example: Auto-detecting docstring style with `parse()`
 //!
 //! Demonstrates the unified `parse()` entry point, which detects the style
-//! automatically and returns a `Parsed` result whose root `SyntaxKind`
-//! reflects the detected style:
+//! automatically and returns a `Parsed` result. The root node kind is always
+//! the style-neutral `DOCUMENT`; `Parsed::style()` reports the detected style:
 //!
-//! - `GOOGLE_DOCSTRING` — Google style (section headers ending with `:`)
-//! - `NUMPY_DOCSTRING`  — NumPy style (section headers with `---` underlines)
-//! - `PLAIN_DOCSTRING`  — no recognised section markers (summary/extended
+//! - `Style::Google` — Google style (section headers ending with `:`)
+//! - `Style::NumPy`  — NumPy style (section headers with `---` underlines)
+//! - `Style::Plain`  — no recognised section markers (summary/extended
 //!   summary only, or unrecognised styles such as Sphinx)
 
+use pydocstring::parse::Style;
 use pydocstring::parse::parse;
-use pydocstring::syntax::SyntaxKind;
 
 fn show(label: &str, input: &str) {
     let parsed = parse(input);
-    let kind = parsed.root().kind();
-    let style_label = match kind {
-        SyntaxKind::GOOGLE_DOCSTRING => "Google",
-        SyntaxKind::NUMPY_DOCSTRING => "NumPy",
-        SyntaxKind::PLAIN_DOCSTRING => "Plain",
-        _ => "Unknown",
+    let style_label = match parsed.style() {
+        Style::Google => "Google",
+        Style::NumPy => "NumPy",
+        Style::Plain => "Plain",
     };
 
     println!(

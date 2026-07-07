@@ -1,18 +1,18 @@
 === CST ===
-NUMPY_DOCSTRING@0..387 {
+DOCUMENT@0..387 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  NUMPY_SECTION@10..50 {
-    NUMPY_SECTION_HEADER@10..31 {
+  SECTION@10..50 {
+    SECTION_HEADER@10..31 {
       NAME: "Attributes"@10..20
       NEWLINE: "\n"@20..21
       UNDERLINE: "----------"@21..31
     }
     NEWLINE: "\n"@31..32
-    NUMPY_ATTRIBUTE@32..50 {
+    ENTRY@32..50 {
       NAME: "x"@32..33
       WHITESPACE: " "@33..34
       COLON: ":"@34..35
@@ -27,27 +27,27 @@ NUMPY_DOCSTRING@0..387 {
   }
   NEWLINE: "\n"@50..51
   BLANK_LINE: "\n"@51..52
-  NUMPY_SECTION@52..78 {
-    NUMPY_SECTION_HEADER@52..69 {
+  SECTION@52..78 {
+    SECTION_HEADER@52..69 {
       NAME: "Examples"@52..60
       NEWLINE: "\n"@60..61
       UNDERLINE: "--------"@61..69
     }
     NEWLINE: "\n"@69..70
-    BODY_TEXT@70..78 {
+    DESCRIPTION@70..78 {
       TEXT_LINE: ">>> pass"@70..78
     }
   }
   NEWLINE: "\n"@78..79
   BLANK_LINE: "\n"@79..80
-  NUMPY_SECTION@80..115 {
-    NUMPY_SECTION_HEADER@80..95 {
+  SECTION@80..115 {
+    SECTION_HEADER@80..95 {
       NAME: "Methods"@80..87
       NEWLINE: "\n"@87..88
       UNDERLINE: "-------"@88..95
     }
     NEWLINE: "\n"@95..96
-    NUMPY_METHOD@96..115 {
+    ENTRY@96..115 {
       NAME: "foo()"@96..101
       NEWLINE: "\n"@101..102
       WHITESPACE: "    "@102..106
@@ -58,14 +58,14 @@ NUMPY_DOCSTRING@0..387 {
   }
   NEWLINE: "\n"@115..116
   BLANK_LINE: "\n"@116..117
-  NUMPY_SECTION@117..169 {
-    NUMPY_SECTION_HEADER@117..150 {
+  SECTION@117..169 {
+    SECTION_HEADER@117..150 {
       NAME: "Other Parameters"@117..133
       NEWLINE: "\n"@133..134
       UNDERLINE: "----------------"@134..150
     }
     NEWLINE: "\n"@150..151
-    NUMPY_PARAMETER@151..169 {
+    ENTRY@151..169 {
       NAME: "x"@151..152
       WHITESPACE: " "@152..153
       COLON: ":"@153..154
@@ -80,14 +80,14 @@ NUMPY_DOCSTRING@0..387 {
   }
   NEWLINE: "\n"@169..170
   BLANK_LINE: "\n"@170..171
-  NUMPY_SECTION@171..214 {
-    NUMPY_SECTION_HEADER@171..188 {
+  SECTION@171..214 {
+    SECTION_HEADER@171..188 {
       NAME: "Receives"@171..179
       NEWLINE: "\n"@179..180
       UNDERLINE: "--------"@180..188
     }
     NEWLINE: "\n"@188..189
-    NUMPY_PARAMETER@189..214 {
+    ENTRY@189..214 {
       NAME: "data"@189..193
       WHITESPACE: " "@193..194
       COLON: ":"@194..195
@@ -102,14 +102,14 @@ NUMPY_DOCSTRING@0..387 {
   }
   NEWLINE: "\n"@214..215
   BLANK_LINE: "\n"@215..216
-  NUMPY_SECTION@216..248 {
-    NUMPY_SECTION_HEADER@216..233 {
+  SECTION@216..248 {
+    SECTION_HEADER@216..233 {
       NAME: "See Also"@216..224
       NEWLINE: "\n"@224..225
       UNDERLINE: "--------"@225..233
     }
     NEWLINE: "\n"@233..234
-    NUMPY_SEE_ALSO_ITEM@234..248 {
+    ENTRY@234..248 {
       NAME: "func_a"@234..240
       WHITESPACE: " "@240..241
       COLON: ":"@241..242
@@ -121,40 +121,40 @@ NUMPY_DOCSTRING@0..387 {
   }
   NEWLINE: "\n"@248..249
   BLANK_LINE: "\n"@249..250
-  NUMPY_SECTION@250..291 {
-    NUMPY_SECTION_HEADER@250..277 {
+  SECTION@250..291 {
+    SECTION_HEADER@250..277 {
       NAME: "CustomSection"@250..263
       NEWLINE: "\n"@263..264
       UNDERLINE: "-------------"@264..277
     }
     NEWLINE: "\n"@277..278
-    BODY_TEXT@278..291 {
+    DESCRIPTION@278..291 {
       TEXT_LINE: "Some content."@278..291
     }
   }
   NEWLINE: "\n"@291..292
   BLANK_LINE: "\n"@292..293
-  NUMPY_SECTION@293..322 {
-    NUMPY_SECTION_HEADER@293..310 {
+  SECTION@293..322 {
+    SECTION_HEADER@293..310 {
       NAME: "Warnings"@293..301
       NEWLINE: "\n"@301..302
       UNDERLINE: "--------"@302..310
     }
     NEWLINE: "\n"@310..311
-    BODY_TEXT@311..322 {
+    DESCRIPTION@311..322 {
       TEXT_LINE: "Do not use."@311..322
     }
   }
   NEWLINE: "\n"@322..323
   BLANK_LINE: "\n"@323..324
-  NUMPY_SECTION@324..356 {
-    NUMPY_SECTION_HEADER@324..335 {
+  SECTION@324..356 {
+    SECTION_HEADER@324..335 {
       NAME: "Warns"@324..329
       NEWLINE: "\n"@329..330
       UNDERLINE: "-----"@330..335
     }
     NEWLINE: "\n"@335..336
-    NUMPY_WARNING@336..356 {
+    ENTRY@336..356 {
       TYPE: "UserWarning"@336..347
       NEWLINE: "\n"@347..348
       WHITESPACE: "    "@348..352
@@ -165,14 +165,14 @@ NUMPY_DOCSTRING@0..387 {
   }
   NEWLINE: "\n"@356..357
   BLANK_LINE: "\n"@357..358
-  NUMPY_SECTION@358..386 {
-    NUMPY_SECTION_HEADER@358..371 {
+  SECTION@358..386 {
+    SECTION_HEADER@358..371 {
       NAME: "Yields"@358..364
       NEWLINE: "\n"@364..365
       UNDERLINE: "------"@365..371
     }
     NEWLINE: "\n"@371..372
-    NUMPY_YIELDS@372..386 {
+    ENTRY@372..386 {
       RETURN_TYPE: "int"@372..375
       NEWLINE: "\n"@375..376
       WHITESPACE: "    "@376..380

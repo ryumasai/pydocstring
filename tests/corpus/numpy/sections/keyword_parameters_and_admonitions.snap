@@ -1,18 +1,18 @@
 === CST ===
-NUMPY_DOCSTRING@0..153 {
+DOCUMENT@0..153 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  NUMPY_SECTION@10..85 {
-    NUMPY_SECTION_HEADER@10..47 {
+  SECTION@10..85 {
+    SECTION_HEADER@10..47 {
       NAME: "Keyword Parameters"@10..28
       NEWLINE: "\n"@28..29
       UNDERLINE: "------------------"@29..47
     }
     NEWLINE: "\n"@47..48
-    NUMPY_PARAMETER@48..85 {
+    ENTRY@48..85 {
       NAME: "timeout"@48..55
       WHITESPACE: " "@55..56
       COLON: ":"@56..57
@@ -27,27 +27,27 @@ NUMPY_DOCSTRING@0..153 {
   }
   NEWLINE: "\n"@85..86
   BLANK_LINE: "\n"@86..87
-  NUMPY_SECTION@87..113 {
-    NUMPY_SECTION_HEADER@87..96 {
+  SECTION@87..113 {
+    SECTION_HEADER@87..96 {
       NAME: "Todo"@87..91
       NEWLINE: "\n"@91..92
       UNDERLINE: "----"@92..96
     }
     NEWLINE: "\n"@96..97
-    BODY_TEXT@97..113 {
+    DESCRIPTION@97..113 {
       TEXT_LINE: "* Refactor this."@97..113
     }
   }
   NEWLINE: "\n"@113..114
   BLANK_LINE: "\n"@114..115
-  NUMPY_SECTION@115..152 {
-    NUMPY_SECTION_HEADER@115..134 {
+  SECTION@115..152 {
+    SECTION_HEADER@115..134 {
       NAME: "Attention"@115..124
       NEWLINE: "\n"@124..125
       UNDERLINE: "---------"@125..134
     }
     NEWLINE: "\n"@134..135
-    BODY_TEXT@135..152 {
+    DESCRIPTION@135..152 {
       TEXT_LINE: "Handle with care."@135..152
     }
   }

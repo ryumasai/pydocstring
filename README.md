@@ -42,7 +42,7 @@ println!("{}", doc.summary().unwrap().text(result.source()));
 
 for section in doc.sections() {
     if section.section_kind(result.source()) == GoogleSectionKind::Args {
-        for arg in section.args() {
+        for arg in section.args(result.source()) {
             println!("{}: {}",
                 arg.name().text(result.source()),
                 arg.r#type().map(|t| t.text(result.source())).unwrap_or(""));
@@ -71,14 +71,15 @@ summary + extended summary, and unrecognised styles such as Sphinx.
 Use `parse()` to let the library detect the style and parse in one step:
 
 ```rust
-use pydocstring::parse::parse;
+use pydocstring::parse::{parse, Style};
 use pydocstring::syntax::SyntaxKind;
 
 let result = parse("Summary.\n\nArgs:\n    x: Desc.");
-assert_eq!(result.root().kind(), SyntaxKind::GOOGLE_DOCSTRING);
+assert_eq!(result.root().kind(), SyntaxKind::DOCUMENT);
+assert_eq!(result.style(), Style::Google);
 
 let result = parse("Just a summary.");
-assert_eq!(result.root().kind(), SyntaxKind::PLAIN_DOCSTRING);
+assert_eq!(result.style(), Style::Plain);
 ```
 
 ### Source Locations
@@ -93,7 +94,7 @@ let doc = GoogleDocstring::cast(result.root()).unwrap();
 
 for section in doc.sections() {
     if section.section_kind(result.source()) == GoogleSectionKind::Args {
-        for arg in section.args() {
+        for arg in section.args(result.source()) {
             let name = arg.name();
             println!("'{}' at byte {}..{}",
                 name.text(result.source()), name.range().start(), name.range().end());
@@ -114,14 +115,14 @@ println!("{}", result.pretty_print());
 ```
 
 ```text
-GOOGLE_DOCSTRING@0..42 {
+DOCUMENT@0..42 {
   SUMMARY: "Summary."@0..8
-  GOOGLE_SECTION@10..42 {
-    GOOGLE_SECTION_HEADER@10..15 {
+  SECTION@10..42 {
+    SECTION_HEADER@10..15 {
       NAME: "Args"@10..14
       COLON: ":"@14..15
     }
-    GOOGLE_ARG@20..42 {
+    ENTRY@20..42 {
       NAME: "x"@20..21
       OPEN_BRACKET: "("@22..23
       TYPE: "int"@23..26

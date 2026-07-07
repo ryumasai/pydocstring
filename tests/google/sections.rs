@@ -197,3 +197,44 @@ Example:
     assert!(notes(&result).is_some());
     assert!(examples(&result).is_some());
 }
+
+// =============================================================================
+// SPEC: entry accessors are guarded by the section's kind (#77 review)
+// =============================================================================
+
+/// SPEC: all entries share the `ENTRY` node kind, so a mismatched accessor
+/// (`args()` on a Raises section) must return empty instead of wrapping the
+/// foreign entries — pre-unification behavior, and calling typed accessors
+/// on the results must not panic.
+#[test]
+fn spec_mismatched_entry_accessor_returns_empty() {
+    let docstring = "Summary.\n\nRaises:\n    ValueError: If the value is bad.";
+    let result = parse_google(docstring);
+    let source = result.source();
+    let sections = all_sections(&result);
+    let section = &sections[0];
+    assert_eq!(section.section_kind(source), GoogleSectionKind::Raises);
+
+    // The matching accessor sees the entry…
+    assert_eq!(section.exceptions(source).count(), 1);
+
+    // …every mismatched accessor returns empty (collecting token accessors
+    // would panic in required_token if a foreign entry leaked through).
+    assert_eq!(section.args(source).count(), 0);
+    assert!(section.returns(source).is_none());
+    assert!(section.yields(source).is_none());
+    assert_eq!(section.warnings(source).count(), 0);
+    assert_eq!(section.see_also_items(source).count(), 0);
+    assert_eq!(section.attributes(source).count(), 0);
+    assert_eq!(section.methods(source).count(), 0);
+    assert_eq!(section.references().count(), 0);
+
+    // And the guard also separates the NAME-carrying roles from each other:
+    // attributes() on an Args section is empty.
+    let result = parse_google("Summary.\n\nArgs:\n    x (int): The value.");
+    let source = result.source();
+    let sections = all_sections(&result);
+    assert_eq!(sections[0].args(source).count(), 1);
+    assert_eq!(sections[0].attributes(source).count(), 0);
+    assert_eq!(sections[0].methods(source).count(), 0);
+}

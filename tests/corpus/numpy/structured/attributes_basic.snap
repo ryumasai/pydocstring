@@ -1,18 +1,18 @@
 === CST ===
-NUMPY_DOCSTRING@0..80 {
+DOCUMENT@0..80 {
   SUMMARY@0..8 {
     TEXT_LINE: "Summary."@0..8
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  NUMPY_SECTION@10..79 {
-    NUMPY_SECTION_HEADER@10..31 {
+  SECTION@10..79 {
+    SECTION_HEADER@10..31 {
       NAME: "Attributes"@10..20
       NEWLINE: "\n"@20..21
       UNDERLINE: "----------"@21..31
     }
     NEWLINE: "\n"@31..32
-    NUMPY_ATTRIBUTE@32..56 {
+    ENTRY@32..56 {
       NAME: "name"@32..36
       WHITESPACE: " "@36..37
       COLON: ":"@37..38
@@ -25,7 +25,7 @@ NUMPY_DOCSTRING@0..80 {
       }
     }
     NEWLINE: "\n"@56..57
-    NUMPY_ATTRIBUTE@57..79 {
+    ENTRY@57..79 {
       NAME: "age"@57..60
       WHITESPACE: " "@60..61
       COLON: ":"@61..62
