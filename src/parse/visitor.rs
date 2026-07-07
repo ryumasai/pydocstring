@@ -50,8 +50,8 @@
 //! printer.visit_google_docstring(&result, &doc).unwrap();
 //! ```
 
+use crate::parse::EntryRole;
 use crate::parse::Style;
-use crate::parse::google::kind::GoogleSectionKind;
 use crate::parse::google::nodes::GoogleArg;
 use crate::parse::google::nodes::GoogleAttribute;
 use crate::parse::google::nodes::GoogleDeprecation;
@@ -64,7 +64,6 @@ use crate::parse::google::nodes::GoogleSection;
 use crate::parse::google::nodes::GoogleSeeAlsoItem;
 use crate::parse::google::nodes::GoogleWarning;
 use crate::parse::google::nodes::GoogleYield;
-use crate::parse::numpy::kind::NumPySectionKind;
 use crate::parse::numpy::nodes::NumPyAttribute;
 use crate::parse::numpy::nodes::NumPyDeprecation;
 use crate::parse::numpy::nodes::NumPyDocstring;
@@ -218,6 +217,24 @@ pub trait DocstringVisitor: Sized {
 /// Pass [`Parsed::root`] to start a full traversal, or pass a child node
 /// from within a `visit_*` override to continue descent.
 pub fn walk<V: DocstringVisitor>(parsed: &Parsed, node: &SyntaxNode, visitor: &mut V) -> Result<(), V::Error> {
+    // No traversal context: the enclosing section (needed for ENTRY routing)
+    // is looked up from the root if required.
+    walk_in(parsed, node, None, visitor)
+}
+
+/// [`walk`] with the enclosing `SECTION` node threaded through the internal
+/// recursion, so ENTRY routing does not rescan the tree per entry.
+///
+/// `section` is the nearest enclosing `SECTION` of `node`, if the caller
+/// knows it ([`walk_children`] does); `None` falls back to a lookup from the
+/// root — the path taken when user code calls [`walk`] directly on an inner
+/// node.
+fn walk_in<V: DocstringVisitor>(
+    parsed: &Parsed,
+    node: &SyntaxNode,
+    section: Option<&SyntaxNode>,
+    visitor: &mut V,
+) -> Result<(), V::Error> {
     match (node.kind(), parsed.style()) {
         // Roots
         (SyntaxKind::DOCUMENT, Style::Plain) => visitor.visit_plain_docstring(parsed, &PlainDocstring(node))?,
@@ -233,8 +250,8 @@ pub fn walk<V: DocstringVisitor>(parsed: &Parsed, node: &SyntaxNode, visitor: &m
         (SyntaxKind::CITATION, Style::Google) => visitor.visit_google_reference(parsed, &GoogleReference(node))?,
         (SyntaxKind::CITATION, Style::NumPy) => visitor.visit_numpy_reference(parsed, &NumPyReference(node))?,
         // Section entries: routed by the enclosing section's kind.
-        (SyntaxKind::ENTRY, Style::Google) => walk_google_entry(parsed, node, visitor)?,
-        (SyntaxKind::ENTRY, Style::NumPy) => walk_numpy_entry(parsed, node, visitor)?,
+        (SyntaxKind::ENTRY, Style::Google) => walk_google_entry(parsed, node, section, visitor)?,
+        (SyntaxKind::ENTRY, Style::NumPy) => walk_numpy_entry(parsed, node, section, visitor)?,
         // Unknown / token-level kinds
         _ => {}
     }
@@ -258,61 +275,81 @@ fn find_parent<'a>(root: &'a SyntaxNode, target: &SyntaxNode) -> Option<&'a Synt
 }
 
 /// The enclosing `SECTION` node of `entry`, looked up from `parsed`'s root.
+///
+/// Fallback for [`walk`] calls made directly on an inner node (no traversal
+/// context); [`walk_children`] threads the section instead.
 fn enclosing_section<'a>(parsed: &'a Parsed, entry: &SyntaxNode) -> Option<&'a SyntaxNode> {
     find_parent(parsed.root(), entry).filter(|parent| parent.kind() == SyntaxKind::SECTION)
 }
 
 /// Route a Google `ENTRY` to the entry-specific visit method.
-fn walk_google_entry<V: DocstringVisitor>(parsed: &Parsed, node: &SyntaxNode, visitor: &mut V) -> Result<(), V::Error> {
-    let Some(section) = enclosing_section(parsed, node).and_then(GoogleSection::cast) else {
+fn walk_google_entry<V: DocstringVisitor>(
+    parsed: &Parsed,
+    node: &SyntaxNode,
+    section: Option<&SyntaxNode>,
+    visitor: &mut V,
+) -> Result<(), V::Error> {
+    let Some(section) = section
+        .or_else(|| enclosing_section(parsed, node))
+        .and_then(GoogleSection::cast)
+    else {
         return Ok(());
     };
-    match section.section_kind(parsed.source()) {
-        GoogleSectionKind::Args
-        | GoogleSectionKind::KeywordArgs
-        | GoogleSectionKind::OtherParameters
-        | GoogleSectionKind::Receives => visitor.visit_google_arg(parsed, &GoogleArg(node)),
-        GoogleSectionKind::Returns => visitor.visit_google_return(parsed, &GoogleReturn(node)),
-        GoogleSectionKind::Yields => visitor.visit_google_yield(parsed, &GoogleYield(node)),
-        GoogleSectionKind::Raises => visitor.visit_google_exception(parsed, &GoogleException(node)),
-        GoogleSectionKind::Warns => visitor.visit_google_warning(parsed, &GoogleWarning(node)),
-        GoogleSectionKind::SeeAlso => visitor.visit_google_see_also_item(parsed, &GoogleSeeAlsoItem(node)),
-        GoogleSectionKind::Attributes => visitor.visit_google_attribute(parsed, &GoogleAttribute(node)),
-        GoogleSectionKind::Methods => visitor.visit_google_method(parsed, &GoogleMethod(node)),
-        // Free-text sections contain no ENTRY nodes; skip anything else.
-        _ => Ok(()),
+    match section.section_kind(parsed.source()).entry_role() {
+        EntryRole::Parameter => visitor.visit_google_arg(parsed, &GoogleArg(node)),
+        EntryRole::Return => visitor.visit_google_return(parsed, &GoogleReturn(node)),
+        EntryRole::Yield => visitor.visit_google_yield(parsed, &GoogleYield(node)),
+        EntryRole::Exception => visitor.visit_google_exception(parsed, &GoogleException(node)),
+        EntryRole::Warning => visitor.visit_google_warning(parsed, &GoogleWarning(node)),
+        EntryRole::SeeAlsoItem => visitor.visit_google_see_also_item(parsed, &GoogleSeeAlsoItem(node)),
+        EntryRole::Attribute => visitor.visit_google_attribute(parsed, &GoogleAttribute(node)),
+        EntryRole::Method => visitor.visit_google_method(parsed, &GoogleMethod(node)),
+        // References sections hold CITATION nodes and free-text sections
+        // hold no entries at all — an ENTRY here is foreign; skip silently.
+        EntryRole::Citation | EntryRole::FreeText => Ok(()),
     }
 }
 
 /// Route a NumPy `ENTRY` to the entry-specific visit method.
-fn walk_numpy_entry<V: DocstringVisitor>(parsed: &Parsed, node: &SyntaxNode, visitor: &mut V) -> Result<(), V::Error> {
-    let Some(section) = enclosing_section(parsed, node).and_then(NumPySection::cast) else {
+fn walk_numpy_entry<V: DocstringVisitor>(
+    parsed: &Parsed,
+    node: &SyntaxNode,
+    section: Option<&SyntaxNode>,
+    visitor: &mut V,
+) -> Result<(), V::Error> {
+    let Some(section) = section
+        .or_else(|| enclosing_section(parsed, node))
+        .and_then(NumPySection::cast)
+    else {
         return Ok(());
     };
-    match section.section_kind(parsed.source()) {
-        NumPySectionKind::Parameters
-        | NumPySectionKind::OtherParameters
-        | NumPySectionKind::Receives
-        | NumPySectionKind::KeywordParameters => visitor.visit_numpy_parameter(parsed, &NumPyParameter(node)),
-        NumPySectionKind::Returns => visitor.visit_numpy_returns(parsed, &NumPyReturns(node)),
-        NumPySectionKind::Yields => visitor.visit_numpy_yields(parsed, &NumPyYields(node)),
-        NumPySectionKind::Raises => visitor.visit_numpy_exception(parsed, &NumPyException(node)),
-        NumPySectionKind::Warns => visitor.visit_numpy_warning(parsed, &NumPyWarning(node)),
-        NumPySectionKind::SeeAlso => visitor.visit_numpy_see_also_item(parsed, &NumPySeeAlsoItem(node)),
-        NumPySectionKind::Attributes => visitor.visit_numpy_attribute(parsed, &NumPyAttribute(node)),
-        NumPySectionKind::Methods => visitor.visit_numpy_method(parsed, &NumPyMethod(node)),
-        // Free-text sections contain no ENTRY nodes; skip anything else.
-        _ => Ok(()),
+    match section.section_kind(parsed.source()).entry_role() {
+        EntryRole::Parameter => visitor.visit_numpy_parameter(parsed, &NumPyParameter(node)),
+        EntryRole::Return => visitor.visit_numpy_returns(parsed, &NumPyReturns(node)),
+        EntryRole::Yield => visitor.visit_numpy_yields(parsed, &NumPyYields(node)),
+        EntryRole::Exception => visitor.visit_numpy_exception(parsed, &NumPyException(node)),
+        EntryRole::Warning => visitor.visit_numpy_warning(parsed, &NumPyWarning(node)),
+        EntryRole::SeeAlsoItem => visitor.visit_numpy_see_also_item(parsed, &NumPySeeAlsoItem(node)),
+        EntryRole::Attribute => visitor.visit_numpy_attribute(parsed, &NumPyAttribute(node)),
+        EntryRole::Method => visitor.visit_numpy_method(parsed, &NumPyMethod(node)),
+        // References sections hold CITATION nodes and free-text sections
+        // hold no entries at all — an ENTRY here is foreign; skip silently.
+        EntryRole::Citation | EntryRole::FreeText => Ok(()),
     }
 }
 
-/// Iterate the children of `node` and call [`walk`] on each child node.
-/// Used by the default `visit_*` implementations to continue traversal.
+/// Iterate the children of `node` and dispatch each child node like [`walk`].
+///
+/// Used by the default `visit_*` implementations to continue traversal, and
+/// available to `visit_*` overrides for the same purpose.  When `node` is a
+/// `SECTION`, it is threaded to the children as their enclosing section, so
+/// `ENTRY` routing needs no tree rescan.
 #[inline]
-fn walk_children<V: DocstringVisitor>(parsed: &Parsed, node: &SyntaxNode, visitor: &mut V) -> Result<(), V::Error> {
+pub fn walk_children<V: DocstringVisitor>(parsed: &Parsed, node: &SyntaxNode, visitor: &mut V) -> Result<(), V::Error> {
+    let section = (node.kind() == SyntaxKind::SECTION).then_some(node);
     for child in node.children() {
         if let SyntaxElement::Node(n) = child {
-            walk(parsed, n, visitor)?;
+            walk_in(parsed, n, section, visitor)?;
         }
     }
     Ok(())

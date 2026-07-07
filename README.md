@@ -42,7 +42,7 @@ println!("{}", doc.summary().unwrap().text(result.source()));
 
 for section in doc.sections() {
     if section.section_kind(result.source()) == GoogleSectionKind::Args {
-        for arg in section.args() {
+        for arg in section.args(result.source()) {
             println!("{}: {}",
                 arg.name().text(result.source()),
                 arg.r#type().map(|t| t.text(result.source())).unwrap_or(""));
@@ -94,7 +94,7 @@ let doc = GoogleDocstring::cast(result.root()).unwrap();
 
 for section in doc.sections() {
     if section.section_kind(result.source()) == GoogleSectionKind::Args {
-        for arg in section.args() {
+        for arg in section.args(result.source()) {
             let name = arg.name();
             println!("'{}' at byte {}..{}",
                 name.text(result.source()), name.range().start(), name.range().end());

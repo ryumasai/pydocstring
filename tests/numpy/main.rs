@@ -49,7 +49,7 @@ pub fn parameters<'a>(result: &'a Parsed) -> Vec<NumPyParameter<'a>> {
     doc(result)
         .sections()
         .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Parameters))
-        .flat_map(|s| s.parameters().collect::<Vec<_>>())
+        .flat_map(|s| s.parameters(result.source()).collect::<Vec<_>>())
         .collect()
 }
 
@@ -57,7 +57,7 @@ pub fn returns<'a>(result: &'a Parsed) -> Vec<NumPyReturns<'a>> {
     doc(result)
         .sections()
         .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Returns))
-        .flat_map(|s| s.returns().collect::<Vec<_>>())
+        .flat_map(|s| s.returns(result.source()).collect::<Vec<_>>())
         .collect()
 }
 
@@ -65,7 +65,7 @@ pub fn yields<'a>(result: &'a Parsed) -> Vec<NumPyYields<'a>> {
     doc(result)
         .sections()
         .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Yields))
-        .flat_map(|s| s.yields().collect::<Vec<_>>())
+        .flat_map(|s| s.yields(result.source()).collect::<Vec<_>>())
         .collect()
 }
 
@@ -73,7 +73,7 @@ pub fn raises<'a>(result: &'a Parsed) -> Vec<NumPyException<'a>> {
     doc(result)
         .sections()
         .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Raises))
-        .flat_map(|s| s.exceptions().collect::<Vec<_>>())
+        .flat_map(|s| s.exceptions(result.source()).collect::<Vec<_>>())
         .collect()
 }
 
@@ -81,7 +81,7 @@ pub fn warns<'a>(result: &'a Parsed) -> Vec<NumPyWarning<'a>> {
     doc(result)
         .sections()
         .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Warns))
-        .flat_map(|s| s.warnings().collect::<Vec<_>>())
+        .flat_map(|s| s.warnings(result.source()).collect::<Vec<_>>())
         .collect()
 }
 
@@ -89,7 +89,7 @@ pub fn see_also<'a>(result: &'a Parsed) -> Vec<NumPySeeAlsoItem<'a>> {
     doc(result)
         .sections()
         .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::SeeAlso))
-        .flat_map(|s| s.see_also_items().collect::<Vec<_>>())
+        .flat_map(|s| s.see_also_items(result.source()).collect::<Vec<_>>())
         .collect()
 }
 
@@ -112,7 +112,7 @@ pub fn receives<'a>(result: &'a Parsed) -> Vec<NumPyParameter<'a>> {
     doc(result)
         .sections()
         .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Receives))
-        .flat_map(|s| s.parameters().collect::<Vec<_>>())
+        .flat_map(|s| s.parameters(result.source()).collect::<Vec<_>>())
         .collect()
 }
 
@@ -120,7 +120,7 @@ pub fn attributes<'a>(result: &'a Parsed) -> Vec<NumPyAttribute<'a>> {
     doc(result)
         .sections()
         .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Attributes))
-        .flat_map(|s| s.attributes().collect::<Vec<_>>())
+        .flat_map(|s| s.attributes(result.source()).collect::<Vec<_>>())
         .collect()
 }
 
@@ -128,6 +128,6 @@ pub fn methods<'a>(result: &'a Parsed) -> Vec<NumPyMethod<'a>> {
     doc(result)
         .sections()
         .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Methods))
-        .flat_map(|s| s.methods().collect::<Vec<_>>())
+        .flat_map(|s| s.methods(result.source()).collect::<Vec<_>>())
         .collect()
 }

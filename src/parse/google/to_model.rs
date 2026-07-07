@@ -53,7 +53,7 @@ fn convert_section(section: &GoogleSection<'_>, source: &str) -> Section {
 
     match kind {
         GoogleSectionKind::Args | GoogleSectionKind::Receives => {
-            let entries = section.args().map(|a| convert_arg(&a, source)).collect();
+            let entries = section.args(source).map(|a| convert_arg(&a, source)).collect();
             match kind {
                 GoogleSectionKind::Args => Section::Parameters(entries),
                 GoogleSectionKind::Receives => Section::Receives(entries),
@@ -61,14 +61,14 @@ fn convert_section(section: &GoogleSection<'_>, source: &str) -> Section {
             }
         }
         GoogleSectionKind::KeywordArgs => {
-            Section::KeywordParameters(section.args().map(|a| convert_arg(&a, source)).collect())
+            Section::KeywordParameters(section.args(source).map(|a| convert_arg(&a, source)).collect())
         }
         GoogleSectionKind::OtherParameters => {
-            Section::OtherParameters(section.args().map(|a| convert_arg(&a, source)).collect())
+            Section::OtherParameters(section.args(source).map(|a| convert_arg(&a, source)).collect())
         }
         GoogleSectionKind::Returns => {
             let entries: Vec<Return> = section
-                .returns()
+                .returns(source)
                 .into_iter()
                 .map(|r| Return {
                     name: None,
@@ -82,7 +82,7 @@ fn convert_section(section: &GoogleSection<'_>, source: &str) -> Section {
         }
         GoogleSectionKind::Yields => {
             let entries: Vec<Return> = section
-                .yields()
+                .yields(source)
                 .into_iter()
                 .map(|r| Return {
                     name: None,
@@ -94,12 +94,15 @@ fn convert_section(section: &GoogleSection<'_>, source: &str) -> Section {
                 .collect();
             Section::Yields(entries)
         }
-        GoogleSectionKind::Raises => {
-            Section::Raises(section.exceptions().map(|e| convert_exception(&e, source)).collect())
-        }
+        GoogleSectionKind::Raises => Section::Raises(
+            section
+                .exceptions(source)
+                .map(|e| convert_exception(&e, source))
+                .collect(),
+        ),
         GoogleSectionKind::Warns => Section::Warns(
             section
-                .warnings()
+                .warnings(source)
                 .map(|w| ExceptionEntry {
                     type_name: w.warning_type().text(source).to_owned(),
                     description: w
@@ -110,7 +113,7 @@ fn convert_section(section: &GoogleSection<'_>, source: &str) -> Section {
         ),
         GoogleSectionKind::SeeAlso => Section::SeeAlso(
             section
-                .see_also_items()
+                .see_also_items(source)
                 .map(|item| SeeAlsoEntry {
                     names: item.names().map(|n| n.text(source).to_owned()).collect(),
                     description: item
@@ -121,7 +124,7 @@ fn convert_section(section: &GoogleSection<'_>, source: &str) -> Section {
         ),
         GoogleSectionKind::Attributes => Section::Attributes(
             section
-                .attributes()
+                .attributes(source)
                 .map(|a| Attribute {
                     name: a.name().text(source).to_owned(),
                     type_annotation: a.r#type().map(|t| t.text(source).to_owned()),
@@ -142,7 +145,7 @@ fn convert_section(section: &GoogleSection<'_>, source: &str) -> Section {
         ),
         GoogleSectionKind::Methods => Section::Methods(
             section
-                .methods()
+                .methods(source)
                 .map(|m| Method {
                     name: m.name().text(source).to_owned(),
                     type_annotation: m.r#type().map(|t| t.text(source).to_owned()),

@@ -232,7 +232,7 @@ fn test_other_parameters_section_body_variant() {
     let result = parse_numpy(docstring);
     let s = &all_sections(&result)[0];
     assert_eq!(s.section_kind(result.source()), NumPySectionKind::OtherParameters);
-    let params: Vec<_> = s.parameters().collect();
+    let params: Vec<_> = s.parameters(result.source()).collect();
     assert_eq!(params.len(), 1);
 }
 

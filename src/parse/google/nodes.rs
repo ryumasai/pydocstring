@@ -3,6 +3,7 @@
 //! Each wrapper is a newtype over `&SyntaxNode` that provides typed accessors
 //! for the node's children (tokens and sub-nodes).
 
+use crate::parse::EntryRole;
 use crate::parse::google::kind::GoogleSectionKind;
 use crate::parse::text_block::TextBlock;
 use crate::parse::text_block::find_text_block;
@@ -126,49 +127,90 @@ impl<'a> GoogleSection<'a> {
         GoogleSectionKind::from_name(&name_text.to_ascii_lowercase())
     }
 
+    /// Iterate over the `ENTRY` children when this section's entries have
+    /// `role`; empty for any other section kind.
+    ///
+    /// All entries share the `ENTRY` node kind, so without this guard a
+    /// mismatched accessor (e.g. `args()` on a `Raises:` section) would wrap
+    /// foreign entries whose typed accessors then panic in `required_token`.
+    fn entries_with_role(&self, source: &str, role: EntryRole) -> impl Iterator<Item = &'a SyntaxNode> {
+        let matches = self.section_kind(source).entry_role() == role;
+        self.0.nodes(SyntaxKind::ENTRY).filter(move |_| matches)
+    }
+
     /// Iterate over arg entry nodes in this section.
-    pub fn args(&self) -> impl Iterator<Item = GoogleArg<'a>> {
-        self.0.nodes(SyntaxKind::ENTRY).filter_map(GoogleArg::cast)
+    ///
+    /// Empty when this is not an Args-like section (Args, Keyword Args,
+    /// Other Parameters, Receives).
+    pub fn args(&self, source: &str) -> impl Iterator<Item = GoogleArg<'a>> {
+        self.entries_with_role(source, EntryRole::Parameter)
+            .filter_map(GoogleArg::cast)
     }
 
     /// Returns entry node in this section, if present.
-    pub fn returns(&self) -> Option<GoogleReturn<'a>> {
-        self.0.find_node(SyntaxKind::ENTRY).and_then(GoogleReturn::cast)
+    ///
+    /// `None` when this is not a Returns section.
+    pub fn returns(&self, source: &str) -> Option<GoogleReturn<'a>> {
+        self.entries_with_role(source, EntryRole::Return)
+            .next()
+            .and_then(GoogleReturn::cast)
     }
 
     /// Yields entry node in this section, if present.
-    pub fn yields(&self) -> Option<GoogleYield<'a>> {
-        self.0.find_node(SyntaxKind::ENTRY).and_then(GoogleYield::cast)
+    ///
+    /// `None` when this is not a Yields section.
+    pub fn yields(&self, source: &str) -> Option<GoogleYield<'a>> {
+        self.entries_with_role(source, EntryRole::Yield)
+            .next()
+            .and_then(GoogleYield::cast)
     }
 
     /// Iterate over exception entry nodes.
-    pub fn exceptions(&self) -> impl Iterator<Item = GoogleException<'a>> {
-        self.0.nodes(SyntaxKind::ENTRY).filter_map(GoogleException::cast)
+    ///
+    /// Empty when this is not a Raises section.
+    pub fn exceptions(&self, source: &str) -> impl Iterator<Item = GoogleException<'a>> {
+        self.entries_with_role(source, EntryRole::Exception)
+            .filter_map(GoogleException::cast)
     }
 
     /// Iterate over warning entry nodes.
-    pub fn warnings(&self) -> impl Iterator<Item = GoogleWarning<'a>> {
-        self.0.nodes(SyntaxKind::ENTRY).filter_map(GoogleWarning::cast)
+    ///
+    /// Empty when this is not a Warns section.
+    pub fn warnings(&self, source: &str) -> impl Iterator<Item = GoogleWarning<'a>> {
+        self.entries_with_role(source, EntryRole::Warning)
+            .filter_map(GoogleWarning::cast)
     }
 
     /// Iterate over see-also item nodes.
-    pub fn see_also_items(&self) -> impl Iterator<Item = GoogleSeeAlsoItem<'a>> {
-        self.0.nodes(SyntaxKind::ENTRY).filter_map(GoogleSeeAlsoItem::cast)
+    ///
+    /// Empty when this is not a See Also section.
+    pub fn see_also_items(&self, source: &str) -> impl Iterator<Item = GoogleSeeAlsoItem<'a>> {
+        self.entries_with_role(source, EntryRole::SeeAlsoItem)
+            .filter_map(GoogleSeeAlsoItem::cast)
     }
 
     /// Iterate over reference nodes.
+    ///
+    /// `CITATION` nodes only occur in References sections, so no section-kind
+    /// guard is needed: other sections have no such children.
     pub fn references(&self) -> impl Iterator<Item = GoogleReference<'a>> {
         self.0.nodes(SyntaxKind::CITATION).filter_map(GoogleReference::cast)
     }
 
     /// Iterate over attribute entry nodes.
-    pub fn attributes(&self) -> impl Iterator<Item = GoogleAttribute<'a>> {
-        self.0.nodes(SyntaxKind::ENTRY).filter_map(GoogleAttribute::cast)
+    ///
+    /// Empty when this is not an Attributes section.
+    pub fn attributes(&self, source: &str) -> impl Iterator<Item = GoogleAttribute<'a>> {
+        self.entries_with_role(source, EntryRole::Attribute)
+            .filter_map(GoogleAttribute::cast)
     }
 
     /// Iterate over method entry nodes.
-    pub fn methods(&self) -> impl Iterator<Item = GoogleMethod<'a>> {
-        self.0.nodes(SyntaxKind::ENTRY).filter_map(GoogleMethod::cast)
+    ///
+    /// Empty when this is not a Methods section.
+    pub fn methods(&self, source: &str) -> impl Iterator<Item = GoogleMethod<'a>> {
+        self.entries_with_role(source, EntryRole::Method)
+            .filter_map(GoogleMethod::cast)
     }
 
     /// Free-text body content block, if this is a free-text section.

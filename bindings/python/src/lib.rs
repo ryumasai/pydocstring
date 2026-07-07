@@ -10,8 +10,8 @@ use pydocstring_core::parse::numpy::kind::NumPySectionKind;
 use pydocstring_core::parse::numpy::nodes as nn;
 use pydocstring_core::parse::plain::nodes as pn;
 use pydocstring_core::parse::text_block::TextBlock;
-use pydocstring_core::parse::visitor::{DocstringVisitor, walk as core_walk};
-use pydocstring_core::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
+use pydocstring_core::parse::visitor::{DocstringVisitor, walk as core_walk, walk_children};
+use pydocstring_core::syntax::{Parsed, SyntaxKind, SyntaxNode, SyntaxToken};
 use pydocstring_core::text::TextRange;
 
 use std::convert::{TryFrom, TryInto};
@@ -3833,18 +3833,6 @@ struct PyDispatcher<'py> {
     visitor: Py<PyAny>,
     active: ActiveMethods,
     ctx: Py<PyWalkContext>,
-}
-
-/// Iterate the children of `node` and dispatch each child via [`core_walk`].
-/// Used by every `enter_*` / `exit_*` override in [`PyDispatcher`] to continue descent.
-#[inline]
-fn walk_children(parsed: &Parsed, node: &SyntaxNode, dispatcher: &mut PyDispatcher<'_>) -> PyResult<()> {
-    for child in node.children() {
-        if let SyntaxElement::Node(n) = child {
-            core_walk(parsed, n, dispatcher)?;
-        }
-    }
-    Ok(())
 }
 
 /// Generates a `DocstringVisitor` method body for `PyDispatcher`.

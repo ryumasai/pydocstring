@@ -44,6 +44,41 @@ impl fmt::Display for Style {
 }
 
 // =============================================================================
+// EntryRole
+// =============================================================================
+
+/// The role of the `ENTRY` nodes in a section body, derived from the section
+/// kind.
+///
+/// This is the single mapping used both by the visitor (to route an `ENTRY`
+/// to the right `visit_*` method) and by the typed section accessors (to
+/// return empty for sections outside the accessor's role, e.g. `args()` on a
+/// `Raises:` section).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum EntryRole {
+    /// Argument/parameter entries (Args, Keyword Args, Other Parameters, Receives).
+    Parameter,
+    /// Return entries.
+    Return,
+    /// Yield entries.
+    Yield,
+    /// Exception entries (Raises).
+    Exception,
+    /// Warning entries (Warns).
+    Warning,
+    /// "See Also" items.
+    SeeAlsoItem,
+    /// Attribute entries.
+    Attribute,
+    /// Method entries.
+    Method,
+    /// References sections: body items are `CITATION` nodes, never `ENTRY`.
+    Citation,
+    /// Free-text sections (Notes, Examples, unknown, …): no entries at all.
+    FreeText,
+}
+
+// =============================================================================
 // Style detection
 // =============================================================================
 

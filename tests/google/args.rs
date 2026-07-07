@@ -232,7 +232,7 @@ fn test_keyword_args_section_body_variant() {
         sections[0].section_kind(result.source()),
         GoogleSectionKind::KeywordArgs
     );
-    assert_eq!(sections[0].args().count(), 1);
+    assert_eq!(sections[0].args(result.source()).count(), 1);
 }
 
 #[test]
@@ -244,7 +244,7 @@ fn test_other_parameters_section_body_variant() {
         sections[0].section_kind(result.source()),
         GoogleSectionKind::OtherParameters
     );
-    assert_eq!(sections[0].args().count(), 1);
+    assert_eq!(sections[0].args(result.source()).count(), 1);
 }
 
 #[test]
