@@ -282,7 +282,16 @@ fn repeated_default_markers_one_node_per_occurrence() {
         .unwrap()
         .find_node(SyntaxKind::ENTRY)
         .unwrap();
-    assert_eq!(entry.nodes(SyntaxKind::DEFAULT).count(), 2);
+    let values: Vec<_> = entry
+        .nodes(SyntaxKind::DEFAULT)
+        .map(|d| {
+            d.find_token(SyntaxKind::DEFAULT_VALUE)
+                .unwrap()
+                .text(parsed.source())
+                .to_owned()
+        })
+        .collect();
+    assert_eq!(values, vec!["1", "2"]);
 }
 
 /// SPEC: every `optional` occurrence becomes its own `OPTIONAL` token, in

@@ -4,7 +4,7 @@
 //! ([`SyntaxKind::DOCUMENT`] / [`SyntaxKind::SECTION`] /
 //! [`SyntaxKind::ENTRY`] / [`SyntaxKind::DIRECTIVE`] /
 //! [`SyntaxKind::CITATION`]), so one set of zero-copy views — [`Document`],
-//! [`Section`], [`Entry`], [`Directive`], [`Citation`], [`Default`] — walks
+//! [`Section`], [`Entry`], [`Directive`], [`Citation`], [`DefaultMarker`] — walks
 //! any of them. This is the single code path over docstring structure: parse
 //! with [`parse`](crate::parse::parse) (auto-detecting the style) and
 //! traverse sections and entries uniformly, without per-style types.
@@ -244,8 +244,8 @@ impl<'a> Entry<'a> {
 
     /// All `default …` markers, one [`Default`] per occurrence, in source
     /// order.
-    pub fn defaults(&self) -> impl Iterator<Item = Default<'a>> {
-        self.0.nodes(SyntaxKind::DEFAULT).map(Default)
+    pub fn defaults(&self) -> impl Iterator<Item = DefaultMarker<'a>> {
+        self.0.nodes(SyntaxKind::DEFAULT).map(DefaultMarker)
     }
 
     /// The first `default …` marker's value token, if present.
@@ -258,15 +258,15 @@ impl<'a> Entry<'a> {
 }
 
 // =============================================================================
-// Default
+// DefaultMarker
 // =============================================================================
 
 /// Typed view of one `DEFAULT` marker node (`default X` / `default=X` /
 /// `default: X` inside a type annotation).
 #[derive(Debug, Clone, Copy)]
-pub struct Default<'a>(pub(crate) &'a SyntaxNode);
+pub struct DefaultMarker<'a>(pub(crate) &'a SyntaxNode);
 
-impl<'a> Default<'a> {
+impl<'a> DefaultMarker<'a> {
     /// Try to cast a `SyntaxNode` reference into this typed wrapper.
     pub fn cast(node: &'a SyntaxNode) -> Option<Self> {
         (node.kind() == SyntaxKind::DEFAULT).then_some(Self(node))

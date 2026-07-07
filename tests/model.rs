@@ -673,3 +673,16 @@ fn repeated_optional_markers_first_occurrence_wins() {
         other => panic!("expected Parameters, got {:?}", other),
     }
 }
+
+#[test]
+fn repeated_optional_markers_first_occurrence_wins_google() {
+    let parsed = parse_google("Summary.\n\nArgs:\n    x (int, optional, optional): Desc.\n");
+    let doc = google_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::Parameters(params) => {
+            assert_eq!(params[0].type_annotation.as_deref(), Some("int"));
+            assert!(params[0].is_optional);
+        }
+        other => panic!("expected Parameters, got {:?}", other),
+    }
+}

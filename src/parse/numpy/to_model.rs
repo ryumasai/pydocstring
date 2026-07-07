@@ -4,6 +4,7 @@ use crate::model::Attribute;
 use crate::model::Deprecation;
 use crate::model::Docstring;
 use crate::model::ExceptionEntry;
+use crate::model::FreeSectionKind;
 use crate::model::Method;
 use crate::model::Parameter;
 use crate::model::Reference;
@@ -171,9 +172,11 @@ fn convert_section(section: &NumPySection<'_>, source: &str) -> Section {
                 .body_text()
                 .map(|t| t.text(source).to_owned())
                 .unwrap_or_default();
+            // A structured kind reaching this arm would mean to_section_kind and
+            // the structured arms above drifted apart; degrade gracefully.
             let free_kind = match kind.to_section_kind(section.header().name().text(source)) {
                 SectionKind::FreeText(k) => k,
-                _ => unreachable!(),
+                _ => FreeSectionKind::Unknown(section.header().name().text(source).to_owned()),
             };
             Section::FreeText { kind: free_kind, body }
         }

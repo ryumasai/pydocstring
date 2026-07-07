@@ -7,7 +7,7 @@ use crate::parse::EntryRole;
 use crate::parse::numpy::kind::NumPySectionKind;
 use crate::parse::text_block::TextBlock;
 use crate::parse::text_block::find_text_block;
-use crate::parse::unified::Default;
+use crate::parse::unified::DefaultMarker;
 use crate::syntax::SyntaxKind;
 use crate::syntax::SyntaxNode;
 use crate::syntax::SyntaxToken;
@@ -274,10 +274,10 @@ impl<'a> NumPyParameter<'a> {
         self.0.tokens(SyntaxKind::OPTIONAL)
     }
 
-    /// All `default …` markers, one [`Default`] per occurrence, in source
+    /// All `default …` markers, one [`DefaultMarker`] per occurrence, in source
     /// order.
-    pub fn defaults(&self) -> impl Iterator<Item = Default<'a>> {
-        self.0.nodes(SyntaxKind::DEFAULT).filter_map(Default::cast)
+    pub fn defaults(&self) -> impl Iterator<Item = DefaultMarker<'a>> {
+        self.0.nodes(SyntaxKind::DEFAULT).filter_map(DefaultMarker::cast)
     }
 
     /// The first `default …` marker's keyword token, if present.

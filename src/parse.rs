@@ -18,6 +18,7 @@ pub mod visitor;
 
 pub use text_block::TextBlock;
 pub use unified::Citation;
+pub use unified::DefaultMarker;
 pub use unified::Directive;
 pub use unified::Document;
 pub use unified::Entry;

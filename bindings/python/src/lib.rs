@@ -142,6 +142,19 @@ fn mk_token_opt(py: Python<'_>, token: Option<&SyntaxToken>, source: &str) -> Py
     token.map(|t| mk_token(py, t, source)).transpose()
 }
 
+/// First DEFAULT occurrence wins (markers are repeatable, #41); a missing
+/// (zero-length) value token lives inside that node.
+fn mk_first_default_value<'a>(
+    py: Python<'_>,
+    mut defaults: impl Iterator<Item = pydocstring_core::parse::DefaultMarker<'a>>,
+    source: &str,
+) -> PyResult<Option<Py<PyToken>>> {
+    match defaults.next() {
+        Some(d) => mk_token_or_missing(py, d.value(), d.syntax(), SyntaxKind::DEFAULT_VALUE, source),
+        None => Ok(None),
+    }
+}
+
 fn mk_token_or_missing(
     py: Python<'_>,
     present: Option<&SyntaxToken>,
@@ -625,12 +638,7 @@ fn build_google_arg(py: Python<'_>, arg: &gn::GoogleArg<'_>, source: &str) -> Py
             optional: mk_token_opt(py, arg.optional(), source)?,
             default_keyword: mk_token_opt(py, arg.default_keyword(), source)?,
             default_separator: mk_token_opt(py, arg.default_separator(), source)?,
-            // First DEFAULT occurrence wins (markers are repeatable, #41);
-            // a missing (zero-length) value token lives inside that node.
-            default_value: match arg.defaults().next() {
-                Some(d) => mk_token_or_missing(py, d.value(), d.syntax(), SyntaxKind::DEFAULT_VALUE, source)?,
-                None => None,
-            },
+            default_value: mk_first_default_value(py, arg.defaults(), source)?,
         },
     )
 }
@@ -1411,12 +1419,7 @@ fn build_numpy_parameter(py: Python<'_>, prm: &nn::NumPyParameter<'_>, source: &
             optional: mk_token_opt(py, prm.optional(), source)?,
             default_keyword: mk_token_opt(py, prm.default_keyword(), source)?,
             default_separator: mk_token_opt(py, prm.default_separator(), source)?,
-            // First DEFAULT occurrence wins (markers are repeatable, #41);
-            // a missing (zero-length) value token lives inside that node.
-            default_value: match prm.defaults().next() {
-                Some(d) => mk_token_or_missing(py, d.value(), d.syntax(), SyntaxKind::DEFAULT_VALUE, source)?,
-                None => None,
-            },
+            default_value: mk_first_default_value(py, prm.defaults(), source)?,
         },
     )
 }
