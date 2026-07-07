@@ -989,3 +989,34 @@ class TestWalk:
         doc = pydocstring.parse_google("Summary.\n\nArgs:\n    z: Desc.")
         with pytest.raises(TypeError, match="must subclass pydocstring.Visitor"):
             pydocstring.walk(doc, Duck())  # ty: ignore[invalid-argument-type]
+
+
+class TestMissingDescription:
+    def test_numpy_exception_missing_description_is_exposed(self):
+        doc = pydocstring.parse_numpy("Summary.\n\nRaises\n------\nValueError:\n")
+
+        class Collector(pydocstring.Visitor):
+            def __init__(self):
+                self.excepts = []
+
+            def enter_numpy_exception(self, exc, ctx):
+                self.excepts.append(exc)
+
+        excepts = pydocstring.walk(doc, Collector()).excepts
+        assert len(excepts) == 1
+        assert excepts[0].description is not None
+        assert excepts[0].description.is_missing()
+
+    def test_numpy_exception_continuation_replaces_placeholder(self):
+        doc = pydocstring.parse_numpy("Summary.\n\nRaises\n------\nValueError:\n    Later description.\n")
+
+        class Collector(pydocstring.Visitor):
+            def __init__(self):
+                self.excepts = []
+
+            def enter_numpy_exception(self, exc, ctx):
+                self.excepts.append(exc)
+
+        excepts = pydocstring.walk(doc, Collector()).excepts
+        assert excepts[0].description.text == "Later description."
+        assert not excepts[0].description.is_missing()

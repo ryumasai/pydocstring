@@ -504,7 +504,13 @@ fn extend_last_node_description(nodes: &mut [SyntaxElement], cont: TextRange) {
         for child in node.children_mut() {
             if let SyntaxElement::Node(n) = child {
                 if n.kind() == SyntaxKind::DESCRIPTION {
-                    extend_text_block(n, cont);
+                    if n.range().is_empty() {
+                        // Zero-length placeholder: replace the block entirely
+                        // rather than extending from the old (wrong) start.
+                        *n = text_block_single(SyntaxKind::DESCRIPTION, cont);
+                    } else {
+                        extend_text_block(n, cont);
+                    }
                     found_desc = true;
                     break;
                 }

@@ -370,3 +370,21 @@ fn multi_paragraph_body_contains_blank_line_inside_node() {
         ]
     );
 }
+
+/// SPEC: CONTENT (reference entries) is a TextBlock like the other four
+/// kinds — per-line tokens, raw text, dedented logical text.
+#[test]
+fn content_block_lines_and_logical_text() {
+    let src = "Summary.\n\nReferences\n----------\n.. [1] Author A, \"Title\",\n    with a continuation line.\n";
+    let parsed = pydocstring::parse::numpy::parse_numpy(src);
+    let section = parsed.root().find_node(SyntaxKind::NUMPY_SECTION).unwrap();
+    let reference = section.find_node(SyntaxKind::NUMPY_REFERENCE).unwrap();
+    let block = TextBlock::cast(reference.find_node(SyntaxKind::CONTENT).unwrap()).unwrap();
+    let lines: Vec<_> = block.lines().map(|t| t.text(parsed.source())).collect();
+    assert_eq!(lines, ["Author A, \"Title\",", "with a continuation line."]);
+    assert!(block.text(parsed.source()).contains('\n'));
+    assert_eq!(
+        block.logical_text(parsed.source()),
+        "Author A, \"Title\",\nwith a continuation line."
+    );
+}

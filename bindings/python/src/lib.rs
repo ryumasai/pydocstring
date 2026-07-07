@@ -1561,7 +1561,7 @@ fn build_numpy_exception(py: Python<'_>, exc: &nn::NumPyException<'_>, source: &
             range: *exc.syntax().range(),
             r#type: mk_token(py, exc.r#type(), source)?,
             colon: mk_token_opt(py, exc.colon(), source)?,
-            description: mk_text_block_opt(py, exc.description(), source)?,
+            description: mk_text_block_or_missing(py, exc.description(), exc.syntax(), SyntaxKind::DESCRIPTION, source)?,
         },
     )
 }
@@ -1606,7 +1606,7 @@ fn build_numpy_warning(py: Python<'_>, wrn: &nn::NumPyWarning<'_>, source: &str)
             range: *wrn.syntax().range(),
             r#type: mk_token(py, wrn.r#type(), source)?,
             colon: mk_token_opt(py, wrn.colon(), source)?,
-            description: mk_text_block_opt(py, wrn.description(), source)?,
+            description: mk_text_block_or_missing(py, wrn.description(), wrn.syntax(), SyntaxKind::DESCRIPTION, source)?,
         },
     )
 }
@@ -1655,7 +1655,7 @@ fn build_numpy_see_also_item(
             range: *sai.syntax().range(),
             names: mk_tokens(py, sai.names(), source)?,
             colon: mk_token_opt(py, sai.colon(), source)?,
-            description: mk_text_block_opt(py, sai.description(), source)?,
+            description: mk_text_block_or_missing(py, sai.description(), sai.syntax(), SyntaxKind::DESCRIPTION, source)?,
         },
     )
 }
