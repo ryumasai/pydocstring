@@ -1,0 +1,6 @@
+Summary.
+
+.. deprecated:: 1.6.0
+    Use new_func instead.
+
+Extended description of the function.
