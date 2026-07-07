@@ -6,6 +6,20 @@
 //!
 //! The [`Parsed`] struct owns the source text and the root node, and provides
 //! a convenience [`pretty_print`](Parsed::pretty_print) method for debugging.
+//!
+//! # Missing placeholders
+//!
+//! A zero-length element is a **missing placeholder**: the parsers insert one
+//! wherever a syntactically expected element is absent from the source (e.g.
+//! the `TYPE` in `a ()`, the `CLOSE_BRACKET` in `a (int`, or the
+//! `DESCRIPTION` in `a (int):`). The equivalence is exact — zero-length ⇔
+//! missing placeholder — and placeholders sit at the offset where the missing
+//! element would be inserted, making them the edit API's insertion anchors.
+//! Placeholders are only ever *replaced* by a real element, never extended in
+//! place, and trivia tokens are never zero-length. [`Parsed::pretty_print`]
+//! renders a missing token as `<missing>`; use [`SyntaxToken::is_missing`] /
+//! [`SyntaxNode::find_missing`] to detect them programmatically. The
+//! invariants are pinned corpus-wide in `tests/trivia.rs`.
 
 use core::fmt;
 use core::fmt::Write;
@@ -58,12 +72,11 @@ pub enum SyntaxKind {
     /// Extended summary paragraph (node wrapping one
     /// [`SyntaxKind::TEXT_LINE`] token per content line).
     EXTENDED_SUMMARY,
-    /// Stray line between sections.
-    STRAY_LINE,
     /// The content span of one line inside a text block node
     /// ([`SyntaxKind::SUMMARY`], [`SyntaxKind::EXTENDED_SUMMARY`],
-    /// [`SyntaxKind::DESCRIPTION`]): excludes leading indentation and the
-    /// trailing newline. Never contains a newline.
+    /// [`SyntaxKind::DESCRIPTION`], [`SyntaxKind::PARAGRAPH`]): excludes
+    /// leading indentation and the trailing newline. Never contains a
+    /// newline.
     TEXT_LINE,
 
     // ── Trivia tokens ──────────────────────────────────────────────────
@@ -89,8 +102,8 @@ pub enum SyntaxKind {
     UNDERLINE,
     /// RST directive marker (`..`).
     DIRECTIVE_MARKER,
-    /// Keyword such as `deprecated`.
-    KEYWORD,
+    /// Directive name such as `deprecated`.
+    DIRECTIVE_NAME,
     /// RST double colon (`::`).
     DOUBLE_COLON,
     /// Directive argument (e.g. the version of a `.. deprecated::`).
@@ -133,6 +146,11 @@ pub enum SyntaxKind {
     /// produces one `DEFAULT` node per occurrence, in source order (which
     /// occurrence *wins* is a model-layer rule: the first).
     DEFAULT,
+    /// A paragraph of stray prose lines between sections (node wrapping one
+    /// [`SyntaxKind::TEXT_LINE`] token per content line, like the other text
+    /// block kinds). Consecutive stray lines separated only by a newline form
+    /// one paragraph; a blank line splits paragraphs (reST semantics).
+    PARAGRAPH,
 }
 
 impl SyntaxKind {
@@ -150,6 +168,7 @@ impl SyntaxKind {
                 | Self::DIRECTIVE
                 | Self::CITATION
                 | Self::DEFAULT
+                | Self::PARAGRAPH
         )
     }
 
@@ -180,7 +199,6 @@ impl SyntaxKind {
             Self::OPTIONAL => "OPTIONAL",
             Self::SUMMARY => "SUMMARY",
             Self::EXTENDED_SUMMARY => "EXTENDED_SUMMARY",
-            Self::STRAY_LINE => "STRAY_LINE",
             Self::TEXT_LINE => "TEXT_LINE",
             // Trivia tokens
             Self::WHITESPACE => "WHITESPACE",
@@ -191,7 +209,7 @@ impl SyntaxKind {
             // reST-flavoured tokens
             Self::UNDERLINE => "UNDERLINE",
             Self::DIRECTIVE_MARKER => "DIRECTIVE_MARKER",
-            Self::KEYWORD => "KEYWORD",
+            Self::DIRECTIVE_NAME => "DIRECTIVE_NAME",
             Self::DOUBLE_COLON => "DOUBLE_COLON",
             Self::ARGUMENT => "ARGUMENT",
             Self::RETURN_TYPE => "RETURN_TYPE",
@@ -207,6 +225,7 @@ impl SyntaxKind {
             Self::DIRECTIVE => "DIRECTIVE",
             Self::CITATION => "CITATION",
             Self::DEFAULT => "DEFAULT",
+            Self::PARAGRAPH => "PARAGRAPH",
         }
     }
 }
@@ -388,6 +407,11 @@ impl SyntaxToken {
     }
 
     /// Whether this token is missing from the source (zero-length placeholder).
+    ///
+    /// A missing token marks the exact offset where the absent element would
+    /// be inserted — the edit API's insertion anchor (see the
+    /// [module docs](self#missing-placeholders)). Placeholders are only ever
+    /// replaced by a real token, never extended in place.
     pub fn is_missing(&self) -> bool {
         self.range.is_empty()
     }
@@ -403,11 +427,18 @@ impl SyntaxToken {
     }
 
     /// Write a pretty-printed token line.
+    ///
+    /// A zero-length (missing placeholder) token renders as `<missing>`
+    /// instead of an empty text literal.
     pub fn pretty_fmt(&self, src: &str, indent: usize, out: &mut String) {
         for _ in 0..indent {
             out.push_str("  ");
         }
-        let _ = writeln!(out, "{}: {:?}@{}", self.kind.name(), self.text(src), self.range);
+        if self.is_missing() {
+            let _ = writeln!(out, "{}: <missing>@{}", self.kind.name(), self.range);
+        } else {
+            let _ = writeln!(out, "{}: {:?}@{}", self.kind.name(), self.text(src), self.range);
+        }
     }
 }
 
@@ -663,6 +694,16 @@ mod tests {
         assert!(output.contains("COLON: \":\"@"));
         assert!(output.contains("NAME: \"x\"@"));
         assert!(output.contains("TEXT_LINE: \"int\"@"));
+    }
+
+    #[test]
+    fn test_pretty_print_missing_placeholder() {
+        // A zero-length token renders as `<missing>`, not as `""`.
+        let source = "a ()";
+        let mut out = String::new();
+        SyntaxToken::new(SyntaxKind::TYPE, TextRange::new(TextSize::new(3), TextSize::new(3)))
+            .pretty_fmt(source, 0, &mut out);
+        assert_eq!(out, "TYPE: <missing>@3..3\n");
     }
 
     #[test]

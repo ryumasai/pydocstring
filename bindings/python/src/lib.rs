@@ -179,7 +179,7 @@ fn mk_tokens<'a>(
 // ─── TextBlock ──────────────────────────────────────────────────────────────
 
 /// A multi-line text content block (summary, extended summary, description,
-/// free-text section body, or reference content).
+/// stray paragraph, free-text section body, or reference content).
 ///
 /// Wraps one `Token` per content line; `text` is the raw source slice of the
 /// block's range (byte-identical to the pre-#38 token text), `logical_text`
@@ -1184,7 +1184,7 @@ struct PyGoogleDocstring {
     summary: Option<Py<PyTextBlock>>,
     extended_summary: Option<Py<PyTextBlock>>,
     deprecation: Option<Py<PyGoogleDeprecation>>,
-    stray_lines: Vec<Py<PyToken>>,
+    paragraphs: Vec<Py<PyTextBlock>>,
     sections: Vec<Py<PyGoogleSection>>,
     source: String,
     /// Cached CST — avoids re-parsing when `walk()` is called.
@@ -1209,9 +1209,16 @@ impl PyGoogleDocstring {
     fn deprecation(&self, py: Python<'_>) -> Option<Py<PyGoogleDeprecation>> {
         self.deprecation.as_ref().map(|d| d.clone_ref(py))
     }
+    /// Stray-prose paragraph blocks between sections, in source order.
     #[getter]
-    fn stray_lines(&self, py: Python<'_>) -> Vec<Py<PyToken>> {
-        self.stray_lines.iter().map(|t| t.clone_ref(py)).collect()
+    fn paragraphs(&self, py: Python<'_>) -> Vec<Py<PyTextBlock>> {
+        self.paragraphs.iter().map(|t| t.clone_ref(py)).collect()
+    }
+    /// Deprecated alias for ``paragraphs``: stray lines are now grouped into
+    /// ``PARAGRAPH`` text blocks, so the items are ``TextBlock``s.
+    #[getter]
+    fn stray_lines(&self, py: Python<'_>) -> Vec<Py<PyTextBlock>> {
+        self.paragraphs(py)
     }
     #[getter]
     fn sections(&self, py: Python<'_>) -> Vec<Py<PyGoogleSection>> {
@@ -1251,7 +1258,10 @@ fn build_google_docstring_node(
         .deprecation()
         .map(|dep| build_google_deprecation(py, &dep, source))
         .transpose()?;
-    let stray_lines = mk_tokens(py, doc.stray_lines(), source)?;
+    let paragraphs = doc
+        .paragraphs()
+        .map(|p| mk_text_block(py, &p, source))
+        .collect::<PyResult<_>>()?;
     let sections = doc
         .sections()
         .map(|sec| build_google_section(py, &sec, source))
@@ -1263,7 +1273,7 @@ fn build_google_docstring_node(
             summary,
             extended_summary,
             deprecation,
-            stray_lines,
+            paragraphs,
             sections,
             source: source.to_string(),
             parsed,

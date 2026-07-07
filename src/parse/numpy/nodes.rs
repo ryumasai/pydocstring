@@ -63,9 +63,20 @@ impl<'a> NumPyDocstring<'a> {
         self.0.nodes(SyntaxKind::SECTION).filter_map(NumPySection::cast)
     }
 
-    /// Iterate over stray line tokens.
-    pub fn stray_lines(&self) -> impl Iterator<Item = &'a SyntaxToken> {
-        self.0.tokens(SyntaxKind::STRAY_LINE)
+    /// Iterate over stray-prose paragraph blocks (`PARAGRAPH` nodes) between
+    /// sections, in source order.
+    pub fn paragraphs(&self) -> impl Iterator<Item = TextBlock<'a>> {
+        self.0.nodes(SyntaxKind::PARAGRAPH).filter_map(TextBlock::cast)
+    }
+
+    /// Deprecated alias for [`NumPyDocstring::paragraphs`]: stray lines are
+    /// now grouped into `PARAGRAPH` text blocks.
+    #[deprecated(
+        since = "0.3.0",
+        note = "use `paragraphs()`; stray lines are now PARAGRAPH text blocks"
+    )]
+    pub fn stray_lines(&self) -> impl Iterator<Item = TextBlock<'a>> {
+        self.paragraphs()
     }
 }
 
@@ -213,9 +224,9 @@ impl<'a> NumPyDeprecation<'a> {
         self.0.find_token(SyntaxKind::DIRECTIVE_MARKER)
     }
 
-    /// The `deprecated` keyword.
+    /// The `deprecated` directive name.
     pub fn keyword(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::KEYWORD)
+        self.0.find_token(SyntaxKind::DIRECTIVE_NAME)
     }
 
     /// The `::` double-colon separator.

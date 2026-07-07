@@ -1,0 +1,12 @@
+Summary.
+
+Args:
+    a: First.
+
+Stray paragraph one, line one.
+Stray paragraph one, line two.
+
+Stray paragraph two.
+
+Returns:
+    int: Result.

@@ -142,6 +142,200 @@ fn corpus_trivia_invariants() {
 }
 
 // =============================================================================
+// Missing-placeholder invariants (#78)
+// =============================================================================
+
+/// The token kinds the parsers deliberately create as zero-length missing
+/// placeholders (see the missing-placeholder convention in `src/syntax.rs`):
+///
+/// - `TYPE` — `a ()` / `a :` with no type text
+/// - `RETURN_TYPE` — a NumPy `name :` return/yield with no type
+/// - `CLOSE_BRACKET` — `a (int` with no matching `)`
+/// - `COLON` — `a (int) desc` / a colonless `Args` header
+/// - `DEFAULT_VALUE` — `default=` with no value
+const PLACEHOLDER_TOKEN_KINDS: &[SyntaxKind] = &[
+    SyntaxKind::TYPE,
+    SyntaxKind::RETURN_TYPE,
+    SyntaxKind::CLOSE_BRACKET,
+    SyntaxKind::COLON,
+    SyntaxKind::DEFAULT_VALUE,
+];
+
+/// The node kinds that may be zero-length: `DESCRIPTION` (a missing text
+/// block, e.g. the description of `a (int):`), and the `DOCUMENT` root of an
+/// empty input.
+const PLACEHOLDER_NODE_KINDS: &[SyntaxKind] = &[SyntaxKind::DESCRIPTION, SyntaxKind::DOCUMENT];
+
+/// Depth-first collection of all nodes below `node`, with their parent.
+fn collect_nodes<'a>(node: &'a SyntaxNode, out: &mut Vec<(&'a SyntaxNode, &'a SyntaxNode)>) {
+    for child in node.children() {
+        if let SyntaxElement::Node(n) = child {
+            out.push((node, n));
+            collect_nodes(n, out);
+        }
+    }
+}
+
+/// A byte a missing placeholder may legally touch: structure (brackets,
+/// colon, comma, `=` separator) or layout (whitespace / line break). A
+/// placeholder whose neighbours are both word bytes would sit mid-word —
+/// never a syntactically sensible insertion point.
+fn is_placeholder_boundary(byte: u8) -> bool {
+    matches!(
+        byte,
+        b' ' | b'\t' | b'\r' | b'\n' | b'(' | b')' | b'[' | b']' | b'{' | b'}' | b'<' | b'>' | b':' | b',' | b'='
+    )
+}
+
+/// Check the missing-placeholder invariants for one parsed input:
+///
+/// (a) every zero-length token has one of the known placeholder kinds,
+/// (b) it is anchored inside its parent's range at a syntactically sensible
+///     offset (adjacent to a bracket/colon/whitespace/line edge — never
+///     mid-word), and
+/// (c) trivia tokens are never zero-length.
+///
+/// Zero-length nodes are covered too: only `DESCRIPTION` placeholders (and
+/// the `DOCUMENT` root of an empty input) may be empty.
+fn check_missing_placeholders(name: &str, parsed: &Parsed) -> Vec<String> {
+    let source = parsed.source();
+    let bytes = source.as_bytes();
+    let mut violations = Vec::new();
+
+    let mut tokens = Vec::new();
+    collect_tokens(parsed.root(), &mut tokens);
+    for (parent, token) in &tokens {
+        if !token.range().is_empty() {
+            continue;
+        }
+        let kind = token.kind();
+        // (c) trivia is real layout bytes; a zero-length trivia token is a bug.
+        if kind.is_trivia() {
+            violations.push(format!("{name}: zero-length trivia token {kind} {}", token.range()));
+            continue;
+        }
+        // (a) only the known placeholder kinds may be zero-length.
+        if !PLACEHOLDER_TOKEN_KINDS.contains(&kind) {
+            violations.push(format!(
+                "{name}: zero-length token of non-placeholder kind {kind} {}",
+                token.range()
+            ));
+        }
+        // (b) anchored inside the parent's range …
+        let offset = usize::from(token.range().start());
+        if token.range().start() < parent.range().start() || token.range().end() > parent.range().end() {
+            violations.push(format!(
+                "{name}: placeholder {kind} {} outside parent {} {}",
+                token.range(),
+                parent.kind(),
+                parent.range()
+            ));
+        }
+        // … and never mid-word: at least one neighbour must be a line edge
+        // or a structural/layout byte.
+        let prev_is_boundary = offset == 0 || is_placeholder_boundary(bytes[offset - 1]);
+        let next_is_boundary = offset == source.len() || is_placeholder_boundary(bytes[offset]);
+        if !prev_is_boundary && !next_is_boundary {
+            violations.push(format!("{name}: placeholder {kind} {} sits mid-word", token.range()));
+        }
+    }
+
+    let mut nodes = Vec::new();
+    collect_nodes(parsed.root(), &mut nodes);
+    for (parent, node) in &nodes {
+        if !node.range().is_empty() {
+            continue;
+        }
+        let kind = node.kind();
+        if !PLACEHOLDER_NODE_KINDS.contains(&kind) {
+            violations.push(format!(
+                "{name}: zero-length node of non-placeholder kind {kind} {}",
+                node.range()
+            ));
+        }
+        if node.range().start() < parent.range().start() || node.range().end() > parent.range().end() {
+            violations.push(format!(
+                "{name}: placeholder node {kind} {} outside parent {} {}",
+                node.range(),
+                parent.kind(),
+                parent.range()
+            ));
+        }
+    }
+
+    violations
+}
+
+/// LAW: zero-length ⇔ missing placeholder. Checked for every corpus input,
+/// plus hand-written inputs that exercise every placeholder kind the
+/// parsers create (the corpus alone does not reach all of them).
+#[test]
+fn zero_length_elements_are_missing_placeholders() {
+    let mut violations = Vec::new();
+
+    // Every corpus input.
+    let mut checked = 0;
+    for style_dir in style_dirs() {
+        let style = style_dir.file_name().unwrap().to_str().unwrap().to_owned();
+        for txt_path in collect_inputs(&style_dir) {
+            checked += 1;
+            let input = fs::read_to_string(&txt_path).unwrap();
+            let parsed = parse_for_style(&style, &input);
+            violations.extend(check_missing_placeholders(&corpus_name(&txt_path), &parsed));
+        }
+    }
+    assert!(checked > 0, "no corpus input files found under tests/corpus");
+
+    // Hand-written inputs: each must actually produce a zero-length element,
+    // so the invariants above are exercised for every placeholder kind.
+    let placeholder_inputs: &[(&str, &str)] = &[
+        // missing TYPE (empty brackets)
+        ("google", "Summary.\n\nArgs:\n    a (): Desc.\n"),
+        // missing CLOSE_BRACKET
+        ("google", "Args:\n   arg1 (int : desc.\n"),
+        // missing COLON after the close bracket
+        ("google", "Args:\n    arg1 (int) description here.\n"),
+        // missing COLON in a colonless section header
+        ("google", "Summary.\n\nArgs\n    x (int): The value.\n"),
+        // missing DESCRIPTION node (`a (int):` with nothing after the colon)
+        ("google", "Summary.\n\nArgs:\n    a (int):\n"),
+        // missing TYPE (`a :` with no type text)
+        ("numpy", "Summary.\n\nParameters\n----------\na :\n    Desc.\n"),
+        // missing RETURN_TYPE (`name :` with no type text)
+        ("numpy", "Summary.\n\nReturns\n-------\nout :\n    Desc.\n"),
+        // missing DEFAULT_VALUE (`default=` with no value)
+        (
+            "numpy",
+            "Summary.\n\nParameters\n----------\nx : int, default=\n    Desc.\n",
+        ),
+    ];
+    for (style, input) in placeholder_inputs {
+        let parsed = parse_for_style(style, input);
+        let mut tokens = Vec::new();
+        collect_tokens(parsed.root(), &mut tokens);
+        let mut nodes = Vec::new();
+        collect_nodes(parsed.root(), &mut nodes);
+        let has_placeholder =
+            tokens.iter().any(|(_, t)| t.range().is_empty()) || nodes.iter().any(|(_, n)| n.range().is_empty());
+        assert!(
+            has_placeholder,
+            "expected a zero-length placeholder for {style} input {input:?}"
+        );
+        violations.extend(check_missing_placeholders(
+            &format!("<{style} inline: {input:?}>"),
+            &parsed,
+        ));
+    }
+
+    assert!(
+        violations.is_empty(),
+        "{} missing-placeholder violation(s):\n{}",
+        violations.len(),
+        violations.join("\n")
+    );
+}
+
+// =============================================================================
 // Spec tests: pin the trivia lexing rules
 // =============================================================================
 
