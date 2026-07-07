@@ -31,6 +31,7 @@ GOOGLE_DOCSTRING@0..110 {
       WHITESPACE: " "@76..77
       OPEN_BRACKET: "("@77..78
       TYPE: "bool"@78..82
+      COMMA: ","@82..83
       WHITESPACE: " "@83..84
       OPTIONAL: "optional"@84..92
       CLOSE_BRACKET: ")"@92..93

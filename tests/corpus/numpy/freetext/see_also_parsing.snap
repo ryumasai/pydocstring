@@ -24,6 +24,7 @@ NUMPY_DOCSTRING@0..68 {
     NEWLINE: "\n"@52..53
     NUMPY_SEE_ALSO_ITEM@53..67 {
       NAME: "func_b"@53..59
+      COMMA: ","@59..60
       WHITESPACE: " "@60..61
       NAME: "func_c"@61..67
     }

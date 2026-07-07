@@ -14,6 +14,7 @@ NUMPY_DOCSTRING@0..70 {
     NEWLINE: "\n"@31..32
     NUMPY_PARAMETER@32..69 {
       NAME: "x1"@32..34
+      COMMA: ","@34..35
       WHITESPACE: " "@35..36
       NAME: "x2"@36..38
       WHITESPACE: " "@38..39

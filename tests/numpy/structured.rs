@@ -46,6 +46,8 @@ fn test_methods_basic() {
 }
 
 /// SPEC (issues #26/#31): `reset() : desc` colon split also applies in Methods.
+/// The inline text after the colon is the method's description (#39: it must
+/// not be dropped from the tree).
 #[test]
 fn test_methods_with_colon() {
     let docstring = "Summary.\n\nMethods\n-------\nreset() : Reset the state.\n";
@@ -54,10 +56,7 @@ fn test_methods_with_colon() {
     assert_eq!(m.len(), 1);
     assert_eq!(m[0].name().text(result.source()), "reset()");
     assert!(m[0].colon().is_some());
-    // Description may be inline or on next line depending on parser
-    if let Some(desc) = m[0].description() {
-        assert!(desc.text(result.source()).contains("Reset"));
-    }
+    assert_eq!(m[0].description().unwrap().text(result.source()), "Reset the state.");
 }
 
 // =============================================================================

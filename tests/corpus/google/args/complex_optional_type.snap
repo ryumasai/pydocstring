@@ -17,6 +17,7 @@ GOOGLE_DOCSTRING@0..52 {
       WHITESPACE: " "@21..22
       OPEN_BRACKET: "("@22..23
       TYPE: "List[int]"@23..32
+      COMMA: ","@32..33
       WHITESPACE: " "@33..34
       OPTIONAL: "optional"@34..42
       CLOSE_BRACKET: ")"@42..43

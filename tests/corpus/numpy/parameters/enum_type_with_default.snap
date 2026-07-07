@@ -18,6 +18,7 @@ NUMPY_DOCSTRING@0..87 {
       COLON: ":"@38..39
       WHITESPACE: " "@39..40
       TYPE: "{'C', 'F', 'A'}"@40..55
+      COMMA: ","@55..56
       WHITESPACE: " "@56..57
       DEFAULT_KEYWORD: "default"@57..64
       WHITESPACE: " "@64..65

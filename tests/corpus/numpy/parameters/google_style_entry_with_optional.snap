@@ -15,10 +15,13 @@ NUMPY_DOCSTRING@0..64 {
     NUMPY_PARAMETER@32..63 {
       NAME: "name"@32..36
       WHITESPACE: " "@36..37
+      OPEN_BRACKET: "("@37..38
       WHITESPACE: " "@42..43
       COLON: ":"@52..53
       TYPE: "str"@38..41
+      COMMA: ","@41..42
       OPTIONAL: "optional"@43..51
+      CLOSE_BRACKET: ")"@51..52
       WHITESPACE: " "@53..54
       DESCRIPTION@54..63 {
         TEXT_LINE: "The name."@54..63

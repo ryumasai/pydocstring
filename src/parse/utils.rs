@@ -320,10 +320,17 @@ pub(crate) fn strip_optional(type_content: &str) -> (&str, Option<usize>) {
 pub(crate) struct BracketEntry<'a> {
     /// Name text before the bracket (end-trimmed).
     pub name: &'a str,
+    /// Byte offset of the opening bracket.
+    pub open_bracket: usize,
+    /// Byte offset of the matching closing bracket.
+    pub close_bracket: usize,
     /// Clean type text (optional stripped) inside brackets.
     pub clean_type: &'a str,
     /// Byte offset of the type text start.
     pub type_offset: usize,
+    /// Byte offsets of top-level separator commas after the clean type
+    /// (e.g. the comma before `optional`).
+    pub commas: Vec<usize>,
     /// Byte offset of `optional` keyword, if present.
     pub optional_offset: Option<usize>,
     /// Byte offset of the colon after the close bracket, if present.
@@ -400,10 +407,24 @@ pub(crate) fn try_parse_bracket_entry(text: &str) -> Option<BracketEntry<'_>> {
     let (clean_type, opt_rel) = strip_optional(type_trimmed);
     let optional_offset = opt_rel.map(|r| type_offset + r);
 
+    // Top-level separator commas after the clean type (commas inside the
+    // clean type, e.g. `Dict[str, int]` or a multi-segment type kept whole,
+    // stay covered by the TYPE token).
+    let commas: Vec<usize> = split_comma_parts(type_trimmed)
+        .iter()
+        .skip(1)
+        .map(|(seg_offset, _)| seg_offset - 1)
+        .filter(|&rel| rel >= clean_type.len())
+        .map(|rel| type_offset + rel)
+        .collect();
+
     Some(BracketEntry {
         name,
+        open_bracket: bracket_pos,
+        close_bracket: close_pos,
         clean_type,
         type_offset,
+        commas,
         optional_offset,
         colon,
         description,

@@ -12,11 +12,11 @@
 //! trivia children of their common parent, and leading/trailing blank lines
 //! live at the docstring root, whose range spans the whole input.
 //!
-//! Non-whitespace bytes found in a gap are content that a parser dropped (a
-//! known class of bug, tracked by the coverage burn-down in issue #39). They
-//! are deliberately left uncovered — the whitespace runs around them are
-//! tokenized normally — so that the coverage tests can find them instead of
-//! having them masked by a trivia token.
+//! Non-whitespace bytes found in a gap are content that a parser dropped —
+//! always a bug, outlawed by the coverage law (`tests/coverage.rs`, #39).
+//! They are deliberately left uncovered — the whitespace runs around them
+//! are tokenized normally — so that the coverage law exposes them instead
+//! of having them masked by a trivia token.
 
 use crate::syntax::SyntaxElement;
 use crate::syntax::SyntaxKind;

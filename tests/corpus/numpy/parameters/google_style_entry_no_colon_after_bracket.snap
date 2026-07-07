@@ -15,7 +15,9 @@ NUMPY_DOCSTRING@0..53 {
     NUMPY_PARAMETER@32..52 {
       NAME: "name"@32..36
       WHITESPACE: " "@36..37
+      OPEN_BRACKET: "("@37..38
       TYPE: "int"@38..41
+      CLOSE_BRACKET: ")"@41..42
       NEWLINE: "\n"@42..43
       WHITESPACE: "    "@43..47
       DESCRIPTION@47..52 {

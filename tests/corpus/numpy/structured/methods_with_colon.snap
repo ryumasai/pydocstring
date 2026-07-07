@@ -17,8 +17,9 @@ NUMPY_DOCSTRING@0..53 {
       WHITESPACE: " "@33..34
       COLON: ":"@34..35
       WHITESPACE: " "@35..36
-      WHITESPACE: " "@41..42
-      WHITESPACE: " "@45..46
+      DESCRIPTION@36..52 {
+        TEXT_LINE: "Reset the state."@36..52
+      }
     }
   }
   NEWLINE: "\n"@52..53
@@ -29,3 +30,4 @@ Summary.
 Methods
 -------
 reset()
+    Reset the state.

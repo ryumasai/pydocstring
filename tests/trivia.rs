@@ -12,9 +12,9 @@
 //!    invariant is absolute.
 //! 2. Tokens never overlap and appear in source order; trivia tokens fall
 //!    inside their parent node's range.
-//! 3. Every whitespace byte of the source is covered by some token
-//!    (non-whitespace bytes may still be dropped by the parsers — full
-//!    byte-for-byte coverage is #39's test).
+//! 3. Every whitespace byte of the source is covered by some token (full
+//!    byte-for-byte coverage — content bytes included — is the coverage
+//!    law of `tests/coverage.rs`, #39).
 
 mod common;
 
