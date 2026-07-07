@@ -15,8 +15,10 @@ NUMPY_DOCSTRING@0..68 {
     NUMPY_PARAMETER@32..67 {
       NAME: "data"@32..36
       WHITESPACE: " "@36..37
-      COLON: ":"@53..54
+      OPEN_BRACKET: "("@37..38
       TYPE: "Dict[str, int]"@38..52
+      CLOSE_BRACKET: ")"@52..53
+      COLON: ":"@53..54
       WHITESPACE: " "@54..55
       DESCRIPTION@55..67 {
         TEXT_LINE: "The mapping."@55..67

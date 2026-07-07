@@ -12,9 +12,9 @@
 //!    invariant is absolute.
 //! 2. Tokens never overlap and appear in source order; trivia tokens fall
 //!    inside their parent node's range.
-//! 3. Every whitespace byte of the source is covered by some token
-//!    (non-whitespace bytes may still be dropped by the parsers — full
-//!    byte-for-byte coverage is #39's test).
+//! 3. Every whitespace byte of the source is covered by some token (full
+//!    byte-for-byte coverage — content bytes included — is the coverage
+//!    law of `tests/coverage.rs`, #39).
 
 mod common;
 
@@ -66,9 +66,9 @@ fn check_invariants(name: &str, parsed: &Parsed) -> Vec<String> {
         }
     }
 
-    // Invariant 2: tokens never overlap (checked in source order — some
-    // parsers store entry children in canonical rather than source order);
-    // trivia tokens fall inside their parent node's range.
+    // Invariant 2: tokens never overlap (checked in source order, sorting
+    // defensively rather than trusting tree order); trivia tokens fall
+    // inside their parent node's range.
     let mut sorted: Vec<&SyntaxToken> = tokens.iter().map(|(_, t)| *t).collect();
     sorted.sort_by_key(|t| (t.range().start(), t.range().end()));
     for pair in sorted.windows(2) {

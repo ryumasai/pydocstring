@@ -14,8 +14,10 @@ GOOGLE_DOCSTRING@0..46 {
     WHITESPACE: "    "@20..24
     GOOGLE_SEE_ALSO_ITEM@24..46 {
       NAME: "func_a"@24..30
+      COMMA: ","@30..31
       WHITESPACE: " "@31..32
       NAME: "func_b"@32..38
+      COMMA: ","@38..39
       WHITESPACE: " "@39..40
       NAME: "func_c"@40..46
     }

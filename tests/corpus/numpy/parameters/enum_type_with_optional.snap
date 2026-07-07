@@ -18,6 +18,7 @@ NUMPY_DOCSTRING@0..79 {
       COLON: ":"@38..39
       WHITESPACE: " "@39..40
       TYPE: "{'C', 'F'}"@40..50
+      COMMA: ","@50..51
       WHITESPACE: " "@51..52
       OPTIONAL: "optional"@52..60
       NEWLINE: "\n"@60..61

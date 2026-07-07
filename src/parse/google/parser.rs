@@ -14,6 +14,7 @@ use crate::parse::utils::find_matching_close;
 use crate::parse::utils::find_term_colon;
 use crate::parse::utils::missing_text_block;
 use crate::parse::utils::process_reference_line;
+use crate::parse::utils::separator_comma_offsets;
 use crate::parse::utils::split_comma_parts;
 use crate::parse::utils::text_block_single;
 use crate::parse::utils::try_parse_deprecation_directive;
@@ -49,6 +50,7 @@ struct TypeInfo {
     open_bracket: TextRange,
     r#type: Option<TextRange>,
     close_bracket: Option<TextRange>,
+    commas: Vec<TextRange>,
     optional: Option<TextRange>,
     default_keyword: Option<TextRange>,
     default_separator: Option<TextRange>,
@@ -60,6 +62,9 @@ struct TypeInfo {
 struct TypeMarkers<'a> {
     /// Type text with the `optional` / `default ...` segments stripped.
     clean_type: &'a str,
+    /// Byte offsets of the top-level separator commas after the clean type
+    /// (e.g. the comma before `optional`).
+    commas: Vec<usize>,
     /// Byte offset of the `optional` keyword, if present.
     optional: Option<usize>,
     /// Byte offset of the `default` keyword, if present.
@@ -124,6 +129,7 @@ fn split_type_markers(type_content: &str) -> TypeMarkers<'_> {
 
     TypeMarkers {
         clean_type,
+        commas: separator_comma_offsets(type_content, clean_type.len()),
         optional,
         default_keyword,
         default_separator,
@@ -232,6 +238,7 @@ fn parse_entry_header(cursor: &LineCursor, parse_type: bool) -> EntryHeader {
                 open_bracket,
                 r#type: type_span,
                 close_bracket,
+                commas: markers.commas.iter().map(|&r| marker_span(r, 1)).collect(),
                 optional: opt_span,
                 default_keyword: markers.default_keyword.map(|r| marker_span(r, "default".len())),
                 default_separator: markers.default_separator.map(|r| marker_span(r, 1)),
@@ -382,21 +389,32 @@ fn build_section_header_node(info: &SectionHeaderInfo) -> SyntaxNode {
 fn push_comma_separated_names(children: &mut Vec<SyntaxElement>, name: TextRange, source: &str) {
     let name_text = name.source_text(source);
     let base = name.start().raw() as usize;
+    let parts: Vec<&str> = name_text.split(',').collect();
     let mut offset = 0;
     let mut pushed = false;
-    for part in name_text.split(',') {
+    let mut tokens = Vec::new();
+    for (i, part) in parts.iter().enumerate() {
         let trimmed = part.trim();
         if !trimmed.is_empty() {
             let lead = part.len() - part.trim_start().len();
-            children.push(SyntaxElement::Token(SyntaxToken::new(
+            tokens.push(SyntaxElement::Token(SyntaxToken::new(
                 SyntaxKind::NAME,
                 TextRange::from_offset_len(base + offset + lead, trimmed.len()),
             )));
             pushed = true;
         }
+        // A separator comma follows every part but the last.
+        if i + 1 < parts.len() {
+            tokens.push(SyntaxElement::Token(SyntaxToken::new(
+                SyntaxKind::COMMA,
+                TextRange::from_offset_len(base + offset + part.len(), 1),
+            )));
+        }
         offset += part.len() + 1;
     }
-    if !pushed {
+    if pushed {
+        children.extend(tokens);
+    } else {
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::NAME, name)));
     }
 }
@@ -436,6 +454,9 @@ fn build_arg_node(kind: SyntaxKind, header: &EntryHeader, range: TextRange, sour
                 SyntaxKind::CLOSE_BRACKET,
                 TextRange::new(missing_pos, missing_pos),
             )));
+        }
+        for comma in &ti.commas {
+            children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COMMA, *comma)));
         }
         if let Some(opt) = ti.optional {
             children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::OPTIONAL, opt)));

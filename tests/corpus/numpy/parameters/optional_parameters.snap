@@ -31,6 +31,7 @@ NUMPY_DOCSTRING@0..151 {
       COLON: ":"@108..109
       WHITESPACE: " "@109..110
       TYPE: "int"@110..113
+      COMMA: ","@113..114
       WHITESPACE: " "@114..115
       OPTIONAL: "optional"@115..123
       NEWLINE: "\n"@123..124

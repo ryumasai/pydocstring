@@ -17,6 +17,7 @@ GOOGLE_DOCSTRING@0..67 {
       WHITESPACE: " "@25..26
       OPEN_BRACKET: "("@26..27
       TYPE: "{'C', 'F'}"@27..37
+      COMMA: ","@37..38
       WHITESPACE: " "@38..39
       DEFAULT_KEYWORD: "default"@39..46
       WHITESPACE: " "@46..47

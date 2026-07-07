@@ -36,6 +36,7 @@ NUMPY_DOCSTRING@0..189 {
       COLON: ":"@93..94
       WHITESPACE: " "@94..95
       TYPE: "str"@95..98
+      COMMA: ","@98..99
       WHITESPACE: " "@99..100
       OPTIONAL: "optional"@100..108
       NEWLINE: "\n"@108..109

@@ -32,6 +32,9 @@ pub enum SyntaxKind {
     TYPE,
     /// `:` separator.
     COLON,
+    /// `,` separator: between multiple names, or before an `optional` /
+    /// `default …` marker inside a type annotation.
+    COMMA,
     /// Description text block (node wrapping one [`SyntaxKind::TEXT_LINE`]
     /// token per content line).
     DESCRIPTION,
@@ -225,6 +228,7 @@ impl SyntaxKind {
             Self::NAME => "NAME",
             Self::TYPE => "TYPE",
             Self::COLON => "COLON",
+            Self::COMMA => "COMMA",
             Self::DESCRIPTION => "DESCRIPTION",
             Self::OPEN_BRACKET => "OPEN_BRACKET",
             Self::CLOSE_BRACKET => "CLOSE_BRACKET",

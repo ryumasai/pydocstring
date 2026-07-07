@@ -15,8 +15,10 @@ NUMPY_DOCSTRING@0..68 {
     NUMPY_PARAMETER@32..47 {
       NAME: "x"@32..33
       WHITESPACE: " "@33..34
-      COLON: ":"@39..40
+      OPEN_BRACKET: "("@34..35
       TYPE: "int"@35..38
+      CLOSE_BRACKET: ")"@38..39
+      COLON: ":"@39..40
       WHITESPACE: " "@40..41
       DESCRIPTION@41..47 {
         TEXT_LINE: "First."@41..47
