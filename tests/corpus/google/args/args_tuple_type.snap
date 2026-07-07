@@ -1,17 +1,23 @@
 === CST ===
 GOOGLE_DOCSTRING@0..61 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..61 {
     GOOGLE_SECTION_HEADER@10..15 {
       NAME: "Args"@10..14
       COLON: ":"@14..15
     }
+    NEWLINE: "\n"@15..16
+    WHITESPACE: "    "@16..20
     GOOGLE_ARG@20..61 {
       NAME: "pair"@20..24
+      WHITESPACE: " "@24..25
       OPEN_BRACKET: "("@25..26
       TYPE: "Tuple[int, str]"@26..41
       CLOSE_BRACKET: ")"@41..42
       COLON: ":"@42..43
+      WHITESPACE: " "@43..44
       DESCRIPTION: "A pair of values."@44..61
     }
   }

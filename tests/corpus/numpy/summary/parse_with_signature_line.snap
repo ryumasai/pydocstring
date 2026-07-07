@@ -1,25 +1,41 @@
 === CST ===
-NUMPY_DOCSTRING@0..110 {
+NUMPY_DOCSTRING@0..111 {
   SUMMARY: "add(a, b)"@0..9
+  NEWLINE: "\n"@9..10
+  BLANK_LINE: "\n"@10..11
   EXTENDED_SUMMARY: "The sum of two numbers."@11..34
+  NEWLINE: "\n"@34..35
+  BLANK_LINE: "\n"@35..36
   NUMPY_SECTION@36..110 {
     NUMPY_SECTION_HEADER@36..57 {
       NAME: "Parameters"@36..46
+      NEWLINE: "\n"@46..47
       UNDERLINE: "----------"@47..57
     }
+    NEWLINE: "\n"@57..58
     NUMPY_PARAMETER@58..83 {
       NAME: "a"@58..59
+      WHITESPACE: " "@59..60
       COLON: ":"@60..61
+      WHITESPACE: " "@61..62
       TYPE: "int"@62..65
+      NEWLINE: "\n"@65..66
+      WHITESPACE: "    "@66..70
       DESCRIPTION: "First number."@70..83
     }
+    NEWLINE: "\n"@83..84
     NUMPY_PARAMETER@84..110 {
       NAME: "b"@84..85
+      WHITESPACE: " "@85..86
       COLON: ":"@86..87
+      WHITESPACE: " "@87..88
       TYPE: "int"@88..91
+      NEWLINE: "\n"@91..92
+      WHITESPACE: "    "@92..96
       DESCRIPTION: "Second number."@96..110
     }
   }
+  NEWLINE: "\n"@110..111
 }
 === EMIT ===
 add(a, b)

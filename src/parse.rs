@@ -10,6 +10,7 @@ use google::GoogleSectionKind;
 pub mod google;
 pub mod numpy;
 pub mod plain;
+pub(crate) mod trivia;
 pub(crate) mod utils;
 pub mod visitor;
 

@@ -1,14 +1,20 @@
 === CST ===
 NUMPY_DOCSTRING@0..66 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..66 {
     NUMPY_SECTION_HEADER@10..23 {
       NAME: "Raises"@10..16
+      NEWLINE: "\n"@16..17
       UNDERLINE: "------"@17..23
     }
+    NEWLINE: "\n"@23..24
     NUMPY_EXCEPTION@24..66 {
       TYPE: "ValueError"@24..34
+      WHITESPACE: " "@34..35
       COLON: ":"@35..36
+      WHITESPACE: " "@36..37
       DESCRIPTION: "If bad.\n    More detail here."@37..66
     }
   }

@@ -848,7 +848,8 @@ pub fn parse_google(input: &str) -> Parsed {
 
     line_cursor.skip_blanks();
     if line_cursor.is_eof() {
-        let root = SyntaxNode::new(SyntaxKind::GOOGLE_DOCSTRING, line_cursor.full_range(), root_children);
+        let mut root = SyntaxNode::new(SyntaxKind::GOOGLE_DOCSTRING, line_cursor.full_range(), root_children);
+        crate::parse::trivia::attach_trivia(&mut root, input);
         return Parsed::new(input.to_string(), root);
     }
 
@@ -1019,7 +1020,8 @@ pub fn parse_google(input: &str) -> Parsed {
         )));
     }
 
-    let root = SyntaxNode::new(SyntaxKind::GOOGLE_DOCSTRING, line_cursor.full_range(), root_children);
+    let mut root = SyntaxNode::new(SyntaxKind::GOOGLE_DOCSTRING, line_cursor.full_range(), root_children);
+    crate::parse::trivia::attach_trivia(&mut root, input);
     Parsed::new(input.to_string(), root)
 }
 

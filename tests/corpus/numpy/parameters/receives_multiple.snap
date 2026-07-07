@@ -1,24 +1,38 @@
 === CST ===
-NUMPY_DOCSTRING@0..84 {
+NUMPY_DOCSTRING@0..85 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..84 {
     NUMPY_SECTION_HEADER@10..27 {
       NAME: "Receives"@10..18
+      NEWLINE: "\n"@18..19
       UNDERLINE: "--------"@19..27
     }
+    NEWLINE: "\n"@27..28
     NUMPY_PARAMETER@28..54 {
       NAME: "msg"@28..31
+      WHITESPACE: " "@31..32
       COLON: ":"@32..33
+      WHITESPACE: " "@33..34
       TYPE: "str"@34..37
+      NEWLINE: "\n"@37..38
+      WHITESPACE: "    "@38..42
       DESCRIPTION: "The message."@42..54
     }
+    NEWLINE: "\n"@54..55
     NUMPY_PARAMETER@55..84 {
       NAME: "data"@55..59
+      WHITESPACE: " "@59..60
       COLON: ":"@60..61
+      WHITESPACE: " "@61..62
       TYPE: "bytes"@62..67
+      NEWLINE: "\n"@67..68
+      WHITESPACE: "    "@68..72
       DESCRIPTION: "The payload."@72..84
     }
   }
+  NEWLINE: "\n"@84..85
 }
 === EMIT ===
 Summary.

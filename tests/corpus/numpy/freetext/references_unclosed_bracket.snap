@@ -1,18 +1,24 @@
 === CST ===
-NUMPY_DOCSTRING@0..78 {
+NUMPY_DOCSTRING@0..79 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..78 {
     NUMPY_SECTION_HEADER@10..31 {
       NAME: "References"@10..20
+      NEWLINE: "\n"@20..21
       UNDERLINE: "----------"@21..31
     }
+    NEWLINE: "\n"@31..32
     NUMPY_REFERENCE@32..53 {
       CONTENT: ".. [1 unclosed marker"@32..53
     }
+    NEWLINE: "\n"@53..54
     NUMPY_REFERENCE@54..78 {
       CONTENT: "plain ref with ] bracket"@54..78
     }
   }
+  NEWLINE: "\n"@78..79
 }
 === EMIT ===
 Summary.

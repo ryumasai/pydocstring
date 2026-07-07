@@ -1,127 +1,204 @@
 === CST ===
-NUMPY_DOCSTRING@0..447 {
+NUMPY_DOCSTRING@0..448 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..37 {
     NUMPY_SECTION_HEADER@10..25 {
       NAME: "Example"@10..17
+      NEWLINE: "\n"@17..18
       UNDERLINE: "-------"@18..25
     }
+    NEWLINE: "\n"@25..26
     BODY_TEXT: ">>> 1 + 1\n2"@26..37
   }
+  NEWLINE: "\n"@37..38
+  BLANK_LINE: "\n"@38..39
   NUMPY_SECTION@39..64 {
     NUMPY_SECTION_HEADER@39..48 {
       NAME: "Note"@39..43
+      NEWLINE: "\n"@43..44
       UNDERLINE: "----"@44..48
     }
+    NEWLINE: "\n"@48..49
     BODY_TEXT: "This is a note."@49..64
   }
+  NEWLINE: "\n"@64..65
+  BLANK_LINE: "\n"@65..66
   NUMPY_SECTION@66..110 {
     NUMPY_SECTION_HEADER@66..91 {
       NAME: "Other Params"@66..78
+      NEWLINE: "\n"@78..79
       UNDERLINE: "------------"@79..91
     }
+    NEWLINE: "\n"@91..92
     NUMPY_PARAMETER@92..110 {
       NAME: "x"@92..93
+      WHITESPACE: " "@93..94
       COLON: ":"@94..95
+      WHITESPACE: " "@95..96
       TYPE: "int"@96..99
+      NEWLINE: "\n"@99..100
+      WHITESPACE: "    "@100..104
       DESCRIPTION: "Extra."@104..110
     }
   }
+  NEWLINE: "\n"@110..111
+  BLANK_LINE: "\n"@111..112
   NUMPY_SECTION@112..146 {
     NUMPY_SECTION_HEADER@112..123 {
       NAME: "Param"@112..117
+      NEWLINE: "\n"@117..118
       UNDERLINE: "-----"@118..123
     }
+    NEWLINE: "\n"@123..124
     NUMPY_PARAMETER@124..146 {
       NAME: "x"@124..125
+      WHITESPACE: " "@125..126
       COLON: ":"@126..127
+      WHITESPACE: " "@127..128
       TYPE: "int"@128..131
+      NEWLINE: "\n"@131..132
+      WHITESPACE: "    "@132..136
       DESCRIPTION: "The value."@136..146
     }
   }
+  NEWLINE: "\n"@146..147
+  BLANK_LINE: "\n"@147..148
   NUMPY_SECTION@148..190 {
     NUMPY_SECTION_HEADER@148..167 {
       NAME: "Parameter"@148..157
+      NEWLINE: "\n"@157..158
       UNDERLINE: "---------"@158..167
     }
+    NEWLINE: "\n"@167..168
     NUMPY_PARAMETER@168..190 {
       NAME: "x"@168..169
+      WHITESPACE: " "@169..170
       COLON: ":"@170..171
+      WHITESPACE: " "@171..172
       TYPE: "int"@172..175
+      NEWLINE: "\n"@175..176
+      WHITESPACE: "    "@176..180
       DESCRIPTION: "The value."@180..190
     }
   }
+  NEWLINE: "\n"@190..191
+  BLANK_LINE: "\n"@191..192
   NUMPY_SECTION@192..228 {
     NUMPY_SECTION_HEADER@192..205 {
       NAME: "Params"@192..198
+      NEWLINE: "\n"@198..199
       UNDERLINE: "------"@199..205
     }
+    NEWLINE: "\n"@205..206
     NUMPY_PARAMETER@206..228 {
       NAME: "x"@206..207
+      WHITESPACE: " "@207..208
       COLON: ":"@208..209
+      WHITESPACE: " "@209..210
       TYPE: "int"@210..213
+      NEWLINE: "\n"@213..214
+      WHITESPACE: "    "@214..218
       DESCRIPTION: "The value."@218..228
     }
   }
+  NEWLINE: "\n"@228..229
+  BLANK_LINE: "\n"@229..230
   NUMPY_SECTION@230..267 {
     NUMPY_SECTION_HEADER@230..241 {
       NAME: "Raise"@230..235
+      NEWLINE: "\n"@235..236
       UNDERLINE: "-----"@236..241
     }
+    NEWLINE: "\n"@241..242
     NUMPY_EXCEPTION@242..267 {
       TYPE: "ValueError"@242..252
+      NEWLINE: "\n"@252..253
+      WHITESPACE: "    "@253..257
       DESCRIPTION: "Bad input."@257..267
     }
   }
+  NEWLINE: "\n"@267..268
+  BLANK_LINE: "\n"@268..269
   NUMPY_SECTION@269..311 {
     NUMPY_SECTION_HEADER@269..284 {
       NAME: "Receive"@269..276
+      NEWLINE: "\n"@276..277
       UNDERLINE: "-------"@277..284
     }
+    NEWLINE: "\n"@284..285
     NUMPY_PARAMETER@285..311 {
       NAME: "data"@285..289
+      WHITESPACE: " "@289..290
       COLON: ":"@290..291
+      WHITESPACE: " "@291..292
       TYPE: "bytes"@292..297
+      NEWLINE: "\n"@297..298
+      WHITESPACE: "    "@298..302
       DESCRIPTION: "The data."@302..311
     }
   }
+  NEWLINE: "\n"@311..312
+  BLANK_LINE: "\n"@312..313
   NUMPY_SECTION@313..345 {
     NUMPY_SECTION_HEADER@313..326 {
       NAME: "Return"@313..319
+      NEWLINE: "\n"@319..320
       UNDERLINE: "------"@320..326
     }
+    NEWLINE: "\n"@326..327
     NUMPY_RETURNS@327..345 {
       RETURN_TYPE: "int"@327..330
+      NEWLINE: "\n"@330..331
+      WHITESPACE: "    "@331..335
       DESCRIPTION: "The value."@335..345
     }
   }
+  NEWLINE: "\n"@345..346
+  BLANK_LINE: "\n"@346..347
   NUMPY_SECTION@347..383 {
     NUMPY_SECTION_HEADER@347..356 {
       NAME: "Warn"@347..351
+      NEWLINE: "\n"@351..352
       UNDERLINE: "----"@352..356
     }
+    NEWLINE: "\n"@356..357
     NUMPY_WARNING@357..383 {
       TYPE: "UserWarning"@357..368
+      NEWLINE: "\n"@368..369
+      WHITESPACE: "    "@369..373
       DESCRIPTION: "Bad usage."@373..383
     }
   }
+  NEWLINE: "\n"@383..384
+  BLANK_LINE: "\n"@384..385
   NUMPY_SECTION@385..412 {
     NUMPY_SECTION_HEADER@385..400 {
       NAME: "Warning"@385..392
+      NEWLINE: "\n"@392..393
       UNDERLINE: "-------"@393..400
     }
+    NEWLINE: "\n"@400..401
     BODY_TEXT: "Be careful."@401..412
   }
+  NEWLINE: "\n"@412..413
+  BLANK_LINE: "\n"@413..414
   NUMPY_SECTION@414..447 {
     NUMPY_SECTION_HEADER@414..425 {
       NAME: "Yield"@414..419
+      NEWLINE: "\n"@419..420
       UNDERLINE: "-----"@420..425
     }
+    NEWLINE: "\n"@425..426
     NUMPY_YIELDS@426..447 {
       RETURN_TYPE: "int"@426..429
+      NEWLINE: "\n"@429..430
+      WHITESPACE: "    "@430..434
       DESCRIPTION: "Next integer."@434..447
     }
   }
+  NEWLINE: "\n"@447..448
 }
 === EMIT ===
 Summary.

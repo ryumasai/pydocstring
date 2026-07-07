@@ -1,17 +1,23 @@
 === CST ===
 GOOGLE_DOCSTRING@0..81 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..81 {
     GOOGLE_SECTION_HEADER@10..15 {
       NAME: "Args"@10..14
       COLON: ":"@14..15
     }
+    NEWLINE: "\n"@15..16
+    WHITESPACE: "    "@16..20
     GOOGLE_ARG@20..81 {
       NAME: "x"@20..21
+      WHITESPACE: " "@21..22
       OPEN_BRACKET: "("@22..23
       TYPE: "int"@23..26
       CLOSE_BRACKET: ")"@26..27
       COLON: ":"@27..28
+      WHITESPACE: " "@28..29
       DESCRIPTION: "First line.\n        Second line.\n        Third line."@29..81
     }
   }

@@ -1,5 +1,9 @@
 //! Helpers shared by the corpus-driven test harnesses
-//! (`tests/snapshots.rs`, `tests/roundtrip.rs`).
+//! (`tests/snapshots.rs`, `tests/roundtrip.rs`, `tests/trivia.rs`).
+//!
+//! Each test binary compiles its own copy of this module and not every
+//! binary uses every helper, so unused-code lints are silenced.
+#![allow(dead_code)]
 
 use std::fs;
 use std::path::Path;

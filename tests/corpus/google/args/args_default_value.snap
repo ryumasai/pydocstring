@@ -1,19 +1,27 @@
 === CST ===
 GOOGLE_DOCSTRING@0..67 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..67 {
     GOOGLE_SECTION_HEADER@10..15 {
       NAME: "Args"@10..14
       COLON: ":"@14..15
     }
+    NEWLINE: "\n"@15..16
+    WHITESPACE: "    "@16..20
     GOOGLE_ARG@20..67 {
       NAME: "order"@20..25
+      WHITESPACE: " "@25..26
       OPEN_BRACKET: "("@26..27
       TYPE: "{'C', 'F'}"@27..37
+      WHITESPACE: " "@38..39
       DEFAULT_KEYWORD: "default"@39..46
+      WHITESPACE: " "@46..47
       DEFAULT_VALUE: "'C'"@47..50
       CLOSE_BRACKET: ")"@50..51
       COLON: ":"@51..52
+      WHITESPACE: " "@52..53
       DESCRIPTION: "Memory layout."@53..67
     }
   }

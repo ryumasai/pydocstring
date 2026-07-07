@@ -1,25 +1,40 @@
 === CST ===
-NUMPY_DOCSTRING@0..150 {
+NUMPY_DOCSTRING@0..151 {
   SUMMARY: "Function with optional parameters."@0..34
+  NEWLINE: "\n"@34..35
+  BLANK_LINE: "\n"@35..36
   NUMPY_SECTION@36..150 {
     NUMPY_SECTION_HEADER@36..57 {
       NAME: "Parameters"@36..46
+      NEWLINE: "\n"@46..47
       UNDERLINE: "----------"@47..57
     }
+    NEWLINE: "\n"@57..58
     NUMPY_PARAMETER@58..98 {
       NAME: "required"@58..66
+      WHITESPACE: " "@66..67
       COLON: ":"@67..68
+      WHITESPACE: " "@68..69
       TYPE: "str"@69..72
+      NEWLINE: "\n"@72..73
+      WHITESPACE: "    "@73..77
       DESCRIPTION: "A required parameter."@77..98
     }
+    NEWLINE: "\n"@98..99
     NUMPY_PARAMETER@99..150 {
       NAME: "optional"@99..107
+      WHITESPACE: " "@107..108
       COLON: ":"@108..109
+      WHITESPACE: " "@109..110
       TYPE: "int"@110..113
+      WHITESPACE: " "@114..115
       OPTIONAL: "optional"@115..123
+      NEWLINE: "\n"@123..124
+      WHITESPACE: "    "@124..128
       DESCRIPTION: "An optional parameter."@128..150
     }
   }
+  NEWLINE: "\n"@150..151
 }
 === EMIT ===
 Function with optional parameters.

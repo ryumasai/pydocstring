@@ -1,13 +1,18 @@
 === CST ===
-NUMPY_DOCSTRING@0..62 {
+NUMPY_DOCSTRING@0..63 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..62 {
     NUMPY_SECTION_HEADER@10..27 {
       NAME: "Examples"@10..18
+      NEWLINE: "\n"@18..19
       UNDERLINE: "--------"@19..27
     }
+    NEWLINE: "\n"@27..28
     BODY_TEXT: "Here is an example:\n\n>>> func(2)\n4"@28..62
   }
+  NEWLINE: "\n"@62..63
 }
 === EMIT ===
 Summary.

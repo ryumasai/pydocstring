@@ -1,13 +1,19 @@
 === CST ===
 NUMPY_DOCSTRING@0..48 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..48 {
     NUMPY_SECTION_HEADER@10..25 {
       NAME: "Returns"@10..17
+      NEWLINE: "\n"@17..18
       UNDERLINE: "-------"@18..25
     }
+    NEWLINE: "\n"@25..26
     NUMPY_RETURNS@26..48 {
       RETURN_TYPE: "int"@26..29
+      NEWLINE: "\n"@29..30
+      WHITESPACE: "\t"@30..31
       DESCRIPTION: "The result value."@31..48
     }
   }

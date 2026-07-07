@@ -1,16 +1,23 @@
 === CST ===
-NUMPY_DOCSTRING@0..62 {
+NUMPY_DOCSTRING@0..63 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   NUMPY_SECTION@10..62 {
     NUMPY_SECTION_HEADER@10..25 {
       NAME: "Methods"@10..17
+      NEWLINE: "\n"@17..18
       UNDERLINE: "-------"@18..25
     }
+    NEWLINE: "\n"@25..26
     NUMPY_METHOD@26..62 {
       NAME: "do_stuff"@26..34
+      NEWLINE: "\n"@34..35
+      WHITESPACE: "    "@35..39
       DESCRIPTION: "Performs the operation."@39..62
     }
   }
+  NEWLINE: "\n"@62..63
 }
 === EMIT ===
 Summary.

@@ -1,6 +1,8 @@
 === CST ===
 GOOGLE_DOCSTRING@0..83 {
   SUMMARY: "Brief summary."@0..14
+  NEWLINE: "\n"@14..15
+  BLANK_LINE: "\n"@15..16
   EXTENDED_SUMMARY: "Extended description that provides\nmore details about the function."@16..83
 }
 === EMIT ===

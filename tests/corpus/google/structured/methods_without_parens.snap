@@ -1,14 +1,19 @@
 === CST ===
 GOOGLE_DOCSTRING@0..56 {
   SUMMARY: "Summary."@0..8
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
   GOOGLE_SECTION@10..56 {
     GOOGLE_SECTION_HEADER@10..18 {
       NAME: "Methods"@10..17
       COLON: ":"@17..18
     }
+    NEWLINE: "\n"@18..19
+    WHITESPACE: "    "@19..23
     GOOGLE_METHOD@23..56 {
       NAME: "do_stuff"@23..31
       COLON: ":"@31..32
+      WHITESPACE: " "@32..33
       DESCRIPTION: "Performs the operation."@33..56
     }
   }
