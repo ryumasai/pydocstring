@@ -223,7 +223,10 @@ fn emit_return(out: &mut String, r: &Return) {
             emit_multiline_with_indentation(out, desc, 4);
         }
     } else if let Some(ref desc) = r.description {
-        out.push_str(desc);
+        // Indent continuation lines into the section body: written raw at
+        // column 0 they dedent out of the Returns section and the re-parse
+        // silently drops every line after the first (#93).
+        emit_multiline_with_indentation(out, desc, 4);
     }
     out.push('\n');
 }

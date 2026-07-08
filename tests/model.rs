@@ -149,6 +149,34 @@ fn google_returns() {
     }
 }
 
+/// A description-only Returns entry with a multi-line description survives
+/// the google emit/parse round trip: the continuation lines are emitted
+/// inside the section body, not at column 0 (#93).
+#[test]
+fn google_returns_description_only_multiline_round_trips() {
+    let parsed = parse_google(
+        "Summary.\n\nReturns:\n    The result of executing the command.\n    Execution begins with the target.\n",
+    );
+    let doc = google_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::Returns(returns) => {
+            assert_eq!(returns.len(), 1);
+            assert_eq!(returns[0].type_annotation, None);
+            assert_eq!(
+                returns[0].description.as_deref(),
+                Some("The result of executing the command.\nExecution begins with the target.")
+            );
+        }
+        other => panic!("expected Returns, got {:?}", other),
+    }
+    let emitted = pydocstring::emit::google::emit_google(&doc, &pydocstring::emit::EmitOptions::default());
+    let reparsed = google_to_model(&parse_google(&emitted)).unwrap();
+    assert_eq!(
+        reparsed, doc,
+        "google desc-only returns round trip diverged:\n{emitted}"
+    );
+}
+
 // =============================================================================
 // Google → IR: Raises
 // =============================================================================

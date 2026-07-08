@@ -125,6 +125,27 @@ fn google_emit_returns_no_type() {
     assert!(text.contains("    The computed result.\n"));
 }
 
+/// A description-only Return's continuation lines stay indented inside the
+/// section body; at column 0 they would dedent out of the Returns section
+/// and be dropped on re-parse (#93).
+#[test]
+fn google_emit_returns_no_type_multiline() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Returns(vec![Return {
+            name: None,
+            type_annotation: None,
+            description: Some("The result of executing the command.\nExecution begins with the target.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_google(&doc, &EmitOptions::default());
+    assert!(
+        text.contains("    The result of executing the command.\n    Execution begins with the target.\n"),
+        "continuation lines must stay in the section body:\n{text}"
+    );
+}
+
 #[test]
 fn google_emit_raises() {
     let doc = Docstring {
