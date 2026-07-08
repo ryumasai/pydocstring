@@ -70,3 +70,54 @@ jobs:
 
       - name: Lint, type-check, and test
         run: just py-ci
+
+  # Report-only coverage: never gates the build (continue-on-error) and no
+  # other job depends on it. Numbers land in the job log; the lcov file is
+  # uploaded as an artifact for anyone who wants to inspect it locally.
+  coverage:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: llvm-tools
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      - name: Install just
+        uses: extractions/setup-just@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Cache cargo
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-llvm-cov-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Rust coverage summary
+        run: just coverage
+
+      - name: Generate lcov report
+        run: just coverage-lcov
+
+      - name: Upload lcov artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcov
+          path: lcov.info
+
+      - name: Python coverage summary
+        run: just py-coverage
