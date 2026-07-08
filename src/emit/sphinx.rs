@@ -218,21 +218,26 @@ fn emit_warning(out: &mut String, e: &ExceptionEntry) {
 }
 
 /// Sphinx: `:var name: description` + `:vartype name: type`.
+///
+/// Multi-name attributes are duplicated: one `:var:` / `:vartype:` pair per
+/// name, like [`emit_parameter`].
 fn emit_attribute(out: &mut String, a: &Attribute) {
-    out.push_str(":var ");
-    out.push_str(&a.name);
-    out.push(':');
-    if let Some(ref desc) = a.description {
-        out.push(' ');
-        emit_multiline(out, desc, 4);
-    }
-    out.push('\n');
-    if let Some(ref ty) = a.type_annotation {
-        out.push_str(":vartype ");
-        out.push_str(&a.name);
-        out.push_str(": ");
-        out.push_str(ty);
+    for name in &a.names {
+        out.push_str(":var ");
+        out.push_str(name);
+        out.push(':');
+        if let Some(ref desc) = a.description {
+            out.push(' ');
+            emit_multiline(out, desc, 4);
+        }
         out.push('\n');
+        if let Some(ref ty) = a.type_annotation {
+            out.push_str(":vartype ");
+            out.push_str(name);
+            out.push_str(": ");
+            out.push_str(ty);
+            out.push('\n');
+        }
     }
 }
 

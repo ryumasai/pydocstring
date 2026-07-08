@@ -107,7 +107,7 @@ fn convert_section(section: &GoogleSection<'_>) -> Section {
             section
                 .attributes()
                 .map(|a| Attribute {
-                    name: a.name().text().to_owned(),
+                    names: a.names().map(|n| n.text().to_owned()).collect(),
                     type_annotation: a.type_annotation().map(|t| t.text().to_owned()),
                     description: a.description().map(|t| convert_multiline_with_indentation(t.text())),
                 })

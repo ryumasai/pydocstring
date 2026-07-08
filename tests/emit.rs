@@ -197,7 +197,7 @@ fn google_emit_attributes() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
         sections: vec![Section::Attributes(vec![Attribute {
-            name: "name".into(),
+            names: vec!["name".into()],
             type_annotation: Some("str".into()),
             description: Some("The name.".into()),
         }])],
@@ -206,6 +206,22 @@ fn google_emit_attributes() {
     let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("Attributes:\n"));
     assert!(text.contains("    name (str): The name.\n"));
+}
+
+/// Multi-name attribute entries emit the FULL name list (#89).
+#[test]
+fn google_emit_attributes_multiple_names() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Attributes(vec![Attribute {
+            names: vec!["jac".into(), "hess".into()],
+            type_annotation: Some("ndarray".into()),
+            description: Some("Derivatives.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_google(&doc, &EmitOptions::default());
+    assert!(text.contains("    jac, hess (ndarray): Derivatives.\n"));
 }
 
 #[test]
@@ -439,7 +455,7 @@ fn numpy_emit_attributes() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
         sections: vec![Section::Attributes(vec![Attribute {
-            name: "name".into(),
+            names: vec!["name".into()],
             type_annotation: Some("str".into()),
             description: Some("The name.".into()),
         }])],
@@ -448,6 +464,22 @@ fn numpy_emit_attributes() {
     let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("Attributes\n----------\n"));
     assert!(text.contains("name : str\n    The name.\n"));
+}
+
+/// Multi-name attribute entries emit the FULL name list (#89).
+#[test]
+fn numpy_emit_attributes_multiple_names() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Attributes(vec![Attribute {
+            names: vec!["jac".into(), "hess".into()],
+            type_annotation: Some("ndarray".into()),
+            description: Some("Derivatives.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_numpy(&doc, &EmitOptions::default());
+    assert!(text.contains("jac, hess : ndarray\n    Derivatives.\n"));
 }
 
 #[test]
@@ -633,7 +665,7 @@ fn sphinx_emit_attributes() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
         sections: vec![Section::Attributes(vec![Attribute {
-            name: "name".into(),
+            names: vec!["name".into()],
             type_annotation: Some("str".into()),
             description: Some("The name.".into()),
         }])],
@@ -642,6 +674,26 @@ fn sphinx_emit_attributes() {
     let text = emit_sphinx(&doc, &EmitOptions::default());
     assert!(text.contains(":var name: The name.\n"));
     assert!(text.contains(":vartype name: str\n"));
+}
+
+/// Multi-name attributes duplicate the `:var:` / `:vartype:` pair per name,
+/// like multi-name parameters (#89).
+#[test]
+fn sphinx_emit_attributes_multiple_names() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Attributes(vec![Attribute {
+            names: vec!["jac".into(), "hess".into()],
+            type_annotation: Some("ndarray".into()),
+            description: Some("Derivatives.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, &EmitOptions::default());
+    assert!(text.contains(":var jac: Derivatives.\n"));
+    assert!(text.contains(":vartype jac: ndarray\n"));
+    assert!(text.contains(":var hess: Derivatives.\n"));
+    assert!(text.contains(":vartype hess: ndarray\n"));
 }
 
 #[test]

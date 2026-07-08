@@ -22,14 +22,7 @@ use pydocstring::syntax::SyntaxNode;
 use pydocstring::syntax::SyntaxToken;
 
 /// Corpus inputs currently known to violate the coverage law.
-const KNOWN_COVERAGE_FAILURES: &[&str] = &[
-    // Multi-name Attributes entries (`jac, hess : ndarray`): unlike
-    // build_parameter_node, build_attribute_node keeps the FIRST name only,
-    // so the later NAME/COMMA tokens of the name list never reach the CST
-    // and their bytes are dropped (src/parse/numpy/parser.rs,
-    // "Attributes use the first name only").
-    "third_party/scipy/numpy/optimize_optimizeresult.txt",
-];
+const KNOWN_COVERAGE_FAILURES: &[&str] = &[];
 
 fn parse_for_style(style: &str, input: &str) -> Parsed {
     match style {
@@ -200,6 +193,55 @@ fn name_list_commas_are_comma_tokens() {
             (SyntaxKind::NAME, "x1".to_owned()),
             (SyntaxKind::COMMA, ",".to_owned()),
             (SyntaxKind::NAME, "x2".to_owned()),
+        ]
+    );
+}
+
+/// SPEC: a multi-name Attributes entry keeps EVERY name in the CST — the
+/// comma-separated name list becomes interleaved `NAME`/`COMMA` tokens in
+/// both styles, exactly like parameters (#89).
+#[test]
+fn attribute_name_list_commas_are_comma_tokens() {
+    let google =
+        pydocstring::parse::google::parse_google("Summary.\n\nAttributes:\n    jac, hess (ndarray): Derivatives.\n");
+    let entry = google.root().find_node(SyntaxKind::SECTION).unwrap();
+    let entry = entry.find_node(SyntaxKind::ENTRY).unwrap();
+    let tokens = token_texts(entry, google.source());
+    let name_comma: Vec<_> = tokens
+        .iter()
+        .filter(|(k, _)| matches!(k, SyntaxKind::NAME | SyntaxKind::COMMA))
+        .cloned()
+        .collect();
+    assert_eq!(
+        name_comma,
+        vec![
+            (SyntaxKind::NAME, "jac".to_owned()),
+            (SyntaxKind::COMMA, ",".to_owned()),
+            (SyntaxKind::NAME, "hess".to_owned()),
+        ]
+    );
+
+    let numpy = pydocstring::parse::numpy::parse_numpy(
+        "Summary.\n\nAttributes\n----------\njac, hess : ndarray\n    Derivatives.\n",
+    );
+    assert!(
+        check_coverage(&numpy).is_empty(),
+        "coverage violated for multi-name numpy attribute"
+    );
+    let entry = numpy.root().find_node(SyntaxKind::SECTION).unwrap();
+    let entry = entry.find_node(SyntaxKind::ENTRY).unwrap();
+    let tokens = token_texts(entry, numpy.source());
+    let name_comma: Vec<_> = tokens
+        .iter()
+        .filter(|(k, _)| matches!(k, SyntaxKind::NAME | SyntaxKind::COMMA))
+        .cloned()
+        .collect();
+    assert_eq!(
+        name_comma,
+        vec![
+            (SyntaxKind::NAME, "jac".to_owned()),
+            (SyntaxKind::COMMA, ",".to_owned()),
+            (SyntaxKind::NAME, "hess".to_owned()),
         ]
     );
 }

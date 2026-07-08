@@ -285,7 +285,10 @@ class GoogleAttribute:
     @property
     def range(self) -> TextRange: ...
     @property
-    def name(self) -> Token: ...
+    def name(self) -> Token:
+        """First name token (convenience for ``names[0]``)."""
+    @property
+    def names(self) -> list[Token]: ...
     @property
     def open_bracket(self) -> Token | None:
         """``None`` when absent (never a missing placeholder)."""
@@ -522,7 +525,10 @@ class NumPyAttribute:
     @property
     def range(self) -> TextRange: ...
     @property
-    def name(self) -> Token: ...
+    def name(self) -> Token:
+        """First name token (convenience for ``names[0]``)."""
+    @property
+    def names(self) -> list[Token]: ...
     @property
     def colon(self) -> Token | None:
         """``None`` when absent (never a missing placeholder)."""
@@ -682,12 +688,12 @@ class Reference:
     def __repr__(self) -> str: ...
 
 class Attribute:
-    name: str
+    names: list[str]
     type_annotation: str | None
     description: str | None
     def __init__(
         self,
-        name: str,
+        names: list[str],
         *,
         type_annotation: str | None = None,
         description: str | None = None,

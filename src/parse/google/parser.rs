@@ -352,12 +352,13 @@ enum ArgRole {
 /// Build an `ENTRY` SyntaxNode for an arg-like entry (arg, attribute, method).
 fn build_arg_node(role: ArgRole, header: &EntryHeader, range: TextRange, source: &str) -> SyntaxNode {
     let mut children = Vec::new();
-    if role == ArgRole::Arg {
-        // Arg entries support comma-separated names (`x1, x2 (int): ...`),
-        // like NumPy parameters. Attribute / method names stay whole.
-        push_comma_separated_names(&mut children, header.name, source);
-    } else {
+    if role == ArgRole::Method {
+        // Method names stay whole (a signature may contain commas).
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::NAME, header.name)));
+    } else {
+        // Arg and attribute entries support comma-separated names
+        // (`x1, x2 (int): ...`), like NumPy parameters/attributes (#89).
+        push_comma_separated_names(&mut children, header.name, source);
     }
     if let Some(ti) = &header.type_info {
         children.push(SyntaxElement::Token(SyntaxToken::new(

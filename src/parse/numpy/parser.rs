@@ -439,29 +439,6 @@ fn build_see_also_node(
     SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
-fn build_attribute_node(parts: &ParamHeaderParts, range: TextRange) -> SyntaxNode {
-    let mut children = Vec::new();
-    // Attributes use the first name only.
-    if let Some((_, name)) = parts.names.iter().find(|(kind, _)| *kind == SyntaxKind::NAME) {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::NAME, *name)));
-    }
-    if let Some(colon) = parts.colon {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, colon)));
-    }
-    if let Some(t) = parts.param_type {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TYPE, t)));
-    } else if let Some(c) = parts.colon {
-        // Colon present but no type: zero-length placeholder so callers can
-        // distinguish `attr :` (missing type) from `attr` (no type at all).
-        let missing_pos = c.end();
-        children.push(SyntaxElement::Token(SyntaxToken::new(
-            SyntaxKind::TYPE,
-            TextRange::new(missing_pos, missing_pos),
-        )));
-    }
-    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
-}
-
 fn build_method_node(
     name: TextRange,
     colon: Option<TextRange>,
@@ -768,7 +745,11 @@ fn process_attribute_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, e
     let trimmed = cursor.current_trimmed();
     let parts = parse_name_and_type(trimmed, cursor.line, col, cursor);
     let entry_range = cursor.current_trimmed_range();
-    nodes.push(SyntaxElement::Node(build_attribute_node(&parts, entry_range)));
+    // Attribute entries share the parameter grammar (`name1, name2 : type`),
+    // so they reuse build_parameter_node: every NAME/COMMA token of the name
+    // list reaches the CST (dropping the later names violated the coverage
+    // law, #89).
+    nodes.push(SyntaxElement::Node(build_parameter_node(&parts, entry_range)));
 }
 
 fn process_method_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {

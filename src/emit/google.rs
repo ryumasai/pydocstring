@@ -240,10 +240,10 @@ fn emit_exception(out: &mut String, e: &ExceptionEntry) {
     out.push('\n');
 }
 
-/// Google: `    name (type): Description.`
+/// Google: `    name1, name2 (type): Description.`
 fn emit_attribute(out: &mut String, a: &Attribute) {
     out.push_str("    ");
-    out.push_str(&a.name);
+    out.push_str(&a.names.join(", "));
     if let Some(ref ty) = a.type_annotation {
         out.push_str(" (");
         out.push_str(ty);

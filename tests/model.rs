@@ -405,6 +405,47 @@ fn numpy_parameters_multiple_names() {
     }
 }
 
+// =============================================================================
+// Attributes: multi-name entries keep every name (#89)
+// =============================================================================
+
+#[test]
+fn numpy_attributes_multiple_names() {
+    let parsed = parse_numpy(
+        "Summary.
+
+    Attributes
+    ----------
+    jac, hess : ndarray
+        Derivatives.",
+    );
+    let doc = numpy_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::Attributes(attrs) => {
+            assert_eq!(attrs.len(), 1);
+            assert_eq!(attrs[0].names, vec!["jac", "hess"]);
+            assert_eq!(attrs[0].type_annotation.as_deref(), Some("ndarray"));
+            assert_eq!(attrs[0].description.as_deref(), Some("Derivatives."));
+        }
+        other => panic!("expected Attributes, got {:?}", other),
+    }
+}
+
+#[test]
+fn google_attributes_multiple_names() {
+    let parsed = parse_google("Summary.\n\nAttributes:\n    jac, hess (ndarray): Derivatives.");
+    let doc = google_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::Attributes(attrs) => {
+            assert_eq!(attrs.len(), 1);
+            assert_eq!(attrs[0].names, vec!["jac", "hess"]);
+            assert_eq!(attrs[0].type_annotation.as_deref(), Some("ndarray"));
+            assert_eq!(attrs[0].description.as_deref(), Some("Derivatives."));
+        }
+        other => panic!("expected Attributes, got {:?}", other),
+    }
+}
+
 #[test]
 fn numpy_parameters_default_value() {
     let parsed = parse_numpy(

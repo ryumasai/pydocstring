@@ -238,8 +238,10 @@ pub struct Reference {
 /// An attribute entry.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Attribute {
-    /// Attribute name.
-    pub name: String,
+    /// Attribute name(s). NumPy supports multiple names (`jac, hess`), like
+    /// [`Parameter::names`]; Google always has one. Renamed from `name` in
+    /// 0.3.0: keeping only the first name dropped the rest (#89).
+    pub names: Vec<String>,
     /// Type annotation.
     pub type_annotation: Option<String>,
     /// Description text.
