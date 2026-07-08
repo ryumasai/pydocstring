@@ -41,6 +41,29 @@ impl EmitOptions {
     }
 }
 
+/// Render an rST directive: `.. name:: argument\n    Description.`
+/// (e.g. `.. deprecated:: 1.6.0`). Shared by the Google and NumPy emitters —
+/// the directive form is identical in both styles.
+pub(crate) fn emit_directive(out: &mut String, directive: &crate::model::Directive) {
+    out.push_str(".. ");
+    out.push_str(&directive.name);
+    out.push_str("::");
+    if let Some(ref argument) = directive.argument {
+        out.push(' ');
+        out.push_str(argument);
+    }
+    out.push('\n');
+    if let Some(ref desc) = directive.description {
+        for line in desc.lines() {
+            if !line.is_empty() {
+                out.push_str("    ");
+                out.push_str(line);
+            }
+            out.push('\n');
+        }
+    }
+}
+
 /// Prepend `base_indent` spaces to every non-empty line.
 pub(crate) fn indent_lines(text: &str, base_indent: usize) -> String {
     let indent: String = " ".repeat(base_indent);

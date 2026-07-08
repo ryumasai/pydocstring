@@ -2,7 +2,6 @@
 
 use super::EmitOptions;
 use crate::model::Attribute;
-use crate::model::Directive;
 use crate::model::Docstring;
 use crate::model::ExceptionEntry;
 use crate::model::FreeSectionKind;
@@ -54,7 +53,7 @@ pub fn emit_numpy(doc: &Docstring, options: &EmitOptions) -> String {
     // after the summary.
     for directive in &doc.directives {
         out.push('\n');
-        emit_directive(&mut out, directive);
+        super::emit_directive(&mut out, directive);
     }
 
     // Extended summary
@@ -291,22 +290,6 @@ fn emit_reference_content(out: &mut String, content: &str) {
                 out.push_str(line);
             }
         }
-    }
-}
-
-/// NumPy: `.. name:: argument\n    Description.`
-/// (e.g. `.. deprecated:: 1.6.0`).
-fn emit_directive(out: &mut String, directive: &Directive) {
-    out.push_str(".. ");
-    out.push_str(&directive.name);
-    out.push_str("::");
-    if let Some(ref argument) = directive.argument {
-        out.push(' ');
-        out.push_str(argument);
-    }
-    out.push('\n');
-    if let Some(ref desc) = directive.description {
-        emit_indented_body(out, desc);
     }
 }
 
