@@ -313,8 +313,8 @@ ValueError
 See Also
 --------
 array_split : Split an array into multiple sub-arrays of equal or
-near-equal size.  Does not raise an exception if
-an equal division cannot be made.
+    near-equal size.  Does not raise an exception if
+    an equal division cannot be made.
 hsplit : Split array into multiple sub-arrays horizontally (column-wise).
 vsplit : Split array into multiple sub-arrays vertically (row wise).
 dsplit : Split array into multiple sub-arrays along the 3rd axis (depth).

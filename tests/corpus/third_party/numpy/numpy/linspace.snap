@@ -404,11 +404,11 @@ step : float, optional
 See Also
 --------
 arange : Similar to `linspace`, but uses a step size (instead of the
-number of samples).
+    number of samples).
 geomspace : Similar to `linspace`, but with numbers spaced evenly on a log
-scale (a geometric progression).
+    scale (a geometric progression).
 logspace : Similar to `geomspace`, but with the end points specified as
-logarithms.
+    logarithms.
 :ref:`how-to-partition`
 
 Examples

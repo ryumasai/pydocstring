@@ -256,7 +256,10 @@ fn emit_see_also(out: &mut String, item: &SeeAlsoEntry) {
     out.push_str(&item.names.join(", "));
     if let Some(ref desc) = item.description {
         out.push_str(" : ");
-        out.push_str(desc);
+        // Indent continuation lines so they re-parse as part of the same
+        // entry, exactly like reference content; written raw they land at
+        // entry indentation and re-parse as fake name-only entries (#90).
+        emit_with_indented_continuations(out, desc);
     }
     out.push('\n');
 }
@@ -269,17 +272,18 @@ fn emit_reference(out: &mut String, r: &Reference) {
         out.push(']');
         if let Some(ref content) = r.content {
             out.push(' ');
-            emit_reference_content(out, content);
+            emit_with_indented_continuations(out, content);
         }
     } else if let Some(ref content) = r.content {
-        emit_reference_content(out, content);
+        emit_with_indented_continuations(out, content);
     }
     out.push('\n');
 }
 
-/// Emit reference content, indenting continuation lines so they re-parse as
-/// part of the same entry (deeper than the entry line, like descriptions).
-fn emit_reference_content(out: &mut String, content: &str) {
+/// Emit multi-line entry text (reference content, see-also descriptions),
+/// indenting continuation lines so they re-parse as part of the same entry
+/// (deeper than the entry line, like descriptions).
+fn emit_with_indented_continuations(out: &mut String, content: &str) {
     let mut lines = content.lines();
     if let Some(first_line) = lines.next() {
         out.push_str(first_line);

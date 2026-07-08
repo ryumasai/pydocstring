@@ -27,10 +27,6 @@ use pydocstring::model::Docstring;
 // Real bugs flushed out by the realworld corpus ingest — each entry below is
 // an emit/parse disagreement, NOT a representational limit. Clusters:
 //
-// (SA-indent) numpy emit_see_also writes a multi-line description raw
-// (src/emit/numpy.rs), so continuation lines land at entry indent and
-// re-parse as new name-only SeeAlso entries.
-//
 // (SA-role) emitters collapse `name` + description to one line `name : desc`
 // (numpy) / `name: desc` (google); when the name starts with an rST role
 // (`:func:`x``), find_term_colon's leading-colon guard (src/parse/utils.rs)
@@ -48,25 +44,12 @@ use pydocstring::model::Docstring;
 const KNOWN_IDEMPOTENCE_FAILURES: &[&str] = &[
     // (RET-flat)
     "third_party/fire/google/fire.txt",
-    // (SA-indent) — the comma-split names lose their trailing comma.
-    "third_party/numpy/numpy/einsum.txt",
     // (DEP-indent)
     "third_party/scipy/numpy/interpolate_pade.txt",
 ];
 const KNOWN_MODEL_STABILITY_FAILURES: &[&str] = &[
     // (RET-flat)
     "third_party/fire/google/fire.txt",
-    // (SA-indent)
-    "third_party/numpy/numpy/convolve.txt",
-    "third_party/numpy/numpy/einsum.txt",
-    "third_party/numpy/numpy/linspace.txt",
-    "third_party/numpy/numpy/ndarray.txt",
-    "third_party/numpy/numpy/outer.txt",
-    "third_party/numpy/numpy/packbits.txt",
-    "third_party/numpy/numpy/roll.txt",
-    "third_party/numpy/numpy/split.txt",
-    "third_party/scipy/numpy/optimize_curve_fit.txt",
-    "third_party/scipy/numpy/optimize_minimize.txt",
     // (SA-role)
     "third_party/scipy/numpy/integrate_simpson.txt",
     "third_party/scipy/numpy/interpolate_cubicspline.txt",

@@ -1131,7 +1131,7 @@ See Also
 --------
 least_squares : Minimize the sum of squares of nonlinear functions.
 scipy.stats.linregress : Calculate a linear least squares regression for
-two sets of measurements.
+    two sets of measurements.
 
 Notes
 -----
