@@ -2177,12 +2177,17 @@ fn build_plain_docstring_node(
 // Model IR types
 // =============================================================================
 
-/// Ensure every item of `list` is a Python `str`.
-fn ensure_str_list(py: Python<'_>, list: &Py<PyList>, message: &str) -> PyResult<()> {
-    if list.bind(py).into_iter().any(|n| !n.is_instance_of::<PyString>()) {
+/// Ensure every item of `list` is an instance of `T`.
+fn ensure_all_instance_of<T: pyo3::PyTypeCheck>(py: Python<'_>, list: &Py<PyList>, message: &str) -> PyResult<()> {
+    if list.bind(py).into_iter().any(|item| !item.is_instance_of::<T>()) {
         return Err(pyo3::exceptions::PyTypeError::new_err(message.to_string()));
     }
     Ok(())
+}
+
+/// Ensure every item of `list` is a Python `str`.
+fn ensure_str_list(py: Python<'_>, list: &Py<PyList>, message: &str) -> PyResult<()> {
+    ensure_all_instance_of::<PyString>(py, list, message)
 }
 
 /// A document-level rST directive (`.. name:: argument` + indented body).
@@ -3533,29 +3538,19 @@ struct PyModelDocstring {
 
 impl PyModelDocstring {
     fn verify_sections(py: Python<'_>, sections: &Py<PyList>) -> PyResult<()> {
-        if sections
-            .bind(py)
-            .into_iter()
-            .any(|s| !s.is_instance_of::<PyModelSection>())
-        {
-            return Err(pyo3::exceptions::PyTypeError::new_err(
-                "Docstring only accepts Sections in the 'sections' argument.".to_string(),
-            ));
-        }
-        Ok(())
+        ensure_all_instance_of::<PyModelSection>(
+            py,
+            sections,
+            "Docstring only accepts Sections in the 'sections' argument.",
+        )
     }
 
     fn verify_directives(py: Python<'_>, directives: &Py<PyList>) -> PyResult<()> {
-        if directives
-            .bind(py)
-            .into_iter()
-            .any(|d| !d.is_instance_of::<PyModelDirective>())
-        {
-            return Err(pyo3::exceptions::PyTypeError::new_err(
-                "Docstring only accepts Directives in the 'directives' argument.".to_string(),
-            ));
-        }
-        Ok(())
+        ensure_all_instance_of::<PyModelDirective>(
+            py,
+            directives,
+            "Docstring only accepts Directives in the 'directives' argument.",
+        )
     }
 }
 

@@ -592,6 +592,10 @@ class TestModelTypes:
         assert d.description is None
         assert repr(d) == 'Directive("versionadded")'
 
+    def test_see_also_entry_construction_validates_names(self):
+        with pytest.raises(TypeError):
+            pydocstring.SeeAlsoEntry(names=[1])  # ty: ignore[invalid-argument-type]
+
     def test_attribute_construction(self):
         a = pydocstring.Attribute("name", type_annotation="str", description="The name.")
         assert a.name == "name"
@@ -1342,3 +1346,33 @@ class TestMissingnessParity:
 
         assert google_cat == numpy_cat, f"{field}: google={google_cat}, numpy={numpy_cat}"
         assert google_cat == expected
+
+
+class TestMissingnessGrammarAsymmetries:
+    """Slots where google/numpy missingness legitimately differs by grammar.
+
+    These are NOT parity violations: numpy attribute descriptions live on
+    continuation lines only (there is no "marker present, content absent"
+    spelling), so numpy yields None where google yields a missing placeholder.
+    NumPyMethod has no type slot at all (grammar has none), so the
+    method-type column is google-only. Documented in the .pyi conventions.
+    """
+
+    def test_attribute_description_missingness_differs_by_grammar(self):
+        class Collector(pydocstring.Visitor):
+            def __init__(self):
+                self.attrs = []
+
+            def enter_google_attribute(self, a, ctx):
+                self.attrs.append(a)
+
+            def enter_numpy_attribute(self, a, ctx):
+                self.attrs.append(a)
+
+        g = pydocstring.walk(pydocstring.parse_google("Summary.\n\nAttributes:\n    x (int):\n"), Collector()).attrs[0]
+        assert g.description is not None and g.description.is_missing()
+
+        n = pydocstring.walk(
+            pydocstring.parse_numpy("Summary.\n\nAttributes\n----------\nx : int\n"), Collector()
+        ).attrs[0]
+        assert n.description is None
