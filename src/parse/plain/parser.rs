@@ -44,9 +44,9 @@ fn build_content_range(cursor: &LineCursor, first: Option<usize>, last: usize) -
 /// let result = parse_plain("Summary.\n\nMore details here.");
 /// assert_eq!(result.root().kind(), SyntaxKind::DOCUMENT);
 ///
-/// let doc = PlainDocstring::cast(result.root()).unwrap();
-/// assert_eq!(doc.summary().unwrap().text(result.source()), "Summary.");
-/// assert_eq!(doc.extended_summary().unwrap().text(result.source()), "More details here.");
+/// let doc = PlainDocstring::cast(&result, result.root()).unwrap();
+/// assert_eq!(doc.summary().unwrap().text(), "Summary.");
+/// assert_eq!(doc.extended_summary().unwrap().text(), "More details here.");
 /// ```
 pub fn parse_plain(input: &str) -> Parsed {
     let mut line_cursor = LineCursor::new(input);

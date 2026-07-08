@@ -7,7 +7,7 @@ use pydocstring::syntax::SyntaxKind;
 fn test_empty() {
     let result = parse_plain("");
     assert_eq!(result.root().kind(), SyntaxKind::DOCUMENT);
-    let doc = PlainDocstring::cast(result.root()).unwrap();
+    let doc = PlainDocstring::cast(&result, result.root()).unwrap();
     assert!(doc.summary().is_none());
     assert!(doc.extended_summary().is_none());
 }
@@ -15,18 +15,18 @@ fn test_empty() {
 #[test]
 fn test_summary_only() {
     let result = parse_plain("Just a summary.");
-    let doc = PlainDocstring::cast(result.root()).unwrap();
-    assert_eq!(doc.summary().unwrap().text(result.source()), "Just a summary.");
+    let doc = PlainDocstring::cast(&result, result.root()).unwrap();
+    assert_eq!(doc.summary().unwrap().text(), "Just a summary.");
     assert!(doc.extended_summary().is_none());
 }
 
 #[test]
 fn test_summary_and_extended() {
     let result = parse_plain("Summary.\n\nExtended description.\nMore lines.");
-    let doc = PlainDocstring::cast(result.root()).unwrap();
-    assert_eq!(doc.summary().unwrap().text(result.source()), "Summary.");
+    let doc = PlainDocstring::cast(&result, result.root()).unwrap();
+    assert_eq!(doc.summary().unwrap().text(), "Summary.");
     assert_eq!(
-        doc.extended_summary().unwrap().text(result.source()),
+        doc.extended_summary().unwrap().text(),
         "Extended description.\nMore lines."
     );
 }
@@ -36,8 +36,8 @@ fn test_sphinx_treated_as_plain() {
     let input = "Summary.\n\n:param x: Description.\n:rtype: int";
     let result = parse_plain(input);
     assert_eq!(result.root().kind(), SyntaxKind::DOCUMENT);
-    let doc = PlainDocstring::cast(result.root()).unwrap();
-    assert_eq!(doc.summary().unwrap().text(result.source()), "Summary.");
+    let doc = PlainDocstring::cast(&result, result.root()).unwrap();
+    assert_eq!(doc.summary().unwrap().text(), "Summary.");
 }
 
 #[test]

@@ -18,6 +18,8 @@ fn show(label: &str, input: &str) {
         Style::Google => "Google",
         Style::NumPy => "NumPy",
         Style::Plain => "Plain",
+        // `Style` is #[non_exhaustive]: future styles land here.
+        _ => "Unknown",
     };
 
     println!(

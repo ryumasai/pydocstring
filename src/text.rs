@@ -138,9 +138,15 @@ impl TextRange {
         }
     }
 
-    /// Extend this range's end to include `other`.
-    pub fn extend(&mut self, other: TextRange) {
-        self.end = other.end;
+    /// Grow this range's end to cover `other`.
+    ///
+    /// The end only ever moves forward: if `other` ends before this range
+    /// does, the range is left unchanged (this can never shrink a range).
+    /// The start is not touched.
+    pub(crate) fn extend(&mut self, other: TextRange) {
+        if other.end > self.end {
+            self.end = other.end;
+        }
     }
 }
 

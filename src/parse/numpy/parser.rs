@@ -911,12 +911,11 @@ impl SectionBody {
 ///
 /// let input = "Summary.\n\nParameters\n----------\nx : int\n    The value.\n";
 /// let parsed = parse_numpy(input);
-/// let source = parsed.source();
 /// let root = parsed.root();
 ///
 /// // Access summary (a text block node wrapping per-line TEXT_LINE tokens)
-/// let summary = pydocstring::parse::TextBlock::cast(root.find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
-/// assert_eq!(summary.text(source), "Summary.");
+/// let summary = pydocstring::parse::TextBlock::cast(&parsed, root.find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
+/// assert_eq!(summary.text(), "Summary.");
 ///
 /// // Access sections
 /// let sections: Vec<_> = root.nodes(SyntaxKind::SECTION).collect();
@@ -1169,8 +1168,9 @@ mod tests {
         let parsed = parse_numpy(input);
         let root = parsed.root();
         assert_eq!(root.kind(), SyntaxKind::DOCUMENT);
-        let summary = crate::parse::text_block::TextBlock::cast(root.find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
-        assert_eq!(summary.text(parsed.source()), "Summary.");
+        let summary =
+            crate::parse::text_block::TextBlock::cast(&parsed, root.find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
+        assert_eq!(summary.text(), "Summary.");
         let sections: Vec<_> = root.nodes(SyntaxKind::SECTION).collect();
         assert_eq!(sections.len(), 1);
     }

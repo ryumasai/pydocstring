@@ -11,7 +11,7 @@ fn test_summary_span() {
     let s = doc(&result).summary().unwrap();
     assert_eq!(s.range().start(), TextSize::new(0));
     assert_eq!(s.range().end(), TextSize::new(18));
-    assert_eq!(s.text(result.source()), "Brief description.");
+    assert_eq!(s.text(), "Brief description.");
 }
 
 #[test]
@@ -33,10 +33,10 @@ fn test_summary_with_description() {
     let docstring = "Brief summary.\n\nExtended description that provides\nmore details about the function.";
     let result = parse_google(docstring);
 
-    assert_eq!(doc(&result).summary().unwrap().text(result.source()), "Brief summary.");
+    assert_eq!(doc(&result).summary().unwrap().text(), "Brief summary.");
     let desc = doc(&result).extended_summary().unwrap();
     assert_eq!(
-        desc.text(result.source()),
+        desc.text(),
         "Extended description that provides\nmore details about the function."
     );
 }
@@ -47,11 +47,11 @@ fn test_multiline_summary() {
     let docstring = "This is a long summary\nthat spans two lines.\n\nExtended description.";
     let result = parse_google(docstring);
     assert_eq!(
-        doc(&result).summary().unwrap().text(result.source()),
+        doc(&result).summary().unwrap().text(),
         "This is a long summary\nthat spans two lines."
     );
     let desc = doc(&result).extended_summary().unwrap();
-    assert_eq!(desc.text(result.source()), "Extended description.");
+    assert_eq!(desc.text(), "Extended description.");
 }
 
 /// A section header directly after summary lines (no blank line) terminates
@@ -61,7 +61,7 @@ fn test_multiline_summary_then_section() {
     let docstring = "Summary line one\ncontinues here.\nArgs:\n    x (int): val";
     let result = parse_google(docstring);
     assert_eq!(
-        doc(&result).summary().unwrap().text(result.source()),
+        doc(&result).summary().unwrap().text(),
         "Summary line one\ncontinues here."
     );
     assert!(doc(&result).extended_summary().is_none());
@@ -85,11 +85,8 @@ fn test_deprecation_directive() {
     let result = parse_google(docstring);
 
     let dep = doc(&result).deprecation().expect("deprecation should be parsed");
-    assert_eq!(dep.version().text(result.source()), "1.6.0");
-    assert_eq!(
-        dep.description().unwrap().text(result.source()),
-        "Use `new_func` instead."
-    );
+    assert_eq!(dep.version().text(), "1.6.0");
+    assert_eq!(dep.description().unwrap().text(), "Use `new_func` instead.");
 
     // The directive is not swallowed into the extended summary.
     assert!(doc(&result).extended_summary().is_none());
@@ -101,6 +98,6 @@ fn test_deprecation_directive() {
 fn test_leading_blank_lines() {
     let docstring = "\n\n\nSummary.\n\nArgs:\n    x: Value.";
     let result = parse_google(docstring);
-    assert_eq!(doc(&result).summary().unwrap().text(result.source()), "Summary.");
+    assert_eq!(doc(&result).summary().unwrap().text(), "Summary.");
     assert_eq!(args(&result).len(), 1);
 }

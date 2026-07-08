@@ -36,7 +36,7 @@ Examples
 "#;
 
     let parsed = parse_numpy(docstring);
-    let doc = NumPyDocstring::cast(parsed.root()).unwrap();
+    let doc = NumPyDocstring::cast(&parsed, parsed.root()).unwrap();
 
     println!("╔══════════════════════════════════════════════════╗");
     println!("║          NumPy-style Docstring Example           ║");

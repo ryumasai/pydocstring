@@ -279,7 +279,8 @@ fn google_multiple_sections() {
 fn google_no_deprecation() {
     let parsed = parse_google("Summary.\n\nArgs:\n    x: Val.");
     let doc = google_to_model(&parsed).unwrap();
-    assert_eq!(doc.deprecation, None);
+    assert_eq!(doc.deprecation(), None);
+    assert!(doc.directives.is_empty());
 }
 
 // =============================================================================
@@ -503,8 +504,9 @@ fn numpy_deprecation() {
        Use `other` instead.",
     );
     let doc = numpy_to_model(&parsed).unwrap();
-    let dep = doc.deprecation.as_ref().expect("should have deprecation");
-    assert_eq!(dep.version, "1.6.0");
+    let dep = doc.deprecation().expect("should have deprecation");
+    assert_eq!(dep.name, "deprecated");
+    assert_eq!(dep.argument.as_deref(), Some("1.6.0"));
     assert_eq!(dep.description.as_deref(), Some("Use `other` instead."));
 }
 

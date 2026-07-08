@@ -22,16 +22,10 @@ y : float
 "#;
     let result = parse_numpy(docstring);
     assert_eq!(returns(&result).len(), 2);
-    assert_eq!(returns(&result)[0].name().map(|n| n.text(result.source())), Some("x"));
-    assert_eq!(
-        returns(&result)[0].return_type().map(|t| t.text(result.source())),
-        Some("int")
-    );
-    assert_eq!(
-        returns(&result)[0].description().unwrap().text(result.source()),
-        "The first value."
-    );
-    assert_eq!(returns(&result)[1].name().map(|n| n.text(result.source())), Some("y"));
+    assert_eq!(returns(&result)[0].name().map(|n| n.text()), Some("x"));
+    assert_eq!(returns(&result)[0].type_annotation().map(|t| t.text()), Some("int"));
+    assert_eq!(returns(&result)[0].description().unwrap().text(), "The first value.");
+    assert_eq!(returns(&result)[1].name().map(|n| n.text()), Some("y"));
 }
 
 /// SPEC (issues #26/#31): no spaces around colon: `result:int` splits name/type.
@@ -41,8 +35,8 @@ fn test_returns_no_spaces_around_colon() {
     let result = parse_numpy(docstring);
     let r = returns(&result);
     assert_eq!(r.len(), 1);
-    assert_eq!(r[0].name().unwrap().text(result.source()), "result");
-    assert_eq!(r[0].return_type().unwrap().text(result.source()), "int");
+    assert_eq!(r[0].name().unwrap().text(), "result");
+    assert_eq!(r[0].type_annotation().unwrap().text(), "int");
 }
 
 /// SPEC (prefer_type): a bare un-indented line in Returns is the type, not a name.
@@ -52,8 +46,8 @@ fn test_returns_type_only() {
     let result = parse_numpy(docstring);
     let r = returns(&result);
     assert_eq!(r.len(), 1);
-    assert_eq!(r[0].return_type().unwrap().text(result.source()), "int");
-    assert_eq!(r[0].description().unwrap().text(result.source()), "The result.");
+    assert_eq!(r[0].type_annotation().unwrap().text(), "int");
+    assert_eq!(r[0].description().unwrap().text(), "The result.");
 }
 
 // =============================================================================
@@ -67,8 +61,8 @@ fn test_yields_basic() {
     let result = parse_numpy(docstring);
     let y = yields(&result);
     assert_eq!(y.len(), 1);
-    assert_eq!(y[0].return_type().unwrap().text(result.source()), "int");
-    assert_eq!(y[0].description().unwrap().text(result.source()), "The next value.");
+    assert_eq!(y[0].type_annotation().unwrap().text(), "int");
+    assert_eq!(y[0].description().unwrap().text(), "The next value.");
 }
 
 /// CONTRACT: NumPyYields accessors (name / return_type / description).
@@ -78,10 +72,7 @@ fn test_yields_named() {
     let result = parse_numpy(docstring);
     let y = yields(&result);
     assert_eq!(y.len(), 1);
-    assert_eq!(y[0].name().unwrap().text(result.source()), "value");
-    assert_eq!(y[0].return_type().unwrap().text(result.source()), "str");
-    assert_eq!(
-        y[0].description().unwrap().text(result.source()),
-        "The generated string."
-    );
+    assert_eq!(y[0].name().unwrap().text(), "value");
+    assert_eq!(y[0].type_annotation().unwrap().text(), "str");
+    assert_eq!(y[0].description().unwrap().text(), "The generated string.");
 }

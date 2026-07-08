@@ -25,10 +25,20 @@ pub struct Docstring {
     pub summary: Option<String>,
     /// Extended description (may span multiple lines).
     pub extended_summary: Option<String>,
-    /// Deprecation notice (NumPy `.. deprecated::` directive).
-    pub deprecation: Option<Deprecation>,
+    /// Document-level rST directives (`.. name:: argument`), in source
+    /// order. The only directive the parsers produce today is
+    /// `.. deprecated::`; see [`Docstring::deprecation`] for the shorthand.
+    pub directives: Vec<Directive>,
     /// Ordered list of sections.
     pub sections: Vec<Section>,
+}
+
+impl Docstring {
+    /// The deprecation notice, if present: the first directive named
+    /// `deprecated` (its [`Directive::argument`] is the version).
+    pub fn deprecation(&self) -> Option<&Directive> {
+        self.directives.iter().find(|d| d.name == "deprecated")
+    }
 }
 
 // =============================================================================
@@ -36,7 +46,11 @@ pub struct Docstring {
 // =============================================================================
 
 /// A single section within a docstring.
+///
+/// This enum is `#[non_exhaustive]`: new section shapes may be added in
+/// minor releases, so downstream `match`es need a wildcard arm.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub enum Section {
     /// `Args` / `Parameters` section.
     Parameters(Vec<Parameter>),
@@ -213,8 +227,10 @@ pub struct SeeAlsoEntry {
 /// A reference entry (NumPy `.. [1] ...` style).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Reference {
-    /// Reference number (e.g. `"1"`).
-    pub number: Option<String>,
+    /// Citation label (`1`, `CIT2002`, `#f1`, … — the text inside
+    /// `.. [label]`). Renamed from `number` in 0.3.0: labels are not always
+    /// numeric.
+    pub label: Option<String>,
     /// Reference content text.
     pub content: Option<String>,
 }
@@ -241,11 +257,17 @@ pub struct Method {
     pub description: Option<String>,
 }
 
-/// Deprecation notice.
+/// A document-level rST directive (`.. name:: argument` + indented body).
+///
+/// Generalizes the pre-0.3.0 `Deprecation` struct (which this replaces): a
+/// deprecation notice is a `Directive` with `name == "deprecated"` whose
+/// `argument` is the version. See [`Docstring::deprecation`].
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Deprecation {
-    /// Version when deprecated (e.g. `"1.6.0"`).
-    pub version: String,
-    /// Description / reason for deprecation.
+pub struct Directive {
+    /// Directive name (e.g. `"deprecated"`).
+    pub name: String,
+    /// Directive argument (e.g. the version of a `.. deprecated::`).
+    pub argument: Option<String>,
+    /// Directive body / description text.
     pub description: Option<String>,
 }

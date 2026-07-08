@@ -34,18 +34,18 @@
 //!     type Error = std::convert::Infallible;
 //!
 //!     fn visit_google_section(&mut self, parsed: &Parsed, section: &GoogleSection<'_>) -> Result<(), Self::Error> {
-//!         println!("enter: {}", section.header().name().text(parsed.source()));
+//!         println!("enter: {}", section.header().name().text());
 //!         // continue into children:
 //!         for child in section.syntax().children() {
 //!             if let SyntaxElement::Node(n) = child { walk(parsed, n, self)?; }
 //!         }
-//!         println!("leave: {}", section.header().name().text(parsed.source()));
+//!         println!("leave: {}", section.header().name().text());
 //!         Ok(())
 //!     }
 //! }
 //!
 //! let result = parse_google("Args:\n    x: desc\n");
-//! let doc = pydocstring::parse::google::GoogleDocstring::cast(result.root()).unwrap();
+//! let doc = pydocstring::parse::google::GoogleDocstring::cast(&result, result.root()).unwrap();
 //! let mut printer = SectionPrinter;
 //! printer.visit_google_docstring(&result, &doc).unwrap();
 //! ```
@@ -77,6 +77,7 @@ use crate::parse::numpy::nodes::NumPySeeAlsoItem;
 use crate::parse::numpy::nodes::NumPyWarning;
 use crate::parse::numpy::nodes::NumPyYields;
 use crate::parse::plain::nodes::PlainDocstring;
+use crate::parse::utils::directive_is_deprecated;
 use crate::syntax::Parsed;
 use crate::syntax::SyntaxElement;
 use crate::syntax::SyntaxKind;
@@ -88,9 +89,9 @@ use crate::syntax::SyntaxNode;
 /// by calling [`walk`] on each one.  Override a method and either iterate
 /// children manually (calling [`walk`]) or omit that loop to prune the subtree.
 ///
-/// The `parsed` parameter is the parse result the node belongs to; use
-/// [`Parsed::source`] for reading token text (e.g.
-/// `arg.name().text(parsed.source())`).
+/// The `parsed` parameter is the parse result the node belongs to. The typed
+/// wrappers already carry it, so token text reads directly:
+/// `arg.name().text()`.
 ///
 /// `type Error` is the error type returned by all `visit_*` methods.  Use
 /// [`std::convert::Infallible`] for infallible visitors.
@@ -237,18 +238,40 @@ fn walk_in<V: DocstringVisitor>(
 ) -> Result<(), V::Error> {
     match (node.kind(), parsed.style()) {
         // Roots
-        (SyntaxKind::DOCUMENT, Style::Plain) => visitor.visit_plain_docstring(parsed, &PlainDocstring(node))?,
-        (SyntaxKind::DOCUMENT, Style::Google) => visitor.visit_google_docstring(parsed, &GoogleDocstring(node))?,
-        (SyntaxKind::DOCUMENT, Style::NumPy) => visitor.visit_numpy_docstring(parsed, &NumPyDocstring(node))?,
+        (SyntaxKind::DOCUMENT, Style::Plain) => {
+            visitor.visit_plain_docstring(parsed, &PlainDocstring { parsed, node })?
+        }
+        (SyntaxKind::DOCUMENT, Style::Google) => {
+            visitor.visit_google_docstring(parsed, &GoogleDocstring { parsed, node })?
+        }
+        (SyntaxKind::DOCUMENT, Style::NumPy) => {
+            visitor.visit_numpy_docstring(parsed, &NumPyDocstring { parsed, node })?
+        }
         // Sections
-        (SyntaxKind::SECTION, Style::Google) => visitor.visit_google_section(parsed, &GoogleSection(node))?,
-        (SyntaxKind::SECTION, Style::NumPy) => visitor.visit_numpy_section(parsed, &NumPySection(node))?,
-        // Directives (deprecation)
-        (SyntaxKind::DIRECTIVE, Style::Google) => visitor.visit_google_deprecation(parsed, &GoogleDeprecation(node))?,
-        (SyntaxKind::DIRECTIVE, Style::NumPy) => visitor.visit_numpy_deprecation(parsed, &NumPyDeprecation(node))?,
+        (SyntaxKind::SECTION, Style::Google) => {
+            visitor.visit_google_section(parsed, &GoogleSection { parsed, node })?
+        }
+        (SyntaxKind::SECTION, Style::NumPy) => visitor.visit_numpy_section(parsed, &NumPySection { parsed, node })?,
+        // Directives: only `deprecated`-named directives route to the
+        // deprecation methods; other directive names are silently skipped
+        // for now (no generic directive visit method yet).
+        (SyntaxKind::DIRECTIVE, Style::Google) => {
+            if directive_is_deprecated(parsed, node) {
+                visitor.visit_google_deprecation(parsed, &GoogleDeprecation { parsed, node })?;
+            }
+        }
+        (SyntaxKind::DIRECTIVE, Style::NumPy) => {
+            if directive_is_deprecated(parsed, node) {
+                visitor.visit_numpy_deprecation(parsed, &NumPyDeprecation { parsed, node })?;
+            }
+        }
         // Citations (references)
-        (SyntaxKind::CITATION, Style::Google) => visitor.visit_google_reference(parsed, &GoogleReference(node))?,
-        (SyntaxKind::CITATION, Style::NumPy) => visitor.visit_numpy_reference(parsed, &NumPyReference(node))?,
+        (SyntaxKind::CITATION, Style::Google) => {
+            visitor.visit_google_reference(parsed, &GoogleReference { parsed, node })?
+        }
+        (SyntaxKind::CITATION, Style::NumPy) => {
+            visitor.visit_numpy_reference(parsed, &NumPyReference { parsed, node })?
+        }
         // Section entries: routed by the enclosing section's kind.
         (SyntaxKind::ENTRY, Style::Google) => walk_google_entry(parsed, node, section, visitor)?,
         (SyntaxKind::ENTRY, Style::NumPy) => walk_numpy_entry(parsed, node, section, visitor)?,
@@ -291,19 +314,19 @@ fn walk_google_entry<V: DocstringVisitor>(
 ) -> Result<(), V::Error> {
     let Some(section) = section
         .or_else(|| enclosing_section(parsed, node))
-        .and_then(GoogleSection::cast)
+        .and_then(|n| GoogleSection::cast(parsed, n))
     else {
         return Ok(());
     };
-    match section.section_kind(parsed.source()).entry_role() {
-        EntryRole::Parameter => visitor.visit_google_arg(parsed, &GoogleArg(node)),
-        EntryRole::Return => visitor.visit_google_return(parsed, &GoogleReturn(node)),
-        EntryRole::Yield => visitor.visit_google_yield(parsed, &GoogleYield(node)),
-        EntryRole::Exception => visitor.visit_google_exception(parsed, &GoogleException(node)),
-        EntryRole::Warning => visitor.visit_google_warning(parsed, &GoogleWarning(node)),
-        EntryRole::SeeAlsoItem => visitor.visit_google_see_also_item(parsed, &GoogleSeeAlsoItem(node)),
-        EntryRole::Attribute => visitor.visit_google_attribute(parsed, &GoogleAttribute(node)),
-        EntryRole::Method => visitor.visit_google_method(parsed, &GoogleMethod(node)),
+    match section.section_kind().entry_role() {
+        EntryRole::Parameter => visitor.visit_google_arg(parsed, &GoogleArg { parsed, node }),
+        EntryRole::Return => visitor.visit_google_return(parsed, &GoogleReturn { parsed, node }),
+        EntryRole::Yield => visitor.visit_google_yield(parsed, &GoogleYield { parsed, node }),
+        EntryRole::Exception => visitor.visit_google_exception(parsed, &GoogleException { parsed, node }),
+        EntryRole::Warning => visitor.visit_google_warning(parsed, &GoogleWarning { parsed, node }),
+        EntryRole::SeeAlsoItem => visitor.visit_google_see_also_item(parsed, &GoogleSeeAlsoItem { parsed, node }),
+        EntryRole::Attribute => visitor.visit_google_attribute(parsed, &GoogleAttribute { parsed, node }),
+        EntryRole::Method => visitor.visit_google_method(parsed, &GoogleMethod { parsed, node }),
         // References sections hold CITATION nodes and free-text sections
         // hold no entries at all — an ENTRY here is foreign; skip silently.
         EntryRole::Citation | EntryRole::FreeText => Ok(()),
@@ -319,19 +342,19 @@ fn walk_numpy_entry<V: DocstringVisitor>(
 ) -> Result<(), V::Error> {
     let Some(section) = section
         .or_else(|| enclosing_section(parsed, node))
-        .and_then(NumPySection::cast)
+        .and_then(|n| NumPySection::cast(parsed, n))
     else {
         return Ok(());
     };
-    match section.section_kind(parsed.source()).entry_role() {
-        EntryRole::Parameter => visitor.visit_numpy_parameter(parsed, &NumPyParameter(node)),
-        EntryRole::Return => visitor.visit_numpy_returns(parsed, &NumPyReturns(node)),
-        EntryRole::Yield => visitor.visit_numpy_yields(parsed, &NumPyYields(node)),
-        EntryRole::Exception => visitor.visit_numpy_exception(parsed, &NumPyException(node)),
-        EntryRole::Warning => visitor.visit_numpy_warning(parsed, &NumPyWarning(node)),
-        EntryRole::SeeAlsoItem => visitor.visit_numpy_see_also_item(parsed, &NumPySeeAlsoItem(node)),
-        EntryRole::Attribute => visitor.visit_numpy_attribute(parsed, &NumPyAttribute(node)),
-        EntryRole::Method => visitor.visit_numpy_method(parsed, &NumPyMethod(node)),
+    match section.section_kind().entry_role() {
+        EntryRole::Parameter => visitor.visit_numpy_parameter(parsed, &NumPyParameter { parsed, node }),
+        EntryRole::Return => visitor.visit_numpy_returns(parsed, &NumPyReturns { parsed, node }),
+        EntryRole::Yield => visitor.visit_numpy_yields(parsed, &NumPyYields { parsed, node }),
+        EntryRole::Exception => visitor.visit_numpy_exception(parsed, &NumPyException { parsed, node }),
+        EntryRole::Warning => visitor.visit_numpy_warning(parsed, &NumPyWarning { parsed, node }),
+        EntryRole::SeeAlsoItem => visitor.visit_numpy_see_also_item(parsed, &NumPySeeAlsoItem { parsed, node }),
+        EntryRole::Attribute => visitor.visit_numpy_attribute(parsed, &NumPyAttribute { parsed, node }),
+        EntryRole::Method => visitor.visit_numpy_method(parsed, &NumPyMethod { parsed, node }),
         // References sections hold CITATION nodes and free-text sections
         // hold no entries at all — an ENTRY here is foreign; skip silently.
         EntryRole::Citation | EntryRole::FreeText => Ok(()),

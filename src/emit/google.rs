@@ -1,7 +1,8 @@
 //! Emit a [`Docstring`] as a Google-style docstring.
 
+use super::EmitOptions;
 use crate::model::Attribute;
-use crate::model::Deprecation;
+use crate::model::Directive;
 use crate::model::Docstring;
 use crate::model::ExceptionEntry;
 use crate::model::FreeSectionKind;
@@ -14,14 +15,15 @@ use crate::model::SeeAlsoEntry;
 
 /// Emit a [`Docstring`] as a Google-style docstring string.
 ///
-/// `base_indent` is the number of spaces prepended to every non-empty line
-/// of output, so the result can be embedded at the correct indentation level
-/// in a Python file.
+/// See [`EmitOptions`] for the knobs; `options.base_indent` indents every
+/// non-empty output line so the result can be embedded at the correct
+/// indentation level in a Python file.
 ///
 /// # Example
 ///
 /// ```rust
 /// use pydocstring::model::{Docstring, Section, Parameter};
+/// use pydocstring::emit::EmitOptions;
 /// use pydocstring::emit::google::emit_google;
 ///
 /// let doc = Docstring {
@@ -35,10 +37,10 @@ use crate::model::SeeAlsoEntry;
 ///     }])],
 ///     ..Default::default()
 /// };
-/// let text = emit_google(&doc, 0);
+/// let text = emit_google(&doc, &EmitOptions::default());
 /// assert!(text.contains("Args:"));
 /// ```
-pub fn emit_google(doc: &Docstring, base_indent: usize) -> String {
+pub fn emit_google(doc: &Docstring, options: &EmitOptions) -> String {
     let mut out = String::new();
 
     // Summary
@@ -47,11 +49,12 @@ pub fn emit_google(doc: &Docstring, base_indent: usize) -> String {
         out.push('\n');
     }
 
-    // Deprecation — before the extended summary: the parsers (and numpydoc
-    // convention) only recognize the directive directly after the summary.
-    if let Some(ref dep) = doc.deprecation {
+    // Directives (e.g. deprecation) — before the extended summary: the
+    // parsers (and numpydoc convention) only recognize a directive directly
+    // after the summary.
+    for directive in &doc.directives {
         out.push('\n');
-        emit_deprecation(&mut out, dep);
+        emit_directive(&mut out, directive);
     }
 
     // Extended summary
@@ -67,10 +70,10 @@ pub fn emit_google(doc: &Docstring, base_indent: usize) -> String {
         emit_section(&mut out, section);
     }
 
-    if base_indent == 0 {
+    if options.base_indent == 0 {
         return out;
     }
-    super::indent_lines(&out, base_indent)
+    super::indent_lines(&out, options.base_indent)
 }
 
 fn emit_multiline_with_indentation(out: &mut String, text: &str, indent_level: usize) {
@@ -286,9 +289,9 @@ fn emit_see_also(out: &mut String, item: &SeeAlsoEntry) {
 /// Google: `    .. [1] Content.`
 fn emit_reference(out: &mut String, r: &Reference) {
     out.push_str("    ");
-    if let Some(ref num) = r.number {
+    if let Some(ref label) = r.label {
         out.push_str(".. [");
-        out.push_str(num);
+        out.push_str(label);
         out.push_str("] ");
     }
     if let Some(ref content) = r.content {
@@ -297,13 +300,18 @@ fn emit_reference(out: &mut String, r: &Reference) {
     out.push('\n');
 }
 
-/// Google: `.. deprecated:: version\n    Description.` — same rST directive
-/// form as NumPy.
-fn emit_deprecation(out: &mut String, dep: &Deprecation) {
-    out.push_str(".. deprecated:: ");
-    out.push_str(&dep.version);
+/// Google: `.. name:: argument\n    Description.` — same rST directive form
+/// as NumPy (e.g. `.. deprecated:: 1.6.0`).
+fn emit_directive(out: &mut String, directive: &Directive) {
+    out.push_str(".. ");
+    out.push_str(&directive.name);
+    out.push_str("::");
+    if let Some(ref argument) = directive.argument {
+        out.push(' ');
+        out.push_str(argument);
+    }
     out.push('\n');
-    if let Some(ref desc) = dep.description {
+    if let Some(ref desc) = directive.description {
         for line in desc.lines() {
             if !line.is_empty() {
                 out.push_str("    ");

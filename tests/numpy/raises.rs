@@ -17,18 +17,12 @@ fn test_raises_colon_split() {
     let result = parse_numpy(docstring);
     let exc = raises(&result);
     assert_eq!(exc.len(), 2);
-    assert_eq!(exc[0].r#type().text(result.source()), "ValueError");
+    assert_eq!(exc[0].type_annotation().text(), "ValueError");
     assert!(exc[0].colon().is_some());
-    assert_eq!(
-        exc[0].description().unwrap().text(result.source()),
-        "If the input is invalid."
-    );
-    assert_eq!(exc[1].r#type().text(result.source()), "TypeError");
+    assert_eq!(exc[0].description().unwrap().text(), "If the input is invalid.");
+    assert_eq!(exc[1].type_annotation().text(), "TypeError");
     assert!(exc[1].colon().is_some());
-    assert_eq!(
-        exc[1].description().unwrap().text(result.source()),
-        "If the type is wrong."
-    );
+    assert_eq!(exc[1].description().unwrap().text(), "If the type is wrong.");
 }
 
 /// SPEC: bare exception type with the description on the next indented line
@@ -39,12 +33,9 @@ fn test_raises_no_colon() {
     let result = parse_numpy(docstring);
     let exc = raises(&result);
     assert_eq!(exc.len(), 1);
-    assert_eq!(exc[0].r#type().text(result.source()), "ValueError");
+    assert_eq!(exc[0].type_annotation().text(), "ValueError");
     assert!(exc[0].colon().is_none());
-    assert_eq!(
-        exc[0].description().unwrap().text(result.source()),
-        "If the input is invalid."
-    );
+    assert_eq!(exc[0].description().unwrap().text(), "If the input is invalid.");
 }
 
 /// SPEC: continuation lines after an inline `Type : desc` join the description.
@@ -54,9 +45,9 @@ fn test_raises_colon_with_continuation() {
     let result = parse_numpy(docstring);
     let exc = raises(&result);
     assert_eq!(exc.len(), 1);
-    assert_eq!(exc[0].r#type().text(result.source()), "ValueError");
+    assert_eq!(exc[0].type_annotation().text(), "ValueError");
     assert!(exc[0].colon().is_some());
-    let desc = exc[0].description().unwrap().text(result.source());
+    let desc = exc[0].description().unwrap().text();
     assert!(desc.contains("If bad."), "desc = {:?}", desc);
     assert!(desc.contains("More detail here."), "desc = {:?}", desc);
 }
@@ -72,11 +63,8 @@ fn test_warns_basic() {
     let result = parse_numpy(docstring);
     let w = warns(&result);
     assert_eq!(w.len(), 1);
-    assert_eq!(w[0].r#type().text(result.source()), "DeprecationWarning");
-    assert_eq!(
-        w[0].description().unwrap().text(result.source()),
-        "If the old API is used."
-    );
+    assert_eq!(w[0].type_annotation().text(), "DeprecationWarning");
+    assert_eq!(w[0].description().unwrap().text(), "If the old API is used.");
 }
 
 /// SPEC (issues #26/#31): `Type : description` colon split also applies in Warns.
@@ -86,10 +74,7 @@ fn test_warns_colon_split() {
     let result = parse_numpy(docstring);
     let w = warns(&result);
     assert_eq!(w.len(), 1);
-    assert_eq!(w[0].r#type().text(result.source()), "UserWarning");
+    assert_eq!(w[0].type_annotation().text(), "UserWarning");
     assert!(w[0].colon().is_some());
-    assert_eq!(
-        w[0].description().unwrap().text(result.source()),
-        "If input is unusual."
-    );
+    assert_eq!(w[0].description().unwrap().text(), "If input is unusual.");
 }

@@ -496,14 +496,14 @@ fn multi_line_description_yields_one_text_line_token_per_line() {
     let source = parsed.source();
     let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
     let arg = section.find_node(SyntaxKind::ENTRY).unwrap();
-    let desc = TextBlock::cast(arg.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
+    let desc = TextBlock::cast(&parsed, arg.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
 
-    let lines: Vec<_> = desc.lines().map(|t| t.text(source)).collect();
+    let lines: Vec<_> = desc.lines().map(|t| t.text()).collect();
     assert_eq!(lines, vec!["First line of desc", "cont."]);
 
     // Raw text() is the byte-identical source slice of the block's range,
     // including the interior newline and indentation.
-    assert_eq!(desc.text(source), "First line of desc\n        cont.");
+    assert_eq!(desc.text(), "First line of desc\n        cont.");
 
     // Interior newline + indentation are trivia tokens inside the node.
     let tokens = token_children(desc.syntax(), source);
@@ -521,10 +521,10 @@ fn multi_line_description_yields_one_text_line_token_per_line() {
 #[test]
 fn single_line_summary_is_still_a_block_with_one_text_line() {
     let parsed = pydocstring::parse::plain::parse_plain("Summary.");
-    let block = TextBlock::cast(parsed.root().find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
-    let lines: Vec<_> = block.lines().map(|t| t.text(parsed.source())).collect();
+    let block = TextBlock::cast(&parsed, parsed.root().find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
+    let lines: Vec<_> = block.lines().map(|t| t.text()).collect();
     assert_eq!(lines, vec!["Summary."]);
-    assert_eq!(block.text(parsed.source()), "Summary.");
+    assert_eq!(block.text(), "Summary.");
 }
 
 #[test]
@@ -533,10 +533,10 @@ fn logical_text_dedents_indented_continuation() {
     let parsed = pydocstring::parse::google::parse_google(input);
     let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
     let arg = section.find_node(SyntaxKind::ENTRY).unwrap();
-    let desc = TextBlock::cast(arg.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
+    let desc = TextBlock::cast(&parsed, arg.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
     // Continuation lines are dedented by their common indentation and
     // joined with `\n` (convert_multiline_with_indentation semantics).
-    assert_eq!(desc.logical_text(parsed.source()), "First line of desc\ncont.");
+    assert_eq!(desc.logical_text(), "First line of desc\ncont.");
 }
 
 #[test]
@@ -545,9 +545,9 @@ fn multi_paragraph_body_contains_blank_line_inside_node() {
     let parsed = pydocstring::parse::google::parse_google(input);
     let source = parsed.source();
     let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
-    let body = TextBlock::cast(section.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
+    let body = TextBlock::cast(&parsed, section.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
 
-    let lines: Vec<_> = body.lines().map(|t| t.text(source)).collect();
+    let lines: Vec<_> = body.lines().map(|t| t.text()).collect();
     assert_eq!(lines, vec!["Paragraph one.", "Paragraph two."]);
 
     // The paragraph break is a BLANK_LINE token *inside* the block node.
@@ -572,12 +572,9 @@ fn content_block_lines_and_logical_text() {
     let parsed = pydocstring::parse::numpy::parse_numpy(src);
     let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
     let reference = section.find_node(SyntaxKind::CITATION).unwrap();
-    let block = TextBlock::cast(reference.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
-    let lines: Vec<_> = block.lines().map(|t| t.text(parsed.source())).collect();
+    let block = TextBlock::cast(&parsed, reference.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
+    let lines: Vec<_> = block.lines().map(|t| t.text()).collect();
     assert_eq!(lines, ["Author A, \"Title\",", "with a continuation line."]);
-    assert!(block.text(parsed.source()).contains('\n'));
-    assert_eq!(
-        block.logical_text(parsed.source()),
-        "Author A, \"Title\",\nwith a continuation line."
-    );
+    assert!(block.text().contains('\n'));
+    assert_eq!(block.logical_text(), "Author A, \"Title\",\nwith a continuation line.");
 }

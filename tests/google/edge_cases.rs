@@ -12,11 +12,11 @@ use super::*;
 fn test_indented_docstring() {
     let docstring = "    Summary.\n\n    Args:\n        x (int): Value.";
     let result = parse_google(docstring);
-    assert_eq!(doc(&result).summary().unwrap().text(result.source()), "Summary.");
+    assert_eq!(doc(&result).summary().unwrap().text(), "Summary.");
     let a = args(&result);
     assert_eq!(a.len(), 1);
-    assert_eq!(a[0].name().text(result.source()), "x");
-    assert_eq!(a[0].r#type().unwrap().text(result.source()), "int");
+    assert_eq!(a[0].name().text(), "x");
+    assert_eq!(a[0].type_annotation().unwrap().text(), "int");
 }
 
 /// Args entries at the same indent level as the section header (indent 0)
@@ -28,12 +28,12 @@ fn test_args_entries_same_indent_as_header() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 2, "x and y must be parsed as args, not dropped as stray lines");
-    assert_eq!(a[0].name().text(result.source()), "x");
-    assert_eq!(a[0].r#type().unwrap().text(result.source()), "int");
-    assert_eq!(a[0].description().unwrap().text(result.source()), "desc");
-    assert_eq!(a[1].name().text(result.source()), "y");
-    assert_eq!(a[1].r#type().unwrap().text(result.source()), "int");
-    assert_eq!(a[1].description().unwrap().text(result.source()), "desc");
+    assert_eq!(a[0].name().text(), "x");
+    assert_eq!(a[0].type_annotation().unwrap().text(), "int");
+    assert_eq!(a[0].description().unwrap().text(), "desc");
+    assert_eq!(a[1].name().text(), "y");
+    assert_eq!(a[1].type_annotation().unwrap().text(), "int");
+    assert_eq!(a[1].description().unwrap().text(), "desc");
 }
 
 /// A stray line that appears AFTER properly-indented entries (at indent 4)
@@ -44,7 +44,7 @@ fn test_stray_still_flushed_after_indented_entries() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 1, "stray must not become an arg entry");
-    assert_eq!(a[0].name().text(result.source()), "a");
+    assert_eq!(a[0].name().text(), "a");
     assert!(returns(&result).is_some(), "Returns section must still be parsed");
 }
 
@@ -57,8 +57,8 @@ fn test_slightly_misindented_entry_not_stray() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 2, "y must be an arg entry, not a stray line");
-    assert_eq!(a[0].name().text(result.source()), "x");
-    assert_eq!(a[1].name().text(result.source()), "y");
+    assert_eq!(a[0].name().text(), "x");
+    assert_eq!(a[1].name().text(), "y");
 }
 
 /// Same check with an indented section header (header at 4, entries at 8, one at 7).
@@ -68,8 +68,8 @@ fn test_slightly_misindented_entry_not_stray_nested() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 2, "y must be an arg entry, not a stray line");
-    assert_eq!(a[0].name().text(result.source()), "x");
-    assert_eq!(a[1].name().text(result.source()), "y");
+    assert_eq!(a[0].name().text(), "x");
+    assert_eq!(a[1].name().text(), "y");
 }
 
 #[test]
@@ -79,7 +79,7 @@ fn test_indented_summary_span() {
     let s = doc(&result).summary().unwrap();
     assert_eq!(s.range().start(), TextSize::new(4));
     assert_eq!(s.range().end(), TextSize::new(12));
-    assert_eq!(s.text(result.source()), "Summary.");
+    assert_eq!(s.text(), "Summary.");
 }
 
 // =============================================================================
@@ -93,9 +93,9 @@ fn test_section_header_space_before_colon() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 1, "expected 1 arg from 'Args :'");
-    assert_eq!(a[0].name().text(result.source()), "x");
+    assert_eq!(a[0].name().text(), "x");
 
-    assert_eq!(all_sections(&result)[0].header().name().text(result.source()), "Args");
+    assert_eq!(all_sections(&result)[0].header().name().text(), "Args");
     assert!(all_sections(&result)[0].header().colon().is_some());
 }
 
@@ -107,10 +107,10 @@ fn test_section_header_no_colon() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 1, "expected 1 arg from colonless 'Args'");
-    assert_eq!(a[0].name().text(result.source()), "x");
+    assert_eq!(a[0].name().text(), "x");
 
     let header = all_sections(&result)[0].header();
-    assert_eq!(header.name().text(result.source()), "Args");
+    assert_eq!(header.name().text(), "Args");
     assert!(header.colon().is_none(), "no COLON token for colonless header");
     let missing = header.syntax().find_missing(SyntaxKind::COLON);
     assert!(missing.is_some(), "colonless header should have a missing COLON");
@@ -139,10 +139,10 @@ fn test_tab_indented_args() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 2);
-    assert_eq!(a[0].name().text(result.source()), "x");
-    assert_eq!(a[0].description().unwrap().text(result.source()), "The value.");
-    assert_eq!(a[1].name().text(result.source()), "y");
-    assert_eq!(a[1].description().unwrap().text(result.source()), "Another value.");
+    assert_eq!(a[0].name().text(), "x");
+    assert_eq!(a[0].description().unwrap().text(), "The value.");
+    assert_eq!(a[1].name().text(), "y");
+    assert_eq!(a[1].description().unwrap().text(), "Another value.");
 }
 
 /// Args entries with tab indent and descriptions with deeper tab+space indent.
@@ -152,8 +152,8 @@ fn test_tab_args_with_continuation() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 2);
-    assert_eq!(a[0].name().text(result.source()), "x");
-    let desc = a[0].description().unwrap().text(result.source());
+    assert_eq!(a[0].name().text(), "x");
+    let desc = a[0].description().unwrap().text();
     assert!(desc.contains("First line."), "desc = {:?}", desc);
     assert!(desc.contains("Continuation."), "desc = {:?}", desc);
 }
@@ -165,7 +165,7 @@ fn test_tab_indented_section_header() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 1);
-    assert_eq!(a[0].name().text(result.source()), "x");
+    assert_eq!(a[0].name().text(), "x");
 }
 
 // =============================================================================
@@ -180,9 +180,9 @@ fn test_missing_close_bracket() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 1);
-    assert_eq!(a[0].name().text(result.source()), "arg1");
+    assert_eq!(a[0].name().text(), "arg1");
     assert!(a[0].open_bracket().is_some());
-    assert_eq!(a[0].r#type().unwrap().text(result.source()), "int");
+    assert_eq!(a[0].type_annotation().unwrap().text(), "int");
     assert!(
         a[0].close_bracket().is_none(),
         "no CLOSE_BRACKET when bracket is unmatched"
@@ -191,7 +191,7 @@ fn test_missing_close_bracket() {
     let missing = a[0].syntax().find_missing(SyntaxKind::CLOSE_BRACKET);
     assert!(missing.is_some(), "should have a missing CLOSE_BRACKET token");
     assert!(missing.unwrap().is_missing());
-    assert_eq!(a[0].description().unwrap().text(result.source()), "desc.");
+    assert_eq!(a[0].description().unwrap().text(), "desc.");
 }
 
 /// `arg1 (int) desc` — close bracket present but colon missing before description.
@@ -201,8 +201,8 @@ fn test_missing_colon_after_bracket() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 1);
-    assert_eq!(a[0].name().text(result.source()), "arg1");
-    assert_eq!(a[0].r#type().unwrap().text(result.source()), "int");
+    assert_eq!(a[0].name().text(), "arg1");
+    assert_eq!(a[0].type_annotation().unwrap().text(), "int");
     assert!(a[0].open_bracket().is_some());
     assert!(a[0].close_bracket().is_some());
     assert!(a[0].colon().is_none(), "no COLON token");
@@ -210,7 +210,7 @@ fn test_missing_colon_after_bracket() {
     let missing = a[0].syntax().find_missing(SyntaxKind::COLON);
     assert!(missing.is_some(), "should have a missing COLON token");
     assert!(missing.unwrap().is_missing());
-    assert_eq!(a[0].description().unwrap().text(result.source()), "description here.");
+    assert_eq!(a[0].description().unwrap().text(), "description here.");
 }
 
 /// `arg1 (int` — missing close bracket and no colon/description.
@@ -220,8 +220,8 @@ fn test_missing_close_bracket_no_colon() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 1);
-    assert_eq!(a[0].name().text(result.source()), "arg1");
-    assert_eq!(a[0].r#type().unwrap().text(result.source()), "int");
+    assert_eq!(a[0].name().text(), "arg1");
+    assert_eq!(a[0].type_annotation().unwrap().text(), "int");
     assert!(a[0].open_bracket().is_some());
     assert!(a[0].close_bracket().is_none());
     assert!(a[0].colon().is_none());
@@ -238,8 +238,8 @@ fn test_missing_bracket_no_colon_no_split() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 1);
-    assert_eq!(a[0].name().text(result.source()), "arg1");
-    assert_eq!(a[0].r#type().unwrap().text(result.source()), "int desc.");
+    assert_eq!(a[0].name().text(), "arg1");
+    assert_eq!(a[0].type_annotation().unwrap().text(), "int desc.");
     assert!(a[0].close_bracket().is_none());
     assert!(a[0].colon().is_none());
     assert!(a[0].description().is_none());
@@ -253,8 +253,8 @@ fn test_colon_inside_brackets() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 1);
-    assert_eq!(a[0].name().text(result.source()), "arg1");
-    assert_eq!(a[0].r#type().unwrap().text(result.source()), "int:desc.");
+    assert_eq!(a[0].name().text(), "arg1");
+    assert_eq!(a[0].type_annotation().unwrap().text(), "int:desc.");
     assert!(a[0].open_bracket().is_some());
     assert!(a[0].close_bracket().is_some());
     assert!(a[0].colon().is_none());
@@ -268,8 +268,8 @@ fn test_colon_inside_nested_brackets_no_split() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 1);
-    assert_eq!(a[0].name().text(result.source()), "arg1");
-    assert_eq!(a[0].r#type().unwrap().text(result.source()), "Dict[str:int]");
+    assert_eq!(a[0].name().text(), "arg1");
+    assert_eq!(a[0].type_annotation().unwrap().text(), "Dict[str:int]");
     assert!(a[0].description().is_none());
 }
 
@@ -292,20 +292,17 @@ fn test_arg_no_description_space_before_colon_not_header() {
     let a = args(&result);
     assert_eq!(a.len(), 3, "expected 3 arg entries");
 
-    assert_eq!(a[0].name().text(result.source()), "a");
-    assert_eq!(a[0].r#type().unwrap().text(result.source()), "int");
-    assert_eq!(
-        a[0].description().unwrap().text(result.source()),
-        "An integer parameter."
-    );
+    assert_eq!(a[0].name().text(), "a");
+    assert_eq!(a[0].type_annotation().unwrap().text(), "int");
+    assert_eq!(a[0].description().unwrap().text(), "An integer parameter.");
 
-    assert_eq!(a[1].name().text(result.source()), "b");
-    assert!(a[1].r#type().is_none());
+    assert_eq!(a[1].name().text(), "b");
+    assert!(a[1].type_annotation().is_none());
     assert!(a[1].description().is_none());
 
-    assert_eq!(a[2].name().text(result.source()), "c");
-    assert!(a[2].r#type().is_none());
-    assert_eq!(a[2].description().unwrap().text(result.source()), "A parameter.");
+    assert_eq!(a[2].name().text(), "c");
+    assert!(a[2].type_annotation().is_none());
+    assert_eq!(a[2].description().unwrap().text(), "A parameter.");
 }
 
 // =============================================================================
@@ -324,12 +321,12 @@ fn test_stray_line_between_args_and_returns() {
     // Args section should contain exactly one entry.
     let a = args(&result);
     assert_eq!(a.len(), 1, "stray line must not become an arg entry");
-    assert_eq!(a[0].name().text(result.source()), "a");
+    assert_eq!(a[0].name().text(), "a");
 
     // Returns section should be present and its description should not include
     // the stray line.
     let r = returns(&result).unwrap();
-    let desc = r.description().unwrap().text(result.source());
+    let desc = r.description().unwrap().text();
     assert!(
         !desc.contains("stray"),
         "stray line must not be part of Returns description"
@@ -337,10 +334,7 @@ fn test_stray_line_between_args_and_returns() {
 
     // The stray lines become PARAGRAPH text blocks, one per blank-separated
     // run, in source order.
-    let paragraphs: Vec<_> = doc(&result)
-        .paragraphs()
-        .map(|p| p.text(result.source()).to_owned())
-        .collect();
+    let paragraphs: Vec<_> = doc(&result).paragraphs().map(|p| p.text().to_owned()).collect();
     assert_eq!(paragraphs, vec!["stray line 1", "stray line 2"]);
 }
 
@@ -351,9 +345,9 @@ fn test_stray_line_between_args_and_returns_no_blank() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 1, "stray line must not become an arg entry (no-blank case)");
-    assert_eq!(a[0].name().text(result.source()), "a");
+    assert_eq!(a[0].name().text(), "a");
     let r = returns(&result).unwrap();
-    let desc = r.description().unwrap().text(result.source());
+    let desc = r.description().unwrap().text();
     assert!(!desc.contains("stray"), "stray line must not be in Returns description");
 }
 
@@ -365,7 +359,7 @@ fn test_stray_paragraph_split_rule() {
     let result = parse_google(input);
     let paragraphs: Vec<Vec<String>> = doc(&result)
         .paragraphs()
-        .map(|p| p.lines().map(|l| l.text(result.source()).to_owned()).collect())
+        .map(|p| p.lines().map(|l| l.text().to_owned()).collect())
         .collect();
     assert_eq!(
         paragraphs,
@@ -395,7 +389,7 @@ fn test_arg_description_blank_line_with_continuation() {
     let result = parse_google(input);
     let a = args(&result);
     assert_eq!(a.len(), 1, "should be exactly one arg");
-    let desc = a[0].description().unwrap().text(result.source());
+    let desc = a[0].description().unwrap().text();
     assert!(desc.contains("First paragraph."), "desc = {:?}", desc);
     assert!(desc.contains("Second paragraph."), "desc = {:?}", desc);
     // Returns must still be parsed correctly.
@@ -410,12 +404,10 @@ fn test_freetext_description_blank_line_continuation() {
     let result = parse_google(input);
     let sections = all_sections(&result);
     // Notes section present
-    let notes_sec = sections
-        .iter()
-        .find(|s| s.header().name().text(result.source()) == "Notes");
+    let notes_sec = sections.iter().find(|s| s.header().name().text() == "Notes");
     assert!(notes_sec.is_some(), "Notes section should be present");
     let body = notes_sec.unwrap().body_text().unwrap();
-    let body_text = body.text(result.source());
+    let body_text = body.text();
     assert!(body_text.contains("Paragraph one."), "body = {:?}", body_text);
     assert!(body_text.contains("Paragraph two."), "body = {:?}", body_text);
     // Args must still be parsed
@@ -441,9 +433,6 @@ fn test_rst_style_param_in_args_no_panic() {
     // Each RST-style line becomes a bare-name arg entry (no colon split).
     assert_eq!(a.len(), 2);
     // name() must not panic, and the full trimmed line is the name.
-    assert_eq!(a[0].name().text(result.source()), ":param int seconds: The seconds.");
-    assert_eq!(
-        a[1].name().text(result.source()),
-        ":param int nanoseconds: The nanoseconds."
-    );
+    assert_eq!(a[0].name().text(), ":param int seconds: The seconds.");
+    assert_eq!(a[1].name().text(), ":param int nanoseconds: The nanoseconds.");
 }

@@ -37,7 +37,7 @@ mod summary;
 
 /// Get the typed NumPyDocstring wrapper from a Parsed result.
 pub fn doc(result: &Parsed) -> NumPyDocstring<'_> {
-    NumPyDocstring::cast(result.root()).unwrap()
+    NumPyDocstring::cast(result, result.root()).unwrap()
 }
 
 /// Extract all sections from a docstring.
@@ -48,55 +48,55 @@ pub fn all_sections<'a>(result: &'a Parsed) -> Vec<NumPySection<'a>> {
 pub fn parameters<'a>(result: &'a Parsed) -> Vec<NumPyParameter<'a>> {
     doc(result)
         .sections()
-        .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Parameters))
-        .flat_map(|s| s.parameters(result.source()).collect::<Vec<_>>())
+        .filter(|s| matches!(s.section_kind(), NumPySectionKind::Parameters))
+        .flat_map(|s| s.parameters().collect::<Vec<_>>())
         .collect()
 }
 
 pub fn returns<'a>(result: &'a Parsed) -> Vec<NumPyReturns<'a>> {
     doc(result)
         .sections()
-        .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Returns))
-        .flat_map(|s| s.returns(result.source()).collect::<Vec<_>>())
+        .filter(|s| matches!(s.section_kind(), NumPySectionKind::Returns))
+        .flat_map(|s| s.returns().collect::<Vec<_>>())
         .collect()
 }
 
 pub fn yields<'a>(result: &'a Parsed) -> Vec<NumPyYields<'a>> {
     doc(result)
         .sections()
-        .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Yields))
-        .flat_map(|s| s.yields(result.source()).collect::<Vec<_>>())
+        .filter(|s| matches!(s.section_kind(), NumPySectionKind::Yields))
+        .flat_map(|s| s.yields().collect::<Vec<_>>())
         .collect()
 }
 
 pub fn raises<'a>(result: &'a Parsed) -> Vec<NumPyException<'a>> {
     doc(result)
         .sections()
-        .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Raises))
-        .flat_map(|s| s.exceptions(result.source()).collect::<Vec<_>>())
+        .filter(|s| matches!(s.section_kind(), NumPySectionKind::Raises))
+        .flat_map(|s| s.exceptions().collect::<Vec<_>>())
         .collect()
 }
 
 pub fn warns<'a>(result: &'a Parsed) -> Vec<NumPyWarning<'a>> {
     doc(result)
         .sections()
-        .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Warns))
-        .flat_map(|s| s.warnings(result.source()).collect::<Vec<_>>())
+        .filter(|s| matches!(s.section_kind(), NumPySectionKind::Warns))
+        .flat_map(|s| s.warnings().collect::<Vec<_>>())
         .collect()
 }
 
 pub fn see_also<'a>(result: &'a Parsed) -> Vec<NumPySeeAlsoItem<'a>> {
     doc(result)
         .sections()
-        .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::SeeAlso))
-        .flat_map(|s| s.see_also_items(result.source()).collect::<Vec<_>>())
+        .filter(|s| matches!(s.section_kind(), NumPySectionKind::SeeAlso))
+        .flat_map(|s| s.see_also_items().collect::<Vec<_>>())
         .collect()
 }
 
 pub fn references<'a>(result: &'a Parsed) -> Vec<NumPyReference<'a>> {
     doc(result)
         .sections()
-        .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::References))
+        .filter(|s| matches!(s.section_kind(), NumPySectionKind::References))
         .flat_map(|s| s.references().collect::<Vec<_>>())
         .collect()
 }
@@ -104,30 +104,30 @@ pub fn references<'a>(result: &'a Parsed) -> Vec<NumPyReference<'a>> {
 pub fn notes<'a>(result: &'a Parsed) -> Option<TextBlock<'a>> {
     doc(result)
         .sections()
-        .find(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Notes))
+        .find(|s| matches!(s.section_kind(), NumPySectionKind::Notes))
         .and_then(|s| s.body_text())
 }
 
 pub fn receives<'a>(result: &'a Parsed) -> Vec<NumPyParameter<'a>> {
     doc(result)
         .sections()
-        .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Receives))
-        .flat_map(|s| s.parameters(result.source()).collect::<Vec<_>>())
+        .filter(|s| matches!(s.section_kind(), NumPySectionKind::Receives))
+        .flat_map(|s| s.parameters().collect::<Vec<_>>())
         .collect()
 }
 
 pub fn attributes<'a>(result: &'a Parsed) -> Vec<NumPyAttribute<'a>> {
     doc(result)
         .sections()
-        .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Attributes))
-        .flat_map(|s| s.attributes(result.source()).collect::<Vec<_>>())
+        .filter(|s| matches!(s.section_kind(), NumPySectionKind::Attributes))
+        .flat_map(|s| s.attributes().collect::<Vec<_>>())
         .collect()
 }
 
 pub fn methods<'a>(result: &'a Parsed) -> Vec<NumPyMethod<'a>> {
     doc(result)
         .sections()
-        .filter(|s| matches!(s.section_kind(result.source()), NumPySectionKind::Methods))
-        .flat_map(|s| s.methods(result.source()).collect::<Vec<_>>())
+        .filter(|s| matches!(s.section_kind(), NumPySectionKind::Methods))
+        .flat_map(|s| s.methods().collect::<Vec<_>>())
         .collect()
 }

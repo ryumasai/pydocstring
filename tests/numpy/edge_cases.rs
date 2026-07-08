@@ -15,22 +15,16 @@ fn test_indented_docstring() {
     let docstring = "    Summary line.\n\n    Parameters\n    ----------\n    x : int\n        Description of x.\n    y : str, optional\n        Description of y.\n\n    Returns\n    -------\n    bool\n        The result.\n";
     let result = parse_numpy(docstring);
 
-    assert_eq!(doc(&result).summary().unwrap().text(result.source()), "Summary line.");
+    assert_eq!(doc(&result).summary().unwrap().text(), "Summary line.");
     assert_eq!(parameters(&result).len(), 2);
     let names0: Vec<_> = parameters(&result)[0].names().collect();
-    assert_eq!(names0[0].text(result.source()), "x");
-    assert_eq!(
-        parameters(&result)[0].r#type().map(|t| t.text(result.source())),
-        Some("int")
-    );
+    assert_eq!(names0[0].text(), "x");
+    assert_eq!(parameters(&result)[0].type_annotation().map(|t| t.text()), Some("int"));
     let names1: Vec<_> = parameters(&result)[1].names().collect();
-    assert_eq!(names1[0].text(result.source()), "y");
-    assert!(parameters(&result)[1].optional().is_some());
+    assert_eq!(names1[0].text(), "y");
+    assert!(parameters(&result)[1].optional_marker().is_some());
     assert_eq!(returns(&result).len(), 1);
-    assert_eq!(
-        returns(&result)[0].return_type().map(|t| t.text(result.source())),
-        Some("bool")
-    );
+    assert_eq!(returns(&result)[0].type_annotation().map(|t| t.text()), Some("bool"));
 }
 
 /// SPEC: an unindented first line followed by indented body (common docstring
@@ -40,14 +34,11 @@ fn test_mixed_indent_first_line() {
     let docstring = "Summary.\n\n    Parameters\n    ----------\n    x : int\n        Description.\n";
     let result = parse_numpy(docstring);
 
-    assert_eq!(doc(&result).summary().unwrap().text(result.source()), "Summary.");
+    assert_eq!(doc(&result).summary().unwrap().text(), "Summary.");
     assert_eq!(parameters(&result).len(), 1);
     let names: Vec<_> = parameters(&result)[0].names().collect();
-    assert_eq!(names[0].text(result.source()), "x");
-    assert_eq!(
-        parameters(&result)[0].description().unwrap().text(result.source()),
-        "Description."
-    );
+    assert_eq!(names[0].text(), "x");
+    assert_eq!(parameters(&result)[0].description().unwrap().text(), "Description.");
 }
 
 // =============================================================================
@@ -62,17 +53,11 @@ fn test_tab_indented_parameters() {
     let params = parameters(&result);
     assert_eq!(params.len(), 2);
     let names0: Vec<_> = params[0].names().collect();
-    assert_eq!(names0[0].text(result.source()), "x");
-    assert_eq!(
-        params[0].description().unwrap().text(result.source()),
-        "Description of x."
-    );
+    assert_eq!(names0[0].text(), "x");
+    assert_eq!(params[0].description().unwrap().text(), "Description of x.");
     let names1: Vec<_> = params[1].names().collect();
-    assert_eq!(names1[0].text(result.source()), "y");
-    assert_eq!(
-        params[1].description().unwrap().text(result.source()),
-        "Description of y."
-    );
+    assert_eq!(names1[0].text(), "y");
+    assert_eq!(params[1].description().unwrap().text(), "Description of y.");
 }
 
 /// SPEC: mixed tabs and spaces in continuation lines stay within one entry.
@@ -83,8 +68,8 @@ fn test_mixed_tab_space_parameters() {
     let params = parameters(&result);
     assert_eq!(params.len(), 1);
     let names: Vec<_> = params[0].names().collect();
-    assert_eq!(names[0].text(result.source()), "x");
-    let desc = params[0].description().unwrap().text(result.source());
+    assert_eq!(names[0].text(), "x");
+    let desc = params[0].description().unwrap().text();
     assert!(desc.contains("The value."), "desc = {:?}", desc);
     assert!(desc.contains("More detail."), "desc = {:?}", desc);
 }

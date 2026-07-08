@@ -1,7 +1,6 @@
 //! Convert a NumPy-style AST into the style-independent [`Docstring`] model.
 
 use crate::model::Attribute;
-use crate::model::Deprecation;
 use crate::model::Docstring;
 use crate::model::ExceptionEntry;
 use crate::model::FreeSectionKind;
@@ -26,110 +25,87 @@ pub fn to_model(parsed: &Parsed) -> Option<Docstring> {
     if parsed.style() != crate::parse::Style::NumPy {
         return None;
     }
-    let source = parsed.source();
-    let root = NumPyDocstring::cast(parsed.root())?;
+    let root = NumPyDocstring::cast(parsed, parsed.root())?;
 
-    let summary = root.summary().map(|t| t.text(source).to_owned());
-    let extended_summary = root.extended_summary().map(|t| t.text(source).to_owned());
+    let summary = root.summary().map(|t| t.text().to_owned());
+    let extended_summary = root.extended_summary().map(|t| t.text().to_owned());
 
-    let deprecation = root.deprecation().map(|dep| Deprecation {
-        version: dep.version().text(source).to_owned(),
-        description: dep.description().map(|t| t.text(source).to_owned()),
-    });
+    let directives = crate::parse::utils::convert_directives(parsed);
 
-    let sections = root.sections().map(|s| convert_section(&s, source)).collect();
+    let sections = root.sections().map(|s| convert_section(&s)).collect();
 
     Some(Docstring {
         summary,
         extended_summary,
-        deprecation,
+        directives,
         sections,
     })
 }
 
-fn convert_section(section: &NumPySection<'_>, source: &str) -> Section {
-    let kind = section.section_kind(source);
+fn convert_section(section: &NumPySection<'_>) -> Section {
+    let kind = section.section_kind();
 
     match kind {
         NumPySectionKind::Parameters | NumPySectionKind::Receives => {
-            let entries = section
-                .parameters(source)
-                .map(|p| convert_parameter(&p, source))
-                .collect();
+            let entries = section.parameters().map(|p| convert_parameter(&p)).collect();
             match kind {
                 NumPySectionKind::Parameters => Section::Parameters(entries),
                 NumPySectionKind::Receives => Section::Receives(entries),
                 _ => unreachable!(),
             }
         }
-        NumPySectionKind::OtherParameters => Section::OtherParameters(
-            section
-                .parameters(source)
-                .map(|p| convert_parameter(&p, source))
-                .collect(),
-        ),
-        NumPySectionKind::KeywordParameters => Section::KeywordParameters(
-            section
-                .parameters(source)
-                .map(|p| convert_parameter(&p, source))
-                .collect(),
-        ),
+        NumPySectionKind::OtherParameters => {
+            Section::OtherParameters(section.parameters().map(|p| convert_parameter(&p)).collect())
+        }
+        NumPySectionKind::KeywordParameters => {
+            Section::KeywordParameters(section.parameters().map(|p| convert_parameter(&p)).collect())
+        }
         NumPySectionKind::Returns => {
             let entries: Vec<Return> = section
-                .returns(source)
+                .returns()
                 .map(|r| Return {
-                    name: r.name().map(|t| t.text(source).to_owned()),
-                    type_annotation: r.return_type().map(|t| t.text(source).to_owned()),
-                    description: r
-                        .description()
-                        .map(|t| convert_multiline_with_indentation(t.text(source))),
+                    name: r.name().map(|t| t.text().to_owned()),
+                    type_annotation: r.type_annotation().map(|t| t.text().to_owned()),
+                    description: r.description().map(|t| convert_multiline_with_indentation(t.text())),
                 })
                 .collect();
             Section::Returns(entries)
         }
         NumPySectionKind::Yields => {
             let entries: Vec<Return> = section
-                .yields(source)
+                .yields()
                 .map(|r| Return {
-                    name: r.name().map(|t| t.text(source).to_owned()),
-                    type_annotation: r.return_type().map(|t| t.text(source).to_owned()),
-                    description: r
-                        .description()
-                        .map(|t| convert_multiline_with_indentation(t.text(source))),
+                    name: r.name().map(|t| t.text().to_owned()),
+                    type_annotation: r.type_annotation().map(|t| t.text().to_owned()),
+                    description: r.description().map(|t| convert_multiline_with_indentation(t.text())),
                 })
                 .collect();
             Section::Yields(entries)
         }
         NumPySectionKind::Raises => Section::Raises(
             section
-                .exceptions(source)
+                .exceptions()
                 .map(|e| ExceptionEntry {
-                    type_name: e.r#type().text(source).to_owned(),
-                    description: e
-                        .description()
-                        .map(|t| convert_multiline_with_indentation(t.text(source))),
+                    type_name: e.type_annotation().text().to_owned(),
+                    description: e.description().map(|t| convert_multiline_with_indentation(t.text())),
                 })
                 .collect(),
         ),
         NumPySectionKind::Warns => Section::Warns(
             section
-                .warnings(source)
+                .warnings()
                 .map(|w| ExceptionEntry {
-                    type_name: w.r#type().text(source).to_owned(),
-                    description: w
-                        .description()
-                        .map(|t| convert_multiline_with_indentation(t.text(source))),
+                    type_name: w.type_annotation().text().to_owned(),
+                    description: w.description().map(|t| convert_multiline_with_indentation(t.text())),
                 })
                 .collect(),
         ),
         NumPySectionKind::SeeAlso => Section::SeeAlso(
             section
-                .see_also_items(source)
+                .see_also_items()
                 .map(|item| SeeAlsoEntry {
-                    names: item.names().map(|n| n.text(source).to_owned()).collect(),
-                    description: item
-                        .description()
-                        .map(|t| convert_multiline_with_indentation(t.text(source))),
+                    names: item.names().map(|n| n.text().to_owned()).collect(),
+                    description: item.description().map(|t| convert_multiline_with_indentation(t.text())),
                 })
                 .collect(),
         ),
@@ -137,60 +113,53 @@ fn convert_section(section: &NumPySection<'_>, source: &str) -> Section {
             section
                 .references()
                 .map(|r| Reference {
-                    number: r.number().map(|t| t.text(source).to_owned()),
-                    content: r.content().map(|t| convert_multiline_with_indentation(t.text(source))),
+                    label: r.label().map(|t| t.text().to_owned()),
+                    content: r.content().map(|t| convert_multiline_with_indentation(t.text())),
                 })
                 .collect(),
         ),
         NumPySectionKind::Attributes => Section::Attributes(
             section
-                .attributes(source)
+                .attributes()
                 .map(|a| Attribute {
-                    name: a.name().text(source).to_owned(),
-                    type_annotation: a.r#type().map(|t| t.text(source).to_owned()),
-                    description: a
-                        .description()
-                        .map(|t| convert_multiline_with_indentation(t.text(source))),
+                    name: a.name().text().to_owned(),
+                    type_annotation: a.type_annotation().map(|t| t.text().to_owned()),
+                    description: a.description().map(|t| convert_multiline_with_indentation(t.text())),
                 })
                 .collect(),
         ),
         NumPySectionKind::Methods => Section::Methods(
             section
-                .methods(source)
+                .methods()
                 .map(|m| Method {
-                    name: m.name().text(source).to_owned(),
+                    name: m.name().text().to_owned(),
                     type_annotation: None,
-                    description: m
-                        .description()
-                        .map(|t| convert_multiline_with_indentation(t.text(source))),
+                    description: m.description().map(|t| convert_multiline_with_indentation(t.text())),
                 })
                 .collect(),
         ),
         // Free-text sections
         _ => {
-            let body = section
-                .body_text()
-                .map(|t| t.text(source).to_owned())
-                .unwrap_or_default();
+            let body = section.body_text().map(|t| t.text().to_owned()).unwrap_or_default();
             // A structured kind reaching this arm would mean to_section_kind and
             // the structured arms above drifted apart; degrade gracefully.
-            let free_kind = match kind.to_section_kind(section.header().name().text(source)) {
+            let free_kind = match kind.to_section_kind(section.header().name().text()) {
                 SectionKind::FreeText(k) => k,
-                _ => FreeSectionKind::Unknown(section.header().name().text(source).to_owned()),
+                _ => FreeSectionKind::Unknown(section.header().name().text().to_owned()),
             };
             Section::FreeText { kind: free_kind, body }
         }
     }
 }
 
-fn convert_parameter(param: &crate::parse::numpy::nodes::NumPyParameter<'_>, source: &str) -> Parameter {
+fn convert_parameter(param: &crate::parse::numpy::nodes::NumPyParameter<'_>) -> Parameter {
     Parameter {
-        names: param.names().map(|n| n.text(source).to_owned()).collect(),
-        type_annotation: param.r#type().map(|t| t.text(source).to_owned()),
+        names: param.names().map(|n| n.text().to_owned()).collect(),
+        type_annotation: param.type_annotation().map(|t| t.text().to_owned()),
         description: param
             .description()
-            .map(|t| convert_multiline_with_indentation(t.text(source))),
-        is_optional: param.optional().is_some(),
-        default_value: param.default_value().map(|t| t.text(source).to_owned()),
+            .map(|t| convert_multiline_with_indentation(t.text())),
+        is_optional: param.is_optional(),
+        default_value: param.default_value().map(|t| t.text().to_owned()),
     }
 }

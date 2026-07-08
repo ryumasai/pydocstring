@@ -266,12 +266,17 @@ impl SyntaxNode {
     }
 
     /// Mutable access to the ordered child elements.
-    pub fn children_mut(&mut self) -> &mut [SyntaxElement] {
+    ///
+    /// Crate-private: mutating children can break the coverage/containment
+    /// invariants that [`Parsed`] guarantees; only the parsers may do so.
+    pub(crate) fn children_mut(&mut self) -> &mut [SyntaxElement] {
         &mut self.children
     }
 
     /// Append a child element.
-    pub fn push_child(&mut self, child: SyntaxElement) {
+    ///
+    /// Crate-private: see [`children_mut`](Self::children_mut).
+    pub(crate) fn push_child(&mut self, child: SyntaxElement) {
         self.children.push(child);
     }
 
@@ -288,7 +293,9 @@ impl SyntaxNode {
     }
 
     /// Extend this node's range end to `end`.
-    pub fn extend_range_to(&mut self, end: crate::text::TextSize) {
+    ///
+    /// Crate-private: see [`children_mut`](Self::children_mut).
+    pub(crate) fn extend_range_to(&mut self, end: crate::text::TextSize) {
         self.range = TextRange::new(self.range.start(), end);
     }
 
@@ -313,7 +320,8 @@ impl SyntaxNode {
 
     /// Return the first token child with the given kind.
     ///
-    /// Unlike [`find_token`] this also matches zero-length (missing) tokens,
+    /// Unlike [`find_token`](Self::find_token) this also matches zero-length
+    /// (missing) tokens,
     /// so it never panics due to a token being present but empty.  Callers
     /// that need to distinguish a real token from a placeholder should check
     /// [`SyntaxToken::is_missing`] on the returned value.
@@ -415,11 +423,6 @@ impl SyntaxToken {
         self.range.source_text(source)
     }
 
-    /// Extend this token's range to include `other`.
-    pub fn extend_range(&mut self, other: TextRange) {
-        self.range.extend(other);
-    }
-
     /// Write a pretty-printed token line.
     ///
     /// A zero-length (missing placeholder) token renders as `<missing>`
@@ -482,6 +485,24 @@ pub struct Parsed {
 
 impl Parsed {
     /// Creates a new `Parsed` from source text, root node, and source style.
+    ///
+    /// # Invariants
+    ///
+    /// A `Parsed` is expected to originate from one of this crate's parsers
+    /// ([`parse`](crate::parse::parse) or a per-style `parse_*` function).
+    /// Constructing one by hand is possible but the tree must then uphold the
+    /// laws the parsers guarantee and downstream consumers rely on:
+    ///
+    /// - every element's range lies within `source` and within its parent's
+    ///   range, and siblings appear in source order (containment/ordering);
+    /// - a node's children plus trivia tokens exactly cover the node's range
+    ///   (coverage — pinned corpus-wide in `tests/trivia.rs`);
+    /// - token text is a slice of `source` (no synthesized text, see the
+    ///   source-backed decision on issue #42);
+    /// - zero-length elements are missing placeholders and nothing else.
+    ///
+    /// A hand-built tree that violates these laws produces unspecified (but
+    /// memory-safe) results from the typed views, the visitor, and `to_model`.
     pub fn new(source: String, root: SyntaxNode, style: Style) -> Self {
         let line_index = LineIndex::new(&source);
         Self {
@@ -515,6 +536,9 @@ impl Parsed {
     }
 
     /// Produce a Biome-style pretty-printed representation of the tree.
+    ///
+    /// This is a debugging aid: the exact output format is not stable and may
+    /// change in any release — do not parse or snapshot it in downstream code.
     pub fn pretty_print(&self) -> String {
         let mut out = String::new();
         self.root.pretty_fmt(&self.source, 0, &mut out);
@@ -528,7 +552,8 @@ impl Parsed {
 
 /// Trait for visiting syntax tree nodes and tokens.
 ///
-/// Implement this trait and pass it to [`walk`] for depth-first traversal.
+/// Implement this trait and pass it to [`walk_tree`] for depth-first
+/// traversal.
 pub trait Visitor {
     /// Called when entering a node (before visiting its children).
     fn enter(&mut self, _node: &SyntaxNode) {}
@@ -538,16 +563,28 @@ pub trait Visitor {
     fn visit_token(&mut self, _token: &SyntaxToken) {}
 }
 
-/// Walk the syntax tree depth-first, calling the visitor methods.
-pub fn walk(node: &SyntaxNode, visitor: &mut dyn Visitor) {
+/// Walk the raw syntax tree depth-first, calling the visitor methods.
+///
+/// This is the untyped, kind-agnostic traversal. For the typed traversal
+/// (per-style `visit_*` methods) see
+/// [`parse::visitor::walk`](crate::parse::visitor::walk); this function was
+/// renamed from `walk` to `walk_tree` in 0.3.0 to resolve that name
+/// collision.
+pub fn walk_tree(node: &SyntaxNode, visitor: &mut dyn Visitor) {
     visitor.enter(node);
     for child in node.children() {
         match child {
-            SyntaxElement::Node(n) => walk(n, visitor),
+            SyntaxElement::Node(n) => walk_tree(n, visitor),
             SyntaxElement::Token(t) => visitor.visit_token(t),
         }
     }
     visitor.leave(node);
+}
+
+/// Deprecated alias for [`walk_tree`].
+#[deprecated(since = "0.3.0", note = "renamed to walk_tree")]
+pub fn walk(node: &SyntaxNode, visitor: &mut dyn Visitor) {
+    walk_tree(node, visitor);
 }
 
 // =============================================================================
@@ -726,7 +763,7 @@ mod tests {
         }
 
         let mut counter = Counter { nodes: 0, tokens: 0 };
-        walk(&root, &mut counter);
+        walk_tree(&root, &mut counter);
         assert_eq!(counter.nodes, 1);
         assert_eq!(counter.tokens, 1);
 
