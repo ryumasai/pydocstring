@@ -13,12 +13,12 @@ DOCUMENT@0..183 {
     }
     NEWLINE: "\n"@47..48
     ENTRY@48..76 {
-      RETURN_TYPE: "Description with attributes:"@48..76
+      TYPE: "Description with attributes:"@48..76
     }
     NEWLINE: "\n"@76..77
     BLANK_LINE: "\n"@77..78
     ENTRY@78..129 {
-      RETURN_TYPE: ":attr:`~module.ClassName.attr1`"@78..109
+      TYPE: ":attr:`~module.ClassName.attr1`"@78..109
       NEWLINE: "\n"@109..110
       WHITESPACE: "    "@110..114
       DESCRIPTION@114..129 {
@@ -27,7 +27,7 @@ DOCUMENT@0..183 {
     }
     NEWLINE: "\n"@129..130
     ENTRY@130..182 {
-      RETURN_TYPE: ":attr:`~module.ClassName.attr2`"@130..161
+      TYPE: ":attr:`~module.ClassName.attr2`"@130..161
       NEWLINE: "\n"@161..162
       WHITESPACE: "    "@162..166
       DESCRIPTION@166..182 {

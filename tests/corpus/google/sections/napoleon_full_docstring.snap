@@ -62,7 +62,7 @@ DOCUMENT@0..372 {
     NEWLINE: "\n"@140..141
     WHITESPACE: "    "@141..145
     ENTRY@145..161 {
-      RETURN_TYPE: "int"@145..148
+      TYPE: "int"@145..148
       COLON: ":"@148..149
       WHITESPACE: " "@149..150
       DESCRIPTION@150..161 {
@@ -98,7 +98,7 @@ DOCUMENT@0..372 {
     NEWLINE: "\n"@212..213
     WHITESPACE: "    "@213..217
     ENTRY@217..256 {
-      WARNING_TYPE: "DeprecationWarning"@217..235
+      TYPE: "DeprecationWarning"@217..235
       COLON: ":"@235..236
       WHITESPACE: " "@236..237
       DESCRIPTION@237..256 {

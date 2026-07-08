@@ -324,13 +324,13 @@ fn build_returns_node(
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, c)));
     }
     if let Some(rt) = return_type {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::RETURN_TYPE, rt)));
+        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TYPE, rt)));
     } else if let Some(c) = colon {
         // Colon present but no return type: zero-length placeholder so callers
         // can distinguish `name :` (missing type) from `type` (no name/colon).
         let missing_pos = c.end();
         children.push(SyntaxElement::Token(SyntaxToken::new(
-            SyntaxKind::RETURN_TYPE,
+            SyntaxKind::TYPE,
             TextRange::new(missing_pos, missing_pos),
         )));
     }
@@ -351,12 +351,12 @@ fn build_yields_node(
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, c)));
     }
     if let Some(rt) = return_type {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::RETURN_TYPE, rt)));
+        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TYPE, rt)));
     } else if let Some(c) = colon {
         // Colon present but no yield type: zero-length placeholder.
         let missing_pos = c.end();
         children.push(SyntaxElement::Token(SyntaxToken::new(
-            SyntaxKind::RETURN_TYPE,
+            SyntaxKind::TYPE,
             TextRange::new(missing_pos, missing_pos),
         )));
     }
@@ -564,7 +564,7 @@ fn process_returns_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, ent
             },
         )
     } else {
-        // Unnamed: type only (stored as RETURN_TYPE)
+        // Unnamed: type only (stored as TYPE)
         (None, None, Some(cursor.current_trimmed_range()))
     };
 
@@ -608,7 +608,7 @@ fn process_yields_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entr
             },
         )
     } else {
-        // Unnamed: type only (stored as RETURN_TYPE)
+        // Unnamed: type only (stored as TYPE)
         (None, None, Some(cursor.current_trimmed_range()))
     };
 

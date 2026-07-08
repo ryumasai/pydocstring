@@ -443,10 +443,7 @@ fn build_exception_node(header: &EntryHeader, range: TextRange) -> SyntaxNode {
 /// Build a SyntaxNode for a warning entry.
 fn build_warning_node(header: &EntryHeader, range: TextRange) -> SyntaxNode {
     let mut children = Vec::new();
-    children.push(SyntaxElement::Token(SyntaxToken::new(
-        SyntaxKind::WARNING_TYPE,
-        header.name,
-    )));
+    children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TYPE, header.name)));
     if let Some(colon) = header.colon {
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, colon)));
     }
@@ -667,7 +664,7 @@ impl ReturnsState {
         let range = self.range?;
         let mut children = Vec::new();
         if let Some(rt) = self.return_type {
-            children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::RETURN_TYPE, rt)));
+            children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TYPE, rt)));
         }
         if let Some(colon) = self.colon {
             children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, colon)));

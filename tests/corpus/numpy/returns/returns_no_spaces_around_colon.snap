@@ -15,7 +15,7 @@ DOCUMENT@0..53 {
     ENTRY@26..52 {
       NAME: "result"@26..32
       COLON: ":"@32..33
-      RETURN_TYPE: "int"@33..36
+      TYPE: "int"@33..36
       NEWLINE: "\n"@36..37
       WHITESPACE: "    "@37..41
       DESCRIPTION@41..52 {

@@ -224,13 +224,11 @@ impl<'a> Entry<'a> {
         self.names().next()
     }
 
-    /// The type annotation token, if present: the `TYPE` of a parameter /
-    /// attribute / exception entry, or the `RETURN_TYPE` of a return /
-    /// yield entry.
+    /// The `TYPE` annotation token, if present: a parameter / attribute
+    /// type, a return / yield type, or the exception / warning type name
+    /// of a raises / warns entry.
     pub fn type_annotation(&self) -> Option<&'a SyntaxToken> {
-        self.0
-            .find_token(SyntaxKind::TYPE)
-            .or_else(|| self.0.find_token(SyntaxKind::RETURN_TYPE))
+        self.0.find_token(SyntaxKind::TYPE)
     }
 
     /// Description text block, if present.

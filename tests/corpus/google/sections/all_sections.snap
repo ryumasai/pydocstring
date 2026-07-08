@@ -54,7 +54,7 @@ DOCUMENT@0..283 {
     NEWLINE: "\n"@131..132
     WHITESPACE: "    "@132..136
     ENTRY@136..160 {
-      RETURN_TYPE: "int"@136..139
+      TYPE: "int"@136..139
       COLON: ":"@139..140
       WHITESPACE: " "@140..141
       DESCRIPTION@141..160 {

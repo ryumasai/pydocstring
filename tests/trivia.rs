@@ -148,14 +148,13 @@ fn corpus_trivia_invariants() {
 /// The token kinds the parsers deliberately create as zero-length missing
 /// placeholders (see the missing-placeholder convention in `src/syntax.rs`):
 ///
-/// - `TYPE` — `a ()` / `a :` with no type text
-/// - `RETURN_TYPE` — a NumPy `name :` return/yield with no type
+/// - `TYPE` — `a ()` / `a :` with no type text, or a NumPy `name :`
+///   return/yield with no type
 /// - `CLOSE_BRACKET` — `a (int` with no matching `)`
 /// - `COLON` — `a (int) desc` / a colonless `Args` header
 /// - `DEFAULT_VALUE` — `default=` with no value
 const PLACEHOLDER_TOKEN_KINDS: &[SyntaxKind] = &[
     SyntaxKind::TYPE,
-    SyntaxKind::RETURN_TYPE,
     SyntaxKind::CLOSE_BRACKET,
     SyntaxKind::COLON,
     SyntaxKind::DEFAULT_VALUE,
@@ -301,7 +300,7 @@ fn zero_length_elements_are_missing_placeholders() {
         ("google", "Summary.\n\nArgs:\n    a (int):\n"),
         // missing TYPE (`a :` with no type text)
         ("numpy", "Summary.\n\nParameters\n----------\na :\n    Desc.\n"),
-        // missing RETURN_TYPE (`name :` with no type text)
+        // missing TYPE (a return's `name :` with no type text)
         ("numpy", "Summary.\n\nReturns\n-------\nout :\n    Desc.\n"),
         // missing DEFAULT_VALUE (`default=` with no value)
         (

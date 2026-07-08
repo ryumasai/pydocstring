@@ -97,6 +97,105 @@ fn one_code_path_extracts_identical_data_from_both_styles() {
     );
 }
 
+/// LAW (cross-style slot-kind parity): for equivalent content, EVERY entry
+/// role must expose identical slots through the unified layer — the same
+/// name / type_annotation / description presence AND the same extracted
+/// text — whatever the source style. Entry roles derive from the enclosing
+/// section, never from per-role token kinds.
+///
+/// Warns is where this once broke: Google warns entries emitted a
+/// `WARNING_TYPE` token while NumPy warns entries emitted `TYPE`, so
+/// `Entry::type_annotation()` returned `None` for Google warns only. Every
+/// entry role is pinned here so that class of divergence cannot recur.
+#[test]
+fn cross_style_slot_kind_parity_covers_every_entry_role() {
+    // (role, google source, numpy source, expected extraction)
+    let cases: Vec<(&str, &str, &str, Extracted)> = vec![
+        (
+            "params",
+            "Summary.\n\nArgs:\n    x (int): The value.\n",
+            "Summary.\n\nParameters\n----------\nx : int\n    The value.\n",
+            vec![(
+                SectionKind::Parameters,
+                vec![(
+                    vec!["x".to_owned()],
+                    Some("int".to_owned()),
+                    Some("The value.".to_owned()),
+                )],
+            )],
+        ),
+        (
+            "returns with type",
+            "Summary.\n\nReturns:\n    int: The result.\n",
+            "Summary.\n\nReturns\n-------\nint\n    The result.\n",
+            vec![(
+                SectionKind::Returns,
+                vec![(vec![], Some("int".to_owned()), Some("The result.".to_owned()))],
+            )],
+        ),
+        (
+            "yields",
+            "Summary.\n\nYields:\n    str: The next chunk.\n",
+            "Summary.\n\nYields\n------\nstr\n    The next chunk.\n",
+            vec![(
+                SectionKind::Yields,
+                vec![(vec![], Some("str".to_owned()), Some("The next chunk.".to_owned()))],
+            )],
+        ),
+        (
+            "raises",
+            "Summary.\n\nRaises:\n    ValueError: If x is negative.\n",
+            "Summary.\n\nRaises\n------\nValueError\n    If x is negative.\n",
+            vec![(
+                SectionKind::Raises,
+                vec![(
+                    vec![],
+                    Some("ValueError".to_owned()),
+                    Some("If x is negative.".to_owned()),
+                )],
+            )],
+        ),
+        (
+            "warns",
+            "Summary.\n\nWarns:\n    DeprecationWarning: If using the old API.\n",
+            "Summary.\n\nWarns\n-----\nDeprecationWarning\n    If using the old API.\n",
+            vec![(
+                SectionKind::Warns,
+                vec![(
+                    vec![],
+                    Some("DeprecationWarning".to_owned()),
+                    Some("If using the old API.".to_owned()),
+                )],
+            )],
+        ),
+        (
+            "attributes",
+            "Summary.\n\nAttributes:\n    attr (bool): Whether enabled.\n",
+            "Summary.\n\nAttributes\n----------\nattr : bool\n    Whether enabled.\n",
+            vec![(
+                SectionKind::Attributes,
+                vec![(
+                    vec!["attr".to_owned()],
+                    Some("bool".to_owned()),
+                    Some("Whether enabled.".to_owned()),
+                )],
+            )],
+        ),
+    ];
+
+    for (role, google, numpy, expected) in &cases {
+        // The comparison is only meaningful if the two inputs really parse
+        // as different styles.
+        assert_eq!(parse(google).style(), Style::Google, "{role}: google input misdetected");
+        assert_eq!(parse(numpy).style(), Style::NumPy, "{role}: numpy input misdetected");
+
+        let from_google = extract(google);
+        let from_numpy = extract(numpy);
+        assert_eq!(from_google, from_numpy, "{role}: cross-style slot parity broken");
+        assert_eq!(&from_google, expected, "{role}: extracted data mismatch");
+    }
+}
+
 // =============================================================================
 // Document
 // =============================================================================

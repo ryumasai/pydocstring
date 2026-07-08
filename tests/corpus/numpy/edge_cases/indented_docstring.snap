@@ -59,7 +59,7 @@ DOCUMENT@0..189 {
     NEWLINE: "\n"@159..160
     WHITESPACE: "    "@160..164
     ENTRY@164..188 {
-      RETURN_TYPE: "bool"@164..168
+      TYPE: "bool"@164..168
       NEWLINE: "\n"@168..169
       WHITESPACE: "        "@169..177
       DESCRIPTION@177..188 {
