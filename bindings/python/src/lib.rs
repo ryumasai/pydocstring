@@ -278,8 +278,8 @@ fn mk_text_block_or_missing(
 
 // ─── Style ──────────────────────────────────────────────────────────────────
 
-#[pyclass(eq, eq_int, frozen, skip_from_py_object, name = "Style")]
-#[derive(Clone, PartialEq)]
+#[pyclass(eq, frozen, skip_from_py_object, hash, name = "Style")]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum PyStyle {
     #[pyo3(name = "GOOGLE")]
     Google,
@@ -809,7 +809,7 @@ fn build_google_exception(
 #[pyclass(frozen, skip_from_py_object, name = "GoogleWarning")]
 struct PyGoogleWarning {
     range: TextRange,
-    warning_type: Py<PyToken>,
+    r#type: Py<PyToken>,
     colon: Option<Py<PyToken>>,
     description: Option<Py<PyTextBlock>>,
 }
@@ -821,8 +821,8 @@ impl PyGoogleWarning {
         Py::new(py, PyTextRange::from(self.range))
     }
     #[getter]
-    fn warning_type(&self, py: Python<'_>) -> Py<PyToken> {
-        self.warning_type.clone_ref(py)
+    fn r#type(&self, py: Python<'_>) -> Py<PyToken> {
+        self.r#type.clone_ref(py)
     }
     #[getter]
     fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
@@ -833,7 +833,7 @@ impl PyGoogleWarning {
         self.description.as_ref().map(|t| t.clone_ref(py))
     }
     fn __repr__(&self, py: Python<'_>) -> String {
-        format!("GoogleWarning({:?})", self.warning_type.borrow(py).text)
+        format!("GoogleWarning({:?})", self.r#type.borrow(py).text)
     }
 }
 
@@ -842,7 +842,7 @@ fn build_google_warning(py: Python<'_>, wrn: &gn::GoogleWarning<'_>, parsed: &Pa
         py,
         PyGoogleWarning {
             range: *wrn.syntax().range(),
-            warning_type: mk_token_ref(py, wrn.type_annotation())?,
+            r#type: mk_token_ref(py, wrn.type_annotation())?,
             colon: mk_token_ref_opt(py, wrn.colon())?,
             description: mk_text_block_or_missing(
                 py,
@@ -1270,12 +1270,6 @@ impl PyGoogleDocstring {
     fn paragraphs(&self, py: Python<'_>) -> Vec<Py<PyTextBlock>> {
         self.paragraphs.iter().map(|t| t.clone_ref(py)).collect()
     }
-    /// Deprecated alias for ``paragraphs``: stray lines are now grouped into
-    /// ``PARAGRAPH`` text blocks, so the items are ``TextBlock``s.
-    #[getter]
-    fn stray_lines(&self, py: Python<'_>) -> Vec<Py<PyTextBlock>> {
-        self.paragraphs(py)
-    }
     #[getter]
     fn sections(&self, py: Python<'_>) -> Vec<Py<PyGoogleSection>> {
         self.sections.iter().map(|s| s.clone_ref(py)).collect()
@@ -1431,6 +1425,12 @@ impl PyNumPyParameter {
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
         Py::new(py, PyTextRange::from(self.range))
     }
+    /// First name token (convenience for ``names[0]``); ``None`` when the
+    /// entry has no name tokens.
+    #[getter]
+    fn name(&self, py: Python<'_>) -> Option<Py<PyToken>> {
+        self.names.first().map(|n| n.clone_ref(py))
+    }
     #[getter]
     fn names(&self, py: Python<'_>) -> Vec<Py<PyToken>> {
         self.names.iter().map(|n| n.clone_ref(py)).collect()
@@ -1486,7 +1486,13 @@ fn build_numpy_parameter(
             names: mk_tokens(py, prm.names())?,
             colon: mk_token_ref_opt(py, prm.colon())?,
             r#type: mk_token_or_missing(py, prm.type_annotation(), prm.syntax(), SyntaxKind::TYPE, source)?,
-            description: mk_text_block_opt(py, prm.description())?,
+            description: mk_text_block_or_missing(
+                py,
+                prm.description(),
+                parsed,
+                prm.syntax(),
+                SyntaxKind::DESCRIPTION,
+            )?,
             optional: mk_token_ref_opt(py, prm.optional_marker())?,
             default_keyword: mk_token_ref_opt(py, prm.default_keyword())?,
             default_separator: mk_token_ref_opt(py, prm.default_separator())?,
@@ -1860,16 +1866,23 @@ impl PyNumPyAttribute {
 fn build_numpy_attribute(
     py: Python<'_>,
     att: &nn::NumPyAttribute<'_>,
-    _parsed: &Parsed,
+    parsed: &Parsed,
 ) -> PyResult<Py<PyNumPyAttribute>> {
+    let source = parsed.source();
     Py::new(
         py,
         PyNumPyAttribute {
             range: *att.syntax().range(),
             name: mk_token_ref(py, att.name())?,
             colon: mk_token_ref_opt(py, att.colon())?,
-            r#type: mk_token_ref_opt(py, att.type_annotation())?,
-            description: mk_text_block_opt(py, att.description())?,
+            r#type: mk_token_or_missing(py, att.type_annotation(), att.syntax(), SyntaxKind::TYPE, source)?,
+            description: mk_text_block_or_missing(
+                py,
+                att.description(),
+                parsed,
+                att.syntax(),
+                SyntaxKind::DESCRIPTION,
+            )?,
         },
     )
 }
@@ -1907,14 +1920,20 @@ impl PyNumPyMethod {
     }
 }
 
-fn build_numpy_method(py: Python<'_>, mtd: &nn::NumPyMethod<'_>, _parsed: &Parsed) -> PyResult<Py<PyNumPyMethod>> {
+fn build_numpy_method(py: Python<'_>, mtd: &nn::NumPyMethod<'_>, parsed: &Parsed) -> PyResult<Py<PyNumPyMethod>> {
     Py::new(
         py,
         PyNumPyMethod {
             range: *mtd.syntax().range(),
             name: mk_token_ref(py, mtd.name())?,
             colon: mk_token_ref_opt(py, mtd.colon())?,
-            description: mk_text_block_opt(py, mtd.description())?,
+            description: mk_text_block_or_missing(
+                py,
+                mtd.description(),
+                parsed,
+                mtd.syntax(),
+                SyntaxKind::DESCRIPTION,
+            )?,
         },
     )
 }
@@ -1967,6 +1986,7 @@ struct PyNumPyDocstring {
     summary: Option<Py<PyTextBlock>>,
     extended_summary: Option<Py<PyTextBlock>>,
     deprecation: Option<Py<PyNumPyDeprecation>>,
+    paragraphs: Vec<Py<PyTextBlock>>,
     sections: Vec<Py<PyNumPySection>>,
     source: String,
     /// Cached CST — avoids re-parsing when `walk()` is called.
@@ -1990,6 +2010,11 @@ impl PyNumPyDocstring {
     #[getter]
     fn deprecation(&self, py: Python<'_>) -> Option<Py<PyNumPyDeprecation>> {
         self.deprecation.as_ref().map(|d| d.clone_ref(py))
+    }
+    /// Stray-prose paragraph blocks between sections, in source order.
+    #[getter]
+    fn paragraphs(&self, py: Python<'_>) -> Vec<Py<PyTextBlock>> {
+        self.paragraphs.iter().map(|t| t.clone_ref(py)).collect()
     }
     #[getter]
     fn sections(&self, py: Python<'_>) -> Vec<Py<PyNumPySection>> {
@@ -2029,6 +2054,10 @@ fn build_numpy_docstring_node(
         .deprecation()
         .map(|dep| build_numpy_deprecation(py, &dep, parsed_ref))
         .transpose()?;
+    let paragraphs = doc
+        .paragraphs()
+        .map(|p| mk_text_block(py, &p))
+        .collect::<PyResult<_>>()?;
     let sections = doc
         .sections()
         .map(|sec| build_numpy_section(py, &sec, parsed_ref))
@@ -2040,6 +2069,7 @@ fn build_numpy_docstring_node(
             summary,
             extended_summary,
             deprecation,
+            paragraphs,
             sections,
             source: parsed_ref.source().to_string(),
             parsed,
@@ -2147,58 +2177,74 @@ fn build_plain_docstring_node(
 // Model IR types
 // =============================================================================
 
-#[pyclass(name = "Deprecation")]
-struct PyModelDeprecation {
+/// Ensure every item of `list` is a Python `str`.
+fn ensure_str_list(py: Python<'_>, list: &Py<PyList>, message: &str) -> PyResult<()> {
+    if list.bind(py).into_iter().any(|n| !n.is_instance_of::<PyString>()) {
+        return Err(pyo3::exceptions::PyTypeError::new_err(message.to_string()));
+    }
+    Ok(())
+}
+
+/// A document-level rST directive (`.. name:: argument` + indented body).
+///
+/// Mirrors the core `model::Directive`: a deprecation notice is a directive
+/// with `name == "deprecated"` whose `argument` is the version.
+#[pyclass(name = "Directive")]
+struct PyModelDirective {
     #[pyo3(get, set)]
-    version: Py<PyString>,
+    name: Py<PyString>,
+    #[pyo3(get, set)]
+    argument: Option<Py<PyString>>,
     #[pyo3(get, set)]
     description: Option<Py<PyString>>,
 }
 
 #[pymethods]
-impl PyModelDeprecation {
+impl PyModelDirective {
     #[new]
-    #[pyo3(signature = (version, *, description=None))]
-    fn new(version: Py<PyString>, description: Option<Py<PyString>>) -> Self {
-        Self { version, description }
+    #[pyo3(signature = (name, *, argument=None, description=None))]
+    fn new(name: Py<PyString>, argument: Option<Py<PyString>>, description: Option<Py<PyString>>) -> Self {
+        Self {
+            name,
+            argument,
+            description,
+        }
     }
-    fn __repr__(&self) -> String {
-        format!("Deprecation(version={:?})", self.version)
+    fn __repr__(&self, py: Python<'_>) -> String {
+        format!("Directive({:?})", self.name.bind(py).to_string_lossy())
     }
 }
 
-/// Python-surface note (flagged for the follow-up Python-surface PR): the
-/// core model generalized `deprecation: Option<Deprecation>` into
-/// `directives: Vec<Directive>` in 0.3.0. The Python `Deprecation` class and
-/// `Docstring.deprecation` property are kept unchanged here by mapping to /
-/// from the `deprecated`-named directive (the only directive the parsers
-/// produce today); other directive names are not yet representable in
-/// Python.
-impl TryFrom<&model::Directive> for PyModelDeprecation {
+impl TryFrom<&model::Directive> for PyModelDirective {
     type Error = PyErr;
 
-    fn try_from(dep: &model::Directive) -> Result<Self, Self::Error> {
+    fn try_from(dir: &model::Directive) -> Result<Self, Self::Error> {
         Python::attach(|py| {
             Ok(Self {
-                version: dep.argument.as_deref().unwrap_or("").into_pyobject(py)?.unbind(),
-                description: dep
+                name: (&dir.name).into_pyobject(py)?.unbind(),
+                argument: dir
+                    .argument
+                    .as_ref()
+                    .map(|a| -> PyResult<_> { Ok(a.into_pyobject(py)?.unbind()) })
+                    .transpose()?,
+                description: dir
                     .description
                     .as_ref()
-                    .map(|d: &String| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
+                    .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
                     .transpose()?,
             })
         })
     }
 }
 
-impl TryInto<model::Directive> for &PyModelDeprecation {
+impl TryInto<model::Directive> for &PyModelDirective {
     type Error = PyErr;
 
     fn try_into(self) -> Result<model::Directive, Self::Error> {
         Python::attach(|py| {
             Ok(model::Directive {
-                name: "deprecated".to_owned(),
-                argument: Some(self.version.extract(py)?),
+                name: self.name.extract(py)?,
+                argument: self.argument.as_ref().map(|a| a.extract(py)).transpose()?,
                 description: self.description.as_ref().map(|d| d.extract(py)).transpose()?,
             })
         })
@@ -2207,7 +2253,6 @@ impl TryInto<model::Directive> for &PyModelDeprecation {
 
 #[pyclass(name = "Parameter")]
 struct PyModelParameter {
-    #[pyo3(get, set)]
     names: Py<PyList>,
     #[pyo3(get, set)]
     type_annotation: Option<Py<PyString>>,
@@ -2231,11 +2276,7 @@ impl PyModelParameter {
         is_optional: bool,
         default_value: Option<Py<PyString>>,
     ) -> PyResult<Self> {
-        if names.bind(py).into_iter().any(|n| !n.is_instance_of::<PyString>()) {
-            return Err(pyo3::exceptions::PyTypeError::new_err(
-                "Parameter names must be strings.",
-            ));
-        }
+        ensure_str_list(py, &names, "Parameter names must be strings.")?;
         Ok(Self {
             names,
             type_annotation,
@@ -2244,9 +2285,18 @@ impl PyModelParameter {
             default_value,
         })
     }
-    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        ", ".into_pyobject(py)?
-            .call_method("join", (self.names.bind(py),), None)
+    #[getter]
+    fn names<'py>(&self, py: Python<'py>) -> &Bound<'py, PyList> {
+        self.names.bind(py)
+    }
+    #[setter]
+    fn set_names(&mut self, py: Python<'_>, names: Py<PyList>) -> PyResult<()> {
+        ensure_str_list(py, &names, "Parameter names must be strings.")?;
+        self.names = names;
+        Ok(())
+    }
+    fn __repr__(&self, py: Python<'_>) -> PyResult<String> {
+        Ok(format!("Parameter(names={})", self.names.bind(py).repr()?))
     }
 }
 
@@ -2449,7 +2499,6 @@ impl TryInto<model::ExceptionEntry> for &PyModelExceptionEntry {
 
 #[pyclass(name = "SeeAlsoEntry")]
 struct PyModelSeeAlsoEntry {
-    #[pyo3(get, set)]
     names: Py<PyList>,
     #[pyo3(get, set)]
     description: Option<Py<PyString>>,
@@ -2460,10 +2509,18 @@ impl PyModelSeeAlsoEntry {
     #[new]
     #[pyo3(signature = (names, *, description=None))]
     fn new(py: Python<'_>, names: Py<PyList>, description: Option<Py<PyString>>) -> PyResult<Self> {
-        if names.bind(py).into_iter().any(|n| !n.is_instance_of::<PyString>()) {
-            return Err(pyo3::exceptions::PyTypeError::new_err("Names must be strings."));
-        }
+        ensure_str_list(py, &names, "Names must be strings.")?;
         Ok(Self { names, description })
+    }
+    #[getter]
+    fn names<'py>(&self, py: Python<'py>) -> &Bound<'py, PyList> {
+        self.names.bind(py)
+    }
+    #[setter]
+    fn set_names(&mut self, py: Python<'_>, names: Py<PyList>) -> PyResult<()> {
+        ensure_str_list(py, &names, "Names must be strings.")?;
+        self.names = names;
+        Ok(())
     }
 
     fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
@@ -2920,6 +2977,11 @@ impl PyModelSection {
         reject!(uses_references, references, PyModelReference);
         reject!(is_freetext, body);
         reject!(matches!(kind, PySectionKind::Unknown), unknown_name);
+        if matches!(kind, PySectionKind::Unknown) && unknown_name.is_none() {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "Section(SectionKind.UNKNOWN) requires 'unknown_name'",
+            ));
+        }
 
         let ret = match kind {
             PySectionKind::Parameters => {
@@ -3446,7 +3508,7 @@ impl TryInto<model::Section> for &PyModelSection {
                         kind: model::FreeSectionKind::Unknown(
                             name.as_ref()
                                 .ok_or(pyo3::exceptions::PyValueError::new_err(
-                                    "Section(SectionKind.Unknown) requres a name.",
+                                    "Section(SectionKind.Unknown) requires a name.",
                                 ))?
                                 .extract(py)?,
                         ),
@@ -3465,7 +3527,7 @@ impl TryInto<model::Section> for &PyModelSection {
 struct PyModelDocstring {
     summary: Option<Py<PyString>>,
     extended_summary: Option<Py<PyString>>,
-    deprecation: Option<Py<PyModelDeprecation>>,
+    directives: Py<PyList>,
     sections: Py<PyList>,
 }
 
@@ -3482,19 +3544,38 @@ impl PyModelDocstring {
         }
         Ok(())
     }
+
+    fn verify_directives(py: Python<'_>, directives: &Py<PyList>) -> PyResult<()> {
+        if directives
+            .bind(py)
+            .into_iter()
+            .any(|d| !d.is_instance_of::<PyModelDirective>())
+        {
+            return Err(pyo3::exceptions::PyTypeError::new_err(
+                "Docstring only accepts Directives in the 'directives' argument.".to_string(),
+            ));
+        }
+        Ok(())
+    }
 }
 
 #[pymethods]
 impl PyModelDocstring {
     #[new]
-    #[pyo3(signature = (*, summary=None, extended_summary=None, deprecation=None, sections=None))]
+    #[pyo3(signature = (*, summary=None, extended_summary=None, directives=None, sections=None))]
     fn new(
         py: Python<'_>,
         summary: Option<Py<PyString>>,
         extended_summary: Option<Py<PyString>>,
-        deprecation: Option<Py<PyModelDeprecation>>,
+        directives: Option<Py<PyList>>,
         sections: Option<Py<PyList>>,
     ) -> PyResult<Self> {
+        let directives = if let Some(dir) = directives {
+            Self::verify_directives(py, &dir)?;
+            dir
+        } else {
+            PyList::empty(py).unbind()
+        };
         let sections = if let Some(sec) = sections {
             Self::verify_sections(py, &sec)?;
             sec
@@ -3504,7 +3585,7 @@ impl PyModelDocstring {
         Ok(Self {
             summary,
             extended_summary,
-            deprecation,
+            directives,
             sections,
         })
     }
@@ -3532,17 +3613,32 @@ impl PyModelDocstring {
         self.extended_summary = v;
     }
 
+    /// Document-level rST directives, in source order.
     #[getter]
-    fn deprecation<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyModelDeprecation>> {
-        match &self.deprecation {
-            Some(deprecation) => Some(deprecation.bind(py)),
-            _ => None,
-        }
+    fn directives<'py>(&self, py: Python<'py>) -> &Bound<'py, PyList> {
+        self.directives.bind(py)
     }
     #[setter]
-    fn set_deprecation(&mut self, dep: Option<Py<PyModelDeprecation>>) {
-        self.deprecation = dep;
+    fn set_directives(&mut self, py: Python<'_>, directives: Py<PyList>) -> PyResult<()> {
+        Self::verify_directives(py, &directives)?;
+        self.directives = directives;
+        Ok(())
     }
+
+    /// Computed convenience: the first directive named ``deprecated``, if any.
+    ///
+    /// Read-only — edit ``directives`` to change it.
+    #[getter]
+    fn deprecation(&self, py: Python<'_>) -> PyResult<Option<Py<PyModelDirective>>> {
+        for item in self.directives.bind(py) {
+            let directive = item.cast::<PyModelDirective>()?;
+            if directive.borrow().name.bind(py).to_str()? == "deprecated" {
+                return Ok(Some(directive.clone().unbind()));
+            }
+        }
+        Ok(None)
+    }
+
     #[getter]
     fn sections<'py>(&self, py: Python<'py>) -> &Bound<'py, PyList> {
         self.sections.bind(py)
@@ -3553,8 +3649,11 @@ impl PyModelDocstring {
         self.sections = sections;
         Ok(())
     }
-    fn __repr__(&self) -> String {
-        format!("Docstring(summary={:?})", self.summary)
+    fn __repr__(&self, py: Python<'_>) -> String {
+        match &self.summary {
+            Some(s) => format!("Docstring(summary={:?})", s.bind(py).to_string_lossy()),
+            None => "Docstring(summary=None)".to_string(),
+        }
     }
 }
 
@@ -3574,10 +3673,15 @@ impl TryFrom<&model::Docstring> for PyModelDocstring {
                     .as_ref()
                     .map(|x| -> PyResult<_> { Ok(x.into_pyobject(py)?.unbind()) })
                     .transpose()?,
-                deprecation: docstr
-                    .deprecation()
-                    .map(|x| -> PyResult<_> { Py::new(py, PyModelDeprecation::try_from(x)?) })
-                    .transpose()?,
+                directives: PyList::new(
+                    py,
+                    docstr
+                        .directives
+                        .iter()
+                        .map(PyModelDirective::try_from)
+                        .collect::<PyResult<Vec<_>>>()?,
+                )?
+                .unbind(),
                 sections: PyList::new(
                     py,
                     docstr
@@ -3600,15 +3704,12 @@ impl TryInto<model::Docstring> for &PyModelDocstring {
             Ok(model::Docstring {
                 summary: self.summary.as_ref().map(|x| x.extract(py)).transpose()?,
                 extended_summary: self.extended_summary.as_ref().map(|x| x.extract(py)).transpose()?,
-                // Python surface still models only the deprecation directive;
-                // see the note on `TryFrom<&model::Directive>` above.
                 directives: self
-                    .deprecation
-                    .as_ref()
-                    .map(|x| x.bind(py).borrow().deref().try_into())
-                    .transpose()?
-                    .into_iter()
-                    .collect(),
+                    .directives
+                    .bind(py)
+                    .iter()
+                    .map(|dir| dir.cast::<PyModelDirective>()?.borrow().deref().try_into())
+                    .collect::<Result<Vec<_>, _>>()?,
                 sections: self
                     .sections
                     .bind(py)
@@ -4319,13 +4420,14 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
 /// ``ctx.line_col(offset)`` converts byte offsets to line/column positions.
 ///
 /// ```python
-/// class TypeAnnotationChecker:
+/// class TypeAnnotationChecker(pydocstring.Visitor):
 ///     def enter_google_arg(self, arg, ctx): ...
 ///     def enter_numpy_parameter(self, param, ctx): ...
 ///
+/// checker = TypeAnnotationChecker()
 /// for docstring_text in all_docstrings:
-///     doc = pydocstring.parse(docstring_text)   # auto-detects style
-///     checker = pydocstring.walk(doc, checker)  # returns visitor
+///     doc = pydocstring.parse(docstring_text)  # auto-detects style
+///     pydocstring.walk(doc, checker)           # returns the visitor
 /// ```
 ///
 /// Google `enter_*` / `exit_*` methods:
@@ -4453,6 +4555,29 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyModelReference>()?;
     m.add_class::<PyModelAttribute>()?;
     m.add_class::<PyModelMethod>()?;
-    m.add_class::<PyModelDeprecation>()?;
+    m.add_class::<PyModelDirective>()?;
+    // PyO3 complex enums expose one class attribute per variant
+    // (``Section.Parameters(...)``); those constructors bypass ``Section``'s
+    // validating ``__init__``, so remove them from the public surface. The
+    // variant classes themselves stay alive (Rust still instantiates them);
+    // only the class-attribute constructors disappear.
+    let section = m.getattr("Section")?;
+    for variant in [
+        "Parameters",
+        "KeywordParameters",
+        "OtherParameters",
+        "Receives",
+        "Returns",
+        "Yields",
+        "Raises",
+        "Warns",
+        "Attributes",
+        "Methods",
+        "SeeAlso",
+        "References",
+        "FreeText",
+    ] {
+        section.delattr(variant)?;
+    }
     Ok(())
 }

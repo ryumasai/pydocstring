@@ -2,6 +2,18 @@
 
 Parses Google-style and NumPy-style Python docstrings into typed, traversable
 objects with source-location information suitable for linters and formatters.
+
+Missing-value convention (uniform across the Google and NumPy CST wrappers):
+
+* Fields documented as **"or missing-placeholder"** return a zero-length
+  placeholder object (``is_missing()`` is ``True``) when the surrounding
+  syntax marker is present but the content is absent (e.g. the description
+  in ``ValueError:``, or the type in ``x ():`` / ``x :``), and ``None``
+  when the parser emitted no placeholder at all (e.g. a Raises entry
+  without a colon). So these fields can still be ``None`` — check both.
+* Fields documented as **"None when absent"** are plain optionals and are
+  never a missing placeholder. This includes the ``description`` of
+  returns/yields entries in BOTH styles (symmetric by design).
 """
 
 from __future__ import annotations
@@ -82,13 +94,19 @@ class TextBlock:
     def __repr__(self) -> str: ...
 
 class Style:
-    """Docstring style detected or used for emission."""
+    """Docstring style detected or used for emission.
+
+    Hashable (usable as a dict key / set member). Compares equal only to
+    other ``Style`` members — never to ints.
+    """
 
     GOOGLE: Style
     NUMPY: Style
     PLAIN: Style
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
+    def __eq__(self, other: object) -> bool: ...
+    def __hash__(self) -> int: ...
 
 # ─── Section kinds ───────────────────────────────────────────────────────────
 
@@ -156,17 +174,23 @@ class GoogleArg:
     @property
     def names(self) -> list[Token]: ...
     @property
-    def open_bracket(self) -> Token | None: ...
+    def open_bracket(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def type(self) -> Token | None: ...
+    def type(self) -> Token | None:
+        """Type token, or missing-placeholder (e.g. ``x ():``), or ``None``."""
     @property
-    def close_bracket(self) -> Token | None: ...
+    def close_bracket(self) -> Token | None:
+        """Closing bracket, or missing-placeholder (unclosed ``(``), or ``None``."""
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """Colon token, or missing-placeholder, or ``None``."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """Description, or missing-placeholder (e.g. ``x (int):``), or ``None``."""
     @property
-    def optional(self) -> Token | None: ...
+    def optional(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
     def default_keyword(self) -> Token | None: ...
     @property
@@ -179,22 +203,28 @@ class GoogleReturn:
     @property
     def range(self) -> TextRange: ...
     @property
-    def return_type(self) -> Token | None: ...
+    def return_type(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """``None`` when absent (never a missing placeholder; symmetric with NumPy)."""
     def __repr__(self) -> str: ...
 
 class GoogleYield:
     @property
     def range(self) -> TextRange: ...
     @property
-    def return_type(self) -> Token | None: ...
+    def return_type(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """``None`` when absent (never a missing placeholder; symmetric with NumPy)."""
     def __repr__(self) -> str: ...
 
 class GoogleException:
@@ -203,20 +233,24 @@ class GoogleException:
     @property
     def type(self) -> Token: ...
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """Description, or missing-placeholder (``ValueError:``), or ``None`` (no colon)."""
     def __repr__(self) -> str: ...
 
 class GoogleWarning:
     @property
     def range(self) -> TextRange: ...
     @property
-    def warning_type(self) -> Token: ...
+    def type(self) -> Token: ...
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """Description, or missing-placeholder (``UserWarning:``), or ``None`` (no colon)."""
     def __repr__(self) -> str: ...
 
 class GoogleSeeAlsoItem:
@@ -225,9 +259,11 @@ class GoogleSeeAlsoItem:
     @property
     def names(self) -> list[Token]: ...
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """Description, or missing-placeholder (``name:``), or ``None`` (no colon)."""
     def __repr__(self) -> str: ...
 
 class GoogleReference:
@@ -251,15 +287,20 @@ class GoogleAttribute:
     @property
     def name(self) -> Token: ...
     @property
-    def open_bracket(self) -> Token | None: ...
+    def open_bracket(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def type(self) -> Token | None: ...
+    def type(self) -> Token | None:
+        """Type token, or missing-placeholder (``attr ():``), or ``None``."""
     @property
-    def close_bracket(self) -> Token | None: ...
+    def close_bracket(self) -> Token | None:
+        """Closing bracket, or missing-placeholder, or ``None``."""
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """Colon token, or missing-placeholder, or ``None``."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """Description, or missing-placeholder (``attr (int):``), or ``None``."""
     def __repr__(self) -> str: ...
 
 class GoogleMethod:
@@ -268,15 +309,20 @@ class GoogleMethod:
     @property
     def name(self) -> Token: ...
     @property
-    def open_bracket(self) -> Token | None: ...
+    def open_bracket(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def type(self) -> Token | None: ...
+    def type(self) -> Token | None:
+        """Type token, or missing-placeholder (``meth ():``), or ``None``."""
     @property
-    def close_bracket(self) -> Token | None: ...
+    def close_bracket(self) -> Token | None:
+        """Closing bracket, or missing-placeholder, or ``None``."""
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """Colon token, or missing-placeholder, or ``None``."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """Description, or missing-placeholder (``meth:``), or ``None``."""
     def __repr__(self) -> str: ...
 
 class GoogleSection:
@@ -319,10 +365,8 @@ class GoogleDocstring:
     @property
     def deprecation(self) -> GoogleDeprecation | None: ...
     @property
-    def paragraphs(self) -> list[TextBlock]: ...
-    @property
-    def stray_lines(self) -> list[TextBlock]:
-        """Deprecated alias for ``paragraphs``."""
+    def paragraphs(self) -> list[TextBlock]:
+        """Stray-prose paragraph blocks between sections, in source order."""
     @property
     def sections(self) -> list[GoogleSection]: ...
     @property
@@ -354,15 +398,28 @@ class NumPyParameter:
     @property
     def range(self) -> TextRange: ...
     @property
+    def name(self) -> Token | None:
+        """First name token (``names[0]``); ``None`` when the entry has no names."""
+    @property
     def names(self) -> list[Token]: ...
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def type(self) -> Token | None: ...
+    def type(self) -> Token | None:
+        """Type token, or missing-placeholder (``x :``), or ``None`` (no colon)."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """Description, or missing-placeholder, or ``None``.
+
+        The NumPy grammar carries descriptions on indented continuation
+        lines, so the parser emits no placeholder for a parameter without
+        one — expect ``None`` in that case (the placeholder form only
+        appears for Google-style ``name (type): desc`` entries).
+        """
     @property
-    def optional(self) -> Token | None: ...
+    def optional(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
     def default_keyword(self) -> Token | None: ...
     @property
@@ -376,13 +433,17 @@ class NumPyReturns:
     @property
     def range(self) -> TextRange: ...
     @property
-    def name(self) -> Token | None: ...
+    def name(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def return_type(self) -> Token | None: ...
+    def return_type(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """``None`` when absent (never a missing placeholder; symmetric with Google)."""
     def __repr__(self) -> str: ...
 
 class NumPyYields:
@@ -390,13 +451,17 @@ class NumPyYields:
     @property
     def range(self) -> TextRange: ...
     @property
-    def name(self) -> Token | None: ...
+    def name(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def return_type(self) -> Token | None: ...
+    def return_type(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """``None`` when absent (never a missing placeholder; symmetric with Google)."""
     def __repr__(self) -> str: ...
 
 class NumPyException:
@@ -405,9 +470,11 @@ class NumPyException:
     @property
     def type(self) -> Token: ...
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """Description, or missing-placeholder (``ValueError:``), or ``None`` (no colon)."""
     def __repr__(self) -> str: ...
 
 class NumPyWarning:
@@ -416,9 +483,11 @@ class NumPyWarning:
     @property
     def type(self) -> Token: ...
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """Description, or missing-placeholder (``UserWarning:``), or ``None`` (no colon)."""
     def __repr__(self) -> str: ...
 
 class NumPySeeAlsoItem:
@@ -427,9 +496,11 @@ class NumPySeeAlsoItem:
     @property
     def names(self) -> list[Token]: ...
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """Description, or missing-placeholder (``name :``), or ``None`` (no colon)."""
     def __repr__(self) -> str: ...
 
 class NumPyReference:
@@ -453,11 +524,19 @@ class NumPyAttribute:
     @property
     def name(self) -> Token: ...
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def type(self) -> Token | None: ...
+    def type(self) -> Token | None:
+        """Type token, or missing-placeholder (``attr :``), or ``None`` (no colon)."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """Description, or missing-placeholder, or ``None``.
+
+        NumPy attribute descriptions live on indented continuation lines,
+        so the parser emits no placeholder when one is absent — expect
+        ``None`` in that case.
+        """
     def __repr__(self) -> str: ...
 
 class NumPyMethod:
@@ -466,9 +545,11 @@ class NumPyMethod:
     @property
     def name(self) -> Token: ...
     @property
-    def colon(self) -> Token | None: ...
+    def colon(self) -> Token | None:
+        """``None`` when absent (never a missing placeholder)."""
     @property
-    def description(self) -> TextBlock | None: ...
+    def description(self) -> TextBlock | None:
+        """Description, or missing-placeholder (``meth:``), or ``None`` (no colon)."""
     def __repr__(self) -> str: ...
 
 class NumPySection:
@@ -495,6 +576,14 @@ class NumPyDocstring:
     def extended_summary(self) -> TextBlock | None: ...
     @property
     def deprecation(self) -> NumPyDeprecation | None: ...
+    @property
+    def paragraphs(self) -> list[TextBlock]:
+        """Stray-prose paragraph blocks between sections, in source order.
+
+        Parity with :attr:`GoogleDocstring.paragraphs`. The NumPy grammar
+        lets the extended summary and section bodies absorb stray prose, so
+        this list is typically empty.
+        """
     @property
     def sections(self) -> list[NumPySection]: ...
     @property
@@ -525,10 +614,23 @@ class PlainDocstring:
 
 # ─── Model IR ────────────────────────────────────────────────────────────────
 
-class Deprecation:
-    version: str
+class Directive:
+    """A document-level rST directive (``.. name:: argument`` + body).
+
+    A deprecation notice is a directive with ``name == "deprecated"`` whose
+    ``argument`` is the version.
+    """
+
+    name: str
+    argument: str | None
     description: str | None
-    def __init__(self, version: str, *, description: str | None = None) -> None: ...
+    def __init__(
+        self,
+        name: str,
+        *,
+        argument: str | None = None,
+        description: str | None = None,
+    ) -> None: ...
     def __repr__(self) -> str: ...
 
 class Parameter:
@@ -635,25 +737,31 @@ class SectionKind:
     def __repr__(self) -> str: ...
 
 class Section:
-    """A section in the model IR."""
+    """A section in the model IR.
+
+    The collection getters (``parameters``, ``returns``, ``exceptions``,
+    ``attributes``, ``methods``, ``see_also_entries``, ``references``,
+    ``body``) return ``None`` when the section is of a different kind —
+    e.g. ``returns`` is ``None`` on a ``PARAMETERS`` section.
+    """
     @property
     def kind(self) -> SectionKind: ...
     @property
     def unknown_name(self) -> str | None: ...
     @property
-    def parameters(self) -> list[Parameter]: ...
+    def parameters(self) -> list[Parameter] | None: ...
     @property
-    def returns(self) -> list[Return]: ...
+    def returns(self) -> list[Return] | None: ...
     @property
-    def exceptions(self) -> list[ExceptionEntry]: ...
+    def exceptions(self) -> list[ExceptionEntry] | None: ...
     @property
-    def attributes(self) -> list[Attribute]: ...
+    def attributes(self) -> list[Attribute] | None: ...
     @property
-    def methods(self) -> list[Method]: ...
+    def methods(self) -> list[Method] | None: ...
     @property
-    def see_also_entries(self) -> list[SeeAlsoEntry]: ...
+    def see_also_entries(self) -> list[SeeAlsoEntry] | None: ...
     @property
-    def references(self) -> list[Reference]: ...
+    def references(self) -> list[Reference] | None: ...
     @property
     def body(self) -> str | None: ...
     def __init__(
@@ -677,14 +785,20 @@ class Docstring:
 
     summary: str | None
     extended_summary: str | None
-    deprecation: Deprecation | None
+    directives: list[Directive]
     sections: list[Section]
+    @property
+    def deprecation(self) -> Directive | None:
+        """Computed convenience: the first directive named ``deprecated``.
+
+        Read-only — edit ``directives`` to change it.
+        """
     def __init__(
         self,
         *,
         summary: str | None = None,
         extended_summary: str | None = None,
-        deprecation: Deprecation | None = None,
+        directives: list[Directive] | None = None,
         sections: list[Section] | None = None,
     ) -> None: ...
     def __repr__(self) -> str: ...
@@ -733,24 +847,29 @@ def walk(
     """Walk any docstring depth-first, calling typed methods on ``visitor``.
 
     Accepts a `GoogleDocstring`, `NumPyDocstring`, or `PlainDocstring`.
-    Define only the ``enter_*`` methods you need; all others are silently skipped.
+    ``visitor`` must subclass :class:`Visitor`; override only the ``enter_*``
+    / ``exit_*`` methods you need — all others are silently skipped.
     Returns ``visitor`` so results can be collected inline.
 
-    Every ``enter_*`` method receives ``(node, ctx: WalkContext)`` as arguments.
+    Every ``enter_*`` method receives ``(node, ctx: WalkContext)`` as arguments
+    and fires before the node's children are visited; the matching ``exit_*``
+    hook (same signature) fires after the children, e.g. ``exit_google_section``
+    runs once every entry of that section has been visited.
     Use ``ctx.line_col(offset)`` to convert byte offsets to line/column positions.
 
     .. code-block:: python
 
-        class MyChecker:
+        class MyChecker(Visitor):
             def enter_google_arg(self, arg: GoogleArg, ctx: WalkContext) -> None:
                 lc = ctx.line_col(arg.range.start)
             def enter_numpy_parameter(self, param: NumPyParameter, ctx: WalkContext) -> None: ...
 
+        checker = MyChecker()
         for source_text in all_docstrings:
             doc = pydocstring.parse(source_text)
-            checker = pydocstring.walk(doc, checker)  # returns visitor
+            pydocstring.walk(doc, checker)  # returns the visitor
 
-    Google-style ``enter_*`` methods:
+    Google-style ``enter_*`` methods (each has a matching ``exit_*`` hook):
 
     .. code-block:: python
 
@@ -767,7 +886,7 @@ def walk(
         def enter_google_attribute(self, att: GoogleAttribute, ctx: WalkContext) -> None: ...
         def enter_google_method(self, mtd: GoogleMethod, ctx: WalkContext) -> None: ...
 
-    NumPy-style ``enter_*`` methods:
+    NumPy-style ``enter_*`` methods (each has a matching ``exit_*`` hook):
 
     .. code-block:: python
 
@@ -784,7 +903,7 @@ def walk(
         def enter_numpy_attribute(self, att: NumPyAttribute, ctx: WalkContext) -> None: ...
         def enter_numpy_method(self, mtd: NumPyMethod, ctx: WalkContext) -> None: ...
 
-    Plain ``enter_*`` methods:
+    Plain ``enter_*`` methods (each has a matching ``exit_*`` hook):
 
     .. code-block:: python
 

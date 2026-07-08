@@ -26,6 +26,17 @@ class TestDetectStyle:
         assert repr(pydocstring.Style.NUMPY) == "Style.NUMPY"
         assert repr(pydocstring.Style.PLAIN) == "Style.PLAIN"
 
+    def test_hashable(self):
+        emitters = {pydocstring.Style.GOOGLE: "google", pydocstring.Style.NUMPY: "numpy"}
+        assert emitters[pydocstring.Style.GOOGLE] == "google"
+        assert len({pydocstring.Style.PLAIN, pydocstring.Style.PLAIN}) == 1
+
+    def test_no_int_equality(self):
+        # 0.3.0 dropped int equality: Style.GOOGLE == 0 was a footgun.
+        assert pydocstring.Style.GOOGLE != 0
+        assert pydocstring.Style.NUMPY != 1
+        assert pydocstring.Style.PLAIN != 2
+
 
 class TestParseGoogle:
     def test_summary(self):
@@ -114,6 +125,23 @@ class TestParseGoogle:
         assert excepts[0].type.text == "ValueError"
         assert excepts[0].description.text == "If x is negative."
 
+    def test_warns_type(self):
+        doc = pydocstring.parse_google("Summary.\n\nWarns:\n    UserWarning: When deprecated.")
+
+        class Collector(pydocstring.Visitor):
+            def __init__(self):
+                self.warnings = []
+
+            def enter_google_warning(self, wrn, ctx):
+                self.warnings.append(wrn)
+
+        warnings = pydocstring.walk(doc, Collector()).warnings
+        assert len(warnings) == 1
+        # 0.3.0: unified on ``.type`` (was ``warning_type``).
+        assert warnings[0].type.text == "UserWarning"
+        assert not hasattr(warnings[0], "warning_type")
+        assert warnings[0].description.text == "When deprecated."
+
     def test_extended_summary(self):
         doc = pydocstring.parse_google("Summary.\n\nExtended description here.")
         assert doc.extended_summary is not None
@@ -148,9 +176,8 @@ class TestParseGoogle:
         paragraphs = doc.paragraphs
         assert [p.logical_text for p in paragraphs] == ["stray one\nstray two", "stray three"]
         assert [line.text for line in paragraphs[0].lines] == ["stray one", "stray two"]
-        # The deprecated ``stray_lines`` alias still works; its items are now
-        # TextBlocks (one per paragraph), not per-line tokens.
-        assert [p.text for p in doc.stray_lines] == [p.text for p in paragraphs]
+        # The deprecated ``stray_lines`` alias was removed in 0.3.0.
+        assert not hasattr(doc, "stray_lines")
 
     def test_body_text_section(self):
         doc = pydocstring.parse_google("Summary.\n\nNotes:\n    Some free text.")
@@ -258,9 +285,34 @@ class TestParseNumPy:
         params = pydocstring.walk(doc, Collector()).params
         assert len(params) == 2
         assert [n.text for n in params[0].names] == ["x"]
+        # ``name`` is the first-name convenience (parity with GoogleArg).
+        assert params[0].name is not None
+        assert params[0].name.text == "x"
         assert params[0].type.text == "int"
         assert params[0].description.text == "The first."
         assert [n.text for n in params[1].names] == ["y"]
+
+    def test_parameter_multiple_names_first_name(self):
+        doc = pydocstring.parse_numpy("Summary.\n\nParameters\n----------\nx1, x2 : int\n    The values.")
+
+        class Collector(pydocstring.Visitor):
+            def __init__(self):
+                self.params = []
+
+            def enter_numpy_parameter(self, prm, ctx):
+                self.params.append(prm)
+
+        params = pydocstring.walk(doc, Collector()).params
+        assert [n.text for n in params[0].names] == ["x1", "x2"]
+        assert params[0].name.text == "x1"
+
+    def test_paragraphs_property(self):
+        # Parity with ``GoogleDocstring.paragraphs``. The NumPy grammar lets
+        # the extended summary and section bodies absorb stray prose, so the
+        # list is typically empty — but the accessor exists with the same type.
+        doc = pydocstring.parse_numpy("Summary.\n\nParameters\n----------\nx : int\n    Desc.\n")
+        assert doc.paragraphs == []
+        assert not hasattr(doc, "stray_lines")
 
     def test_returns(self):
         doc = pydocstring.parse_numpy("Summary.\n\nReturns\n-------\nbool\n    True if successful.")
@@ -503,6 +555,20 @@ class TestModelTypes:
         assert p.type_annotation == "str"
         assert p.is_optional is True
 
+    def test_parameter_construction_validates_names(self):
+        with pytest.raises(TypeError):
+            pydocstring.Parameter([1, 2])  # ty: ignore[invalid-argument-type]
+
+    def test_parameter_names_setter_validates(self):
+        p = pydocstring.Parameter(["x"])
+        with pytest.raises(TypeError):
+            p.names = [1, 2]  # ty: ignore[invalid-assignment]
+        assert p.names == ["x"]
+
+    def test_parameter_repr(self):
+        p = pydocstring.Parameter(["x", "y"])
+        assert repr(p) == "Parameter(names=['x', 'y'])"
+
     def test_return_construction(self):
         r = pydocstring.Return(type_annotation="int", description="The result.")
         assert r.name is None
@@ -514,10 +580,17 @@ class TestModelTypes:
         assert e.type_name == "ValueError"
         assert e.description == "If x is negative."
 
-    def test_deprecation_construction(self):
-        d = pydocstring.Deprecation("1.6.0", description="Use new_func instead.")
-        assert d.version == "1.6.0"
+    def test_directive_construction(self):
+        d = pydocstring.Directive("deprecated", argument="1.6.0", description="Use new_func instead.")
+        assert d.name == "deprecated"
+        assert d.argument == "1.6.0"
         assert d.description == "Use new_func instead."
+
+    def test_directive_defaults_and_repr(self):
+        d = pydocstring.Directive("versionadded")
+        assert d.argument is None
+        assert d.description is None
+        assert repr(d) == 'Directive("versionadded")'
 
     def test_attribute_construction(self):
         a = pydocstring.Attribute("name", type_annotation="str", description="The name.")
@@ -535,6 +608,12 @@ class TestModelTypes:
         assert s.names == ["foo", "bar"]
         assert s.description == "Related functions."
 
+    def test_see_also_entry_names_setter_validates(self):
+        s = pydocstring.SeeAlsoEntry(["foo"])
+        with pytest.raises(TypeError):
+            s.names = [1]  # ty: ignore[invalid-assignment]
+        assert s.names == ["foo"]
+
     def test_reference_construction(self):
         r = pydocstring.Reference(number="1", content="Doe et al. 2020")
         assert r.number == "1"
@@ -547,6 +626,7 @@ class TestSection:
         sec = pydocstring.Section(pydocstring.SectionKind.PARAMETERS, parameters=[p])
         assert sec.kind == pydocstring.SectionKind.PARAMETERS
         params = sec.parameters
+        assert params is not None
         assert len(params) == 1
         assert params[0].names == ["x"]
         assert params[0].type_annotation == "int"
@@ -556,6 +636,7 @@ class TestSection:
         sec = pydocstring.Section(pydocstring.SectionKind.RETURNS, returns=[r])
         assert sec.kind == pydocstring.SectionKind.RETURNS
         rets = sec.returns
+        assert rets is not None
         assert len(rets) == 1
         assert rets[0].type_annotation == "bool"
 
@@ -563,8 +644,10 @@ class TestSection:
         e = pydocstring.ExceptionEntry("ValueError", description="Bad value.")
         sec = pydocstring.Section(pydocstring.SectionKind.RAISES, exceptions=[e])
         assert sec.kind == pydocstring.SectionKind.RAISES
-        assert len(sec.exceptions) == 1
-        assert sec.exceptions[0].type_name == "ValueError"
+        exceptions = sec.exceptions
+        assert exceptions is not None
+        assert len(exceptions) == 1
+        assert exceptions[0].type_name == "ValueError"
 
     def test_free_text_section(self):
         sec = pydocstring.Section(pydocstring.SectionKind.NOTES, body="Some notes here.")
@@ -577,12 +660,48 @@ class TestSection:
         assert sec.exceptions is None
         assert sec.body is None
 
+    def test_unknown_section_requires_name(self):
+        with pytest.raises(ValueError, match="unknown_name"):
+            pydocstring.Section(pydocstring.SectionKind.UNKNOWN)
+        sec = pydocstring.Section(pydocstring.SectionKind.UNKNOWN, unknown_name="Custom", body="text")
+        assert sec.kind == pydocstring.SectionKind.UNKNOWN
+        assert sec.unknown_name == "Custom"
+        assert sec.body == "text"
+
+    def test_wrong_kind_kwarg_rejected(self):
+        with pytest.raises(TypeError):
+            pydocstring.Section(
+                pydocstring.SectionKind.PARAMETERS,
+                returns=[pydocstring.Return()],
+            )
+
+    def test_variant_constructors_are_suppressed(self):
+        # PyO3 complex-enum variant constructors would bypass __init__'s
+        # validation, so they are removed from the class surface.
+        for variant in [
+            "Parameters",
+            "KeywordParameters",
+            "OtherParameters",
+            "Receives",
+            "Returns",
+            "Yields",
+            "Raises",
+            "Warns",
+            "Attributes",
+            "Methods",
+            "SeeAlso",
+            "References",
+            "FreeText",
+        ]:
+            assert not hasattr(pydocstring.Section, variant), variant
+
 
 class TestDocstringModel:
     def test_construction(self):
         doc = pydocstring.Docstring(summary="Brief summary.")
         assert doc.summary == "Brief summary."
         assert doc.extended_summary is None
+        assert doc.directives == []
         assert doc.deprecation is None
         assert doc.sections == []
 
@@ -591,6 +710,10 @@ class TestDocstringModel:
         doc.summary = "New."
         assert doc.summary == "New."
 
+    def test_repr_renders_summary(self):
+        assert repr(pydocstring.Docstring(summary="Hi.")) == 'Docstring(summary="Hi.")'
+        assert repr(pydocstring.Docstring()) == "Docstring(summary=None)"
+
     def test_with_sections(self):
         p = pydocstring.Parameter(["x"], type_annotation="int")
         sec = pydocstring.Section(pydocstring.SectionKind.PARAMETERS, parameters=[p])
@@ -598,14 +721,50 @@ class TestDocstringModel:
         assert len(doc.sections) == 1
         assert doc.sections[0].kind == pydocstring.SectionKind.PARAMETERS
 
-        doc.sections[0].parameters[0].description = "foo"
-        assert doc.sections[0].parameters[0].description == "foo"
+        params = doc.sections[0].parameters
+        assert params is not None
+        params[0].description = "foo"
+        assert params[0].description == "foo"
 
-    def test_with_deprecation(self):
-        dep = pydocstring.Deprecation("2.0", description="Removed.")
-        doc = pydocstring.Docstring(deprecation=dep)
+    def test_with_directives(self):
+        dep = pydocstring.Directive("deprecated", argument="2.0", description="Removed.")
+        doc = pydocstring.Docstring(directives=[dep])
+        assert [d.name for d in doc.directives] == ["deprecated"]
         assert doc.deprecation is not None
-        assert doc.deprecation.version == "2.0"
+        assert doc.deprecation.argument == "2.0"
+        assert doc.deprecation.description == "Removed."
+
+    def test_deprecation_is_computed_first_match(self):
+        doc = pydocstring.Docstring()
+        assert doc.deprecation is None
+        doc.directives = [
+            pydocstring.Directive("versionadded", argument="1.0"),
+            pydocstring.Directive("deprecated", argument="2.0"),
+            pydocstring.Directive("deprecated", argument="3.0"),
+        ]
+        assert doc.deprecation is not None
+        assert doc.deprecation.argument == "2.0"
+
+    def test_deprecation_is_read_only(self):
+        doc = pydocstring.Docstring()
+        with pytest.raises(AttributeError):
+            doc.deprecation = pydocstring.Directive("deprecated")  # ty: ignore[invalid-assignment]
+
+    def test_deprecation_kwarg_removed(self):
+        with pytest.raises(TypeError):
+            pydocstring.Docstring(deprecation=pydocstring.Directive("deprecated"))  # ty: ignore[unknown-argument]
+
+    def test_directives_validated(self):
+        with pytest.raises(TypeError):
+            pydocstring.Docstring(directives=["not a directive"])  # ty: ignore[invalid-argument-type]
+        doc = pydocstring.Docstring()
+        with pytest.raises(TypeError):
+            doc.directives = ["not a directive"]  # ty: ignore[invalid-assignment]
+
+    def test_sections_setter_validated(self):
+        doc = pydocstring.Docstring()
+        with pytest.raises(TypeError):
+            doc.sections = ["not a section"]  # ty: ignore[invalid-assignment]
 
 
 class TestToModel:
@@ -617,6 +776,7 @@ class TestToModel:
         assert len(model.sections) == 1
         assert model.sections[0].kind == pydocstring.SectionKind.PARAMETERS
         params = model.sections[0].parameters
+        assert params is not None
         assert len(params) == 1
         assert params[0].names == ["x"]
         assert params[0].type_annotation == "int"
@@ -631,6 +791,7 @@ class TestToModel:
         assert len(model.sections) == 1
         assert model.sections[0].kind == pydocstring.SectionKind.PARAMETERS
         params = model.sections[0].parameters
+        assert params is not None
         assert len(params) == 1
         assert params[0].names == ["x"]
         assert params[0].type_annotation == "int"
@@ -661,15 +822,37 @@ class TestToModel:
         doc = pydocstring.parse_google("Summary.\n\nRaises:\n    ValueError: Bad input.\n")
         model = doc.to_model()
         assert model.sections[0].kind == pydocstring.SectionKind.RAISES
-        assert model.sections[0].exceptions[0].type_name == "ValueError"
+        exceptions = model.sections[0].exceptions
+        assert exceptions is not None
+        assert exceptions[0].type_name == "ValueError"
 
     def test_google_to_model_returns(self):
         doc = pydocstring.parse_google("Summary.\n\nReturns:\n    int: The result.\n")
         model = doc.to_model()
         assert model.sections[0].kind == pydocstring.SectionKind.RETURNS
         rets = model.sections[0].returns
+        assert rets is not None
         assert len(rets) == 1
         assert rets[0].type_annotation == "int"
+
+    def test_google_to_model_directives(self):
+        docstr = "Summary.\n\n.. deprecated:: 1.6.0\n    Use new_func instead.\n"
+        model = pydocstring.parse_google(docstr).to_model()
+        assert [d.name for d in model.directives] == ["deprecated"]
+        dep = model.deprecation
+        assert dep is not None
+        assert dep.name == "deprecated"
+        assert dep.argument == "1.6.0"
+        assert dep.description == "Use new_func instead."
+
+    def test_emit_docstring_with_directive(self):
+        doc = pydocstring.Docstring(
+            summary="Summary.",
+            directives=[pydocstring.Directive("deprecated", argument="2.0", description="Gone.")],
+        )
+        emitted = pydocstring.emit_google(doc)
+        assert ".. deprecated:: 2.0" in emitted
+        assert "Gone." in emitted
 
     def test_plain_to_model(self):
         doc = pydocstring.parse_plain("Brief summary.\n\nMore details.")
@@ -1032,3 +1215,130 @@ class TestMissingDescription:
         excepts = pydocstring.walk(doc, Collector()).excepts
         assert excepts[0].description.text == "Later description."
         assert not excepts[0].description.is_missing()
+
+
+def _first_node(doc, method: str):
+    """Walk ``doc`` and return the first node dispatched to ``method``."""
+    nodes = []
+    visitor_cls = type(
+        "_Collector",
+        (pydocstring.Visitor,),
+        {method: lambda self, node, ctx: nodes.append(node)},
+    )
+    pydocstring.walk(doc, visitor_cls())
+    assert nodes, f"no node dispatched to {method}"
+    return nodes[0]
+
+
+def _missingness(value) -> str:
+    if value is None:
+        return "none"
+    return "missing" if value.is_missing() else "present"
+
+
+# LAW (cross-style missing-ness parity): for the same role and the same
+# semantic omission, the Google and NumPy wrappers must expose the same
+# missing-value category — a zero-length placeholder when the syntax marker
+# is present without content, None when the parser emits no placeholder.
+# Mirrors the Rust cross-style slot-kind parity law (tests/unified.rs).
+MISSINGNESS_CASES = [
+    pytest.param(
+        "Summary.\n\nRaises:\n    ValueError:\n",
+        "Summary.\n\nRaises\n------\nValueError:\n",
+        ("enter_google_exception", "enter_numpy_exception"),
+        "description",
+        "missing",
+        id="raises-description-colon-no-text",
+    ),
+    pytest.param(
+        "Summary.\n\nRaises:\n    ValueError\n",
+        "Summary.\n\nRaises\n------\nValueError\n",
+        ("enter_google_exception", "enter_numpy_exception"),
+        "description",
+        "none",
+        id="raises-description-no-colon",
+    ),
+    pytest.param(
+        "Summary.\n\nWarns:\n    UserWarning:\n",
+        "Summary.\n\nWarns\n-----\nUserWarning:\n",
+        ("enter_google_warning", "enter_numpy_warning"),
+        "description",
+        "missing",
+        id="warns-description-colon-no-text",
+    ),
+    pytest.param(
+        "Summary.\n\nMethods:\n    run:\n",
+        "Summary.\n\nMethods\n-------\nrun:\n",
+        ("enter_google_method", "enter_numpy_method"),
+        "description",
+        "missing",
+        id="methods-description-colon-no-text",
+    ),
+    pytest.param(
+        "Summary.\n\nSee Also:\n    other_func:\n",
+        "Summary.\n\nSee Also\n--------\nother_func :\n",
+        ("enter_google_see_also_item", "enter_numpy_see_also_item"),
+        "description",
+        "missing",
+        id="see-also-description-colon-no-text",
+    ),
+    pytest.param(
+        "Summary.\n\nArgs:\n    x (): Desc.\n",
+        "Summary.\n\nParameters\n----------\nx :\n    Desc.\n",
+        ("enter_google_arg", "enter_numpy_parameter"),
+        "type",
+        "missing",
+        id="parameter-type-marker-no-text",
+    ),
+    pytest.param(
+        "Summary.\n\nArgs:\n    x: Desc.\n",
+        "Summary.\n\nParameters\n----------\nx\n    Desc.\n",
+        ("enter_google_arg", "enter_numpy_parameter"),
+        "type",
+        "none",
+        id="parameter-type-no-marker",
+    ),
+    pytest.param(
+        "Summary.\n\nAttributes:\n    attr ():\n",
+        "Summary.\n\nAttributes\n----------\nattr :\n",
+        ("enter_google_attribute", "enter_numpy_attribute"),
+        "type",
+        "missing",
+        id="attribute-type-marker-no-text",
+    ),
+    # Returns/yields descriptions are plain optionals in BOTH styles: even
+    # with the marker present ("int:" / a typed entry), an absent description
+    # stays None — never a missing placeholder (documented opt symmetry).
+    pytest.param(
+        "Summary.\n\nReturns:\n    int:\n",
+        "Summary.\n\nReturns\n-------\nint\n",
+        ("enter_google_return", "enter_numpy_returns"),
+        "description",
+        "none",
+        id="returns-description-absent-stays-none",
+    ),
+    pytest.param(
+        "Summary.\n\nYields:\n    int:\n",
+        "Summary.\n\nYields\n------\nint\n",
+        ("enter_google_yield", "enter_numpy_yields"),
+        "description",
+        "none",
+        id="yields-description-absent-stays-none",
+    ),
+]
+
+
+class TestMissingnessParity:
+    """Google/NumPy parity for description/type missing-ness across roles."""
+
+    @pytest.mark.parametrize(("google_src", "numpy_src", "methods", "field", "expected"), MISSINGNESS_CASES)
+    def test_parity(self, google_src, numpy_src, methods, field, expected):
+        google_method, numpy_method = methods
+        google_node = _first_node(pydocstring.parse_google(google_src), google_method)
+        numpy_node = _first_node(pydocstring.parse_numpy(numpy_src), numpy_method)
+
+        google_cat = _missingness(getattr(google_node, field))
+        numpy_cat = _missingness(getattr(numpy_node, field))
+
+        assert google_cat == numpy_cat, f"{field}: google={google_cat}, numpy={numpy_cat}"
+        assert google_cat == expected
