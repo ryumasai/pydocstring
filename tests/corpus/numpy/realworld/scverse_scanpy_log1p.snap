@@ -1,0 +1,141 @@
+=== CST ===
+DOCUMENT@0..802 {
+  SUMMARY@0..29 {
+    TEXT_LINE: "Logarithmize the data matrix."@0..29
+  }
+  NEWLINE: "\n"@29..30
+  BLANK_LINE: "\n"@30..31
+  EXTENDED_SUMMARY@31..175 {
+    TEXT_LINE: "Computes :math:`X = \\log(X + 1)`,"@31..64
+    NEWLINE: "\n"@64..65
+    TEXT_LINE: "where :math:`log` denotes the natural logarithm unless a different base is given."@65..146
+    NEWLINE: "\n"@146..147
+    BLANK_LINE: "\n"@147..148
+    TEXT_LINE: ".. array-support:: pp.log1p"@148..175
+  }
+  NEWLINE: "\n"@175..176
+  BLANK_LINE: "\n"@176..177
+  SECTION@177..737 {
+    SECTION_HEADER@177..198 {
+      NAME: "Parameters"@177..187
+      NEWLINE: "\n"@187..188
+      UNDERLINE: "----------"@188..198
+    }
+    NEWLINE: "\n"@198..199
+    ENTRY@199..316 {
+      NAME: "data"@199..203
+      NEWLINE: "\n"@203..204
+      WHITESPACE: "    "@204..208
+      DESCRIPTION@208..316 {
+        TEXT_LINE: "The (annotated) data matrix of shape `n_obs` × `n_vars`."@208..265
+        NEWLINE: "\n"@265..266
+        WHITESPACE: "    "@266..270
+        TEXT_LINE: "Rows correspond to cells and columns to genes."@270..316
+      }
+    }
+    NEWLINE: "\n"@316..317
+    ENTRY@317..386 {
+      NAME: "base"@317..321
+      NEWLINE: "\n"@321..322
+      WHITESPACE: "    "@322..326
+      DESCRIPTION@326..386 {
+        TEXT_LINE: "Base of the logarithm. Natural logarithm is used by default."@326..386
+      }
+    }
+    NEWLINE: "\n"@386..387
+    ENTRY@387..481 {
+      NAME: "copy"@387..391
+      NEWLINE: "\n"@391..392
+      WHITESPACE: "    "@392..396
+      DESCRIPTION@396..481 {
+        TEXT_LINE: "If an :class:`~anndata.AnnData` is passed, determines whether a copy"@396..464
+        NEWLINE: "\n"@464..465
+        WHITESPACE: "    "@465..469
+        TEXT_LINE: "is returned."@469..481
+      }
+    }
+    NEWLINE: "\n"@481..482
+    ENTRY@482..599 {
+      NAME: "chunked"@482..489
+      NEWLINE: "\n"@489..490
+      WHITESPACE: "    "@490..494
+      DESCRIPTION@494..599 {
+        TEXT_LINE: "Process the data matrix in chunks, which will save memory."@494..552
+        NEWLINE: "\n"@552..553
+        WHITESPACE: "    "@553..557
+        TEXT_LINE: "Applies only to :class:`~anndata.AnnData`."@557..599
+      }
+    }
+    NEWLINE: "\n"@599..600
+    ENTRY@600..660 {
+      NAME: "chunk_size"@600..610
+      NEWLINE: "\n"@610..611
+      WHITESPACE: "    "@611..615
+      DESCRIPTION@615..660 {
+        TEXT_LINE: "`n_obs` of the chunks to process the data in."@615..660
+      }
+    }
+    NEWLINE: "\n"@660..661
+    ENTRY@661..700 {
+      NAME: "layer"@661..666
+      NEWLINE: "\n"@666..667
+      WHITESPACE: "    "@667..671
+      DESCRIPTION@671..700 {
+        TEXT_LINE: "Entry of layers to transform."@671..700
+      }
+    }
+    NEWLINE: "\n"@700..701
+    ENTRY@701..737 {
+      NAME: "obsm"@701..705
+      NEWLINE: "\n"@705..706
+      WHITESPACE: "    "@706..710
+      DESCRIPTION@710..737 {
+        TEXT_LINE: "Entry of obsm to transform."@710..737
+      }
+    }
+  }
+  NEWLINE: "\n"@737..738
+  BLANK_LINE: "\n"@738..739
+  SECTION@739..802 {
+    SECTION_HEADER@739..754 {
+      NAME: "Returns"@739..746
+      NEWLINE: "\n"@746..747
+      UNDERLINE: "-------"@747..754
+    }
+    NEWLINE: "\n"@754..755
+    ENTRY@755..802 {
+      TYPE: "Returns or updates `data`, depending on `copy`."@755..802
+    }
+  }
+}
+=== EMIT ===
+Logarithmize the data matrix.
+
+Computes :math:`X = \log(X + 1)`,
+where :math:`log` denotes the natural logarithm unless a different base is given.
+
+.. array-support:: pp.log1p
+
+Parameters
+----------
+data
+    The (annotated) data matrix of shape `n_obs` × `n_vars`.
+    Rows correspond to cells and columns to genes.
+base
+    Base of the logarithm. Natural logarithm is used by default.
+copy
+    If an :class:`~anndata.AnnData` is passed, determines whether a copy
+    is returned.
+chunked
+    Process the data matrix in chunks, which will save memory.
+    Applies only to :class:`~anndata.AnnData`.
+chunk_size
+    `n_obs` of the chunks to process the data in.
+layer
+    Entry of layers to transform.
+obsm
+    Entry of obsm to transform.
+
+Returns
+-------
+Returns or updates `data`, depending on `copy`.

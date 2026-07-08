@@ -1,0 +1,114 @@
+Compute the nearest neighbors distance matrix and a neighborhood graph of observations :cite:p:`McInnes2018`.
+
+The computation proceeds in two independent stages.
+First, a k-nearest neighbor (kNN) search produces the distance matrix via the estimator passed as ``transformer``.
+Second, connectivities are derived from the kNN search output by the kernel selected via ``method``.
+The two stages are controlled by independent parameters:
+``transformer`` selects the kNN search backend,
+``method`` selects the connectivity kernel.
+
+.. array-support:: pp.neighbors
+
+Parameters
+----------
+adata
+    Annotated data matrix.
+n_neighbors
+    The size of local neighborhood (in terms of number of neighboring data
+    points) used for manifold approximation. Larger values result in more
+    global views of the manifold, while smaller values result in more local
+    data being preserved. In general values should be in the range 2 to 100.
+    If `knn` is `True`, number of nearest neighbors to be searched. If `knn`
+    is `False`, a Gaussian kernel width is set to the distance of the
+    `n_neighbors` neighbor.
+
+    *ignored if ``transformer`` is an instance.*
+n_pcs
+    Use this many PCs. If `n_pcs==0` use `.X` if `use_rep is None`.
+use_rep
+    Use the indicated representation. `'X'` or any key for `.obsm` is valid.
+    If `None`, the representation is chosen automatically:
+    For `.n_vars` < :attr:`~scanpy.settings.N_PCS` (default: 50), `.X` is used, otherwise 'X_pca' is used.
+    If 'X_pca' is not present, it’s computed with default parameters or `n_pcs` if present.
+knn
+    If `True`, use a hard threshold to restrict the number of neighbors to
+    `n_neighbors`, that is, consider a knn graph. Otherwise, use a Gaussian
+    Kernel to assign low weights to neighbors more distant than the
+    `n_neighbors` nearest neighbor.
+method
+    Kernel that derives connectivities from the kNN search output.
+    The choice is independent of the kNN search backend,
+    which is controlled by ``transformer``.
+    Use 'umap' :cite:p:`McInnes2018`,
+    'gauss' (Gauss kernel following :cite:t:`Coifman2005` with adaptive width :cite:t:`Haghverdi2016`),
+    or 'jaccard' (Jaccard kernel as in PhenoGraph, :cite:t:`Levine2015`).
+transformer
+    kNN search backend following the API of
+    :class:`~sklearn.neighbors.KNeighborsTransformer`.
+    See :doc:`/how-to/knn-transformers` for more details.
+    Also accepts the following known options:
+
+    `None` (the default)
+        Behavior depends on data size.
+        For small data, we will calculate exact kNN, otherwise we use
+        :class:`~pynndescent.pynndescent_.PyNNDescentTransformer`
+    `'pynndescent'`
+        :class:`~pynndescent.pynndescent_.PyNNDescentTransformer`
+    `'rapids'`
+        A transformer based on :class:`cuml.neighbors.NearestNeighbors`.
+
+        .. deprecated:: 1.10.0
+           Use :func:`rapids_singlecell.pp.neighbors` instead.
+metric
+    A known metric’s name or a callable that returns a distance.
+    If `distances` is given, this parameter is simply stored in `.uns` (see below),
+    otherwise defaults to `'euclidean'`.
+
+    *ignored if ``transformer`` is an instance.*
+metric_kwds
+    Options for the metric.
+
+    *ignored if ``transformer`` is an instance.*
+random_state
+    A numpy random seed.
+
+    *ignored if ``transformer`` is an instance.*
+key_added
+    If not specified, the neighbors data is stored in `.uns['neighbors']`,
+    distances and connectivities are stored in `.obsp['distances']` and
+    `.obsp['connectivities']` respectively.
+    If specified, the neighbors data is added to .uns[key_added],
+    distances are stored in `.obsp[f'{key_added}_distances']` and
+    connectivities in `.obsp[f'{key_added}_connectivities']`.
+copy
+    Return a copy instead of writing to adata.
+
+Returns
+-------
+Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:
+
+`adata.obsp['distances' | f'{key_added}_distances']` : :class:`scipy.sparse.csr_matrix` (dtype `float`)
+    Distance matrix of the nearest neighbors search. Each row (cell) has `n_neighbors`-1 non-zero entries. These are the distances to their `n_neighbors`-1 nearest neighbors (excluding the cell itself).
+`adata.obsp['connectivities' | f'{key_added}_connectivities']` : :class:`scipy.sparse._csr.csr_matrix` (dtype `float`)
+    Weighted adjacency matrix of the neighborhood graph of data
+    points. Weights should be interpreted as connectivities.
+`adata.uns['neighbors' | key_added]` : :class:`dict`
+    neighbors parameters.
+
+Examples
+--------
+>>> import scanpy as sc
+>>> adata = sc.datasets.pbmc68k_reduced()
+>>> # Basic usage
+>>> sc.pp.neighbors(adata, 20, metric="cosine")
+>>> # Provide your own transformer for more control and flexibility
+>>> from sklearn.neighbors import KNeighborsTransformer
+>>> transformer = KNeighborsTransformer(
+...     n_neighbors=10, metric="manhattan", algorithm="kd_tree"
+... )
+>>> sc.pp.neighbors(adata, transformer=transformer)
+>>> # now you can e.g. access the index: `transformer._tree`
+
+See Also
+--------
+:doc:`/how-to/knn-transformers`

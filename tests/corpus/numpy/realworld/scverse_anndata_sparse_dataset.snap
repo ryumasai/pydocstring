@@ -1,0 +1,187 @@
+=== CST ===
+DOCUMENT@0..1696 {
+  SUMMARY@0..56 {
+    TEXT_LINE: "Generates a backed mode-compatible sparse dataset class."@0..56
+  }
+  NEWLINE: "\n"@56..57
+  BLANK_LINE: "\n"@57..58
+  SECTION@58..559 {
+    SECTION_HEADER@58..79 {
+      NAME: "Parameters"@58..68
+      NEWLINE: "\n"@68..69
+      UNDERLINE: "----------"@69..79
+    }
+    NEWLINE: "\n"@79..80
+    ENTRY@80..114 {
+      NAME: "group"@80..85
+      NEWLINE: "\n"@85..86
+      WHITESPACE: "    "@86..90
+      DESCRIPTION@90..114 {
+        TEXT_LINE: "The backing group store."@90..114
+      }
+    }
+    NEWLINE: "\n"@114..115
+    ENTRY@115..559 {
+      NAME: "should_cache_indptr"@115..134
+      NEWLINE: "\n"@134..135
+      WHITESPACE: "    "@135..139
+      DESCRIPTION@139..559 {
+        TEXT_LINE: "Whether or not to cache the indptr for repeated reuse as a :class:`numpy.ndarray`."@139..221
+        NEWLINE: "\n"@221..222
+        WHITESPACE: "    "@222..226
+        TEXT_LINE: "The default is `True` but one might set it to false if the dataset is repeatedly reopened"@226..315
+        NEWLINE: "\n"@315..316
+        WHITESPACE: "    "@316..320
+        TEXT_LINE: "using this command, and then only a subset is read in before closing again."@320..395
+        NEWLINE: "\n"@395..396
+        WHITESPACE: "    "@396..400
+        TEXT_LINE: "See https://github.com/scverse/anndata/blob/3c489b979086c39c59d3eb5dad90ebacce3b9a80/src/anndata/_io/specs/lazy_methods.py#L85-L95"@400..530
+        NEWLINE: "\n"@530..531
+        WHITESPACE: "    "@531..535
+        TEXT_LINE: "for the target use-case."@535..559
+      }
+    }
+  }
+  NEWLINE: "\n"@559..560
+  BLANK_LINE: "\n"@560..561
+  SECTION@561..602 {
+    SECTION_HEADER@561..576 {
+      NAME: "Returns"@561..568
+      NEWLINE: "\n"@568..569
+      UNDERLINE: "-------"@569..576
+    }
+    NEWLINE: "\n"@576..577
+    WHITESPACE: "    "@577..581
+    ENTRY@581..602 {
+      TYPE: "Sparse dataset class."@581..602
+    }
+  }
+  NEWLINE: "\n"@602..603
+  BLANK_LINE: "\n"@603..604
+  SECTION@604..1696 {
+    SECTION_HEADER@604..619 {
+      NAME: "Example"@604..611
+      NEWLINE: "\n"@611..612
+      UNDERLINE: "-------"@612..619
+    }
+    NEWLINE: "\n"@619..620
+    BLANK_LINE: "\n"@620..621
+    DESCRIPTION@621..1696 {
+      TEXT_LINE: "First we'll need a stored dataset:"@621..655
+      NEWLINE: "\n"@655..656
+      BLANK_LINE: "\n"@656..657
+      TEXT_LINE: ">>> import scanpy as sc"@657..680
+      NEWLINE: "\n"@680..681
+      TEXT_LINE: ">>> import h5py"@681..696
+      NEWLINE: "\n"@696..697
+      TEXT_LINE: ">>> from anndata.io import sparse_dataset"@697..738
+      NEWLINE: "\n"@738..739
+      TEXT_LINE: ">>> from anndata.io import read_elem"@739..775
+      NEWLINE: "\n"@775..776
+      TEXT_LINE: ">>> sc.datasets.pbmc68k_reduced().raw.to_adata().write_h5ad(\"pbmc.h5ad\")"@776..848
+      NEWLINE: "\n"@848..849
+      BLANK_LINE: "\n"@849..850
+      TEXT_LINE: "Initialize a sparse dataset from storage"@850..890
+      NEWLINE: "\n"@890..891
+      BLANK_LINE: "\n"@891..892
+      TEXT_LINE: ">>> f = h5py.File(\"pbmc.h5ad\")"@892..922
+      NEWLINE: "\n"@922..923
+      TEXT_LINE: ">>> X = sparse_dataset(f[\"X\"])"@923..953
+      NEWLINE: "\n"@953..954
+      TEXT_LINE: ">>> X"@954..959
+      NEWLINE: "\n"@959..960
+      TEXT_LINE: "CSRDataset: backend hdf5, shape (700, 765), data_dtype float32"@960..1022
+      NEWLINE: "\n"@1022..1023
+      BLANK_LINE: "\n"@1023..1024
+      TEXT_LINE: "Indexing returns sparse matrices"@1024..1056
+      NEWLINE: "\n"@1056..1057
+      BLANK_LINE: "\n"@1057..1058
+      TEXT_LINE: ">>> X[100:200]  # doctest: +ELLIPSIS"@1058..1094
+      NEWLINE: "\n"@1094..1095
+      TEXT_LINE: "<...sparse matrix of...float32...with 25003 stored elements...>"@1095..1158
+      NEWLINE: "\n"@1158..1159
+      BLANK_LINE: "\n"@1159..1160
+      TEXT_LINE: "These can also be used inside of an AnnData object, no need for backed mode"@1160..1235
+      NEWLINE: "\n"@1235..1236
+      BLANK_LINE: "\n"@1236..1237
+      TEXT_LINE: ">>> from anndata import AnnData"@1237..1268
+      NEWLINE: "\n"@1268..1269
+      TEXT_LINE: ">>> adata = AnnData("@1269..1289
+      NEWLINE: "\n"@1289..1290
+      TEXT_LINE: "...     layers={\"backed\": X}, obs=read_elem(f[\"obs\"]), var=read_elem(f[\"var\"])"@1290..1368
+      NEWLINE: "\n"@1368..1369
+      TEXT_LINE: "... )"@1369..1374
+      NEWLINE: "\n"@1374..1375
+      TEXT_LINE: ">>> adata.layers[\"backed\"]"@1375..1401
+      NEWLINE: "\n"@1401..1402
+      TEXT_LINE: "CSRDataset: backend hdf5, shape (700, 765), data_dtype float32"@1402..1464
+      NEWLINE: "\n"@1464..1465
+      BLANK_LINE: "\n"@1465..1466
+      TEXT_LINE: "Indexing access (i.e., from views) brings selection into memory"@1466..1529
+      NEWLINE: "\n"@1529..1530
+      BLANK_LINE: "\n"@1530..1531
+      TEXT_LINE: ">>> adata[adata.obs[\"bulk_labels\"] == \"CD56+ NK\"].layers["@1531..1588
+      NEWLINE: "\n"@1588..1589
+      TEXT_LINE: "...     \"backed\""@1589..1605
+      NEWLINE: "\n"@1605..1606
+      TEXT_LINE: "... ]  # doctest: +ELLIPSIS"@1606..1633
+      NEWLINE: "\n"@1633..1634
+      TEXT_LINE: "<...sparse matrix of...float32...with 7340 stored elements...>"@1634..1696
+    }
+  }
+}
+=== EMIT ===
+Generates a backed mode-compatible sparse dataset class.
+
+Parameters
+----------
+group
+    The backing group store.
+should_cache_indptr
+    Whether or not to cache the indptr for repeated reuse as a :class:`numpy.ndarray`.
+    The default is `True` but one might set it to false if the dataset is repeatedly reopened
+    using this command, and then only a subset is read in before closing again.
+    See https://github.com/scverse/anndata/blob/3c489b979086c39c59d3eb5dad90ebacce3b9a80/src/anndata/_io/specs/lazy_methods.py#L85-L95
+    for the target use-case.
+
+Returns
+-------
+Sparse dataset class.
+
+Examples
+--------
+First we'll need a stored dataset:
+
+>>> import scanpy as sc
+>>> import h5py
+>>> from anndata.io import sparse_dataset
+>>> from anndata.io import read_elem
+>>> sc.datasets.pbmc68k_reduced().raw.to_adata().write_h5ad("pbmc.h5ad")
+
+Initialize a sparse dataset from storage
+
+>>> f = h5py.File("pbmc.h5ad")
+>>> X = sparse_dataset(f["X"])
+>>> X
+CSRDataset: backend hdf5, shape (700, 765), data_dtype float32
+
+Indexing returns sparse matrices
+
+>>> X[100:200]  # doctest: +ELLIPSIS
+<...sparse matrix of...float32...with 25003 stored elements...>
+
+These can also be used inside of an AnnData object, no need for backed mode
+
+>>> from anndata import AnnData
+>>> adata = AnnData(
+...     layers={"backed": X}, obs=read_elem(f["obs"]), var=read_elem(f["var"])
+... )
+>>> adata.layers["backed"]
+CSRDataset: backend hdf5, shape (700, 765), data_dtype float32
+
+Indexing access (i.e., from views) brings selection into memory
+
+>>> adata[adata.obs["bulk_labels"] == "CD56+ NK"].layers[
+...     "backed"
+... ]  # doctest: +ELLIPSIS
+<...sparse matrix of...float32...with 7340 stored elements...>

@@ -1,0 +1,364 @@
+=== CST ===
+DOCUMENT@0..3201 {
+  SUMMARY@0..49 {
+    TEXT_LINE: "Cluster cells into subgroups :cite:p:`Traag2019`."@0..49
+  }
+  NEWLINE: "\n"@49..50
+  BLANK_LINE: "\n"@50..51
+  EXTENDED_SUMMARY@51..375 {
+    TEXT_LINE: "Cluster cells using the Leiden algorithm :cite:p:`Traag2019`,"@51..112
+    NEWLINE: "\n"@112..113
+    TEXT_LINE: "an improved version of the Louvain algorithm :cite:p:`Blondel2008`."@113..180
+    NEWLINE: "\n"@180..181
+    TEXT_LINE: "It was proposed for single-cell analysis by :cite:t:`Levine2015`."@181..246
+    NEWLINE: "\n"@246..247
+    BLANK_LINE: "\n"@247..248
+    TEXT_LINE: "This requires having run :func:`~scanpy.pp.neighbors` or"@248..304
+    NEWLINE: "\n"@304..305
+    TEXT_LINE: ":func:`~scanpy.external.pp.bbknn` first."@305..345
+    NEWLINE: "\n"@345..346
+    BLANK_LINE: "\n"@346..347
+    TEXT_LINE: ".. array-support:: tl.leiden"@347..375
+  }
+  NEWLINE: "\n"@375..376
+  BLANK_LINE: "\n"@376..377
+  SECTION@377..2458 {
+    SECTION_HEADER@377..398 {
+      NAME: "Parameters"@377..387
+      NEWLINE: "\n"@387..388
+      UNDERLINE: "----------"@388..398
+    }
+    NEWLINE: "\n"@398..399
+    ENTRY@399..435 {
+      NAME: "adata"@399..404
+      NEWLINE: "\n"@404..405
+      WHITESPACE: "    "@405..409
+      DESCRIPTION@409..435 {
+        TEXT_LINE: "The annotated data matrix."@409..435
+      }
+    }
+    NEWLINE: "\n"@435..436
+    ENTRY@436..663 {
+      NAME: "resolution"@436..446
+      NEWLINE: "\n"@446..447
+      WHITESPACE: "    "@447..451
+      DESCRIPTION@451..663 {
+        TEXT_LINE: "A parameter value controlling the coarseness of the clustering."@451..514
+        NEWLINE: "\n"@514..515
+        WHITESPACE: "    "@515..519
+        TEXT_LINE: "Higher values lead to more clusters."@519..555
+        NEWLINE: "\n"@555..556
+        WHITESPACE: "    "@556..560
+        TEXT_LINE: "Set to `None` if overriding `partition_type`"@560..604
+        NEWLINE: "\n"@604..605
+        WHITESPACE: "    "@605..609
+        TEXT_LINE: "to one that doesn’t accept a `resolution_parameter`."@609..663
+      }
+    }
+    NEWLINE: "\n"@663..664
+    ENTRY@664..727 {
+      NAME: "random_state"@664..676
+      NEWLINE: "\n"@676..677
+      WHITESPACE: "    "@677..681
+      DESCRIPTION@681..727 {
+        TEXT_LINE: "Change the initialization of the optimization."@681..727
+      }
+    }
+    NEWLINE: "\n"@727..728
+    ENTRY@728..883 {
+      NAME: "restrict_to"@728..739
+      NEWLINE: "\n"@739..740
+      WHITESPACE: "    "@740..744
+      DESCRIPTION@744..883 {
+        TEXT_LINE: "Restrict the clustering to the categories within the key for sample"@744..811
+        NEWLINE: "\n"@811..812
+        WHITESPACE: "    "@812..816
+        TEXT_LINE: "annotation, tuple needs to contain `(obs_key, list_of_categories)`."@816..883
+      }
+    }
+    NEWLINE: "\n"@883..884
+    ENTRY@884..952 {
+      NAME: "key_added"@884..893
+      NEWLINE: "\n"@893..894
+      WHITESPACE: "    "@894..898
+      DESCRIPTION@898..952 {
+        TEXT_LINE: "`adata.obs` key under which to add the cluster labels."@898..952
+      }
+    }
+    NEWLINE: "\n"@952..953
+    ENTRY@953..1042 {
+      NAME: "adjacency"@953..962
+      NEWLINE: "\n"@962..963
+      WHITESPACE: "    "@963..967
+      DESCRIPTION@967..1042 {
+        TEXT_LINE: "Sparse adjacency matrix of the graph, defaults to neighbors connectivities."@967..1042
+      }
+    }
+    NEWLINE: "\n"@1042..1043
+    ENTRY@1043..1109 {
+      NAME: "directed"@1043..1051
+      NEWLINE: "\n"@1051..1052
+      WHITESPACE: "    "@1052..1056
+      DESCRIPTION@1056..1109 {
+        TEXT_LINE: "Whether to treat the graph as directed or undirected."@1056..1109
+      }
+    }
+    NEWLINE: "\n"@1109..1110
+    ENTRY@1110..1239 {
+      NAME: "use_weights"@1110..1121
+      NEWLINE: "\n"@1121..1122
+      WHITESPACE: "    "@1122..1126
+      DESCRIPTION@1126..1239 {
+        TEXT_LINE: "If `True`, edge weights from the graph are used in the computation"@1126..1192
+        NEWLINE: "\n"@1192..1193
+        WHITESPACE: "    "@1193..1197
+        TEXT_LINE: "(placing more emphasis on stronger edges)."@1197..1239
+      }
+    }
+    NEWLINE: "\n"@1239..1240
+    ENTRY@1240..1528 {
+      NAME: "n_iterations"@1240..1252
+      NEWLINE: "\n"@1252..1253
+      WHITESPACE: "    "@1253..1257
+      DESCRIPTION@1257..1528 {
+        TEXT_LINE: "How many iterations of the Leiden clustering algorithm to perform."@1257..1323
+        NEWLINE: "\n"@1323..1324
+        WHITESPACE: "    "@1324..1328
+        TEXT_LINE: "Positive values above 2 define the total number of iterations to perform,"@1328..1401
+        NEWLINE: "\n"@1401..1402
+        WHITESPACE: "    "@1402..1406
+        TEXT_LINE: "-1 has the algorithm run until it reaches its optimal clustering."@1406..1471
+        NEWLINE: "\n"@1471..1472
+        WHITESPACE: "    "@1472..1476
+        TEXT_LINE: "2 is faster and the default for underlying packages."@1476..1528
+      }
+    }
+    NEWLINE: "\n"@1528..1529
+    ENTRY@1529..1741 {
+      NAME: "partition_type"@1529..1543
+      NEWLINE: "\n"@1543..1544
+      WHITESPACE: "    "@1544..1548
+      DESCRIPTION@1548..1741 {
+        TEXT_LINE: "Type of partition to use."@1548..1573
+        NEWLINE: "\n"@1573..1574
+        WHITESPACE: "    "@1574..1578
+        TEXT_LINE: "Defaults to :class:`~leidenalg.RBConfigurationVertexPartition`."@1578..1641
+        NEWLINE: "\n"@1641..1642
+        WHITESPACE: "    "@1642..1646
+        TEXT_LINE: "For the available options, consult the documentation for"@1646..1702
+        NEWLINE: "\n"@1702..1703
+        WHITESPACE: "    "@1703..1707
+        TEXT_LINE: ":func:`~leidenalg.find_partition`."@1707..1741
+      }
+    }
+    NEWLINE: "\n"@1741..1742
+    ENTRY@1742..2036 {
+      NAME: "neighbors_key"@1742..1755
+      NEWLINE: "\n"@1755..1756
+      WHITESPACE: "    "@1756..1760
+      DESCRIPTION@1760..2036 {
+        TEXT_LINE: "Use neighbors connectivities as adjacency."@1760..1802
+        NEWLINE: "\n"@1802..1803
+        WHITESPACE: "    "@1803..1807
+        TEXT_LINE: "If not specified, leiden looks at .obsp['connectivities'] for connectivities"@1807..1883
+        NEWLINE: "\n"@1883..1884
+        WHITESPACE: "    "@1884..1888
+        TEXT_LINE: "(default storage place for pp.neighbors)."@1888..1929
+        NEWLINE: "\n"@1929..1930
+        WHITESPACE: "    "@1930..1934
+        TEXT_LINE: "If specified, leiden looks at"@1934..1963
+        NEWLINE: "\n"@1963..1964
+        WHITESPACE: "    "@1964..1968
+        TEXT_LINE: ".obsp[.uns[neighbors_key]['connectivities_key']] for connectivities."@1968..2036
+      }
+    }
+    NEWLINE: "\n"@2036..2037
+    ENTRY@2037..2147 {
+      NAME: "obsp"@2037..2041
+      NEWLINE: "\n"@2041..2042
+      WHITESPACE: "    "@2042..2046
+      DESCRIPTION@2046..2147 {
+        TEXT_LINE: "Use .obsp[obsp] as adjacency. You can't specify both"@2046..2098
+        NEWLINE: "\n"@2098..2099
+        WHITESPACE: "    "@2099..2103
+        TEXT_LINE: "`obsp` and `neighbors_key` at the same time."@2103..2147
+      }
+    }
+    NEWLINE: "\n"@2147..2148
+    ENTRY@2148..2202 {
+      NAME: "copy"@2148..2152
+      NEWLINE: "\n"@2152..2153
+      WHITESPACE: "    "@2153..2157
+      DESCRIPTION@2157..2202 {
+        TEXT_LINE: "Whether to copy `adata` or modify it inplace."@2157..2202
+      }
+    }
+    NEWLINE: "\n"@2202..2203
+    ENTRY@2203..2252 {
+      NAME: "flavor"@2203..2209
+      NEWLINE: "\n"@2209..2210
+      WHITESPACE: "    "@2210..2214
+      DESCRIPTION@2214..2252 {
+        TEXT_LINE: "Which package's implementation to use."@2214..2252
+      }
+    }
+    NEWLINE: "\n"@2252..2253
+    ENTRY@2253..2458 {
+      NAME: "**clustering_args"@2253..2270
+      NEWLINE: "\n"@2270..2271
+      WHITESPACE: "    "@2271..2275
+      DESCRIPTION@2275..2458 {
+        TEXT_LINE: "Any further arguments to pass to :func:`~leidenalg.find_partition` (which in turn passes arguments to the `partition_type`)"@2275..2398
+        NEWLINE: "\n"@2398..2399
+        WHITESPACE: "    "@2399..2403
+        TEXT_LINE: "or :meth:`igraph.Graph.community_leiden` from `igraph`."@2403..2458
+      }
+    }
+  }
+  NEWLINE: "\n"@2458..2459
+  BLANK_LINE: "\n"@2459..2460
+  SECTION@2460..3201 {
+    SECTION_HEADER@2460..2475 {
+      NAME: "Returns"@2460..2467
+      NEWLINE: "\n"@2467..2468
+      UNDERLINE: "-------"@2468..2475
+    }
+    NEWLINE: "\n"@2475..2476
+    ENTRY@2476..2568 {
+      TYPE: "Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:"@2476..2568
+    }
+    NEWLINE: "\n"@2568..2569
+    BLANK_LINE: "\n"@2569..2570
+    ENTRY@2570..2757 {
+      NAME: "`adata.obs['leiden' | key_added]`"@2570..2603
+      WHITESPACE: " "@2603..2604
+      COLON: ":"@2604..2605
+      WHITESPACE: " "@2605..2606
+      TYPE: ":class:`pandas.Series` (dtype ``category``)"@2606..2649
+      NEWLINE: "\n"@2649..2650
+      WHITESPACE: "    "@2650..2654
+      DESCRIPTION@2654..2757 {
+        TEXT_LINE: "Array of dim (number of samples) that stores the subgroup id"@2654..2714
+        NEWLINE: "\n"@2714..2715
+        WHITESPACE: "    "@2715..2719
+        TEXT_LINE: "(``'0'``, ``'1'``, ...) for each cell."@2719..2757
+      }
+    }
+    NEWLINE: "\n"@2757..2758
+    BLANK_LINE: "\n"@2758..2759
+    ENTRY@2759..2918 {
+      NAME: "`adata.uns['leiden' | key_added]['params']`"@2759..2802
+      WHITESPACE: " "@2802..2803
+      COLON: ":"@2803..2804
+      WHITESPACE: " "@2804..2805
+      TYPE: ":class:`dict`"@2805..2818
+      NEWLINE: "\n"@2818..2819
+      WHITESPACE: "    "@2819..2823
+      DESCRIPTION@2823..2918 {
+        TEXT_LINE: "A dict with the values for the parameters `resolution`, `random_state`,"@2823..2894
+        NEWLINE: "\n"@2894..2895
+        WHITESPACE: "    "@2895..2899
+        TEXT_LINE: "and `n_iterations`."@2899..2918
+      }
+    }
+    NEWLINE: "\n"@2918..2919
+    BLANK_LINE: "\n"@2919..2920
+    ENTRY@2920..3201 {
+      NAME: "`adata.uns['leiden' | key_added]['modularity']`"@2920..2967
+      WHITESPACE: " "@2967..2968
+      COLON: ":"@2968..2969
+      WHITESPACE: " "@2969..2970
+      TYPE: ":class:`float`"@2970..2984
+      NEWLINE: "\n"@2984..2985
+      WHITESPACE: "    "@2985..2989
+      DESCRIPTION@2989..3201 {
+        TEXT_LINE: "The modularity score of the final clustering,"@2989..3034
+        NEWLINE: "\n"@3034..3035
+        WHITESPACE: "    "@3035..3039
+        TEXT_LINE: "as calculated by the `flavor`."@3039..3069
+        NEWLINE: "\n"@3069..3070
+        WHITESPACE: "    "@3070..3074
+        TEXT_LINE: "Use :func:`scanpy.metrics.modularity`\\ `(adata, mode='calculate' | 'update')`"@3074..3151
+        NEWLINE: "\n"@3151..3152
+        WHITESPACE: "    "@3152..3156
+        TEXT_LINE: "to calculate a score independent of `flavor`."@3156..3201
+      }
+    }
+  }
+}
+=== EMIT ===
+Cluster cells into subgroups :cite:p:`Traag2019`.
+
+Cluster cells using the Leiden algorithm :cite:p:`Traag2019`,
+an improved version of the Louvain algorithm :cite:p:`Blondel2008`.
+It was proposed for single-cell analysis by :cite:t:`Levine2015`.
+
+This requires having run :func:`~scanpy.pp.neighbors` or
+:func:`~scanpy.external.pp.bbknn` first.
+
+.. array-support:: tl.leiden
+
+Parameters
+----------
+adata
+    The annotated data matrix.
+resolution
+    A parameter value controlling the coarseness of the clustering.
+    Higher values lead to more clusters.
+    Set to `None` if overriding `partition_type`
+    to one that doesn’t accept a `resolution_parameter`.
+random_state
+    Change the initialization of the optimization.
+restrict_to
+    Restrict the clustering to the categories within the key for sample
+    annotation, tuple needs to contain `(obs_key, list_of_categories)`.
+key_added
+    `adata.obs` key under which to add the cluster labels.
+adjacency
+    Sparse adjacency matrix of the graph, defaults to neighbors connectivities.
+directed
+    Whether to treat the graph as directed or undirected.
+use_weights
+    If `True`, edge weights from the graph are used in the computation
+    (placing more emphasis on stronger edges).
+n_iterations
+    How many iterations of the Leiden clustering algorithm to perform.
+    Positive values above 2 define the total number of iterations to perform,
+    -1 has the algorithm run until it reaches its optimal clustering.
+    2 is faster and the default for underlying packages.
+partition_type
+    Type of partition to use.
+    Defaults to :class:`~leidenalg.RBConfigurationVertexPartition`.
+    For the available options, consult the documentation for
+    :func:`~leidenalg.find_partition`.
+neighbors_key
+    Use neighbors connectivities as adjacency.
+    If not specified, leiden looks at .obsp['connectivities'] for connectivities
+    (default storage place for pp.neighbors).
+    If specified, leiden looks at
+    .obsp[.uns[neighbors_key]['connectivities_key']] for connectivities.
+obsp
+    Use .obsp[obsp] as adjacency. You can't specify both
+    `obsp` and `neighbors_key` at the same time.
+copy
+    Whether to copy `adata` or modify it inplace.
+flavor
+    Which package's implementation to use.
+**clustering_args
+    Any further arguments to pass to :func:`~leidenalg.find_partition` (which in turn passes arguments to the `partition_type`)
+    or :meth:`igraph.Graph.community_leiden` from `igraph`.
+
+Returns
+-------
+Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:
+`adata.obs['leiden' | key_added]` : :class:`pandas.Series` (dtype ``category``)
+    Array of dim (number of samples) that stores the subgroup id
+    (``'0'``, ``'1'``, ...) for each cell.
+`adata.uns['leiden' | key_added]['params']` : :class:`dict`
+    A dict with the values for the parameters `resolution`, `random_state`,
+    and `n_iterations`.
+`adata.uns['leiden' | key_added]['modularity']` : :class:`float`
+    The modularity score of the final clustering,
+    as calculated by the `flavor`.
+    Use :func:`scanpy.metrics.modularity`\ `(adata, mode='calculate' | 'update')`
+    to calculate a score independent of `flavor`.

@@ -33,6 +33,11 @@ plain/   (flat — only a handful of inputs)
   - `numpy/realworld/` — NumPy 2.5.1 and SciPy 1.18.0 (both BSD-3-Clause;
     docstring text is included verbatim for testing purposes only, and
     remains © the NumPy/SciPy developers under their licenses).
+  - `numpy/realworld/scverse_*` — the scanpy/anndata ecosystem the #26
+    reporters maintain, i.e. the production docstrings this library exists
+    to process: anndata 0.13.0 and scanpy 1.12.2 (both BSD-3-Clause; same
+    verbatim-for-testing terms). Extracted via runtime `getdoc`, so scanpy's
+    `docrep` templates are expanded as real callers see them.
   - `google/realworld/` — absl-py 2.5.0 (Apache-2.0) and Python Fire 0.7.1
     (Apache-2.0); same verbatim-for-testing terms.
 

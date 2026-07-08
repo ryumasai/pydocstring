@@ -1,0 +1,69 @@
+=== CST ===
+DOCUMENT@0..410 {
+  SUMMARY@0..44 {
+    TEXT_LINE: "Generate shallow :class:`~pandas.DataFrame`."@0..44
+  }
+  NEWLINE: "\n"@44..45
+  BLANK_LINE: "\n"@45..46
+  EXTENDED_SUMMARY@46..306 {
+    TEXT_LINE: "The data matrix :attr:`X` is returned as"@46..86
+    NEWLINE: "\n"@86..87
+    TEXT_LINE: ":class:`~pandas.DataFrame`, where :attr:`obs_names` initializes the"@87..154
+    NEWLINE: "\n"@154..155
+    TEXT_LINE: "index, and :attr:`var_names` the columns."@155..196
+    NEWLINE: "\n"@196..197
+    BLANK_LINE: "\n"@197..198
+    TEXT_LINE: "* No annotations are maintained in the returned object."@198..253
+    NEWLINE: "\n"@253..254
+    TEXT_LINE: "* The data matrix is densified in case it is sparse."@254..306
+  }
+  NEWLINE: "\n"@306..307
+  BLANK_LINE: "\n"@307..308
+  SECTION@308..350 {
+    SECTION_HEADER@308..321 {
+      NAME: "Params"@308..314
+      NEWLINE: "\n"@314..315
+      UNDERLINE: "------"@315..321
+    }
+    NEWLINE: "\n"@321..322
+    ENTRY@322..350 {
+      NAME: "layer"@322..327
+      NEWLINE: "\n"@327..328
+      WHITESPACE: "    "@328..332
+      DESCRIPTION@332..350 {
+        TEXT_LINE: "Key for `.layers`."@332..350
+      }
+    }
+  }
+  NEWLINE: "\n"@350..351
+  BLANK_LINE: "\n"@351..352
+  SECTION@352..410 {
+    SECTION_HEADER@352..367 {
+      NAME: "Returns"@352..359
+      NEWLINE: "\n"@359..360
+      UNDERLINE: "-------"@360..367
+    }
+    NEWLINE: "\n"@367..368
+    ENTRY@368..410 {
+      TYPE: "Pandas DataFrame of specified data matrix."@368..410
+    }
+  }
+}
+=== EMIT ===
+Generate shallow :class:`~pandas.DataFrame`.
+
+The data matrix :attr:`X` is returned as
+:class:`~pandas.DataFrame`, where :attr:`obs_names` initializes the
+index, and :attr:`var_names` the columns.
+
+* No annotations are maintained in the returned object.
+* The data matrix is densified in case it is sparse.
+
+Parameters
+----------
+layer
+    Key for `.layers`.
+
+Returns
+-------
+Pandas DataFrame of specified data matrix.

@@ -1,0 +1,139 @@
+Principal component analysis :cite:p:`Pedregosa2011`.
+
+Computes PCA coordinates, loadings and variance decomposition.
+Uses the following implementations (and defaults for `svd_solver`):
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   - -
+     - :class:`~numpy.ndarray`, :class:`~scipy.sparse.spmatrix`, or :class:`~scipy.sparse.sparray`
+     - :class:`dask.array.Array`
+   - - `chunked=False`, `zero_center=True`
+     - sklearn :class:`~sklearn.decomposition.PCA` (`'arpack'`)
+     - - *dense*: dask-ml :class:`~dask_ml.decomposition.PCA`\ [#high-mem]_ (`'auto'`)
+       - *sparse* or `svd_solver='covariance_eigh'`: custom implementation (`'covariance_eigh'`)
+   - - `chunked=False`, `zero_center=False`
+     - sklearn :class:`~sklearn.decomposition.TruncatedSVD` (`'randomized'`)
+     - dask-ml :class:`~dask_ml.decomposition.TruncatedSVD`\ [#dense-only]_ (`'tsqr'`)
+   - - `chunked=True` (`zero_center` ignored)
+     - sklearn :class:`~sklearn.decomposition.IncrementalPCA` (`'auto'`)
+     - dask-ml :class:`~dask_ml.decomposition.IncrementalPCA`\ [#densifies]_ (`'auto'`)
+
+.. [#high-mem] Consider `svd_solver='covariance_eigh'` to reduce memory usage (see :issue:`dask/dask-ml#985`).
+.. [#dense-only] This implementation can not handle sparse chunks, try manually densifying them.
+.. [#densifies] This implementation densifies sparse chunks and therefore has increased memory usage.
+
+.. array-support:: pp.pca
+
+Parameters
+----------
+data
+    The (annotated) data matrix of shape `n_obs` × `n_vars`.
+    Rows correspond to cells and columns to genes.
+n_comps
+    Number of principal components to compute. Defaults to 50,
+    or 1 - minimum dimension size of selected representation.
+layer
+    If provided, which element of :attr:`~anndata.AnnData.layers` to use for PCA instead of `X`.
+obsm
+    If provided, which element of :attr:`~anndata.AnnData.obsm` to use for PCA instead of `X`.
+zero_center
+    If `True`, compute (or approximate) PCA from covariance matrix.
+    If `False`, performa a truncated SVD instead of PCA.
+
+    Our default PCA algorithms (see `svd_solver`) support implicit zero-centering,
+    and therefore efficiently operating on sparse data.
+svd_solver
+    SVD solver to use.
+    See table above to see which solver class is used based on `chunked` and `zero_center`,
+    as well as the default solver for each class when `svd_solver=None`.
+
+    Efficient computation of the principal components of a sparse matrix
+    currently only works with the `'arpack`' or `'covariance_eigh`' solver.
+
+    `None`
+        Choose automatically based on solver class (see table above).
+    `'arpack'`
+        ARPACK wrapper in SciPy (:func:`~scipy.sparse.linalg.svds`).
+        Not available for *dask* arrays.
+    `'covariance_eigh'`
+        Classic eigendecomposition of the covariance matrix, suited for tall-and-skinny matrices.
+        With dask, array must be CSR or dense and chunked as `(N, adata.shape[1])`.
+    `'randomized'`
+        Randomized algorithm from :cite:t:`Halko2009`.
+        For *dask* arrays, this will use :func:`~dask.array.linalg.svd_compressed`.
+    `'auto'`
+        Choose automatically depending on the size of the problem:
+        Will use `'full'` for small shapes and `'randomized'` for large shapes.
+    `'tsqr'`
+        “tall-and-skinny QR” algorithm from :cite:t:`Benson2013`.
+        Only available for dense *dask* arrays.
+
+    .. versionchanged:: 1.9.3
+       Default value changed from `'arpack'` to None.
+    .. versionchanged:: 1.4.5
+       Default value changed from `'auto'` to `'arpack'`.
+chunked
+    If `True`, perform an incremental PCA on segments of `chunk_size`.
+    Automatically zero centers and ignores settings of `zero_center`, `random_seed` and `svd_solver`.
+    If `False`, perform a full PCA/truncated SVD (see `svd_solver` and `zero_center`).
+    See table above for which solver class is used.
+chunk_size
+    Number of observations to include in each chunk.
+    Required if `chunked=True` was passed.
+random_state
+    Change to use different initial states for the optimization.
+return_info
+    Only relevant when not passing an :class:`~anndata.AnnData`:
+    see “Returns”.
+mask_var
+    To run only on a certain set of genes given by a boolean array
+    or a string referring to an array in :attr:`~anndata.AnnData.var`.
+    By default, uses `.var['highly_variable']` if available, else everything.
+use_highly_variable
+    Whether to use highly variable genes only, stored in
+    `.var['highly_variable']`.
+    By default uses them if they have been determined beforehand.
+
+    .. deprecated:: 1.10.0
+       Use `mask_var` instead
+
+layer
+    Layer of `adata` to use as expression values.
+dtype
+    Numpy data type string to which to convert the result.
+key_added
+    If not specified, the embedding is stored as
+    :attr:`~anndata.AnnData.obsm`\ `['X_pca']`, the loadings as
+    :attr:`~anndata.AnnData.varm`\ `['PCs']`, and the the parameters in
+    :attr:`~anndata.AnnData.uns`\ `['pca']`.
+    If specified, the embedding is stored as
+    :attr:`~anndata.AnnData.obsm`\ ``[key_added]``, the loadings as
+    :attr:`~anndata.AnnData.varm`\ ``[key_added]``, and the the parameters in
+    :attr:`~anndata.AnnData.uns`\ ``[key_added]``.
+copy
+    If an :class:`~anndata.AnnData` is passed, determines whether a copy
+    is returned. Is ignored otherwise.
+
+Returns
+-------
+If `data` is array-like and `return_info=False` was passed,
+this function returns the PCA representation of `data` as an
+array of the same type as the input array.
+
+Otherwise, it returns `None` if `copy=False`, else an updated `AnnData` object.
+Sets the following fields:
+
+`.obsm['X_pca' | key_added]` : :class:`~scipy.sparse.csr_matrix` | :class:`~scipy.sparse.csc_matrix` | :class:`~numpy.ndarray` (shape `(adata.n_obs, n_comps)`)
+    PCA representation of data.
+`.varm['PCs' | key_added]` : :class:`~numpy.ndarray` (shape `(adata.n_vars, n_comps)`)
+    The principal components containing the loadings *when `obsm=None`*.
+`.uns['pca' | key_added]['components']` : :class:`~numpy.ndarray` (shape `(adata.obsm[obsm].shape[1], n_comps)`)
+    The principal components containing the loadings *when `obsm="..."`*.
+`.uns['pca' | key_added]['variance_ratio']` : :class:`~numpy.ndarray` (shape `(n_comps,)`)
+    Ratio of explained variance.
+`.uns['pca' | key_added]['variance']` : :class:`~numpy.ndarray` (shape `(n_comps,)`)
+    Explained variance, equivalent to the eigenvalues of the
+    covariance matrix.

@@ -1,0 +1,513 @@
+=== CST ===
+DOCUMENT@0..4778 {
+  SUMMARY@0..37 {
+    TEXT_LINE: "Rank genes for characterizing groups."@0..37
+  }
+  NEWLINE: "\n"@37..38
+  BLANK_LINE: "\n"@38..39
+  EXTENDED_SUMMARY@39..619 {
+    TEXT_LINE: "Expects logarithmized data."@39..66
+    NEWLINE: "\n"@66..67
+    BLANK_LINE: "\n"@67..68
+    TEXT_LINE: ".. array-support:: tl.rank_genes_groups"@68..107
+    NEWLINE: "\n"@107..108
+    BLANK_LINE: "\n"@108..109
+    TEXT_LINE: "..  warning::"@109..122
+    NEWLINE: "\n"@122..123
+    BLANK_LINE: "\n"@123..124
+    WHITESPACE: "    "@124..128
+    TEXT_LINE: "Comparing between cells leads to highly inflated p-values,"@128..186
+    NEWLINE: "\n"@186..187
+    WHITESPACE: "    "@187..191
+    TEXT_LINE: "since cells are not independent observations :cite:p:`Squair2021`."@191..257
+    NEWLINE: "\n"@257..258
+    WHITESPACE: "    "@258..262
+    TEXT_LINE: "Especially in single-cell data, consider instead to use more appropriate methods such as combining pseudobulking with :doc:`pydeseq2:index`."@262..402
+    NEWLINE: "\n"@402..403
+    BLANK_LINE: "\n"@403..404
+    WHITESPACE: "    "@404..408
+    TEXT_LINE: ":func:`decoupler.pp.pseudobulk` or :func:`scanpy.get.aggregate` can be used to aggregate samples for pseudobulking."@408..523
+    NEWLINE: "\n"@523..524
+    WHITESPACE: "    "@524..528
+    TEXT_LINE: "Ours is a bit more verbose, but supports :doc:`dask:index` arrays for improved performance."@528..619
+  }
+  NEWLINE: "\n"@619..620
+  BLANK_LINE: "\n"@620..621
+  SECTION@621..2750 {
+    SECTION_HEADER@621..642 {
+      NAME: "Parameters"@621..631
+      NEWLINE: "\n"@631..632
+      UNDERLINE: "----------"@632..642
+    }
+    NEWLINE: "\n"@642..643
+    ENTRY@643..675 {
+      NAME: "adata"@643..648
+      NEWLINE: "\n"@648..649
+      WHITESPACE: "    "@649..653
+      DESCRIPTION@653..675 {
+        TEXT_LINE: "Annotated data matrix."@653..675
+      }
+    }
+    NEWLINE: "\n"@675..676
+    ENTRY@676..737 {
+      NAME: "groupby"@676..683
+      NEWLINE: "\n"@683..684
+      WHITESPACE: "    "@684..688
+      DESCRIPTION@688..737 {
+        TEXT_LINE: "The key of the observations grouping to consider."@688..737
+      }
+    }
+    NEWLINE: "\n"@737..738
+    ENTRY@738..802 {
+      NAME: "mask_var"@738..746
+      NEWLINE: "\n"@746..747
+      WHITESPACE: "    "@747..751
+      DESCRIPTION@751..802 {
+        TEXT_LINE: "Select subset of genes to use in statistical tests."@751..802
+      }
+    }
+    NEWLINE: "\n"@802..803
+    ENTRY@803..906 {
+      NAME: "use_raw"@803..810
+      NEWLINE: "\n"@810..811
+      WHITESPACE: "    "@811..815
+      DESCRIPTION@815..906 {
+        TEXT_LINE: "Use `raw` attribute of `adata` if present. The default behavior is to use `raw` if present."@815..906
+      }
+    }
+    NEWLINE: "\n"@906..907
+    ENTRY@907..986 {
+      NAME: "layer"@907..912
+      NEWLINE: "\n"@912..913
+      WHITESPACE: "    "@913..917
+      DESCRIPTION@917..986 {
+        TEXT_LINE: "Key from `adata.layers` whose value will be used to perform tests on."@917..986
+      }
+    }
+    NEWLINE: "\n"@986..987
+    ENTRY@987..1255 {
+      NAME: "groups"@987..993
+      NEWLINE: "\n"@993..994
+      WHITESPACE: "    "@994..998
+      DESCRIPTION@998..1255 {
+        TEXT_LINE: "Subset of groups, e.g. [`'g1'`, `'g2'`, `'g3'`], to which comparison"@998..1066
+        NEWLINE: "\n"@1066..1067
+        WHITESPACE: "    "@1067..1071
+        TEXT_LINE: "shall be restricted, or `'all'` (default), for all groups. Note that if"@1071..1142
+        NEWLINE: "\n"@1142..1143
+        WHITESPACE: "    "@1143..1147
+        TEXT_LINE: "`reference='rest'` all groups will still be used as the reference, not"@1147..1217
+        NEWLINE: "\n"@1217..1218
+        WHITESPACE: "    "@1218..1222
+        TEXT_LINE: "just those specified in `groups`."@1222..1255
+      }
+    }
+    NEWLINE: "\n"@1255..1256
+    ENTRY@1256..1403 {
+      NAME: "reference"@1256..1265
+      NEWLINE: "\n"@1265..1266
+      WHITESPACE: "    "@1266..1270
+      DESCRIPTION@1270..1403 {
+        TEXT_LINE: "If `'rest'`, compare each group to the union of the rest of the group."@1270..1340
+        NEWLINE: "\n"@1340..1341
+        WHITESPACE: "    "@1341..1345
+        TEXT_LINE: "If a group identifier, compare with respect to this group."@1345..1403
+      }
+    }
+    NEWLINE: "\n"@1403..1404
+    ENTRY@1404..1498 {
+      NAME: "n_genes"@1404..1411
+      NEWLINE: "\n"@1411..1412
+      WHITESPACE: "    "@1412..1416
+      DESCRIPTION@1416..1498 {
+        TEXT_LINE: "The number of genes that appear in the returned tables."@1416..1471
+        NEWLINE: "\n"@1471..1472
+        WHITESPACE: "    "@1472..1476
+        TEXT_LINE: "Defaults to all genes."@1476..1498
+      }
+    }
+    NEWLINE: "\n"@1498..1499
+    ENTRY@1499..1895 {
+      NAME: "method"@1499..1505
+      NEWLINE: "\n"@1505..1506
+      WHITESPACE: "    "@1506..1510
+      DESCRIPTION@1510..1895 {
+        TEXT_LINE: "The default method is `'t-test'`,"@1510..1543
+        NEWLINE: "\n"@1543..1544
+        WHITESPACE: "    "@1544..1548
+        TEXT_LINE: "`'t-test_overestim_var'` overestimates variance of each group,"@1548..1610
+        NEWLINE: "\n"@1610..1611
+        WHITESPACE: "    "@1611..1615
+        TEXT_LINE: "`'wilcoxon'` uses Wilcoxon rank-sum,"@1615..1651
+        NEWLINE: "\n"@1651..1652
+        WHITESPACE: "    "@1652..1656
+        TEXT_LINE: "`'logreg'` uses logistic regression. See :cite:t:`Ntranos2019`,"@1656..1719
+        NEWLINE: "\n"@1719..1720
+        WHITESPACE: "    "@1720..1724
+        TEXT_LINE: "`here <https://github.com/scverse/scanpy/issues/95>`__ and `here"@1724..1788
+        NEWLINE: "\n"@1788..1789
+        WHITESPACE: "    "@1789..1793
+        TEXT_LINE: "<https://www.nxn.se/valent/2018/3/5/actionable-scrna-seq-clusters>`__,"@1793..1863
+        NEWLINE: "\n"@1863..1864
+        WHITESPACE: "    "@1864..1868
+        TEXT_LINE: "for why this is meaningful."@1868..1895
+      }
+    }
+    NEWLINE: "\n"@1895..1896
+    ENTRY@1896..2012 {
+      NAME: "corr_method"@1896..1907
+      NEWLINE: "\n"@1907..1908
+      WHITESPACE: "    "@1908..1912
+      DESCRIPTION@1912..2012 {
+        TEXT_LINE: "p-value correction method."@1912..1938
+        NEWLINE: "\n"@1938..1939
+        WHITESPACE: "    "@1939..1943
+        TEXT_LINE: "Used only for `'t-test'`, `'t-test_overestim_var'`, and `'wilcoxon'`."@1943..2012
+      }
+    }
+    NEWLINE: "\n"@2012..2013
+    ENTRY@2013..2104 {
+      NAME: "tie_correct"@2013..2024
+      NEWLINE: "\n"@2024..2025
+      WHITESPACE: "    "@2025..2029
+      DESCRIPTION@2029..2104 {
+        TEXT_LINE: "Use tie correction for `'wilcoxon'` scores."@2029..2072
+        NEWLINE: "\n"@2072..2073
+        WHITESPACE: "    "@2073..2077
+        TEXT_LINE: "Used only for `'wilcoxon'`."@2077..2104
+      }
+    }
+    NEWLINE: "\n"@2104..2105
+    ENTRY@2105..2239 {
+      NAME: "rankby_abs"@2105..2115
+      NEWLINE: "\n"@2115..2116
+      WHITESPACE: "    "@2116..2120
+      DESCRIPTION@2120..2239 {
+        TEXT_LINE: "Rank genes by the absolute value of the score, not by the"@2120..2177
+        NEWLINE: "\n"@2177..2178
+        WHITESPACE: "    "@2178..2182
+        TEXT_LINE: "score. The returned scores are never the absolute values."@2182..2239
+      }
+    }
+    NEWLINE: "\n"@2239..2240
+    ENTRY@2240..2299 {
+      NAME: "pts"@2240..2243
+      NEWLINE: "\n"@2243..2244
+      WHITESPACE: "    "@2244..2248
+      DESCRIPTION@2248..2299 {
+        TEXT_LINE: "Compute the fraction of cells expressing the genes."@2248..2299
+      }
+    }
+    NEWLINE: "\n"@2299..2300
+    ENTRY@2300..2361 {
+      NAME: "key_added"@2300..2309
+      NEWLINE: "\n"@2309..2310
+      WHITESPACE: "    "@2310..2314
+      DESCRIPTION@2314..2361 {
+        TEXT_LINE: "The key in `adata.uns` information is saved to."@2314..2361
+      }
+    }
+    NEWLINE: "\n"@2361..2362
+    ENTRY@2362..2416 {
+      NAME: "copy"@2362..2366
+      NEWLINE: "\n"@2366..2367
+      WHITESPACE: "    "@2367..2371
+      DESCRIPTION@2371..2416 {
+        TEXT_LINE: "Whether to copy `adata` or modify it inplace."@2371..2416
+      }
+    }
+    NEWLINE: "\n"@2416..2417
+    ENTRY@2417..2750 {
+      NAME: "kwds"@2417..2421
+      NEWLINE: "\n"@2421..2422
+      WHITESPACE: "    "@2422..2426
+      DESCRIPTION@2426..2750 {
+        TEXT_LINE: "Are passed to test methods. Currently this affects only parameters that"@2426..2497
+        NEWLINE: "\n"@2497..2498
+        WHITESPACE: "    "@2498..2502
+        TEXT_LINE: "are passed to :class:`sklearn.linear_model.LogisticRegression`."@2502..2565
+        NEWLINE: "\n"@2565..2566
+        WHITESPACE: "    "@2566..2570
+        TEXT_LINE: "For instance, you can pass `penalty='l1'` to try to come up with a"@2570..2636
+        NEWLINE: "\n"@2636..2637
+        WHITESPACE: "    "@2637..2641
+        TEXT_LINE: "minimal set of genes that are good predictors (sparse solution meaning"@2641..2711
+        NEWLINE: "\n"@2711..2712
+        WHITESPACE: "    "@2712..2716
+        TEXT_LINE: "few non-zero fitted coefficients)."@2716..2750
+      }
+    }
+  }
+  NEWLINE: "\n"@2750..2751
+  BLANK_LINE: "\n"@2751..2752
+  SECTION@2752..4366 {
+    SECTION_HEADER@2752..2767 {
+      NAME: "Returns"@2752..2759
+      NEWLINE: "\n"@2759..2760
+      UNDERLINE: "-------"@2760..2767
+    }
+    NEWLINE: "\n"@2767..2768
+    ENTRY@2768..2860 {
+      TYPE: "Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:"@2768..2860
+    }
+    NEWLINE: "\n"@2860..2861
+    BLANK_LINE: "\n"@2861..2862
+    ENTRY@2862..3072 {
+      NAME: "`adata.uns['rank_genes_groups' | key_added]['names']`"@2862..2915
+      WHITESPACE: " "@2915..2916
+      COLON: ":"@2916..2917
+      WHITESPACE: " "@2917..2918
+      TYPE: "structured :class:`numpy.ndarray` (dtype `object`)"@2918..2968
+      NEWLINE: "\n"@2968..2969
+      WHITESPACE: "    "@2969..2973
+      DESCRIPTION@2973..3072 {
+        TEXT_LINE: "Structured array to be indexed by group id storing the gene"@2973..3032
+        NEWLINE: "\n"@3032..3033
+        WHITESPACE: "    "@3033..3037
+        TEXT_LINE: "names. Ordered according to scores."@3037..3072
+      }
+    }
+    NEWLINE: "\n"@3072..3073
+    ENTRY@3073..3354 {
+      NAME: "`adata.uns['rank_genes_groups' | key_added]['scores']`"@3073..3127
+      WHITESPACE: " "@3127..3128
+      COLON: ":"@3128..3129
+      WHITESPACE: " "@3129..3130
+      TYPE: "structured :class:`numpy.ndarray` (dtype `object`)"@3130..3180
+      NEWLINE: "\n"@3180..3181
+      WHITESPACE: "    "@3181..3185
+      DESCRIPTION@3185..3354 {
+        TEXT_LINE: "Structured array to be indexed by group id storing the z-score"@3185..3247
+        NEWLINE: "\n"@3247..3248
+        WHITESPACE: "    "@3248..3252
+        TEXT_LINE: "underlying the computation of a p-value for each gene for each"@3252..3314
+        NEWLINE: "\n"@3314..3315
+        WHITESPACE: "    "@3315..3319
+        TEXT_LINE: "group. Ordered according to scores."@3319..3354
+      }
+    }
+    NEWLINE: "\n"@3354..3355
+    ENTRY@3355..3723 {
+      NAME: "`adata.uns['rank_genes_groups' | key_added]['logfoldchanges']`"@3355..3417
+      WHITESPACE: " "@3417..3418
+      COLON: ":"@3418..3419
+      WHITESPACE: " "@3419..3420
+      TYPE: "structured :class:`numpy.ndarray` (dtype `object`)"@3420..3470
+      NEWLINE: "\n"@3470..3471
+      WHITESPACE: "    "@3471..3475
+      DESCRIPTION@3475..3723 {
+        TEXT_LINE: "Structured array to be indexed by group id storing the log2"@3475..3534
+        NEWLINE: "\n"@3534..3535
+        WHITESPACE: "    "@3535..3539
+        TEXT_LINE: "fold change for each gene for each group. Ordered according to"@3539..3601
+        NEWLINE: "\n"@3601..3602
+        WHITESPACE: "    "@3602..3606
+        TEXT_LINE: "scores. Only provided if method is 't-test' like."@3606..3655
+        NEWLINE: "\n"@3655..3656
+        WHITESPACE: "    "@3656..3660
+        TEXT_LINE: "Note: this is an approximation calculated from mean-log values."@3660..3723
+      }
+    }
+    NEWLINE: "\n"@3723..3724
+    ENTRY@3724..3843 {
+      NAME: "`adata.uns['rank_genes_groups' | key_added]['pvals']`"@3724..3777
+      WHITESPACE: " "@3777..3778
+      COLON: ":"@3778..3779
+      WHITESPACE: " "@3779..3780
+      TYPE: "structured :class:`numpy.ndarray` (dtype `float`)"@3780..3829
+      NEWLINE: "\n"@3829..3830
+      WHITESPACE: "    "@3830..3834
+      DESCRIPTION@3834..3843 {
+        TEXT_LINE: "p-values."@3834..3843
+      }
+    }
+    NEWLINE: "\n"@3843..3844
+    ENTRY@3844..3977 {
+      NAME: "`adata.uns['rank_genes_groups' | key_added]['pvals_adj']`"@3844..3901
+      WHITESPACE: " "@3901..3902
+      COLON: ":"@3902..3903
+      WHITESPACE: " "@3903..3904
+      TYPE: "structured :class:`numpy.ndarray` (dtype `float`)"@3904..3953
+      NEWLINE: "\n"@3953..3954
+      WHITESPACE: "    "@3954..3958
+      DESCRIPTION@3958..3977 {
+        TEXT_LINE: "Corrected p-values."@3958..3977
+      }
+    }
+    NEWLINE: "\n"@3977..3978
+    ENTRY@3978..4132 {
+      NAME: "`adata.uns['rank_genes_groups' | key_added]['pts']`"@3978..4029
+      WHITESPACE: " "@4029..4030
+      COLON: ":"@4030..4031
+      WHITESPACE: " "@4031..4032
+      TYPE: ":class:`pandas.DataFrame` (dtype `float`)"@4032..4073
+      NEWLINE: "\n"@4073..4074
+      WHITESPACE: "    "@4074..4078
+      DESCRIPTION@4078..4132 {
+        TEXT_LINE: "Fraction of cells expressing the genes for each group."@4078..4132
+      }
+    }
+    NEWLINE: "\n"@4132..4133
+    ENTRY@4133..4366 {
+      NAME: "`adata.uns['rank_genes_groups' | key_added]['pts_rest']`"@4133..4189
+      WHITESPACE: " "@4189..4190
+      COLON: ":"@4190..4191
+      WHITESPACE: " "@4191..4192
+      TYPE: ":class:`pandas.DataFrame` (dtype `float`)"@4192..4233
+      NEWLINE: "\n"@4233..4234
+      WHITESPACE: "    "@4234..4238
+      DESCRIPTION@4238..4366 {
+        TEXT_LINE: "Only if `reference` is set to `'rest'`."@4238..4277
+        NEWLINE: "\n"@4277..4278
+        WHITESPACE: "    "@4278..4282
+        TEXT_LINE: "Fraction of cells from the union of the rest of each group"@4282..4340
+        NEWLINE: "\n"@4340..4341
+        WHITESPACE: "    "@4341..4345
+        TEXT_LINE: "expressing the genes."@4345..4366
+      }
+    }
+  }
+  NEWLINE: "\n"@4366..4367
+  BLANK_LINE: "\n"@4367..4368
+  SECTION@4368..4558 {
+    SECTION_HEADER@4368..4379 {
+      NAME: "Notes"@4368..4373
+      NEWLINE: "\n"@4373..4374
+      UNDERLINE: "-----"@4374..4379
+    }
+    NEWLINE: "\n"@4379..4380
+    DESCRIPTION@4380..4558 {
+      TEXT_LINE: "There are slight inconsistencies depending on whether sparse"@4380..4440
+      NEWLINE: "\n"@4440..4441
+      TEXT_LINE: "or dense data are passed. See `here <https://github.com/scverse/scanpy/blob/main/tests/test_rank_genes_groups.py>`__."@4441..4558
+    }
+  }
+  NEWLINE: "\n"@4558..4559
+  BLANK_LINE: "\n"@4559..4560
+  SECTION@4560..4778 {
+    SECTION_HEADER@4560..4577 {
+      NAME: "Examples"@4560..4568
+      NEWLINE: "\n"@4568..4569
+      UNDERLINE: "--------"@4569..4577
+    }
+    NEWLINE: "\n"@4577..4578
+    DESCRIPTION@4578..4778 {
+      TEXT_LINE: ">>> import scanpy as sc"@4578..4601
+      NEWLINE: "\n"@4601..4602
+      TEXT_LINE: ">>> adata = sc.datasets.pbmc68k_reduced()"@4602..4643
+      NEWLINE: "\n"@4643..4644
+      TEXT_LINE: ">>> sc.tl.rank_genes_groups(adata, \"bulk_labels\", method=\"wilcoxon\")"@4644..4712
+      NEWLINE: "\n"@4712..4713
+      TEXT_LINE: ">>> # to visualize the results"@4713..4743
+      NEWLINE: "\n"@4743..4744
+      TEXT_LINE: ">>> sc.pl.rank_genes_groups(adata)"@4744..4778
+    }
+  }
+}
+=== EMIT ===
+Rank genes for characterizing groups.
+
+Expects logarithmized data.
+
+.. array-support:: tl.rank_genes_groups
+
+..  warning::
+
+    Comparing between cells leads to highly inflated p-values,
+    since cells are not independent observations :cite:p:`Squair2021`.
+    Especially in single-cell data, consider instead to use more appropriate methods such as combining pseudobulking with :doc:`pydeseq2:index`.
+
+    :func:`decoupler.pp.pseudobulk` or :func:`scanpy.get.aggregate` can be used to aggregate samples for pseudobulking.
+    Ours is a bit more verbose, but supports :doc:`dask:index` arrays for improved performance.
+
+Parameters
+----------
+adata
+    Annotated data matrix.
+groupby
+    The key of the observations grouping to consider.
+mask_var
+    Select subset of genes to use in statistical tests.
+use_raw
+    Use `raw` attribute of `adata` if present. The default behavior is to use `raw` if present.
+layer
+    Key from `adata.layers` whose value will be used to perform tests on.
+groups
+    Subset of groups, e.g. [`'g1'`, `'g2'`, `'g3'`], to which comparison
+    shall be restricted, or `'all'` (default), for all groups. Note that if
+    `reference='rest'` all groups will still be used as the reference, not
+    just those specified in `groups`.
+reference
+    If `'rest'`, compare each group to the union of the rest of the group.
+    If a group identifier, compare with respect to this group.
+n_genes
+    The number of genes that appear in the returned tables.
+    Defaults to all genes.
+method
+    The default method is `'t-test'`,
+    `'t-test_overestim_var'` overestimates variance of each group,
+    `'wilcoxon'` uses Wilcoxon rank-sum,
+    `'logreg'` uses logistic regression. See :cite:t:`Ntranos2019`,
+    `here <https://github.com/scverse/scanpy/issues/95>`__ and `here
+    <https://www.nxn.se/valent/2018/3/5/actionable-scrna-seq-clusters>`__,
+    for why this is meaningful.
+corr_method
+    p-value correction method.
+    Used only for `'t-test'`, `'t-test_overestim_var'`, and `'wilcoxon'`.
+tie_correct
+    Use tie correction for `'wilcoxon'` scores.
+    Used only for `'wilcoxon'`.
+rankby_abs
+    Rank genes by the absolute value of the score, not by the
+    score. The returned scores are never the absolute values.
+pts
+    Compute the fraction of cells expressing the genes.
+key_added
+    The key in `adata.uns` information is saved to.
+copy
+    Whether to copy `adata` or modify it inplace.
+kwds
+    Are passed to test methods. Currently this affects only parameters that
+    are passed to :class:`sklearn.linear_model.LogisticRegression`.
+    For instance, you can pass `penalty='l1'` to try to come up with a
+    minimal set of genes that are good predictors (sparse solution meaning
+    few non-zero fitted coefficients).
+
+Returns
+-------
+Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:
+`adata.uns['rank_genes_groups' | key_added]['names']` : structured :class:`numpy.ndarray` (dtype `object`)
+    Structured array to be indexed by group id storing the gene
+    names. Ordered according to scores.
+`adata.uns['rank_genes_groups' | key_added]['scores']` : structured :class:`numpy.ndarray` (dtype `object`)
+    Structured array to be indexed by group id storing the z-score
+    underlying the computation of a p-value for each gene for each
+    group. Ordered according to scores.
+`adata.uns['rank_genes_groups' | key_added]['logfoldchanges']` : structured :class:`numpy.ndarray` (dtype `object`)
+    Structured array to be indexed by group id storing the log2
+    fold change for each gene for each group. Ordered according to
+    scores. Only provided if method is 't-test' like.
+    Note: this is an approximation calculated from mean-log values.
+`adata.uns['rank_genes_groups' | key_added]['pvals']` : structured :class:`numpy.ndarray` (dtype `float`)
+    p-values.
+`adata.uns['rank_genes_groups' | key_added]['pvals_adj']` : structured :class:`numpy.ndarray` (dtype `float`)
+    Corrected p-values.
+`adata.uns['rank_genes_groups' | key_added]['pts']` : :class:`pandas.DataFrame` (dtype `float`)
+    Fraction of cells expressing the genes for each group.
+`adata.uns['rank_genes_groups' | key_added]['pts_rest']` : :class:`pandas.DataFrame` (dtype `float`)
+    Only if `reference` is set to `'rest'`.
+    Fraction of cells from the union of the rest of each group
+    expressing the genes.
+
+Notes
+-----
+There are slight inconsistencies depending on whether sparse
+or dense data are passed. See `here <https://github.com/scverse/scanpy/blob/main/tests/test_rank_genes_groups.py>`__.
+
+Examples
+--------
+>>> import scanpy as sc
+>>> adata = sc.datasets.pbmc68k_reduced()
+>>> sc.tl.rank_genes_groups(adata, "bulk_labels", method="wilcoxon")
+>>> # to visualize the results
+>>> sc.pl.rank_genes_groups(adata)

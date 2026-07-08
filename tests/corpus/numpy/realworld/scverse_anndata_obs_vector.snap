@@ -1,0 +1,77 @@
+=== CST ===
+DOCUMENT@0..513 {
+  SUMMARY@0..123 {
+    TEXT_LINE: "Convenience function for returning a 1 dimensional ndarray of values from :attr:`X`, :attr:`layers`\\ `[k]`, or :attr:`obs`."@0..123
+  }
+  NEWLINE: "\n"@123..124
+  BLANK_LINE: "\n"@124..125
+  EXTENDED_SUMMARY@125..229 {
+    TEXT_LINE: "Made for convenience, not performance."@125..163
+    NEWLINE: "\n"@163..164
+    TEXT_LINE: "Intentionally permissive about arguments, for easy iterative use."@164..229
+  }
+  NEWLINE: "\n"@229..230
+  BLANK_LINE: "\n"@230..231
+  SECTION@231..404 {
+    SECTION_HEADER@231..244 {
+      NAME: "Params"@231..237
+      NEWLINE: "\n"@237..238
+      UNDERLINE: "------"@238..244
+    }
+    NEWLINE: "\n"@244..245
+    ENTRY@245..321 {
+      NAME: "k"@245..246
+      NEWLINE: "\n"@246..247
+      WHITESPACE: "    "@247..251
+      DESCRIPTION@251..321 {
+        TEXT_LINE: "Key to use. Should be in :attr:`var_names` or :attr:`obs`\\ `.columns`."@251..321
+      }
+    }
+    NEWLINE: "\n"@321..322
+    ENTRY@322..404 {
+      NAME: "layer"@322..327
+      NEWLINE: "\n"@327..328
+      WHITESPACE: "    "@328..332
+      DESCRIPTION@332..404 {
+        TEXT_LINE: "What layer values should be returned from. If `None`, :attr:`X` is used."@332..404
+      }
+    }
+  }
+  NEWLINE: "\n"@404..405
+  BLANK_LINE: "\n"@405..406
+  SECTION@406..513 {
+    SECTION_HEADER@406..421 {
+      NAME: "Returns"@406..413
+      NEWLINE: "\n"@413..414
+      UNDERLINE: "-------"@414..421
+    }
+    NEWLINE: "\n"@421..422
+    ENTRY@422..491 {
+      TYPE: "A one dimensional ndarray, with values for each obs in the same order"@422..491
+    }
+    NEWLINE: "\n"@491..492
+    ENTRY@492..513 {
+      NAME: "as"@492..494
+      WHITESPACE: " "@494..495
+      COLON: ":"@495..496
+      TYPE: "attr:`obs_names`."@496..513
+    }
+  }
+}
+=== EMIT ===
+Convenience function for returning a 1 dimensional ndarray of values from :attr:`X`, :attr:`layers`\ `[k]`, or :attr:`obs`.
+
+Made for convenience, not performance.
+Intentionally permissive about arguments, for easy iterative use.
+
+Parameters
+----------
+k
+    Key to use. Should be in :attr:`var_names` or :attr:`obs`\ `.columns`.
+layer
+    What layer values should be returned from. If `None`, :attr:`X` is used.
+
+Returns
+-------
+A one dimensional ndarray, with values for each obs in the same order
+as : attr:`obs_names`.

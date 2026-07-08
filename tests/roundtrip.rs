@@ -179,6 +179,47 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     "numpy->google: numpy/realworld/numpy_where.txt",
     "numpy->google: numpy/realworld/numpy_dtype.txt",
     "numpy->google: numpy/realworld/scipy_interpolate_pade.txt",
+    //
+    // ---- scverse corpus (anndata / scanpy — the #26 reporters' ecosystem) ----
+    //
+    // ALL scverse conversion failures are the same #58 named/multiple-return
+    // and prefer_type limits already documented above — NO new bug clusters,
+    // and zero new idempotence/model-stability failures (the within-style
+    // laws hold on every scverse input).
+    //
+    // The canonical #26 "Sets the following fields:" pattern (pca/umap/leiden/
+    // tsne/neighbors/rank_genes_groups/regress_out/score_genes_cell_cycle):
+    // its Returns definition list parses FAITHFULLY into named Return entries
+    // — NAME=the backtick field path (`.obsm['X_pca' | key_added]`),
+    // TYPE=the `:class:` role classifier, DESCRIPTION=the indented line — while
+    // each prose intro line above it becomes a bare-TYPE entry (prefer_type).
+    // Google has no named/multiple-return syntax (#58), so the round trip
+    // folds them all into one description; the numpy parse itself is sound.
+    //
+    // Description-only returns (to_df/log1p/normalize_total/read_loom/
+    // obs_vector/sparse_dataset/filter_cells/concat) are the prefer_type
+    // ambiguity (a bare Returns line re-parses as the type, +trailing `:`),
+    // same as returns_without_type.txt.
+    //
+    // concat additionally carries a `.. warning::` block whose 4-space body
+    // indent is dropped on the google side — the same free-text-fidelity
+    // limit as numpy_where above, not a new cluster.
+    "numpy->google: numpy/realworld/scverse_anndata_concat.txt",
+    "numpy->google: numpy/realworld/scverse_anndata_obs_vector.txt",
+    "numpy->google: numpy/realworld/scverse_anndata_read_loom.txt",
+    "numpy->google: numpy/realworld/scverse_anndata_sparse_dataset.txt",
+    "numpy->google: numpy/realworld/scverse_anndata_to_df.txt",
+    "numpy->google: numpy/realworld/scverse_scanpy_filter_cells.txt",
+    "numpy->google: numpy/realworld/scverse_scanpy_leiden.txt",
+    "numpy->google: numpy/realworld/scverse_scanpy_log1p.txt",
+    "numpy->google: numpy/realworld/scverse_scanpy_neighbors.txt",
+    "numpy->google: numpy/realworld/scverse_scanpy_normalize_total.txt",
+    "numpy->google: numpy/realworld/scverse_scanpy_pca.txt",
+    "numpy->google: numpy/realworld/scverse_scanpy_rank_genes_groups.txt",
+    "numpy->google: numpy/realworld/scverse_scanpy_regress_out.txt",
+    "numpy->google: numpy/realworld/scverse_scanpy_score_genes_cell_cycle.txt",
+    "numpy->google: numpy/realworld/scverse_scanpy_tsne.txt",
+    "numpy->google: numpy/realworld/scverse_scanpy_umap.txt",
 ];
 
 fn model_for(style: &str, input: &str) -> Option<Docstring> {

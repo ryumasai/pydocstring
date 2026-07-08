@@ -1,0 +1,133 @@
+=== CST ===
+DOCUMENT@0..1176 {
+  SUMMARY@0..33 {
+    TEXT_LINE: "Read `.h5ad`-formatted hdf5 file."@0..33
+  }
+  NEWLINE: "\n"@33..34
+  BLANK_LINE: "\n"@34..35
+  SECTION@35..1176 {
+    SECTION_HEADER@35..56 {
+      NAME: "Parameters"@35..45
+      NEWLINE: "\n"@45..46
+      UNDERLINE: "----------"@46..56
+    }
+    NEWLINE: "\n"@56..57
+    ENTRY@57..93 {
+      NAME: "filename"@57..65
+      NEWLINE: "\n"@65..66
+      WHITESPACE: "    "@66..70
+      DESCRIPTION@70..93 {
+        TEXT_LINE: "File name of data file."@70..93
+      }
+    }
+    NEWLINE: "\n"@93..94
+    ENTRY@94..686 {
+      NAME: "backed"@94..100
+      NEWLINE: "\n"@100..101
+      WHITESPACE: "    "@101..105
+      DESCRIPTION@105..686 {
+        TEXT_LINE: "If `'r'`, load :class:`~anndata.AnnData` in `backed` mode"@105..162
+        NEWLINE: "\n"@162..163
+        WHITESPACE: "    "@163..167
+        TEXT_LINE: "instead of fully loading it into memory (`memory` mode)."@167..223
+        NEWLINE: "\n"@223..224
+        WHITESPACE: "    "@224..228
+        TEXT_LINE: "If you want to modify backed attributes of the AnnData object,"@228..290
+        NEWLINE: "\n"@290..291
+        WHITESPACE: "    "@291..295
+        TEXT_LINE: "you need to choose `'r+'`."@295..321
+        NEWLINE: "\n"@321..322
+        BLANK_LINE: "\n"@322..323
+        WHITESPACE: "    "@323..327
+        TEXT_LINE: "Currently, `backed` only support updates to `X`. That means any"@327..390
+        NEWLINE: "\n"@390..391
+        WHITESPACE: "    "@391..395
+        TEXT_LINE: "changes to other slots like `obs` will not be written to disk in"@395..459
+        NEWLINE: "\n"@459..460
+        WHITESPACE: "    "@460..464
+        TEXT_LINE: "`backed` mode. If you would like save changes made to these slots"@464..529
+        NEWLINE: "\n"@529..530
+        WHITESPACE: "    "@530..534
+        TEXT_LINE: "of a `backed` :class:`~anndata.AnnData`, write them to a new file"@534..599
+        NEWLINE: "\n"@599..600
+        WHITESPACE: "    "@600..604
+        TEXT_LINE: "(see :meth:`~anndata.AnnData.write`). For an example, see"@604..661
+        NEWLINE: "\n"@661..662
+        WHITESPACE: "    "@662..666
+        TEXT_LINE: ":ref:`read-partial`."@666..686
+      }
+    }
+    NEWLINE: "\n"@686..687
+    ENTRY@687..822 {
+      NAME: "as_sparse"@687..696
+      NEWLINE: "\n"@696..697
+      WHITESPACE: "    "@697..701
+      DESCRIPTION@701..822 {
+        TEXT_LINE: "If an array was saved as dense, passing its name here will read it as"@701..770
+        NEWLINE: "\n"@770..771
+        WHITESPACE: "    "@771..775
+        TEXT_LINE: "a sparse_matrix, by chunk of size `chunk_size`."@775..822
+      }
+    }
+    NEWLINE: "\n"@822..823
+    ENTRY@823..901 {
+      NAME: "as_sparse_fmt"@823..836
+      NEWLINE: "\n"@836..837
+      WHITESPACE: "    "@837..841
+      DESCRIPTION@841..901 {
+        TEXT_LINE: "Sparse format class to read elements from `as_sparse` in as."@841..901
+      }
+    }
+    NEWLINE: "\n"@901..902
+    ENTRY@902..1176 {
+      NAME: "chunk_size"@902..912
+      NEWLINE: "\n"@912..913
+      WHITESPACE: "    "@913..917
+      DESCRIPTION@917..1176 {
+        TEXT_LINE: "Used only when loading sparse dataset that is stored as dense."@917..979
+        NEWLINE: "\n"@979..980
+        WHITESPACE: "    "@980..984
+        TEXT_LINE: "Loading iterates through chunks of the dataset of this row size"@984..1047
+        NEWLINE: "\n"@1047..1048
+        WHITESPACE: "    "@1048..1052
+        TEXT_LINE: "until it reads the whole dataset."@1052..1085
+        NEWLINE: "\n"@1085..1086
+        WHITESPACE: "    "@1086..1090
+        TEXT_LINE: "Higher size means higher memory consumption and higher (to a point)"@1090..1157
+        NEWLINE: "\n"@1157..1158
+        WHITESPACE: "    "@1158..1162
+        TEXT_LINE: "loading speed."@1162..1176
+      }
+    }
+  }
+}
+=== EMIT ===
+Read `.h5ad`-formatted hdf5 file.
+
+Parameters
+----------
+filename
+    File name of data file.
+backed
+    If `'r'`, load :class:`~anndata.AnnData` in `backed` mode
+    instead of fully loading it into memory (`memory` mode).
+    If you want to modify backed attributes of the AnnData object,
+    you need to choose `'r+'`.
+
+    Currently, `backed` only support updates to `X`. That means any
+    changes to other slots like `obs` will not be written to disk in
+    `backed` mode. If you would like save changes made to these slots
+    of a `backed` :class:`~anndata.AnnData`, write them to a new file
+    (see :meth:`~anndata.AnnData.write`). For an example, see
+    :ref:`read-partial`.
+as_sparse
+    If an array was saved as dense, passing its name here will read it as
+    a sparse_matrix, by chunk of size `chunk_size`.
+as_sparse_fmt
+    Sparse format class to read elements from `as_sparse` in as.
+chunk_size
+    Used only when loading sparse dataset that is stored as dense.
+    Loading iterates through chunks of the dataset of this row size
+    until it reads the whole dataset.
+    Higher size means higher memory consumption and higher (to a point)
+    loading speed.

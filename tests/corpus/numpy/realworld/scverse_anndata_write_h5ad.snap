@@ -1,0 +1,239 @@
+=== CST ===
+DOCUMENT@0..2040 {
+  SUMMARY@0..34 {
+    TEXT_LINE: "Write `.h5ad`-formatted hdf5 file."@0..34
+  }
+  NEWLINE: "\n"@34..35
+  BLANK_LINE: "\n"@35..36
+  EXTENDED_SUMMARY@36..489 {
+    TEXT_LINE: ".. note::"@36..45
+    NEWLINE: "\n"@45..46
+    WHITESPACE: "   "@46..49
+    TEXT_LINE: "Setting compression to `'gzip'` can save disk space"@49..100
+    NEWLINE: "\n"@100..101
+    WHITESPACE: "   "@101..104
+    TEXT_LINE: "but will slow down writing and subsequent reading."@104..154
+    NEWLINE: "\n"@154..155
+    WHITESPACE: "   "@155..158
+    TEXT_LINE: "Prior to v0.6.16, this was the default for parameter `compression`."@158..225
+    NEWLINE: "\n"@225..226
+    BLANK_LINE: "\n"@226..227
+    TEXT_LINE: "Generally, if you have sparse data that are stored as a dense matrix,"@227..296
+    NEWLINE: "\n"@296..297
+    TEXT_LINE: "you can dramatically improve performance and reduce disk space"@297..359
+    NEWLINE: "\n"@359..360
+    TEXT_LINE: "by converting to a :class:`~scipy.sparse.csr_matrix`::"@360..414
+    NEWLINE: "\n"@414..415
+    BLANK_LINE: "\n"@415..416
+    WHITESPACE: "    "@416..420
+    TEXT_LINE: "from scipy.sparse import csr_matrix"@420..455
+    NEWLINE: "\n"@455..456
+    WHITESPACE: "    "@456..460
+    TEXT_LINE: "adata.X = csr_matrix(adata.X)"@460..489
+  }
+  NEWLINE: "\n"@489..490
+  BLANK_LINE: "\n"@490..491
+  SECTION@491..2040 {
+    SECTION_HEADER@491..512 {
+      NAME: "Parameters"@491..501
+      NEWLINE: "\n"@501..502
+      UNDERLINE: "----------"@502..512
+    }
+    NEWLINE: "\n"@512..513
+    ENTRY@513..574 {
+      NAME: "filename"@513..521
+      NEWLINE: "\n"@521..522
+      WHITESPACE: "    "@522..526
+      DESCRIPTION@526..574 {
+        TEXT_LINE: "Filename of data file. Defaults to backing file."@526..574
+      }
+    }
+    NEWLINE: "\n"@574..575
+    ENTRY@575..649 {
+      NAME: "convert_strings_to_categoricals"@575..606
+      NEWLINE: "\n"@606..607
+      WHITESPACE: "    "@607..611
+      DESCRIPTION@611..649 {
+        TEXT_LINE: "Convert string columns to categorical."@611..649
+      }
+    }
+    NEWLINE: "\n"@649..650
+    ENTRY@650..1417 {
+      NAME: "compression"@650..661
+      NEWLINE: "\n"@661..662
+      WHITESPACE: "    "@662..666
+      DESCRIPTION@666..1417 {
+        TEXT_LINE: "For [`lzf`, `gzip`], see the h5py :ref:`dataset_compression`."@666..727
+        NEWLINE: "\n"@727..728
+        BLANK_LINE: "\n"@728..729
+        WHITESPACE: "    "@729..733
+        TEXT_LINE: "Alternative compression filters such as `zstd` can be passed"@733..793
+        NEWLINE: "\n"@793..794
+        WHITESPACE: "    "@794..798
+        TEXT_LINE: "from the :doc:`hdf5plugin <hdf5plugin:usage>` library."@798..852
+        NEWLINE: "\n"@852..853
+        WHITESPACE: "    "@853..857
+        TEXT_LINE: "Experimental."@857..870
+        NEWLINE: "\n"@870..871
+        BLANK_LINE: "\n"@871..872
+        WHITESPACE: "    "@872..876
+        TEXT_LINE: "Usage example::"@876..891
+        NEWLINE: "\n"@891..892
+        BLANK_LINE: "\n"@892..893
+        WHITESPACE: "        "@893..901
+        TEXT_LINE: "import hdf5plugin"@901..918
+        NEWLINE: "\n"@918..919
+        WHITESPACE: "        "@919..927
+        TEXT_LINE: "adata.write_h5ad("@927..944
+        NEWLINE: "\n"@944..945
+        WHITESPACE: "            "@945..957
+        TEXT_LINE: "filename,"@957..966
+        NEWLINE: "\n"@966..967
+        WHITESPACE: "            "@967..979
+        TEXT_LINE: "compression=hdf5plugin.FILTERS[\"zstd\"]"@979..1017
+        NEWLINE: "\n"@1017..1018
+        WHITESPACE: "        "@1018..1026
+        TEXT_LINE: ")"@1026..1027
+        NEWLINE: "\n"@1027..1028
+        BLANK_LINE: "\n"@1028..1029
+        WHITESPACE: "    "@1029..1033
+        TEXT_LINE: ".. note::"@1033..1042
+        NEWLINE: "\n"@1042..1043
+        WHITESPACE: "        "@1043..1051
+        TEXT_LINE: "Datasets written with hdf5plugin-provided compressors"@1051..1104
+        NEWLINE: "\n"@1104..1105
+        WHITESPACE: "        "@1105..1113
+        TEXT_LINE: "cannot be opened without first loading the hdf5plugin"@1113..1166
+        NEWLINE: "\n"@1166..1167
+        WHITESPACE: "        "@1167..1175
+        TEXT_LINE: "library using `import hdf5plugin`. When using alternative"@1175..1232
+        NEWLINE: "\n"@1232..1233
+        WHITESPACE: "        "@1233..1241
+        TEXT_LINE: "compression filters such as `zstd`, consider writing to"@1241..1296
+        NEWLINE: "\n"@1296..1297
+        WHITESPACE: "        "@1297..1305
+        TEXT_LINE: "`zarr` format instead of `h5ad`, as the `zarr` library"@1305..1359
+        NEWLINE: "\n"@1359..1360
+        WHITESPACE: "        "@1360..1368
+        TEXT_LINE: "provides a more transparent compression pipeline."@1368..1417
+      }
+    }
+    NEWLINE: "\n"@1417..1418
+    BLANK_LINE: "\n"@1418..1419
+    ENTRY@1419..1930 {
+      NAME: "compression_opts"@1419..1435
+      NEWLINE: "\n"@1435..1436
+      WHITESPACE: "    "@1436..1440
+      DESCRIPTION@1440..1930 {
+        TEXT_LINE: "For [`lzf`, `gzip`], see the h5py :ref:`dataset_compression`."@1440..1501
+        NEWLINE: "\n"@1501..1502
+        BLANK_LINE: "\n"@1502..1503
+        WHITESPACE: "    "@1503..1507
+        TEXT_LINE: "Alternative compression filters such as `zstd` can be configured"@1507..1571
+        NEWLINE: "\n"@1571..1572
+        WHITESPACE: "    "@1572..1576
+        TEXT_LINE: "using helpers from the :doc:`hdf5plugin <hdf5plugin:usage>`"@1576..1635
+        NEWLINE: "\n"@1635..1636
+        WHITESPACE: "    "@1636..1640
+        TEXT_LINE: "library. Experimental."@1640..1662
+        NEWLINE: "\n"@1662..1663
+        BLANK_LINE: "\n"@1663..1664
+        WHITESPACE: "    "@1664..1668
+        TEXT_LINE: "Usage example (setting `zstd` compression level to 5)::"@1668..1723
+        NEWLINE: "\n"@1723..1724
+        BLANK_LINE: "\n"@1724..1725
+        WHITESPACE: "        "@1725..1733
+        TEXT_LINE: "import hdf5plugin"@1733..1750
+        NEWLINE: "\n"@1750..1751
+        WHITESPACE: "        "@1751..1759
+        TEXT_LINE: "adata.write_h5ad("@1759..1776
+        NEWLINE: "\n"@1776..1777
+        WHITESPACE: "            "@1777..1789
+        TEXT_LINE: "filename,"@1789..1798
+        NEWLINE: "\n"@1798..1799
+        WHITESPACE: "            "@1799..1811
+        TEXT_LINE: "compression=hdf5plugin.FILTERS[\"zstd\"],"@1811..1850
+        NEWLINE: "\n"@1850..1851
+        WHITESPACE: "            "@1851..1863
+        TEXT_LINE: "compression_opts=hdf5plugin.Zstd(clevel=5).filter_options"@1863..1920
+        NEWLINE: "\n"@1920..1921
+        WHITESPACE: "        "@1921..1929
+        TEXT_LINE: ")"@1929..1930
+      }
+    }
+    NEWLINE: "\n"@1930..1931
+    BLANK_LINE: "\n"@1931..1932
+    ENTRY@1932..2040 {
+      NAME: "as_dense"@1932..1940
+      NEWLINE: "\n"@1940..1941
+      WHITESPACE: "    "@1941..1945
+      DESCRIPTION@1945..2040 {
+        TEXT_LINE: "Sparse arrays in AnnData object to write as dense. Currently only"@1945..2010
+        NEWLINE: "\n"@2010..2011
+        WHITESPACE: "    "@2011..2015
+        TEXT_LINE: "supports `X` and `raw/X`."@2015..2040
+      }
+    }
+  }
+}
+=== EMIT ===
+Write `.h5ad`-formatted hdf5 file.
+
+.. note::
+   Setting compression to `'gzip'` can save disk space
+   but will slow down writing and subsequent reading.
+   Prior to v0.6.16, this was the default for parameter `compression`.
+
+Generally, if you have sparse data that are stored as a dense matrix,
+you can dramatically improve performance and reduce disk space
+by converting to a :class:`~scipy.sparse.csr_matrix`::
+
+    from scipy.sparse import csr_matrix
+    adata.X = csr_matrix(adata.X)
+
+Parameters
+----------
+filename
+    Filename of data file. Defaults to backing file.
+convert_strings_to_categoricals
+    Convert string columns to categorical.
+compression
+    For [`lzf`, `gzip`], see the h5py :ref:`dataset_compression`.
+
+    Alternative compression filters such as `zstd` can be passed
+    from the :doc:`hdf5plugin <hdf5plugin:usage>` library.
+    Experimental.
+
+    Usage example::
+
+        import hdf5plugin
+        adata.write_h5ad(
+            filename,
+            compression=hdf5plugin.FILTERS["zstd"]
+        )
+
+    .. note::
+        Datasets written with hdf5plugin-provided compressors
+        cannot be opened without first loading the hdf5plugin
+        library using `import hdf5plugin`. When using alternative
+        compression filters such as `zstd`, consider writing to
+        `zarr` format instead of `h5ad`, as the `zarr` library
+        provides a more transparent compression pipeline.
+compression_opts
+    For [`lzf`, `gzip`], see the h5py :ref:`dataset_compression`.
+
+    Alternative compression filters such as `zstd` can be configured
+    using helpers from the :doc:`hdf5plugin <hdf5plugin:usage>`
+    library. Experimental.
+
+    Usage example (setting `zstd` compression level to 5)::
+
+        import hdf5plugin
+        adata.write_h5ad(
+            filename,
+            compression=hdf5plugin.FILTERS["zstd"],
+            compression_opts=hdf5plugin.Zstd(clevel=5).filter_options
+        )
+as_dense
+    Sparse arrays in AnnData object to write as dense. Currently only
+    supports `X` and `raw/X`.
