@@ -21,7 +21,7 @@ fn test_indented_docstring() {
 
 /// Args entries at the same indent level as the section header (indent 0)
 /// must be parsed as args, not silently dropped as stray lines.
-/// Regression test: previously `x` and `y` became STRAY_LINE tokens.
+/// Regression test: previously `x` and `y` became stray-line tokens.
 #[test]
 fn test_args_entries_same_indent_as_header() {
     let input = "Args:\nx (int): desc\ny (int): desc";
@@ -49,14 +49,14 @@ fn test_stray_still_flushed_after_indented_entries() {
 }
 
 /// Slightly mis-indented entries (3 spaces when first entry used 4) must be
-/// parsed as arg entries, not dropped as STRAY_LINE.
+/// parsed as arg entries, not dropped as stray lines.
 /// The flush threshold is the section header's own indent, not body_min_indent.
 #[test]
 fn test_slightly_misindented_entry_not_stray() {
     let input = "Args:\n    x: desc\n   y: desc";
     let result = parse_google(input);
     let a = args(&result);
-    assert_eq!(a.len(), 2, "y must be an arg entry, not a STRAY_LINE");
+    assert_eq!(a.len(), 2, "y must be an arg entry, not a stray line");
     assert_eq!(a[0].name().text(result.source()), "x");
     assert_eq!(a[1].name().text(result.source()), "y");
 }
@@ -67,7 +67,7 @@ fn test_slightly_misindented_entry_not_stray_nested() {
     let input = "    Args:\n        x: desc\n       y: desc";
     let result = parse_google(input);
     let a = args(&result);
-    assert_eq!(a.len(), 2, "y must be an arg entry, not a STRAY_LINE");
+    assert_eq!(a.len(), 2, "y must be an arg entry, not a stray line");
     assert_eq!(a[0].name().text(result.source()), "x");
     assert_eq!(a[1].name().text(result.source()), "y");
 }
@@ -314,7 +314,7 @@ fn test_arg_no_description_space_before_colon_not_header() {
 
 /// A non-section, non-indented line that appears after a blank line following
 /// a section's entries must NOT be absorbed into the previous section.
-/// It should become a STRAY_LINE, and the next real section must be parsed
+/// It should become a stray PARAGRAPH, and the next real section must be parsed
 /// correctly.
 #[test]
 fn test_stray_line_between_args_and_returns() {
@@ -334,6 +334,14 @@ fn test_stray_line_between_args_and_returns() {
         !desc.contains("stray"),
         "stray line must not be part of Returns description"
     );
+
+    // The stray lines become PARAGRAPH text blocks, one per blank-separated
+    // run, in source order.
+    let paragraphs: Vec<_> = doc(&result)
+        .paragraphs()
+        .map(|p| p.text(result.source()).to_owned())
+        .collect();
+    assert_eq!(paragraphs, vec!["stray line 1", "stray line 2"]);
 }
 
 /// Same as above but WITHOUT blank lines before the stray lines.
@@ -347,6 +355,25 @@ fn test_stray_line_between_args_and_returns_no_blank() {
     let r = returns(&result).unwrap();
     let desc = r.description().unwrap().text(result.source());
     assert!(!desc.contains("stray"), "stray line must not be in Returns description");
+}
+
+/// SPEC: consecutive stray lines separated only by a newline form ONE
+/// `PARAGRAPH`; a blank line splits paragraphs (reST semantics).
+#[test]
+fn test_stray_paragraph_split_rule() {
+    let input = "Summary.\n\nArgs:\n    a: desc.\n\nline one\nline two\n\nline three\n";
+    let result = parse_google(input);
+    let paragraphs: Vec<Vec<String>> = doc(&result)
+        .paragraphs()
+        .map(|p| p.lines().map(|l| l.text(result.source()).to_owned()).collect())
+        .collect();
+    assert_eq!(
+        paragraphs,
+        vec![
+            vec!["line one".to_owned(), "line two".to_owned()],
+            vec!["line three".to_owned()],
+        ]
+    );
 }
 
 /// A blank-line-separated entry at greater indent than the header must still

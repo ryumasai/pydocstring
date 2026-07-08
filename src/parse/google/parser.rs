@@ -6,16 +6,17 @@
 use crate::cursor::LineCursor;
 use crate::cursor::indent_len;
 use crate::parse::google::kind::GoogleSectionKind;
+use crate::parse::utils::build_paragraph;
 use crate::parse::utils::build_text_block;
 use crate::parse::utils::extend_text_block;
 use crate::parse::utils::find_colon_ignoring_parens;
 use crate::parse::utils::find_entry_open_bracket;
 use crate::parse::utils::find_matching_close;
 use crate::parse::utils::find_term_colon;
+use crate::parse::utils::marker_syntax_elements;
 use crate::parse::utils::missing_text_block;
 use crate::parse::utils::process_reference_line;
-use crate::parse::utils::separator_comma_offsets;
-use crate::parse::utils::split_comma_parts;
+use crate::parse::utils::scan_type_markers;
 use crate::parse::utils::text_block_single;
 use crate::parse::utils::try_parse_deprecation_directive;
 use crate::syntax::Parsed;
@@ -51,90 +52,9 @@ struct TypeInfo {
     r#type: Option<TextRange>,
     close_bracket: Option<TextRange>,
     commas: Vec<TextRange>,
-    optional: Option<TextRange>,
-    default_keyword: Option<TextRange>,
-    default_separator: Option<TextRange>,
-    default_value: Option<TextRange>,
-}
-
-/// Marker segments extracted from a bracketed type annotation, e.g.
-/// `int, optional, default 5`. All offsets are relative to the input.
-struct TypeMarkers<'a> {
-    /// Type text with the `optional` / `default ...` segments stripped.
-    clean_type: &'a str,
-    /// Byte offsets of the top-level separator commas after the clean type
-    /// (e.g. the comma before `optional`).
-    commas: Vec<usize>,
-    /// Byte offset of the `optional` keyword, if present.
-    optional: Option<usize>,
-    /// Byte offset of the `default` keyword, if present.
-    default_keyword: Option<usize>,
-    /// Byte offset of the `=` / `:` separator after `default`, if present.
-    default_separator: Option<usize>,
-    /// `(byte_offset, len)` of the default value text, if present.
-    default_value: Option<(usize, usize)>,
-}
-
-/// Split a type annotation into the type itself and trailing `optional` /
-/// `default X` marker segments (comma-separated, bracket-aware).
-///
-/// Accepts the same separator forms as the NumPy parser: `default X`,
-/// `default=X`, and `default: X`.
-fn split_type_markers(type_content: &str) -> TypeMarkers<'_> {
-    // Byte offset of a subslice within `type_content`.
-    let rel = |s: &str| s.as_ptr() as usize - type_content.as_ptr() as usize;
-
-    let mut optional = None;
-    let mut default_keyword = None;
-    let mut default_separator = None;
-    let mut default_value = None;
-    let mut type_end = 0;
-
-    for (seg_offset, seg_raw) in split_comma_parts(type_content) {
-        let seg = seg_raw.trim();
-        if seg.is_empty() {
-            continue;
-        }
-        if seg == "optional" {
-            optional = Some(rel(seg));
-        } else if let Some(after_kw) = seg
-            .strip_prefix("default")
-            .filter(|rest| rest.is_empty() || rest.starts_with([' ', '\t', '=', ':']))
-        {
-            default_keyword = Some(rel(seg));
-            let rest = after_kw.trim_start();
-            if let Some(val) = rest.strip_prefix(['=', ':']) {
-                default_separator = Some(rel(rest));
-                let val_trimmed = val.trim_start();
-                if val_trimmed.is_empty() {
-                    // Separator present but value absent: zero-length placeholder.
-                    default_value = Some((rel(rest) + 1, 0));
-                } else {
-                    default_value = Some((rel(val_trimmed), val_trimmed.len()));
-                }
-            } else if !rest.is_empty() {
-                default_value = Some((rel(rest), rest.len()));
-            }
-        } else {
-            type_end = seg_offset + seg_raw.trim_end().len();
-        }
-    }
-
-    let clean_type = if optional.is_none() && default_keyword.is_none() {
-        // No marker segments: keep the content exactly as-is.
-        type_content
-    } else {
-        type_content[..type_end].trim_end_matches(',').trim_end()
-    };
-
-    TypeMarkers {
-        clean_type,
-        commas: separator_comma_offsets(type_content, clean_type.len()),
-        optional,
-        default_keyword,
-        default_separator,
-        default_value,
-    }
+    /// `OPTIONAL` tokens and `DEFAULT` nodes (one per marker occurrence,
+    /// in source order), with absolute source ranges.
+    markers: Vec<SyntaxElement>,
 }
 
 /// Parsed components of a Google-style entry header.
@@ -221,28 +141,25 @@ fn parse_entry_header(cursor: &LineCursor, parse_type: bool) -> EntryHeader {
             let type_trimmed = type_text.trim();
             let leading_ws = type_text.len() - type_text.trim_start().len();
             let type_offset = bracket_pos + 1 + leading_ws;
-            let markers = split_type_markers(type_trimmed);
+            let scanned = scan_type_markers(type_trimmed);
+            let type_base = entry_start + type_offset;
 
-            let type_span = if !markers.clean_type.is_empty() {
-                Some(TextRange::from_offset_len(
-                    entry_start + type_offset,
-                    markers.clean_type.len(),
-                ))
+            let type_span = if !scanned.clean_type.is_empty() {
+                Some(TextRange::from_offset_len(type_base, scanned.clean_type.len()))
             } else {
                 None
             };
-            let marker_span = |r: usize, len: usize| TextRange::from_offset_len(entry_start + type_offset + r, len);
-            let opt_span = markers.optional.map(|r| marker_span(r, "optional".len()));
 
             let type_info = Some(TypeInfo {
                 open_bracket,
                 r#type: type_span,
                 close_bracket,
-                commas: markers.commas.iter().map(|&r| marker_span(r, 1)).collect(),
-                optional: opt_span,
-                default_keyword: markers.default_keyword.map(|r| marker_span(r, "default".len())),
-                default_separator: markers.default_separator.map(|r| marker_span(r, 1)),
-                default_value: markers.default_value.map(|(r, len)| marker_span(r, len)),
+                commas: scanned
+                    .commas
+                    .iter()
+                    .map(|&r| TextRange::from_offset_len(type_base + r, 1))
+                    .collect(),
+                markers: marker_syntax_elements(&scanned.markers, type_base),
             });
 
             let range_end = first_description
@@ -471,21 +388,8 @@ fn build_arg_node(role: ArgRole, header: &EntryHeader, range: TextRange, source:
         for comma in &ti.commas {
             children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COMMA, *comma)));
         }
-        if let Some(opt) = ti.optional {
-            children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::OPTIONAL, opt)));
-        }
-        if let Some(dk) = ti.default_keyword {
-            children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DEFAULT_KEYWORD, dk)));
-        }
-        if let Some(ds) = ti.default_separator {
-            children.push(SyntaxElement::Token(SyntaxToken::new(
-                SyntaxKind::DEFAULT_SEPARATOR,
-                ds,
-            )));
-        }
-        if let Some(dv) = ti.default_value {
-            children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::DEFAULT_VALUE, dv)));
-        }
+        // One element per marker occurrence: OPTIONAL tokens and DEFAULT nodes.
+        children.extend(ti.markers.iter().cloned());
     }
     if let Some(colon) = header.colon {
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, colon)));
@@ -912,6 +816,11 @@ pub fn parse_google(input: &str) -> Parsed {
     let mut entry_indent: Option<usize> = None;
     let mut body_is_deeper: Option<bool> = None;
 
+    // Pending run of stray prose lines (first line, last line): flushed as
+    // one PARAGRAPH node at a blank line, a section header, or EOF.
+    let mut para_first: Option<usize> = None;
+    let mut para_last: usize = 0;
+
     while !line_cursor.is_eof() {
         // --- Blank lines ---
         if line_cursor.current_trimmed().is_empty() {
@@ -922,6 +831,10 @@ pub fn parse_google(input: &str) -> Parsed {
                     input,
                 )));
                 summary_done = true;
+            }
+            // A blank line splits stray-line paragraphs (reST semantics).
+            if let Some(first) = para_first.take() {
+                root_children.push(SyntaxElement::Node(build_paragraph(&line_cursor, first, para_last)));
             }
             line_cursor.advance();
             continue;
@@ -985,6 +898,12 @@ pub fn parse_google(input: &str) -> Parsed {
                 );
             }
 
+            // Flush a pending stray-line paragraph (a header line right
+            // after a stray run, with no blank line in between).
+            if let Some(first) = para_first.take() {
+                root_children.push(SyntaxElement::Node(build_paragraph(&line_cursor, first, para_last)));
+            }
+
             // Start new section
             current_body = Some(SectionBody::new(header_info.kind));
             current_header = Some(header_info);
@@ -1041,10 +960,13 @@ pub fn parse_google(input: &str) -> Parsed {
             }
             ext_last = line_cursor.line;
         } else {
-            root_children.push(SyntaxElement::Token(SyntaxToken::new(
-                SyntaxKind::STRAY_LINE,
-                line_cursor.current_trimmed_range(),
-            )));
+            // Stray prose line: accumulate into the pending paragraph run
+            // (consecutive lines separated only by a newline form one
+            // PARAGRAPH).
+            if para_first.is_none() {
+                para_first = Some(line_cursor.line);
+            }
+            para_last = line_cursor.line;
         }
 
         line_cursor.advance();
@@ -1053,6 +975,11 @@ pub fn parse_google(input: &str) -> Parsed {
     // Flush final section
     if let Some(header) = current_header.take() {
         flush_section(&line_cursor, &mut root_children, header, current_body.take().unwrap());
+    }
+
+    // Flush a pending stray-line paragraph at EOF
+    if let Some(first) = para_first.take() {
+        root_children.push(SyntaxElement::Node(build_paragraph(&line_cursor, first, para_last)));
     }
 
     // Finalise at EOF
@@ -1160,8 +1087,9 @@ mod tests {
         assert_eq!(header.name.source_text(src), "name");
         let ti = header.type_info.unwrap();
         assert_eq!(ti.r#type.unwrap().source_text(src), "int");
-        assert!(ti.optional.is_some());
-        assert_eq!(ti.optional.unwrap().source_text(src), "optional");
+        assert_eq!(ti.markers.len(), 1);
+        assert_eq!(ti.markers[0].kind(), SyntaxKind::OPTIONAL);
+        assert_eq!(ti.markers[0].range().source_text(src), "optional");
     }
 
     #[test]

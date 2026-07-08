@@ -10,6 +10,7 @@ use crate::model::Parameter;
 use crate::model::Reference;
 use crate::model::Return;
 use crate::model::Section;
+use crate::model::SectionKind;
 use crate::model::SeeAlsoEntry;
 use crate::parse::google::kind::GoogleSectionKind;
 use crate::parse::google::nodes::GoogleDocstring;
@@ -161,20 +162,11 @@ fn convert_section(section: &GoogleSection<'_>, source: &str) -> Section {
                 .body_text()
                 .map(|t| convert_multiline_with_indentation(t.text(source)))
                 .unwrap_or_default();
-            let free_kind = match kind {
-                GoogleSectionKind::Notes => FreeSectionKind::Notes,
-                GoogleSectionKind::Examples => FreeSectionKind::Examples,
-                GoogleSectionKind::Todo => FreeSectionKind::Todo,
-                GoogleSectionKind::Warnings => FreeSectionKind::Warnings,
-                GoogleSectionKind::Attention => FreeSectionKind::Attention,
-                GoogleSectionKind::Caution => FreeSectionKind::Caution,
-                GoogleSectionKind::Danger => FreeSectionKind::Danger,
-                GoogleSectionKind::Error => FreeSectionKind::Error,
-                GoogleSectionKind::Hint => FreeSectionKind::Hint,
-                GoogleSectionKind::Important => FreeSectionKind::Important,
-                GoogleSectionKind::Tip => FreeSectionKind::Tip,
-                GoogleSectionKind::Unknown => FreeSectionKind::Unknown(section.header().name().text(source).to_owned()),
-                _ => unreachable!(),
+            // A structured kind reaching this arm would mean to_section_kind and
+            // the structured arms above drifted apart; degrade gracefully.
+            let free_kind = match kind.to_section_kind(section.header().name().text(source)) {
+                SectionKind::FreeText(k) => k,
+                _ => FreeSectionKind::Unknown(section.header().name().text(source).to_owned()),
             };
             Section::FreeText { kind: free_kind, body }
         }

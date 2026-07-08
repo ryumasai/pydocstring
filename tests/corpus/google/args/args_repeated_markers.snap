@@ -1,0 +1,51 @@
+=== CST ===
+DOCUMENT@0..67 {
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
+  SECTION@10..66 {
+    SECTION_HEADER@10..15 {
+      NAME: "Args"@10..14
+      COLON: ":"@14..15
+    }
+    NEWLINE: "\n"@15..16
+    WHITESPACE: "    "@16..20
+    ENTRY@20..66 {
+      NAME: "x"@20..21
+      WHITESPACE: " "@21..22
+      OPEN_BRACKET: "("@22..23
+      TYPE: "int"@23..26
+      COMMA: ","@26..27
+      WHITESPACE: " "@27..28
+      OPTIONAL: "optional"@28..36
+      COMMA: ","@36..37
+      WHITESPACE: " "@37..38
+      DEFAULT@38..47 {
+        DEFAULT_KEYWORD: "default"@38..45
+        WHITESPACE: " "@45..46
+        DEFAULT_VALUE: "1"@46..47
+      }
+      COMMA: ","@47..48
+      WHITESPACE: " "@48..49
+      DEFAULT@49..58 {
+        DEFAULT_KEYWORD: "default"@49..56
+        WHITESPACE: " "@56..57
+        DEFAULT_VALUE: "2"@57..58
+      }
+      CLOSE_BRACKET: ")"@58..59
+      COLON: ":"@59..60
+      WHITESPACE: " "@60..61
+      DESCRIPTION@61..66 {
+        TEXT_LINE: "Desc."@61..66
+      }
+    }
+  }
+  NEWLINE: "\n"@66..67
+}
+=== EMIT ===
+Summary.
+
+Args:
+    x (int, optional, default 1): Desc.

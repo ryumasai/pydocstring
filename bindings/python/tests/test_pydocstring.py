@@ -140,6 +140,18 @@ class TestParseGoogle:
         assert deps[0].version.text == "1.6.0"
         assert repr(deps[0]) == 'GoogleDeprecation("1.6.0")'
 
+    def test_paragraphs_between_sections(self):
+        text = "Summary.\n\nArgs:\n    a: desc.\n\nstray one\nstray two\n\nstray three\n\nReturns:\n    int: result.\n"
+        doc = pydocstring.parse_google(text)
+        # Stray prose lines between sections are PARAGRAPH text blocks: lines
+        # separated only by a newline form one paragraph, a blank line splits.
+        paragraphs = doc.paragraphs
+        assert [p.logical_text for p in paragraphs] == ["stray one\nstray two", "stray three"]
+        assert [line.text for line in paragraphs[0].lines] == ["stray one", "stray two"]
+        # The deprecated ``stray_lines`` alias still works; its items are now
+        # TextBlocks (one per paragraph), not per-line tokens.
+        assert [p.text for p in doc.stray_lines] == [p.text for p in paragraphs]
+
     def test_body_text_section(self):
         doc = pydocstring.parse_google("Summary.\n\nNotes:\n    Some free text.")
         section = doc.sections[0]

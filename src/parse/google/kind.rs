@@ -2,6 +2,9 @@
 
 use core::fmt;
 
+use crate::model::FreeSectionKind;
+use crate::model::SectionKind;
+
 /// Google-style section kinds.
 ///
 /// Each variant represents a recognised section name (or group of aliases),
@@ -154,6 +157,40 @@ impl GoogleSectionKind {
     /// Check if a lowercased name is a known (non-[`Unknown`](Self::Unknown)) section name.
     pub fn is_known(name: &str) -> bool {
         !matches!(Self::from_name(name), Self::Unknown)
+    }
+
+    /// Map to the style-independent [`SectionKind`] of the model layer.
+    ///
+    /// `header_name` is the section header text as written, used for
+    /// [`FreeSectionKind::Unknown`].
+    #[rustfmt::skip]
+    pub fn to_section_kind(self, header_name: &str) -> SectionKind {
+        match self {
+            Self::Args => SectionKind::Parameters,
+            Self::KeywordArgs => SectionKind::KeywordParameters,
+            Self::OtherParameters => SectionKind::OtherParameters,
+            Self::Receives => SectionKind::Receives,
+            Self::Returns => SectionKind::Returns,
+            Self::Yields => SectionKind::Yields,
+            Self::Raises => SectionKind::Raises,
+            Self::Warns => SectionKind::Warns,
+            Self::Attributes => SectionKind::Attributes,
+            Self::Methods => SectionKind::Methods,
+            Self::SeeAlso => SectionKind::SeeAlso,
+            Self::References => SectionKind::References,
+            Self::Notes => SectionKind::FreeText(FreeSectionKind::Notes),
+            Self::Examples => SectionKind::FreeText(FreeSectionKind::Examples),
+            Self::Todo => SectionKind::FreeText(FreeSectionKind::Todo),
+            Self::Warnings => SectionKind::FreeText(FreeSectionKind::Warnings),
+            Self::Attention => SectionKind::FreeText(FreeSectionKind::Attention),
+            Self::Caution => SectionKind::FreeText(FreeSectionKind::Caution),
+            Self::Danger => SectionKind::FreeText(FreeSectionKind::Danger),
+            Self::Error => SectionKind::FreeText(FreeSectionKind::Error),
+            Self::Hint => SectionKind::FreeText(FreeSectionKind::Hint),
+            Self::Important => SectionKind::FreeText(FreeSectionKind::Important),
+            Self::Tip => SectionKind::FreeText(FreeSectionKind::Tip),
+            Self::Unknown => SectionKind::FreeText(FreeSectionKind::Unknown(header_name.to_owned())),
+        }
     }
 
     /// Whether this section kind uses structured (entry-based) body parsing.

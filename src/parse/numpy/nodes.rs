@@ -7,6 +7,7 @@ use crate::parse::EntryRole;
 use crate::parse::numpy::kind::NumPySectionKind;
 use crate::parse::text_block::TextBlock;
 use crate::parse::text_block::find_text_block;
+use crate::parse::unified::DefaultMarker;
 use crate::syntax::SyntaxKind;
 use crate::syntax::SyntaxNode;
 use crate::syntax::SyntaxToken;
@@ -62,9 +63,20 @@ impl<'a> NumPyDocstring<'a> {
         self.0.nodes(SyntaxKind::SECTION).filter_map(NumPySection::cast)
     }
 
-    /// Iterate over stray line tokens.
-    pub fn stray_lines(&self) -> impl Iterator<Item = &'a SyntaxToken> {
-        self.0.tokens(SyntaxKind::STRAY_LINE)
+    /// Iterate over stray-prose paragraph blocks (`PARAGRAPH` nodes) between
+    /// sections, in source order.
+    pub fn paragraphs(&self) -> impl Iterator<Item = TextBlock<'a>> {
+        self.0.nodes(SyntaxKind::PARAGRAPH).filter_map(TextBlock::cast)
+    }
+
+    /// Deprecated alias for [`NumPyDocstring::paragraphs`]: stray lines are
+    /// now grouped into `PARAGRAPH` text blocks.
+    #[deprecated(
+        since = "0.3.0",
+        note = "use `paragraphs()`; stray lines are now PARAGRAPH text blocks"
+    )]
+    pub fn stray_lines(&self) -> impl Iterator<Item = TextBlock<'a>> {
+        self.paragraphs()
     }
 }
 
@@ -212,9 +224,9 @@ impl<'a> NumPyDeprecation<'a> {
         self.0.find_token(SyntaxKind::DIRECTIVE_MARKER)
     }
 
-    /// The `deprecated` keyword.
+    /// The `deprecated` directive name.
     pub fn keyword(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::KEYWORD)
+        self.0.find_token(SyntaxKind::DIRECTIVE_NAME)
     }
 
     /// The `::` double-colon separator.
@@ -260,24 +272,42 @@ impl<'a> NumPyParameter<'a> {
         find_text_block(self.0, SyntaxKind::DESCRIPTION)
     }
 
-    /// `optional` marker token, if present.
+    /// First `optional` marker token, if present.
+    ///
+    /// Markers are repeatable; use [`NumPyParameter::optionals`] to see
+    /// every occurrence.
     pub fn optional(&self) -> Option<&'a SyntaxToken> {
         self.0.find_token(SyntaxKind::OPTIONAL)
     }
 
-    /// `default` keyword token, if present.
+    /// All `optional` marker tokens, one per occurrence, in source order.
+    pub fn optionals(&self) -> impl Iterator<Item = &'a SyntaxToken> {
+        self.0.tokens(SyntaxKind::OPTIONAL)
+    }
+
+    /// All `default …` markers, one [`DefaultMarker`] per occurrence, in source
+    /// order.
+    pub fn defaults(&self) -> impl Iterator<Item = DefaultMarker<'a>> {
+        self.0.nodes(SyntaxKind::DEFAULT).filter_map(DefaultMarker::cast)
+    }
+
+    /// The first `default …` marker's keyword token, if present.
     pub fn default_keyword(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DEFAULT_KEYWORD)
+        self.defaults().next().map(|d| d.keyword())
     }
 
-    /// Default value separator token (`=` or `:`), if present.
+    /// The first `default …` marker's separator token (`=` or `:`), if
+    /// present.
     pub fn default_separator(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DEFAULT_SEPARATOR)
+        self.defaults().next().and_then(|d| d.separator())
     }
 
-    /// Default value text token, if present.
+    /// The first `default …` marker's value token, if present.
+    ///
+    /// First occurrence wins — the same normalization rule the model layer
+    /// applies. Use [`NumPyParameter::defaults`] to see every occurrence.
     pub fn default_value(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::DEFAULT_VALUE)
+        self.defaults().next().and_then(|d| d.value())
     }
 }
 

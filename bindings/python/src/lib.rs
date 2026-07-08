@@ -142,6 +142,19 @@ fn mk_token_opt(py: Python<'_>, token: Option<&SyntaxToken>, source: &str) -> Py
     token.map(|t| mk_token(py, t, source)).transpose()
 }
 
+/// First DEFAULT occurrence wins (markers are repeatable, #41); a missing
+/// (zero-length) value token lives inside that node.
+fn mk_first_default_value<'a>(
+    py: Python<'_>,
+    mut defaults: impl Iterator<Item = pydocstring_core::parse::DefaultMarker<'a>>,
+    source: &str,
+) -> PyResult<Option<Py<PyToken>>> {
+    match defaults.next() {
+        Some(d) => mk_token_or_missing(py, d.value(), d.syntax(), SyntaxKind::DEFAULT_VALUE, source),
+        None => Ok(None),
+    }
+}
+
 fn mk_token_or_missing(
     py: Python<'_>,
     present: Option<&SyntaxToken>,
@@ -166,7 +179,7 @@ fn mk_tokens<'a>(
 // ─── TextBlock ──────────────────────────────────────────────────────────────
 
 /// A multi-line text content block (summary, extended summary, description,
-/// free-text section body, or reference content).
+/// stray paragraph, free-text section body, or reference content).
 ///
 /// Wraps one `Token` per content line; `text` is the raw source slice of the
 /// block's range (byte-identical to the pre-#38 token text), `logical_text`
@@ -625,13 +638,7 @@ fn build_google_arg(py: Python<'_>, arg: &gn::GoogleArg<'_>, source: &str) -> Py
             optional: mk_token_opt(py, arg.optional(), source)?,
             default_keyword: mk_token_opt(py, arg.default_keyword(), source)?,
             default_separator: mk_token_opt(py, arg.default_separator(), source)?,
-            default_value: mk_token_or_missing(
-                py,
-                arg.default_value(),
-                arg.syntax(),
-                SyntaxKind::DEFAULT_VALUE,
-                source,
-            )?,
+            default_value: mk_first_default_value(py, arg.defaults(), source)?,
         },
     )
 }
@@ -1177,7 +1184,7 @@ struct PyGoogleDocstring {
     summary: Option<Py<PyTextBlock>>,
     extended_summary: Option<Py<PyTextBlock>>,
     deprecation: Option<Py<PyGoogleDeprecation>>,
-    stray_lines: Vec<Py<PyToken>>,
+    paragraphs: Vec<Py<PyTextBlock>>,
     sections: Vec<Py<PyGoogleSection>>,
     source: String,
     /// Cached CST — avoids re-parsing when `walk()` is called.
@@ -1202,9 +1209,16 @@ impl PyGoogleDocstring {
     fn deprecation(&self, py: Python<'_>) -> Option<Py<PyGoogleDeprecation>> {
         self.deprecation.as_ref().map(|d| d.clone_ref(py))
     }
+    /// Stray-prose paragraph blocks between sections, in source order.
     #[getter]
-    fn stray_lines(&self, py: Python<'_>) -> Vec<Py<PyToken>> {
-        self.stray_lines.iter().map(|t| t.clone_ref(py)).collect()
+    fn paragraphs(&self, py: Python<'_>) -> Vec<Py<PyTextBlock>> {
+        self.paragraphs.iter().map(|t| t.clone_ref(py)).collect()
+    }
+    /// Deprecated alias for ``paragraphs``: stray lines are now grouped into
+    /// ``PARAGRAPH`` text blocks, so the items are ``TextBlock``s.
+    #[getter]
+    fn stray_lines(&self, py: Python<'_>) -> Vec<Py<PyTextBlock>> {
+        self.paragraphs(py)
     }
     #[getter]
     fn sections(&self, py: Python<'_>) -> Vec<Py<PyGoogleSection>> {
@@ -1244,7 +1258,10 @@ fn build_google_docstring_node(
         .deprecation()
         .map(|dep| build_google_deprecation(py, &dep, source))
         .transpose()?;
-    let stray_lines = mk_tokens(py, doc.stray_lines(), source)?;
+    let paragraphs = doc
+        .paragraphs()
+        .map(|p| mk_text_block(py, &p, source))
+        .collect::<PyResult<_>>()?;
     let sections = doc
         .sections()
         .map(|sec| build_google_section(py, &sec, source))
@@ -1256,7 +1273,7 @@ fn build_google_docstring_node(
             summary,
             extended_summary,
             deprecation,
-            stray_lines,
+            paragraphs,
             sections,
             source: source.to_string(),
             parsed,
@@ -1412,13 +1429,7 @@ fn build_numpy_parameter(py: Python<'_>, prm: &nn::NumPyParameter<'_>, source: &
             optional: mk_token_opt(py, prm.optional(), source)?,
             default_keyword: mk_token_opt(py, prm.default_keyword(), source)?,
             default_separator: mk_token_opt(py, prm.default_separator(), source)?,
-            default_value: mk_token_or_missing(
-                py,
-                prm.default_value(),
-                prm.syntax(),
-                SyntaxKind::DEFAULT_VALUE,
-                source,
-            )?,
+            default_value: mk_first_default_value(py, prm.defaults(), source)?,
         },
     )
 }
