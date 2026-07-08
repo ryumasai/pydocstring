@@ -551,6 +551,45 @@ fn numpy_deprecation() {
     assert_eq!(dep.description.as_deref(), Some("Use `other` instead."));
 }
 
+/// A multi-line directive body is DEDENTED in the model (logical text; the
+/// emitter re-indents exactly once), and the emit/parse round trip is a
+/// fixed point — the indent must not grow per cycle (#92).
+#[test]
+fn directive_body_is_dedented_and_round_trips() {
+    let input =
+        "Summary.\n\n.. deprecated:: 1.18.0\n    This function is deprecated. Use\n    `mpmath.pade` instead.\n";
+    for style in ["numpy", "google"] {
+        let (doc, emitted) = match style {
+            "numpy" => {
+                let doc = numpy_to_model(&parse_numpy(input)).unwrap();
+                let emitted = pydocstring::emit::numpy::emit_numpy(&doc, &pydocstring::emit::EmitOptions::default());
+                (doc, emitted)
+            }
+            _ => {
+                let doc = google_to_model(&parse_google(input)).unwrap();
+                let emitted = pydocstring::emit::google::emit_google(&doc, &pydocstring::emit::EmitOptions::default());
+                (doc, emitted)
+            }
+        };
+        let dep = doc.deprecation().expect("should have deprecation");
+        assert_eq!(
+            dep.description.as_deref(),
+            Some("This function is deprecated. Use\n`mpmath.pade` instead."),
+            "{style}: model must hold the dedented body"
+        );
+        assert!(
+            emitted
+                .contains(".. deprecated:: 1.18.0\n    This function is deprecated. Use\n    `mpmath.pade` instead.\n"),
+            "{style}: emit must re-indent the body exactly once:\n{emitted}"
+        );
+        let reparsed = match style {
+            "numpy" => numpy_to_model(&parse_numpy(&emitted)).unwrap(),
+            _ => google_to_model(&parse_google(&emitted)).unwrap(),
+        };
+        assert_eq!(reparsed, doc, "{style}: directive round trip diverged:\n{emitted}");
+    }
+}
+
 // =============================================================================
 // NumPy → IR: Free text sections
 // =============================================================================

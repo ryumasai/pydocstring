@@ -27,10 +27,6 @@ use pydocstring::model::Docstring;
 // Real bugs flushed out by the realworld corpus ingest — each entry below is
 // an emit/parse disagreement, NOT a representational limit. Clusters:
 //
-// (DEP-indent) the `.. deprecated::` body is stored with its continuation
-// indent NOT dedented, and numpy emit re-indents by 4 on top — the indent
-// grows by 4 each emit/parse cycle.
-//
 // (RET-flat) google emit_return writes a description-only Return's
 // continuation lines raw at column 0 (src/emit/google.rs), dedenting them
 // out of the Returns section; the re-parse silently drops every line after
@@ -38,14 +34,10 @@ use pydocstring::model::Docstring;
 const KNOWN_IDEMPOTENCE_FAILURES: &[&str] = &[
     // (RET-flat)
     "third_party/fire/google/fire.txt",
-    // (DEP-indent)
-    "third_party/scipy/numpy/interpolate_pade.txt",
 ];
 const KNOWN_MODEL_STABILITY_FAILURES: &[&str] = &[
     // (RET-flat)
     "third_party/fire/google/fire.txt",
-    // (DEP-indent)
-    "third_party/scipy/numpy/interpolate_pade.txt",
 ];
 /// Entries are `"<from>-><to>: <corpus path>"`, e.g. `"numpy->google: numpy/returns/yields_basic.txt"`.
 const KNOWN_CONVERSION_FAILURES: &[&str] = &[
