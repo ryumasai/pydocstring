@@ -177,8 +177,10 @@ repeated_array : ndarray
 
 See Also
 --------
-tile : Tile an array.
-unique : Find the unique elements of an array.
+tile
+    Tile an array.
+unique
+    Find the unique elements of an array.
 
 Examples
 --------

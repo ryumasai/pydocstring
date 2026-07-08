@@ -281,8 +281,10 @@ indices : int or array of ints
 
 See Also
 --------
-sort : Return a sorted copy of an array.
-histogram : Produce histogram from 1-D data.
+sort
+    Return a sorted copy of an array.
+histogram
+    Produce histogram from 1-D data.
 
 Notes
 -----

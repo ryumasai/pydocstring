@@ -212,8 +212,10 @@ UserWarning
 
 See Also
 --------
-:func:`scipy.ndimage.median_filter` : ..
-:func:`scipy.signal.medfilt2d` : ..
+:func:`scipy.ndimage.median_filter`
+    ..
+:func:`scipy.signal.medfilt2d`
+    ..
 
 Notes
 -----

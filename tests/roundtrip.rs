@@ -27,12 +27,6 @@ use pydocstring::model::Docstring;
 // Real bugs flushed out by the realworld corpus ingest — each entry below is
 // an emit/parse disagreement, NOT a representational limit. Clusters:
 //
-// (SA-role) emitters collapse `name` + description to one line `name : desc`
-// (numpy) / `name: desc` (google); when the name starts with an rST role
-// (`:func:`x``), find_term_colon's leading-colon guard (src/parse/utils.rs)
-// rejects the whole line, so the re-parse keeps it as a single name (and
-// comma-splits the description into extra names).
-//
 // (DEP-indent) the `.. deprecated::` body is stored with its continuation
 // indent NOT dedented, and numpy emit re-indents by 4 on top — the indent
 // grows by 4 each emit/parse cycle.
@@ -50,16 +44,6 @@ const KNOWN_IDEMPOTENCE_FAILURES: &[&str] = &[
 const KNOWN_MODEL_STABILITY_FAILURES: &[&str] = &[
     // (RET-flat)
     "third_party/fire/google/fire.txt",
-    // (SA-role)
-    "third_party/scipy/numpy/integrate_simpson.txt",
-    "third_party/scipy/numpy/interpolate_cubicspline.txt",
-    "third_party/scipy/numpy/interpolate_interp1d.txt",
-    "third_party/scipy/numpy/ndimage_label.txt",
-    "third_party/scipy/numpy/signal_butter.txt",
-    "third_party/scipy/numpy/signal_hilbert.txt",
-    "third_party/scipy/numpy/signal_medfilt.txt",
-    "third_party/scipy/numpy/signal_welch.txt",
-    "third_party/scipy/numpy/stats_linregress.txt",
     // (DEP-indent)
     "third_party/scipy/numpy/interpolate_pade.txt",
 ];
@@ -138,12 +122,12 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     "numpy->google: third_party/scipy/numpy/linalg_solve_triangular.txt",
     "numpy->google: third_party/scipy/numpy/optimize_curve_fit.txt",
     "numpy->google: third_party/scipy/numpy/optimize_minimize.txt",
-    // (SA-role) through the google side — real bug, see
-    // KNOWN_MODEL_STABILITY_FAILURES. Most of these ALSO hit the named-return
-    // limits above, so fixing (SA-role) alone will not clear them.
+    // Formerly the (SA-role) cluster: their see-also entries now convert
+    // cleanly (#91 fixed the emit normal form; interpolate_interp1d cleared
+    // entirely), but each of these ALSO has named and/or multiple NumPy
+    // returns, so they remain under the permanent limits (a)/(b) above.
     "numpy->google: third_party/scipy/numpy/integrate_simpson.txt",
     "numpy->google: third_party/scipy/numpy/interpolate_cubicspline.txt",
-    "numpy->google: third_party/scipy/numpy/interpolate_interp1d.txt",
     "numpy->google: third_party/scipy/numpy/ndimage_label.txt",
     "numpy->google: third_party/scipy/numpy/signal_butter.txt",
     "numpy->google: third_party/scipy/numpy/signal_hilbert.txt",

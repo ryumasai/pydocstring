@@ -918,7 +918,8 @@ output : ndarray
 See Also
 --------
 einsum_path, dot, inner, outer, tensordot, linalg.multi_dot
-einsum : Similar verbose interface is provided by the
+einsum
+    Similar verbose interface is provided by the
     `einops <https://github.com/arogozhnikov/einops>`_ package to cover
     additional operations: transpose, reshape/flatten, repeat/tile,
     squeeze/unsqueeze and reductions.

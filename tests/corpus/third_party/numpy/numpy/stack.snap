@@ -285,10 +285,14 @@ stacked : ndarray
 
 See Also
 --------
-concatenate : Join a sequence of arrays along an existing axis.
-block : Assemble an nd-array from nested lists of blocks.
-split : Split array into a list of multiple sub-arrays of equal size.
-unstack : Split an array into a tuple of sub-arrays along an axis.
+concatenate
+    Join a sequence of arrays along an existing axis.
+block
+    Assemble an nd-array from nested lists of blocks.
+split
+    Split array into a list of multiple sub-arrays of equal size.
+unstack
+    Split an array into a tuple of sub-arrays along an axis.
 
 Examples
 --------

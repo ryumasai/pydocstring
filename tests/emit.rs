@@ -236,7 +236,25 @@ fn google_emit_see_also() {
     };
     let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("See Also:\n"));
-    assert!(text.contains("    func1, func2: Related functions.\n"));
+    // Normal form (#91): the description goes on the following
+    // deeper-indented line, never a `name: desc` one-liner.
+    assert!(text.contains("    func1, func2\n        Related functions.\n"));
+}
+
+/// rST-role names have no valid `name: desc` one-liner (the #26 leading-colon
+/// guard rejects it on re-parse); the next-line form round-trips (#91).
+#[test]
+fn google_emit_see_also_role_name_multiline() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::SeeAlso(vec![SeeAlsoEntry {
+            names: vec![":func:`csd`".into()],
+            description: Some("Cross power spectral density\nusing Welch's method".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_google(&doc, &EmitOptions::default());
+    assert!(text.contains("    :func:`csd`\n        Cross power spectral density\n        using Welch's method\n"));
 }
 
 // =============================================================================
@@ -494,7 +512,26 @@ fn numpy_emit_see_also() {
     };
     let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("See Also\n--------\n"));
-    assert!(text.contains("func1, func2 : Related.\n"));
+    // Normal form (#91): the description goes on the following indented
+    // line, never a `name : desc` one-liner.
+    assert!(text.contains("func1, func2\n    Related.\n"));
+}
+
+/// rST-role names have no valid `name : desc` one-liner (the #26
+/// leading-colon guard rejects it on re-parse); the next-line form
+/// round-trips (#91).
+#[test]
+fn numpy_emit_see_also_role_name_multiline() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::SeeAlso(vec![SeeAlsoEntry {
+            names: vec![":func:`csd`".into()],
+            description: Some("Cross power spectral density\nusing Welch's method".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_numpy(&doc, &EmitOptions::default());
+    assert!(text.contains(":func:`csd`\n    Cross power spectral density\n    using Welch's method\n"));
 }
 
 #[test]

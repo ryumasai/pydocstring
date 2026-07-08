@@ -205,7 +205,8 @@ packed : ndarray
 
 See Also
 --------
-unpackbits : Unpacks elements of a uint8 array into a binary-valued output
+unpackbits
+    Unpacks elements of a uint8 array into a binary-valued output
     array.
 
 Examples

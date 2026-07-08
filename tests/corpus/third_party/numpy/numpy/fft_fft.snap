@@ -387,12 +387,18 @@ IndexError
 
 See Also
 --------
-numpy.fft : for definition of the DFT and conventions used.
-ifft : The inverse of `fft`.
-fft2 : The two-dimensional FFT.
-fftn : The *n*-dimensional FFT.
-rfftn : The *n*-dimensional FFT of real input.
-fftfreq : Frequency bins for given FFT parameters.
+numpy.fft
+    for definition of the DFT and conventions used.
+ifft
+    The inverse of `fft`.
+fft2
+    The two-dimensional FFT.
+fftn
+    The *n*-dimensional FFT.
+rfftn
+    The *n*-dimensional FFT of real input.
+fftfreq
+    Frequency bins for given FFT parameters.
 
 Notes
 -----

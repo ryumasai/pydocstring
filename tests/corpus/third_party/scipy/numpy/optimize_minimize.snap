@@ -1721,9 +1721,11 @@ res : OptimizeResult
 
 See Also
 --------
-minimize_scalar : Interface to minimization algorithms for scalar
+minimize_scalar
+    Interface to minimization algorithms for scalar
     univariate functions
-show_options : Additional options accepted by the solvers
+show_options
+    Additional options accepted by the solvers
 
 Notes
 -----

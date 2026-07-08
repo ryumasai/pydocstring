@@ -479,7 +479,8 @@ sos : ndarray
 
 See Also
 --------
-:func:`buttord`, :func:`buttap` : ..
+:func:`buttord`, :func:`buttap`
+    ..
 
 Notes
 -----

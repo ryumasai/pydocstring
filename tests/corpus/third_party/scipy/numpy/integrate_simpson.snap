@@ -319,13 +319,20 @@ float
 
 See Also
 --------
-:func:`quad` : adaptive quadrature using QUADPACK
-:func:`fixed_quad` : fixed-order Gaussian quadrature
-:func:`dblquad` : double integrals
-:func:`tplquad` : triple integrals
-:func:`romb` : integrators for sampled data
-:func:`cumulative_trapezoid` : cumulative integration for sampled data
-:func:`cumulative_simpson` : cumulative integration using Simpson's 1/3 rule
+:func:`quad`
+    adaptive quadrature using QUADPACK
+:func:`fixed_quad`
+    fixed-order Gaussian quadrature
+:func:`dblquad`
+    double integrals
+:func:`tplquad`
+    triple integrals
+:func:`romb`
+    integrators for sampled data
+:func:`cumulative_trapezoid`
+    cumulative integration for sampled data
+:func:`cumulative_simpson`
+    cumulative integration using Simpson's 1/3 rule
 
 Notes
 -----

@@ -274,15 +274,27 @@ fn emit_method(out: &mut String, m: &Method) {
     out.push('\n');
 }
 
-/// Google: `    func1, func2: Description.`
+/// Google: `    func1, func2\n        Description.`
+///
+/// The description always goes on the following deeper-indented line(s) —
+/// the form the parser reads back for every name. The `name: desc` one-liner
+/// is NOT round-trippable when the name starts with an rST role
+/// (`:func:`x``): find_term_colon's leading-colon guard (the #26 rule)
+/// rejects the line on re-parse and the description comma-splits into fake
+/// names (#91).
 fn emit_see_also(out: &mut String, item: &SeeAlsoEntry) {
     out.push_str("    ");
     out.push_str(&item.names.join(", "));
-    if let Some(ref desc) = item.description {
-        out.push_str(": ");
-        emit_multiline_with_indentation(out, desc, 8);
-    }
     out.push('\n');
+    if let Some(ref desc) = item.description {
+        for line in desc.lines() {
+            if !line.is_empty() {
+                out.push_str("        ");
+                out.push_str(line);
+            }
+            out.push('\n');
+        }
+    }
 }
 
 /// Google: `    .. [1] Content.`

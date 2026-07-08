@@ -451,7 +451,8 @@ num_features : int
 
 See Also
 --------
-:func:`find_objects` : generate a list of slices for the labeled features (or objects); useful for finding features' position or dimensions
+:func:`find_objects`
+    generate a list of slices for the labeled features (or objects); useful for finding features' position or dimensions
 
 Notes
 -----

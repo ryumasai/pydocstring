@@ -317,9 +317,12 @@ out : array of int
 
 See Also
 --------
-busdaycalendar : An object that specifies a custom set of valid days.
-is_busday : Returns a boolean array indicating valid days.
-busday_offset : Applies an offset counted in valid days.
+busdaycalendar
+    An object that specifies a custom set of valid days.
+is_busday
+    Returns a boolean array indicating valid days.
+busday_offset
+    Applies an offset counted in valid days.
 
 Examples
 --------

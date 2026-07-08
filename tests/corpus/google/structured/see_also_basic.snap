@@ -26,4 +26,5 @@ DOCUMENT@0..56 {
 Summary.
 
 See Also:
-    other_func: Does something else.
+    other_func
+        Does something else.

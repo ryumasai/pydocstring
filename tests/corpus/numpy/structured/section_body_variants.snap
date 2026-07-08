@@ -212,7 +212,8 @@ data : bytes
 
 See Also
 --------
-func_a : Desc.
+func_a
+    Desc.
 
 CustomSection
 -------------

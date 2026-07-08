@@ -225,8 +225,10 @@ c : ndarray
 
 See Also
 --------
-repeat : Repeat elements of an array.
-broadcast_to : Broadcast an array to a new shape
+repeat
+    Repeat elements of an array.
+broadcast_to
+    Broadcast an array to a new shape
 
 Examples
 --------

@@ -36,5 +36,6 @@ Summary.
 
 See Also
 --------
-func_a : Does something.
+func_a
+    Does something.
 func_b, func_c

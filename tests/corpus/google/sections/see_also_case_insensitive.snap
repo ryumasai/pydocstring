@@ -26,4 +26,5 @@ DOCUMENT@0..44 {
 Summary.
 
 See Also:
-    func_a: Description.
+    func_a
+        Description.

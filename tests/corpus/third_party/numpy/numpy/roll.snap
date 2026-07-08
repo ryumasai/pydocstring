@@ -254,7 +254,8 @@ res : ndarray
 
 See Also
 --------
-rollaxis : Roll the specified axis backwards, until it lies in a
+rollaxis
+    Roll the specified axis backwards, until it lies in a
     given position.
 
 Notes

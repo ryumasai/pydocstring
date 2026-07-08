@@ -610,9 +610,12 @@ Pxx : ndarray
 
 See Also
 --------
-:func:`csd` : Cross power spectral density using Welch's method
-:func:`periodogram` : Simple, optionally modified periodogram
-:func:`lombscargle` : Lomb-Scargle periodogram for unevenly sampled data
+:func:`csd`
+    Cross power spectral density using Welch's method
+:func:`periodogram`
+    Simple, optionally modified periodogram
+:func:`lombscargle`
+    Lomb-Scargle periodogram for unevenly sampled data
 
 Notes
 -----

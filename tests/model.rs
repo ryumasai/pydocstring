@@ -746,3 +746,56 @@ fn marker_like_segment_mid_type_is_part_of_the_type() {
         other => panic!("expected Parameters, got {:?}", other),
     }
 }
+
+// =============================================================================
+// See Also round trips: multi-line + rST-role names (#90/#91)
+// =============================================================================
+
+/// The see-also normal form (description on the following indented line)
+/// round-trips multi-line descriptions and rST-role names: the model
+/// survives emit → parse unchanged in both styles.
+#[test]
+fn see_also_role_names_and_multiline_descriptions_round_trip() {
+    // NumPy: an rST-role name plus a multi-line description.
+    let parsed = parse_numpy(
+        "Summary.\n\nSee Also\n--------\n:func:`csd`\n    Cross power spectral density\n    using Welch's method\nperiodogram, lombscargle\n",
+    );
+    let doc = numpy_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::SeeAlso(items) => {
+            assert_eq!(items.len(), 2);
+            assert_eq!(items[0].names, vec![":func:`csd`"]);
+            assert_eq!(
+                items[0].description.as_deref(),
+                Some("Cross power spectral density\nusing Welch's method")
+            );
+            assert_eq!(items[1].names, vec!["periodogram", "lombscargle"]);
+            assert_eq!(items[1].description, None);
+        }
+        other => panic!("expected SeeAlso, got {:?}", other),
+    }
+    let emitted = pydocstring::emit::numpy::emit_numpy(&doc, &pydocstring::emit::EmitOptions::default());
+    let reparsed = numpy_to_model(&parse_numpy(&emitted)).unwrap();
+    assert_eq!(reparsed, doc, "numpy see-also round trip diverged:\n{emitted}");
+
+    // Google: the equivalent normal form.
+    let parsed = parse_google(
+        "Summary.\n\nSee Also:\n    :func:`csd`\n        Cross power spectral density\n        using Welch's method\n    periodogram, lombscargle\n",
+    );
+    let doc = google_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::SeeAlso(items) => {
+            assert_eq!(items.len(), 2);
+            assert_eq!(items[0].names, vec![":func:`csd`"]);
+            assert_eq!(
+                items[0].description.as_deref(),
+                Some("Cross power spectral density\nusing Welch's method")
+            );
+            assert_eq!(items[1].names, vec!["periodogram", "lombscargle"]);
+        }
+        other => panic!("expected SeeAlso, got {:?}", other),
+    }
+    let emitted = pydocstring::emit::google::emit_google(&doc, &pydocstring::emit::EmitOptions::default());
+    let reparsed = google_to_model(&parse_google(&emitted)).unwrap();
+    assert_eq!(reparsed, doc, "google see-also round trip diverged:\n{emitted}");
+}

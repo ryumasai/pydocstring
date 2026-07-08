@@ -499,8 +499,10 @@ result : ``LinregressResult`` instance
 
 See Also
 --------
-:func:`scipy.optimize.curve_fit` : Use non-linear least squares to fit a function to data.
-:func:`scipy.optimize.leastsq` : Minimize the sum of squares of a set of equations.
+:func:`scipy.optimize.curve_fit`
+    Use non-linear least squares to fit a function to data.
+:func:`scipy.optimize.leastsq`
+    Minimize the sum of squares of a set of equations.
 
 Notes
 -----

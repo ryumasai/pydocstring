@@ -251,17 +251,19 @@ fn emit_method(out: &mut String, m: &Method) {
     }
 }
 
-/// NumPy: `func1, func2 : Description.`
+/// NumPy: `func1, func2\n    Description.`
+///
+/// The description always goes on the following indented line(s) — the form
+/// the parser reads back for every name. The `name : desc` one-liner is NOT
+/// round-trippable when the name starts with an rST role (`:func:`x``):
+/// find_term_colon's leading-colon guard (the #26 rule) rejects the line on
+/// re-parse and the description comma-splits into fake names (#91).
 fn emit_see_also(out: &mut String, item: &SeeAlsoEntry) {
     out.push_str(&item.names.join(", "));
-    if let Some(ref desc) = item.description {
-        out.push_str(" : ");
-        // Indent continuation lines so they re-parse as part of the same
-        // entry, exactly like reference content; written raw they land at
-        // entry indentation and re-parse as fake name-only entries (#90).
-        emit_with_indented_continuations(out, desc);
-    }
     out.push('\n');
+    if let Some(ref desc) = item.description {
+        emit_indented_body(out, desc);
+    }
 }
 
 /// NumPy: `.. [1] Content.`
