@@ -4,6 +4,7 @@ use pyo3::types::{PyList, PyString};
 
 use pydocstring_core::emit::EmitOptions;
 use pydocstring_core::model;
+use pydocstring_core::parse::DefaultMarker;
 use pydocstring_core::parse::google;
 use pydocstring_core::parse::google::kind::GoogleSectionKind;
 use pydocstring_core::parse::google::nodes as gn;
@@ -13,7 +14,7 @@ use pydocstring_core::parse::plain::nodes as pn;
 use pydocstring_core::parse::text_block::TextBlock;
 use pydocstring_core::parse::token_ref::TokenRef;
 use pydocstring_core::parse::visitor::{DocstringVisitor, walk as core_walk, walk_children};
-use pydocstring_core::syntax::{Parsed, SyntaxKind, SyntaxNode, SyntaxToken};
+use pydocstring_core::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use pydocstring_core::text::TextRange;
 
 use std::convert::{TryFrom, TryInto};
@@ -81,27 +82,265 @@ fn build_line_starts(source: &str) -> Vec<u32> {
     starts
 }
 
+// ─── NodeRef — lazy node addressing ─────────────────────────────────────────
+
+/// Lazy address of a node in the immutable syntax tree: the shared parse
+/// result plus the child-index path from the root.
+///
+/// The tree never changes after parsing, so a path is a stable address:
+/// every property access re-resolves it (depth ≤ ~5, negligible) and reads
+/// through the core typed accessors instead of materializing eager copies.
+/// The parent's address is the path prefix (drop the last segment) — no
+/// parent pointers or core changes needed.
+#[derive(Clone)]
+struct NodeRef {
+    parsed: Arc<Parsed>,
+    path: Vec<u32>,
+}
+
+/// Resolve a child-index `path` (node segments only) starting at `root`.
+fn resolve_node_path<'a>(root: &'a SyntaxNode, path: &[u32]) -> &'a SyntaxNode {
+    let mut node = root;
+    for &idx in path {
+        node = match &node.children()[idx as usize] {
+            SyntaxElement::Node(n) => n,
+            SyntaxElement::Token(_) => unreachable!("NodeRef path segment addresses a token"),
+        };
+    }
+    node
+}
+
+/// Locate node `target` under `root` by pointer identity, appending its
+/// child-index path to `path`. Returns whether it was found.
+fn find_node_path(root: &SyntaxNode, target: &SyntaxNode, path: &mut Vec<u32>) -> bool {
+    if std::ptr::eq(root, target) {
+        return true;
+    }
+    for (idx, child) in root.children().iter().enumerate() {
+        if let SyntaxElement::Node(n) = child {
+            path.push(idx as u32);
+            if find_node_path(n, target, path) {
+                return true;
+            }
+            path.pop();
+        }
+    }
+    false
+}
+
+/// Locate token `target` under `root` by pointer identity. Appends the
+/// child-index path of the token's **parent node** to `path` and returns the
+/// token's child index within that parent.
+fn find_token_path(root: &SyntaxNode, target: &SyntaxToken, path: &mut Vec<u32>) -> Option<u32> {
+    for (idx, child) in root.children().iter().enumerate() {
+        match child {
+            SyntaxElement::Token(t) => {
+                if std::ptr::eq(t, target) {
+                    return Some(idx as u32);
+                }
+            }
+            SyntaxElement::Node(n) => {
+                path.push(idx as u32);
+                if let Some(found) = find_token_path(n, target, path) {
+                    return Some(found);
+                }
+                path.pop();
+            }
+        }
+    }
+    None
+}
+
+impl NodeRef {
+    /// Address the root of `parsed` (empty path).
+    fn root(parsed: Arc<Parsed>) -> Self {
+        Self {
+            parsed,
+            path: Vec::new(),
+        }
+    }
+
+    /// Address `node`, which must belong to `parsed`'s tree.
+    fn for_node(parsed: &Arc<Parsed>, node: &SyntaxNode) -> Self {
+        let mut path = Vec::new();
+        let found = find_node_path(parsed.root(), node, &mut path);
+        debug_assert!(found, "node does not belong to this parse result");
+        Self {
+            parsed: Arc::clone(parsed),
+            path,
+        }
+    }
+
+    /// Resolve to the addressed `SyntaxNode`.
+    fn node(&self) -> &SyntaxNode {
+        resolve_node_path(self.parsed.root(), &self.path)
+    }
+
+    /// Address a descendant node returned by a core accessor on this node.
+    fn child_ref(&self, node: &SyntaxNode) -> NodeRef {
+        let mut path = self.path.clone();
+        let found = find_node_path(self.node(), node, &mut path);
+        debug_assert!(found, "node does not belong to this subtree");
+        NodeRef {
+            parsed: Arc::clone(&self.parsed),
+            path,
+        }
+    }
+
+    /// Wrap a descendant node in its lazy pyclass wrapper.
+    fn wrap_child<T>(&self, py: Python<'_>, node: &SyntaxNode) -> PyResult<Py<T>>
+    where
+        T: PyClass + From<NodeRef> + Into<pyo3::PyClassInitializer<T>>,
+    {
+        Py::new(py, T::from(self.child_ref(node)))
+    }
+
+    fn py_range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        Py::new(py, PyTextRange::from(*self.node().range()))
+    }
+
+    // ── Token helpers ────────────────────────────────────────────────────
+
+    /// Address a token returned by a core accessor on this node.
+    fn token(&self, py: Python<'_>, token: &SyntaxToken) -> PyResult<Py<PyToken>> {
+        let mut path = self.path.clone();
+        let index = find_token_path(self.node(), token, &mut path).expect("token does not belong to this subtree");
+        Py::new(
+            py,
+            PyToken {
+                parent: NodeRef {
+                    parsed: Arc::clone(&self.parsed),
+                    path,
+                },
+                index,
+            },
+        )
+    }
+
+    fn token_opt(&self, py: Python<'_>, token: Option<TokenRef<'_>>) -> PyResult<Option<Py<PyToken>>> {
+        token.map(|t| self.token(py, t.syntax())).transpose()
+    }
+
+    fn tokens<'a>(&self, py: Python<'_>, tokens: impl Iterator<Item = TokenRef<'a>>) -> PyResult<Vec<Py<PyToken>>> {
+        tokens.map(|t| self.token(py, t.syntax())).collect()
+    }
+
+    /// The present token from a typed accessor, else the zero-length
+    /// "missing" placeholder of `kind` (excluded by the typed accessors) so
+    /// Python callers can distinguish e.g. `a ()` from `a`.
+    fn token_or_missing(
+        &self,
+        py: Python<'_>,
+        present: Option<TokenRef<'_>>,
+        kind: SyntaxKind,
+    ) -> PyResult<Option<Py<PyToken>>> {
+        match present {
+            Some(t) => Ok(Some(self.token(py, t.syntax())?)),
+            None => self.node().find_missing(kind).map(|t| self.token(py, t)).transpose(),
+        }
+    }
+
+    /// First DEFAULT occurrence wins (markers are repeatable, #41); a missing
+    /// (zero-length) value token lives inside that node.
+    fn first_default_value<'a>(
+        &self,
+        py: Python<'_>,
+        mut defaults: impl Iterator<Item = DefaultMarker<'a>>,
+    ) -> PyResult<Option<Py<PyToken>>> {
+        match defaults.next() {
+            Some(d) => match d.value() {
+                Some(t) => Ok(Some(self.token(py, t.syntax())?)),
+                None => d
+                    .syntax()
+                    .find_missing(SyntaxKind::DEFAULT_VALUE)
+                    .map(|t| self.token(py, t))
+                    .transpose(),
+            },
+            None => Ok(None),
+        }
+    }
+
+    // ── TextBlock helpers ────────────────────────────────────────────────
+
+    fn block(&self, py: Python<'_>, block: &TextBlock<'_>) -> PyResult<Py<PyTextBlock>> {
+        Py::new(
+            py,
+            PyTextBlock {
+                nr: self.child_ref(block.syntax()),
+            },
+        )
+    }
+
+    fn block_opt(&self, py: Python<'_>, block: Option<TextBlock<'_>>) -> PyResult<Option<Py<PyTextBlock>>> {
+        block.map(|b| self.block(py, &b)).transpose()
+    }
+
+    fn blocks<'a>(
+        &self,
+        py: Python<'_>,
+        blocks: impl Iterator<Item = TextBlock<'a>>,
+    ) -> PyResult<Vec<Py<PyTextBlock>>> {
+        blocks.map(|b| self.block(py, &b)).collect()
+    }
+
+    /// Like [`NodeRef::block_opt`], but falls back to the zero-length
+    /// "missing" placeholder block of `kind` (excluded by the typed
+    /// accessors) so Python callers can distinguish e.g. `a (int):` from
+    /// `a (int)`.
+    fn block_or_missing(
+        &self,
+        py: Python<'_>,
+        present: Option<TextBlock<'_>>,
+        kind: SyntaxKind,
+    ) -> PyResult<Option<Py<PyTextBlock>>> {
+        match present {
+            Some(b) => Ok(Some(self.block(py, &b)?)),
+            None => self
+                .node()
+                .nodes(kind)
+                .next()
+                .map(|n| Py::new(py, PyTextBlock { nr: self.child_ref(n) }))
+                .transpose(),
+        }
+    }
+}
+
 // ─── Token ──────────────────────────────────────────────────────────────────
 
 /// A typed token: a text fragment plus its byte range in the source.
+///
+/// Lazy view of a tree leaf — holds the parent node's [`NodeRef`] plus the
+/// token's child index, and resolves `text` / `range` through the core tree
+/// on access.
 ///
 /// The field name on the parent object (e.g. `.name`, `.description`) implies
 /// the semantic kind; no redundant `kind` field is exposed.
 #[pyclass(frozen, skip_from_py_object, name = "Token")]
 struct PyToken {
-    text: String,
-    range: TextRange,
+    /// Address of the token's parent node.
+    parent: NodeRef,
+    /// Child index of the token within the parent node.
+    index: u32,
+}
+
+impl PyToken {
+    fn resolve(&self) -> &SyntaxToken {
+        match &self.parent.node().children()[self.index as usize] {
+            SyntaxElement::Token(t) => t,
+            SyntaxElement::Node(_) => unreachable!("PyToken index addresses a node"),
+        }
+    }
 }
 
 #[pymethods]
 impl PyToken {
     #[getter]
     fn text(&self) -> &str {
-        &self.text
+        self.resolve().text(self.parent.parsed.source())
     }
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        Py::new(py, PyTextRange::from(*self.resolve().range()))
     }
     /// Whether this token is a zero-length placeholder inserted by the parser
     /// to represent a syntactically missing element.
@@ -110,83 +349,23 @@ impl PyToken {
     /// CLOSE_BRACKET token; ``arg ():`` produces a missing TYPE token.
     /// Equivalent to ``token.range.is_empty()``.
     fn is_missing(&self) -> bool {
-        self.range.is_empty()
+        self.resolve().is_missing()
     }
     fn __eq__(&self, other: &PyToken) -> bool {
-        self.text == other.text && self.range == other.range
+        self.text() == other.text() && self.resolve().range() == other.resolve().range()
     }
     fn __hash__(&self) -> u64 {
         use std::hash::{Hash, Hasher};
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
-        self.text.hash(&mut hasher);
-        self.range.start().raw().hash(&mut hasher);
-        self.range.end().raw().hash(&mut hasher);
+        let token = self.resolve();
+        token.text(self.parent.parsed.source()).hash(&mut hasher);
+        token.range().start().raw().hash(&mut hasher);
+        token.range().end().raw().hash(&mut hasher);
         hasher.finish()
     }
     fn __repr__(&self) -> String {
-        format!("Token({:?})", self.text)
+        format!("Token({:?})", self.text())
     }
-}
-
-// ─── Token helpers ───────────────────────────────────────────────────────────
-
-fn mk_token(py: Python<'_>, token: &SyntaxToken, source: &str) -> PyResult<Py<PyToken>> {
-    Py::new(
-        py,
-        PyToken {
-            text: token.text(source).to_string(),
-            range: *token.range(),
-        },
-    )
-}
-
-fn mk_token_opt(py: Python<'_>, token: Option<&SyntaxToken>, source: &str) -> PyResult<Option<Py<PyToken>>> {
-    token.map(|t| mk_token(py, t, source)).transpose()
-}
-
-/// Build a `PyToken` from a source-aware [`TokenRef`] (no `source` needed).
-fn mk_token_ref(py: Python<'_>, token: TokenRef<'_>) -> PyResult<Py<PyToken>> {
-    Py::new(
-        py,
-        PyToken {
-            text: token.text().to_string(),
-            range: *token.range(),
-        },
-    )
-}
-
-fn mk_token_ref_opt(py: Python<'_>, token: Option<TokenRef<'_>>) -> PyResult<Option<Py<PyToken>>> {
-    token.map(|t| mk_token_ref(py, t)).transpose()
-}
-
-/// First DEFAULT occurrence wins (markers are repeatable, #41); a missing
-/// (zero-length) value token lives inside that node.
-fn mk_first_default_value<'a>(
-    py: Python<'_>,
-    mut defaults: impl Iterator<Item = pydocstring_core::parse::DefaultMarker<'a>>,
-    source: &str,
-) -> PyResult<Option<Py<PyToken>>> {
-    match defaults.next() {
-        Some(d) => mk_token_or_missing(py, d.value(), d.syntax(), SyntaxKind::DEFAULT_VALUE, source),
-        None => Ok(None),
-    }
-}
-
-fn mk_token_or_missing(
-    py: Python<'_>,
-    present: Option<TokenRef<'_>>,
-    node: &SyntaxNode,
-    kind: SyntaxKind,
-    source: &str,
-) -> PyResult<Option<Py<PyToken>>> {
-    match present {
-        Some(t) => Ok(Some(mk_token_ref(py, t)?)),
-        None => mk_token_opt(py, node.find_missing(kind), source),
-    }
-}
-
-fn mk_tokens<'a>(py: Python<'_>, tokens: impl Iterator<Item = TokenRef<'a>>) -> PyResult<Vec<Py<PyToken>>> {
-    tokens.map(|t| mk_token_ref(py, t)).collect()
 }
 
 // ─── TextBlock ──────────────────────────────────────────────────────────────
@@ -199,10 +378,14 @@ fn mk_tokens<'a>(py: Python<'_>, tokens: impl Iterator<Item = TokenRef<'a>>) -> 
 /// is the dedented/joined convenience form.
 #[pyclass(frozen, skip_from_py_object, name = "TextBlock")]
 struct PyTextBlock {
-    text: String,
-    logical_text: String,
-    range: TextRange,
-    lines: Vec<Py<PyToken>>,
+    nr: NodeRef,
+}
+
+impl PyTextBlock {
+    /// Resolve the lazy address into the core typed view.
+    fn view(&self) -> TextBlock<'_> {
+        TextBlock::cast(&self.nr.parsed, self.nr.node()).expect("NodeRef addresses a text block node")
+    }
 }
 
 #[pymethods]
@@ -211,68 +394,31 @@ impl PyTextBlock {
     /// indentation and newlines.
     #[getter]
     fn text(&self) -> &str {
-        &self.text
+        self.view().text()
     }
     /// Logical text: continuation lines dedented by their common
     /// indentation and joined with newlines.
     #[getter]
-    fn logical_text(&self) -> &str {
-        &self.logical_text
+    fn logical_text(&self) -> String {
+        self.view().logical_text()
     }
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     /// One `Token` per content line.
     #[getter]
-    fn lines(&self, py: Python<'_>) -> Vec<Py<PyToken>> {
-        self.lines.iter().map(|t| t.clone_ref(py)).collect()
+    fn lines(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
+        self.nr.tokens(py, self.view().lines())
     }
     /// Whether this block is a zero-length placeholder inserted by the
     /// parser to represent a syntactically missing element (e.g. the
     /// description in ``arg (int):``). Equivalent to ``range.is_empty()``.
     fn is_missing(&self) -> bool {
-        self.range.is_empty()
+        self.view().is_missing()
     }
     fn __repr__(&self) -> String {
-        format!("TextBlock({:?})", self.text)
-    }
-}
-
-fn mk_text_block(py: Python<'_>, block: &TextBlock<'_>) -> PyResult<Py<PyTextBlock>> {
-    Py::new(
-        py,
-        PyTextBlock {
-            text: block.text().to_string(),
-            logical_text: block.logical_text(),
-            range: *block.range(),
-            lines: mk_tokens(py, block.lines())?,
-        },
-    )
-}
-
-fn mk_text_block_opt(py: Python<'_>, block: Option<TextBlock<'_>>) -> PyResult<Option<Py<PyTextBlock>>> {
-    block.map(|b| mk_text_block(py, &b)).transpose()
-}
-
-/// Like [`mk_text_block_opt`], but falls back to the zero-length "missing"
-/// placeholder block of `kind` (excluded by the typed accessors) so Python
-/// callers can distinguish e.g. `a (int):` from `a (int)`.
-fn mk_text_block_or_missing(
-    py: Python<'_>,
-    present: Option<TextBlock<'_>>,
-    parsed: &Parsed,
-    node: &SyntaxNode,
-    kind: SyntaxKind,
-) -> PyResult<Option<Py<PyTextBlock>>> {
-    match present {
-        Some(b) => Ok(Some(mk_text_block(py, &b)?)),
-        None => node
-            .nodes(kind)
-            .next()
-            .and_then(|n| TextBlock::cast(parsed, n))
-            .map(|b| mk_text_block(py, &b))
-            .transpose(),
+        format!("TextBlock({:?})", self.text())
     }
 }
 
@@ -550,743 +696,469 @@ fn numpy_section_kind_to_py(kind: NumPySectionKind) -> PyNumPySectionKind {
 }
 
 // =============================================================================
+// Lazy CST wrappers
+// =============================================================================
+
+/// Define a frozen pyclass CST wrapper holding a [`NodeRef`], resolving into
+/// the core typed view `$mod::$view` on every property access.
+///
+/// THE POINT of these wrappers is that they contain no conversion knowledge:
+/// every getter delegates to the corresponding core accessor, so grammar and
+/// kind knowledge lives in one place (the Rust crate).
+macro_rules! lazy_node {
+    ($py:ident, $name:literal, $mod:ident :: $view:ident) => {
+        #[pyclass(frozen, skip_from_py_object, name = $name)]
+        struct $py {
+            nr: NodeRef,
+        }
+
+        impl From<NodeRef> for $py {
+            fn from(nr: NodeRef) -> Self {
+                Self { nr }
+            }
+        }
+
+        impl $py {
+            /// Resolve the lazy address into the core typed view.
+            fn view(&self) -> $mod::$view<'_> {
+                $mod::$view::cast(&self.nr.parsed, self.nr.node())
+                    .expect("NodeRef addresses a node of the wrapped kind")
+            }
+        }
+    };
+}
+
+// =============================================================================
 // Google typed wrappers
 // =============================================================================
 
 // ─── GoogleArg ───────────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "GoogleArg")]
-struct PyGoogleArg {
-    range: TextRange,
-    name: Py<PyToken>,
-    names: Vec<Py<PyToken>>,
-    open_bracket: Option<Py<PyToken>>,
-    r#type: Option<Py<PyToken>>,
-    close_bracket: Option<Py<PyToken>>,
-    colon: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-    optional: Option<Py<PyToken>>,
-    default_keyword: Option<Py<PyToken>>,
-    default_separator: Option<Py<PyToken>>,
-    default_value: Option<Py<PyToken>>,
-}
+lazy_node!(PyGoogleArg, "GoogleArg", gn::GoogleArg);
 
 #[pymethods]
 impl PyGoogleArg {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn name(&self, py: Python<'_>) -> Py<PyToken> {
-        self.name.clone_ref(py)
+    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().name().syntax())
     }
     #[getter]
-    fn names(&self, py: Python<'_>) -> Vec<Py<PyToken>> {
-        self.names.iter().map(|n| n.clone_ref(py)).collect()
+    fn names(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
+        self.nr.tokens(py, self.view().names())
     }
     #[getter]
-    fn open_bracket(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.open_bracket.as_ref().map(|t| t.clone_ref(py))
+    fn open_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().open_bracket())
     }
     #[getter]
-    fn r#type(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.r#type.as_ref().map(|t| t.clone_ref(py))
+    fn r#type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr
+            .token_or_missing(py, self.view().type_annotation(), SyntaxKind::TYPE)
     }
     #[getter]
-    fn close_bracket(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.close_bracket.as_ref().map(|t| t.clone_ref(py))
+    fn close_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr
+            .token_or_missing(py, self.view().close_bracket(), SyntaxKind::CLOSE_BRACKET)
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_or_missing(py, self.view().colon(), SyntaxKind::COLON)
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr
+            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
     #[getter]
-    fn optional(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.optional.as_ref().map(|t| t.clone_ref(py))
+    fn optional(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().optional_marker())
     }
     #[getter]
-    fn default_keyword(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.default_keyword.as_ref().map(|t| t.clone_ref(py))
+    fn default_keyword(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().default_keyword())
     }
     #[getter]
-    fn default_separator(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.default_separator.as_ref().map(|t| t.clone_ref(py))
+    fn default_separator(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().default_separator())
     }
     #[getter]
-    fn default_value(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.default_value.as_ref().map(|t| t.clone_ref(py))
+    fn default_value(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.first_default_value(py, self.view().defaults())
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
-        format!("GoogleArg({:?})", self.name.borrow(py).text)
+    fn __repr__(&self) -> String {
+        format!("GoogleArg({:?})", self.view().name().text())
     }
-}
-
-fn build_google_arg(py: Python<'_>, arg: &gn::GoogleArg<'_>, parsed: &Parsed) -> PyResult<Py<PyGoogleArg>> {
-    let source = parsed.source();
-    Py::new(
-        py,
-        PyGoogleArg {
-            range: *arg.syntax().range(),
-            name: mk_token_ref(py, arg.name())?,
-            names: mk_tokens(py, arg.names())?,
-            open_bracket: mk_token_ref_opt(py, arg.open_bracket())?,
-            r#type: mk_token_or_missing(py, arg.type_annotation(), arg.syntax(), SyntaxKind::TYPE, source)?,
-            close_bracket: mk_token_or_missing(
-                py,
-                arg.close_bracket(),
-                arg.syntax(),
-                SyntaxKind::CLOSE_BRACKET,
-                source,
-            )?,
-            colon: mk_token_or_missing(py, arg.colon(), arg.syntax(), SyntaxKind::COLON, source)?,
-            description: mk_text_block_or_missing(
-                py,
-                arg.description(),
-                parsed,
-                arg.syntax(),
-                SyntaxKind::DESCRIPTION,
-            )?,
-            optional: mk_token_ref_opt(py, arg.optional_marker())?,
-            default_keyword: mk_token_ref_opt(py, arg.default_keyword())?,
-            default_separator: mk_token_ref_opt(py, arg.default_separator())?,
-            default_value: mk_first_default_value(py, arg.defaults(), source)?,
-        },
-    )
 }
 
 // ─── GoogleReturn ────────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "GoogleReturn")]
-struct PyGoogleReturn {
-    range: TextRange,
-    return_type: Option<Py<PyToken>>,
-    colon: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyGoogleReturn, "GoogleReturn", gn::GoogleReturn);
 
 #[pymethods]
 impl PyGoogleReturn {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn return_type(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.return_type.as_ref().map(|t| t.clone_ref(py))
+    fn return_type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().type_annotation())
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().colon())
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().description())
     }
     fn __repr__(&self) -> &'static str {
         "GoogleReturn(...)"
     }
 }
 
-fn build_google_return(py: Python<'_>, rtn: &gn::GoogleReturn<'_>, _parsed: &Parsed) -> PyResult<Py<PyGoogleReturn>> {
-    Py::new(
-        py,
-        PyGoogleReturn {
-            range: *rtn.syntax().range(),
-            return_type: mk_token_ref_opt(py, rtn.type_annotation())?,
-            colon: mk_token_ref_opt(py, rtn.colon())?,
-            description: mk_text_block_opt(py, rtn.description())?,
-        },
-    )
-}
-
 // ─── GoogleYield ─────────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "GoogleYield")]
-struct PyGoogleYield {
-    range: TextRange,
-    return_type: Option<Py<PyToken>>,
-    colon: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyGoogleYield, "GoogleYield", gn::GoogleYield);
 
 #[pymethods]
 impl PyGoogleYield {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn return_type(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.return_type.as_ref().map(|t| t.clone_ref(py))
+    fn return_type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().type_annotation())
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().colon())
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().description())
     }
     fn __repr__(&self) -> &'static str {
         "GoogleYield(...)"
     }
 }
 
-fn build_google_yield(py: Python<'_>, yld: &gn::GoogleYield<'_>, _parsed: &Parsed) -> PyResult<Py<PyGoogleYield>> {
-    Py::new(
-        py,
-        PyGoogleYield {
-            range: *yld.syntax().range(),
-            return_type: mk_token_ref_opt(py, yld.type_annotation())?,
-            colon: mk_token_ref_opt(py, yld.colon())?,
-            description: mk_text_block_opt(py, yld.description())?,
-        },
-    )
-}
-
 // ─── GoogleException ─────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "GoogleException")]
-struct PyGoogleException {
-    range: TextRange,
-    r#type: Py<PyToken>,
-    colon: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyGoogleException, "GoogleException", gn::GoogleException);
 
 #[pymethods]
 impl PyGoogleException {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn r#type(&self, py: Python<'_>) -> Py<PyToken> {
-        self.r#type.clone_ref(py)
+    fn r#type(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().type_annotation().syntax())
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().colon())
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr
+            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
-        format!("GoogleException({:?})", self.r#type.borrow(py).text)
+    fn __repr__(&self) -> String {
+        format!("GoogleException({:?})", self.view().type_annotation().text())
     }
-}
-
-fn build_google_exception(
-    py: Python<'_>,
-    exc: &gn::GoogleException<'_>,
-    parsed: &Parsed,
-) -> PyResult<Py<PyGoogleException>> {
-    Py::new(
-        py,
-        PyGoogleException {
-            range: *exc.syntax().range(),
-            r#type: mk_token_ref(py, exc.type_annotation())?,
-            colon: mk_token_ref_opt(py, exc.colon())?,
-            description: mk_text_block_or_missing(
-                py,
-                exc.description(),
-                parsed,
-                exc.syntax(),
-                SyntaxKind::DESCRIPTION,
-            )?,
-        },
-    )
 }
 
 // ─── GoogleWarning ───────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "GoogleWarning")]
-struct PyGoogleWarning {
-    range: TextRange,
-    r#type: Py<PyToken>,
-    colon: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyGoogleWarning, "GoogleWarning", gn::GoogleWarning);
 
 #[pymethods]
 impl PyGoogleWarning {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn r#type(&self, py: Python<'_>) -> Py<PyToken> {
-        self.r#type.clone_ref(py)
+    fn r#type(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().type_annotation().syntax())
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().colon())
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr
+            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
-        format!("GoogleWarning({:?})", self.r#type.borrow(py).text)
+    fn __repr__(&self) -> String {
+        format!("GoogleWarning({:?})", self.view().type_annotation().text())
     }
-}
-
-fn build_google_warning(py: Python<'_>, wrn: &gn::GoogleWarning<'_>, parsed: &Parsed) -> PyResult<Py<PyGoogleWarning>> {
-    Py::new(
-        py,
-        PyGoogleWarning {
-            range: *wrn.syntax().range(),
-            r#type: mk_token_ref(py, wrn.type_annotation())?,
-            colon: mk_token_ref_opt(py, wrn.colon())?,
-            description: mk_text_block_or_missing(
-                py,
-                wrn.description(),
-                parsed,
-                wrn.syntax(),
-                SyntaxKind::DESCRIPTION,
-            )?,
-        },
-    )
 }
 
 // ─── GoogleSeeAlsoItem ───────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "GoogleSeeAlsoItem")]
-struct PyGoogleSeeAlsoItem {
-    range: TextRange,
-    names: Vec<Py<PyToken>>,
-    colon: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyGoogleSeeAlsoItem, "GoogleSeeAlsoItem", gn::GoogleSeeAlsoItem);
 
 #[pymethods]
 impl PyGoogleSeeAlsoItem {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn names(&self, py: Python<'_>) -> Vec<Py<PyToken>> {
-        self.names.iter().map(|n| n.clone_ref(py)).collect()
+    fn names(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
+        self.nr.tokens(py, self.view().names())
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().colon())
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr
+            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
     fn __repr__(&self) -> &'static str {
         "GoogleSeeAlsoItem(...)"
     }
 }
 
-fn build_google_see_also_item(
-    py: Python<'_>,
-    sai: &gn::GoogleSeeAlsoItem<'_>,
-    parsed: &Parsed,
-) -> PyResult<Py<PyGoogleSeeAlsoItem>> {
-    Py::new(
-        py,
-        PyGoogleSeeAlsoItem {
-            range: *sai.syntax().range(),
-            names: mk_tokens(py, sai.names())?,
-            colon: mk_token_ref_opt(py, sai.colon())?,
-            description: mk_text_block_or_missing(
-                py,
-                sai.description(),
-                parsed,
-                sai.syntax(),
-                SyntaxKind::DESCRIPTION,
-            )?,
-        },
-    )
-}
-
 // ─── GoogleReference ─────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "GoogleReference")]
-struct PyGoogleReference {
-    range: TextRange,
-    directive_marker: Option<Py<PyToken>>,
-    open_bracket: Option<Py<PyToken>>,
-    number: Option<Py<PyToken>>,
-    close_bracket: Option<Py<PyToken>>,
-    content: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyGoogleReference, "GoogleReference", gn::GoogleReference);
 
 #[pymethods]
 impl PyGoogleReference {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn directive_marker(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.directive_marker.as_ref().map(|t| t.clone_ref(py))
+    fn directive_marker(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().directive_marker())
     }
     #[getter]
-    fn open_bracket(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.open_bracket.as_ref().map(|t| t.clone_ref(py))
+    fn open_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().open_bracket())
     }
     #[getter]
-    fn number(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.number.as_ref().map(|t| t.clone_ref(py))
+    fn number(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().label())
     }
     #[getter]
-    fn close_bracket(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.close_bracket.as_ref().map(|t| t.clone_ref(py))
+    fn close_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().close_bracket())
     }
     #[getter]
-    fn content(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.content.as_ref().map(|t| t.clone_ref(py))
+    fn content(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().content())
     }
     fn __repr__(&self) -> &'static str {
         "GoogleReference(...)"
     }
 }
 
-fn build_google_reference(
-    py: Python<'_>,
-    r: &gn::GoogleReference<'_>,
-    _parsed: &Parsed,
-) -> PyResult<Py<PyGoogleReference>> {
-    Py::new(
-        py,
-        PyGoogleReference {
-            range: *r.syntax().range(),
-            directive_marker: mk_token_ref_opt(py, r.directive_marker())?,
-            open_bracket: mk_token_ref_opt(py, r.open_bracket())?,
-            number: mk_token_ref_opt(py, r.label())?,
-            close_bracket: mk_token_ref_opt(py, r.close_bracket())?,
-            content: mk_text_block_opt(py, r.content())?,
-        },
-    )
-}
-
 // ─── GoogleAttribute ─────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "GoogleAttribute")]
-struct PyGoogleAttribute {
-    range: TextRange,
-    name: Py<PyToken>,
-    open_bracket: Option<Py<PyToken>>,
-    r#type: Option<Py<PyToken>>,
-    close_bracket: Option<Py<PyToken>>,
-    colon: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyGoogleAttribute, "GoogleAttribute", gn::GoogleAttribute);
 
 #[pymethods]
 impl PyGoogleAttribute {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn name(&self, py: Python<'_>) -> Py<PyToken> {
-        self.name.clone_ref(py)
+    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().name().syntax())
     }
     #[getter]
-    fn open_bracket(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.open_bracket.as_ref().map(|t| t.clone_ref(py))
+    fn open_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().open_bracket())
     }
     #[getter]
-    fn r#type(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.r#type.as_ref().map(|t| t.clone_ref(py))
+    fn r#type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr
+            .token_or_missing(py, self.view().type_annotation(), SyntaxKind::TYPE)
     }
     #[getter]
-    fn close_bracket(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.close_bracket.as_ref().map(|t| t.clone_ref(py))
+    fn close_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr
+            .token_or_missing(py, self.view().close_bracket(), SyntaxKind::CLOSE_BRACKET)
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_or_missing(py, self.view().colon(), SyntaxKind::COLON)
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr
+            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
-        format!("GoogleAttribute({:?})", self.name.borrow(py).text)
+    fn __repr__(&self) -> String {
+        format!("GoogleAttribute({:?})", self.view().name().text())
     }
-}
-
-fn build_google_attribute(
-    py: Python<'_>,
-    att: &gn::GoogleAttribute<'_>,
-    parsed: &Parsed,
-) -> PyResult<Py<PyGoogleAttribute>> {
-    let source = parsed.source();
-    Py::new(
-        py,
-        PyGoogleAttribute {
-            range: *att.syntax().range(),
-            name: mk_token_ref(py, att.name())?,
-            open_bracket: mk_token_ref_opt(py, att.open_bracket())?,
-            r#type: mk_token_or_missing(py, att.type_annotation(), att.syntax(), SyntaxKind::TYPE, source)?,
-            close_bracket: mk_token_or_missing(
-                py,
-                att.close_bracket(),
-                att.syntax(),
-                SyntaxKind::CLOSE_BRACKET,
-                source,
-            )?,
-            colon: mk_token_or_missing(py, att.colon(), att.syntax(), SyntaxKind::COLON, source)?,
-            description: mk_text_block_or_missing(
-                py,
-                att.description(),
-                parsed,
-                att.syntax(),
-                SyntaxKind::DESCRIPTION,
-            )?,
-        },
-    )
 }
 
 // ─── GoogleMethod ────────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "GoogleMethod")]
-struct PyGoogleMethod {
-    range: TextRange,
-    name: Py<PyToken>,
-    open_bracket: Option<Py<PyToken>>,
-    r#type: Option<Py<PyToken>>,
-    close_bracket: Option<Py<PyToken>>,
-    colon: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyGoogleMethod, "GoogleMethod", gn::GoogleMethod);
 
 #[pymethods]
 impl PyGoogleMethod {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn name(&self, py: Python<'_>) -> Py<PyToken> {
-        self.name.clone_ref(py)
+    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().name().syntax())
     }
     #[getter]
-    fn open_bracket(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.open_bracket.as_ref().map(|t| t.clone_ref(py))
+    fn open_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().open_bracket())
     }
     #[getter]
-    fn r#type(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.r#type.as_ref().map(|t| t.clone_ref(py))
+    fn r#type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr
+            .token_or_missing(py, self.view().type_annotation(), SyntaxKind::TYPE)
     }
     #[getter]
-    fn close_bracket(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.close_bracket.as_ref().map(|t| t.clone_ref(py))
+    fn close_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr
+            .token_or_missing(py, self.view().close_bracket(), SyntaxKind::CLOSE_BRACKET)
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_or_missing(py, self.view().colon(), SyntaxKind::COLON)
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr
+            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
-        format!("GoogleMethod({:?})", self.name.borrow(py).text)
+    fn __repr__(&self) -> String {
+        format!("GoogleMethod({:?})", self.view().name().text())
     }
-}
-
-fn build_google_method(py: Python<'_>, mtd: &gn::GoogleMethod<'_>, parsed: &Parsed) -> PyResult<Py<PyGoogleMethod>> {
-    let source = parsed.source();
-    Py::new(
-        py,
-        PyGoogleMethod {
-            range: *mtd.syntax().range(),
-            name: mk_token_ref(py, mtd.name())?,
-            open_bracket: mk_token_ref_opt(py, mtd.open_bracket())?,
-            r#type: mk_token_or_missing(py, mtd.type_annotation(), mtd.syntax(), SyntaxKind::TYPE, source)?,
-            close_bracket: mk_token_or_missing(
-                py,
-                mtd.close_bracket(),
-                mtd.syntax(),
-                SyntaxKind::CLOSE_BRACKET,
-                source,
-            )?,
-            colon: mk_token_or_missing(py, mtd.colon(), mtd.syntax(), SyntaxKind::COLON, source)?,
-            description: mk_text_block_or_missing(
-                py,
-                mtd.description(),
-                parsed,
-                mtd.syntax(),
-                SyntaxKind::DESCRIPTION,
-            )?,
-        },
-    )
 }
 
 // ─── GoogleSection ───────────────────────────────────────────────────────────
 
-/// A thin wrapper for a Google section node (no eager child allocation).
-#[pyclass(frozen, skip_from_py_object, name = "GoogleSection")]
-struct PyGoogleSection {
-    range: TextRange,
-    section_kind: PyGoogleSectionKind,
-    header_name: Py<PyToken>,
-}
+lazy_node!(PyGoogleSection, "GoogleSection", gn::GoogleSection);
 
 #[pymethods]
 impl PyGoogleSection {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
     fn section_kind(&self) -> PyGoogleSectionKind {
-        self.section_kind
+        google_section_kind_to_py(self.view().section_kind())
     }
     #[getter]
-    fn header_name(&self, py: Python<'_>) -> Py<PyToken> {
-        self.header_name.clone_ref(py)
+    fn header_name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().header().name().syntax())
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
-        format!("GoogleSection({:?})", self.header_name.borrow(py).text)
+    fn __repr__(&self) -> String {
+        format!("GoogleSection({:?})", self.view().header().name().text())
     }
-}
-
-fn build_google_section(
-    py: Python<'_>,
-    sec: &gn::GoogleSection<'_>,
-    _parsed: &Parsed,
-) -> PyResult<Py<PyGoogleSection>> {
-    Py::new(
-        py,
-        PyGoogleSection {
-            range: *sec.syntax().range(),
-            section_kind: google_section_kind_to_py(sec.section_kind()),
-            header_name: mk_token_ref(py, sec.header().name())?,
-        },
-    )
 }
 
 // ─── GoogleDeprecation ───────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "GoogleDeprecation")]
-struct PyGoogleDeprecation {
-    range: TextRange,
-    directive_marker: Option<Py<PyToken>>,
-    keyword: Option<Py<PyToken>>,
-    double_colon: Option<Py<PyToken>>,
-    version: Py<PyToken>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyGoogleDeprecation, "GoogleDeprecation", gn::GoogleDeprecation);
 
 #[pymethods]
 impl PyGoogleDeprecation {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn directive_marker(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.directive_marker.as_ref().map(|t| t.clone_ref(py))
+    fn directive_marker(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().directive_marker())
     }
     #[getter]
-    fn keyword(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.keyword.as_ref().map(|t| t.clone_ref(py))
+    fn keyword(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().keyword())
     }
     #[getter]
-    fn double_colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.double_colon.as_ref().map(|t| t.clone_ref(py))
+    fn double_colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().double_colon())
     }
     #[getter]
-    fn version(&self, py: Python<'_>) -> Py<PyToken> {
-        self.version.clone_ref(py)
+    fn version(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().version().syntax())
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().description())
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
-        format!("GoogleDeprecation({:?})", self.version.borrow(py).text)
+    fn __repr__(&self) -> String {
+        format!("GoogleDeprecation({:?})", self.view().version().text())
     }
-}
-
-fn build_google_deprecation(
-    py: Python<'_>,
-    dep: &gn::GoogleDeprecation<'_>,
-    _parsed: &Parsed,
-) -> PyResult<Py<PyGoogleDeprecation>> {
-    Py::new(
-        py,
-        PyGoogleDeprecation {
-            range: *dep.syntax().range(),
-            directive_marker: mk_token_ref_opt(py, dep.directive_marker())?,
-            keyword: mk_token_ref_opt(py, dep.keyword())?,
-            double_colon: mk_token_ref_opt(py, dep.double_colon())?,
-            version: mk_token_ref(py, dep.version())?,
-            description: mk_text_block_opt(py, dep.description())?,
-        },
-    )
 }
 
 // ─── GoogleDocstring ─────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "GoogleDocstring")]
-struct PyGoogleDocstring {
-    range: TextRange,
-    summary: Option<Py<PyTextBlock>>,
-    extended_summary: Option<Py<PyTextBlock>>,
-    deprecation: Option<Py<PyGoogleDeprecation>>,
-    paragraphs: Vec<Py<PyTextBlock>>,
-    sections: Vec<Py<PyGoogleSection>>,
-    source: String,
-    /// Cached CST — avoids re-parsing when `walk()` is called.
-    parsed: Arc<Parsed>,
-}
+lazy_node!(PyGoogleDocstring, "GoogleDocstring", gn::GoogleDocstring);
 
 #[pymethods]
 impl PyGoogleDocstring {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn summary(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.summary.as_ref().map(|t| t.clone_ref(py))
+    fn summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().summary())
     }
     #[getter]
-    fn extended_summary(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.extended_summary.as_ref().map(|t| t.clone_ref(py))
+    fn extended_summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().extended_summary())
     }
     #[getter]
-    fn deprecation(&self, py: Python<'_>) -> Option<Py<PyGoogleDeprecation>> {
-        self.deprecation.as_ref().map(|d| d.clone_ref(py))
+    fn deprecation(&self, py: Python<'_>) -> PyResult<Option<Py<PyGoogleDeprecation>>> {
+        self.view()
+            .deprecation()
+            .map(|d| self.nr.wrap_child(py, d.syntax()))
+            .transpose()
     }
     /// Stray-prose paragraph blocks between sections, in source order.
     #[getter]
-    fn paragraphs(&self, py: Python<'_>) -> Vec<Py<PyTextBlock>> {
-        self.paragraphs.iter().map(|t| t.clone_ref(py)).collect()
+    fn paragraphs(&self, py: Python<'_>) -> PyResult<Vec<Py<PyTextBlock>>> {
+        self.nr.blocks(py, self.view().paragraphs())
     }
     #[getter]
-    fn sections(&self, py: Python<'_>) -> Vec<Py<PyGoogleSection>> {
-        self.sections.iter().map(|s| s.clone_ref(py)).collect()
+    fn sections(&self, py: Python<'_>) -> PyResult<Vec<Py<PyGoogleSection>>> {
+        self.view()
+            .sections()
+            .map(|s| self.nr.wrap_child(py, s.syntax()))
+            .collect()
     }
     #[getter]
     fn source(&self) -> &str {
-        &self.source
+        self.nr.parsed.source()
     }
     #[getter]
     fn style(&self) -> PyStyle {
         PyStyle::Google
     }
     fn pretty_print(&self) -> String {
-        self.parsed.pretty_print()
+        self.nr.parsed.pretty_print()
     }
     fn to_model(&self) -> PyResult<PyModelDocstring> {
-        pydocstring_core::parse::google::to_model::to_model(&self.parsed)
+        pydocstring_core::parse::google::to_model::to_model(&self.nr.parsed)
             .map(|doc| PyModelDocstring::try_from(&doc))
             .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
@@ -1296,47 +1168,11 @@ impl PyGoogleDocstring {
     }
 }
 
-fn build_google_docstring_node(
-    py: Python<'_>,
-    doc: &gn::GoogleDocstring<'_>,
-    parsed_ref: &Parsed,
-    parsed: Arc<Parsed>,
-) -> PyResult<Py<PyGoogleDocstring>> {
-    let summary = mk_text_block_opt(py, doc.summary())?;
-    let extended_summary = mk_text_block_opt(py, doc.extended_summary())?;
-    let deprecation = doc
-        .deprecation()
-        .map(|dep| build_google_deprecation(py, &dep, parsed_ref))
-        .transpose()?;
-    let paragraphs = doc
-        .paragraphs()
-        .map(|p| mk_text_block(py, &p))
-        .collect::<PyResult<_>>()?;
-    let sections = doc
-        .sections()
-        .map(|sec| build_google_section(py, &sec, parsed_ref))
-        .collect::<PyResult<_>>()?;
-    Py::new(
-        py,
-        PyGoogleDocstring {
-            range: *doc.syntax().range(),
-            summary,
-            extended_summary,
-            deprecation,
-            paragraphs,
-            sections,
-            source: parsed_ref.source().to_string(),
-            parsed,
-        },
-    )
-}
-
 fn build_google_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyGoogleDocstring>> {
     let arc = Arc::new(parsed);
-    let arc2 = Arc::clone(&arc);
-    let doc = gn::GoogleDocstring::cast(&arc, arc.root())
+    gn::GoogleDocstring::cast(&arc, arc.root())
         .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not a DOCUMENT node"))?;
-    build_google_docstring_node(py, &doc, &arc, arc2)
+    Py::new(py, PyGoogleDocstring::from(NodeRef::root(arc)))
 }
 
 // =============================================================================
@@ -1345,694 +1181,415 @@ fn build_google_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyGoogl
 
 // ─── NumPyDeprecation ────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "NumPyDeprecation")]
-struct PyNumPyDeprecation {
-    range: TextRange,
-    directive_marker: Option<Py<PyToken>>,
-    keyword: Option<Py<PyToken>>,
-    double_colon: Option<Py<PyToken>>,
-    version: Py<PyToken>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyNumPyDeprecation, "NumPyDeprecation", nn::NumPyDeprecation);
 
 #[pymethods]
 impl PyNumPyDeprecation {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn directive_marker(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.directive_marker.as_ref().map(|t| t.clone_ref(py))
+    fn directive_marker(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().directive_marker())
     }
     #[getter]
-    fn keyword(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.keyword.as_ref().map(|t| t.clone_ref(py))
+    fn keyword(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().keyword())
     }
     #[getter]
-    fn double_colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.double_colon.as_ref().map(|t| t.clone_ref(py))
+    fn double_colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().double_colon())
     }
     #[getter]
-    fn version(&self, py: Python<'_>) -> Py<PyToken> {
-        self.version.clone_ref(py)
+    fn version(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().version().syntax())
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().description())
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
-        format!("NumPyDeprecation({:?})", self.version.borrow(py).text)
+    fn __repr__(&self) -> String {
+        format!("NumPyDeprecation({:?})", self.view().version().text())
     }
-}
-
-fn build_numpy_deprecation(
-    py: Python<'_>,
-    dep: &nn::NumPyDeprecation<'_>,
-    _parsed: &Parsed,
-) -> PyResult<Py<PyNumPyDeprecation>> {
-    Py::new(
-        py,
-        PyNumPyDeprecation {
-            range: *dep.syntax().range(),
-            directive_marker: mk_token_ref_opt(py, dep.directive_marker())?,
-            keyword: mk_token_ref_opt(py, dep.keyword())?,
-            double_colon: mk_token_ref_opt(py, dep.double_colon())?,
-            version: mk_token_ref(py, dep.version())?,
-            description: mk_text_block_opt(py, dep.description())?,
-        },
-    )
 }
 
 // ─── NumPyParameter ──────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "NumPyParameter")]
-struct PyNumPyParameter {
-    range: TextRange,
-    names: Vec<Py<PyToken>>,
-    colon: Option<Py<PyToken>>,
-    r#type: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-    optional: Option<Py<PyToken>>,
-    default_keyword: Option<Py<PyToken>>,
-    default_separator: Option<Py<PyToken>>,
-    default_value: Option<Py<PyToken>>,
-}
+lazy_node!(PyNumPyParameter, "NumPyParameter", nn::NumPyParameter);
 
 #[pymethods]
 impl PyNumPyParameter {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     /// First name token (convenience for ``names[0]``); ``None`` when the
     /// entry has no name tokens.
     #[getter]
-    fn name(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.names.first().map(|n| n.clone_ref(py))
+    fn name(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().names().next())
     }
     #[getter]
-    fn names(&self, py: Python<'_>) -> Vec<Py<PyToken>> {
-        self.names.iter().map(|n| n.clone_ref(py)).collect()
+    fn names(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
+        self.nr.tokens(py, self.view().names())
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().colon())
     }
     #[getter]
-    fn r#type(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.r#type.as_ref().map(|t| t.clone_ref(py))
+    fn r#type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr
+            .token_or_missing(py, self.view().type_annotation(), SyntaxKind::TYPE)
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr
+            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
     #[getter]
-    fn optional(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.optional.as_ref().map(|t| t.clone_ref(py))
+    fn optional(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().optional_marker())
     }
     #[getter]
-    fn default_keyword(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.default_keyword.as_ref().map(|t| t.clone_ref(py))
+    fn default_keyword(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().default_keyword())
     }
     #[getter]
-    fn default_separator(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.default_separator.as_ref().map(|t| t.clone_ref(py))
+    fn default_separator(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().default_separator())
     }
     #[getter]
-    fn default_value(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.default_value.as_ref().map(|t| t.clone_ref(py))
+    fn default_value(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.first_default_value(py, self.view().defaults())
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
+    fn __repr__(&self) -> String {
         let first = self
-            .names
-            .first()
-            .map(|n| n.borrow(py).text.clone())
+            .view()
+            .names()
+            .next()
+            .map(|n| n.text().to_owned())
             .unwrap_or_default();
         format!("NumPyParameter({:?})", first)
     }
 }
 
-fn build_numpy_parameter(
-    py: Python<'_>,
-    prm: &nn::NumPyParameter<'_>,
-    parsed: &Parsed,
-) -> PyResult<Py<PyNumPyParameter>> {
-    let source = parsed.source();
-    Py::new(
-        py,
-        PyNumPyParameter {
-            range: *prm.syntax().range(),
-            names: mk_tokens(py, prm.names())?,
-            colon: mk_token_ref_opt(py, prm.colon())?,
-            r#type: mk_token_or_missing(py, prm.type_annotation(), prm.syntax(), SyntaxKind::TYPE, source)?,
-            description: mk_text_block_or_missing(
-                py,
-                prm.description(),
-                parsed,
-                prm.syntax(),
-                SyntaxKind::DESCRIPTION,
-            )?,
-            optional: mk_token_ref_opt(py, prm.optional_marker())?,
-            default_keyword: mk_token_ref_opt(py, prm.default_keyword())?,
-            default_separator: mk_token_ref_opt(py, prm.default_separator())?,
-            default_value: mk_first_default_value(py, prm.defaults(), source)?,
-        },
-    )
-}
-
 // ─── NumPyReturns ────────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "NumPyReturns")]
-struct PyNumPyReturns {
-    range: TextRange,
-    name: Option<Py<PyToken>>,
-    colon: Option<Py<PyToken>>,
-    return_type: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyNumPyReturns, "NumPyReturns", nn::NumPyReturns);
 
 #[pymethods]
 impl PyNumPyReturns {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn name(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.name.as_ref().map(|t| t.clone_ref(py))
+    fn name(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().name())
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().colon())
     }
     #[getter]
-    fn return_type(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.return_type.as_ref().map(|t| t.clone_ref(py))
+    fn return_type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().type_annotation())
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().description())
     }
     fn __repr__(&self) -> &'static str {
         "NumPyReturns(...)"
     }
 }
 
-fn build_numpy_returns(py: Python<'_>, rtn: &nn::NumPyReturns<'_>, _parsed: &Parsed) -> PyResult<Py<PyNumPyReturns>> {
-    Py::new(
-        py,
-        PyNumPyReturns {
-            range: *rtn.syntax().range(),
-            name: mk_token_ref_opt(py, rtn.name())?,
-            colon: mk_token_ref_opt(py, rtn.colon())?,
-            return_type: mk_token_ref_opt(py, rtn.type_annotation())?,
-            description: mk_text_block_opt(py, rtn.description())?,
-        },
-    )
-}
-
 // ─── NumPyYields ─────────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "NumPyYields")]
-struct PyNumPyYields {
-    range: TextRange,
-    name: Option<Py<PyToken>>,
-    colon: Option<Py<PyToken>>,
-    return_type: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyNumPyYields, "NumPyYields", nn::NumPyYields);
 
 #[pymethods]
 impl PyNumPyYields {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn name(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.name.as_ref().map(|t| t.clone_ref(py))
+    fn name(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().name())
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().colon())
     }
     #[getter]
-    fn return_type(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.return_type.as_ref().map(|t| t.clone_ref(py))
+    fn return_type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().type_annotation())
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().description())
     }
     fn __repr__(&self) -> &'static str {
         "NumPyYields(...)"
     }
 }
 
-fn build_numpy_yields(py: Python<'_>, yld: &nn::NumPyYields<'_>, _parsed: &Parsed) -> PyResult<Py<PyNumPyYields>> {
-    Py::new(
-        py,
-        PyNumPyYields {
-            range: *yld.syntax().range(),
-            name: mk_token_ref_opt(py, yld.name())?,
-            colon: mk_token_ref_opt(py, yld.colon())?,
-            return_type: mk_token_ref_opt(py, yld.type_annotation())?,
-            description: mk_text_block_opt(py, yld.description())?,
-        },
-    )
-}
-
 // ─── NumPyException ──────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "NumPyException")]
-struct PyNumPyException {
-    range: TextRange,
-    r#type: Py<PyToken>,
-    colon: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyNumPyException, "NumPyException", nn::NumPyException);
 
 #[pymethods]
 impl PyNumPyException {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn r#type(&self, py: Python<'_>) -> Py<PyToken> {
-        self.r#type.clone_ref(py)
+    fn r#type(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().type_annotation().syntax())
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().colon())
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr
+            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
-        format!("NumPyException({:?})", self.r#type.borrow(py).text)
+    fn __repr__(&self) -> String {
+        format!("NumPyException({:?})", self.view().type_annotation().text())
     }
-}
-
-fn build_numpy_exception(
-    py: Python<'_>,
-    exc: &nn::NumPyException<'_>,
-    parsed: &Parsed,
-) -> PyResult<Py<PyNumPyException>> {
-    Py::new(
-        py,
-        PyNumPyException {
-            range: *exc.syntax().range(),
-            r#type: mk_token_ref(py, exc.type_annotation())?,
-            colon: mk_token_ref_opt(py, exc.colon())?,
-            description: mk_text_block_or_missing(
-                py,
-                exc.description(),
-                parsed,
-                exc.syntax(),
-                SyntaxKind::DESCRIPTION,
-            )?,
-        },
-    )
 }
 
 // ─── NumPyWarning ────────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "NumPyWarning")]
-struct PyNumPyWarning {
-    range: TextRange,
-    r#type: Py<PyToken>,
-    colon: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyNumPyWarning, "NumPyWarning", nn::NumPyWarning);
 
 #[pymethods]
 impl PyNumPyWarning {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn r#type(&self, py: Python<'_>) -> Py<PyToken> {
-        self.r#type.clone_ref(py)
+    fn r#type(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().type_annotation().syntax())
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().colon())
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr
+            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
-        format!("NumPyWarning({:?})", self.r#type.borrow(py).text)
+    fn __repr__(&self) -> String {
+        format!("NumPyWarning({:?})", self.view().type_annotation().text())
     }
-}
-
-fn build_numpy_warning(py: Python<'_>, wrn: &nn::NumPyWarning<'_>, parsed: &Parsed) -> PyResult<Py<PyNumPyWarning>> {
-    Py::new(
-        py,
-        PyNumPyWarning {
-            range: *wrn.syntax().range(),
-            r#type: mk_token_ref(py, wrn.type_annotation())?,
-            colon: mk_token_ref_opt(py, wrn.colon())?,
-            description: mk_text_block_or_missing(
-                py,
-                wrn.description(),
-                parsed,
-                wrn.syntax(),
-                SyntaxKind::DESCRIPTION,
-            )?,
-        },
-    )
 }
 
 // ─── NumPySeeAlsoItem ────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "NumPySeeAlsoItem")]
-struct PyNumPySeeAlsoItem {
-    range: TextRange,
-    names: Vec<Py<PyToken>>,
-    colon: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyNumPySeeAlsoItem, "NumPySeeAlsoItem", nn::NumPySeeAlsoItem);
 
 #[pymethods]
 impl PyNumPySeeAlsoItem {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn names(&self, py: Python<'_>) -> Vec<Py<PyToken>> {
-        self.names.iter().map(|n| n.clone_ref(py)).collect()
+    fn names(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
+        self.nr.tokens(py, self.view().names())
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().colon())
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr
+            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
     fn __repr__(&self) -> &'static str {
         "NumPySeeAlsoItem(...)"
     }
 }
 
-fn build_numpy_see_also_item(
-    py: Python<'_>,
-    sai: &nn::NumPySeeAlsoItem<'_>,
-    parsed: &Parsed,
-) -> PyResult<Py<PyNumPySeeAlsoItem>> {
-    Py::new(
-        py,
-        PyNumPySeeAlsoItem {
-            range: *sai.syntax().range(),
-            names: mk_tokens(py, sai.names())?,
-            colon: mk_token_ref_opt(py, sai.colon())?,
-            description: mk_text_block_or_missing(
-                py,
-                sai.description(),
-                parsed,
-                sai.syntax(),
-                SyntaxKind::DESCRIPTION,
-            )?,
-        },
-    )
-}
-
 // ─── NumPyReference ──────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "NumPyReference")]
-struct PyNumPyReference {
-    range: TextRange,
-    directive_marker: Option<Py<PyToken>>,
-    open_bracket: Option<Py<PyToken>>,
-    number: Option<Py<PyToken>>,
-    close_bracket: Option<Py<PyToken>>,
-    content: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyNumPyReference, "NumPyReference", nn::NumPyReference);
 
 #[pymethods]
 impl PyNumPyReference {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn directive_marker(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.directive_marker.as_ref().map(|t| t.clone_ref(py))
+    fn directive_marker(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().directive_marker())
     }
     #[getter]
-    fn open_bracket(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.open_bracket.as_ref().map(|t| t.clone_ref(py))
+    fn open_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().open_bracket())
     }
     #[getter]
-    fn number(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.number.as_ref().map(|t| t.clone_ref(py))
+    fn number(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().label())
     }
     #[getter]
-    fn close_bracket(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.close_bracket.as_ref().map(|t| t.clone_ref(py))
+    fn close_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().close_bracket())
     }
     #[getter]
-    fn content(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.content.as_ref().map(|t| t.clone_ref(py))
+    fn content(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().content())
     }
     fn __repr__(&self) -> &'static str {
         "NumPyReference(...)"
     }
 }
 
-fn build_numpy_reference(
-    py: Python<'_>,
-    r: &nn::NumPyReference<'_>,
-    _parsed: &Parsed,
-) -> PyResult<Py<PyNumPyReference>> {
-    Py::new(
-        py,
-        PyNumPyReference {
-            range: *r.syntax().range(),
-            directive_marker: mk_token_ref_opt(py, r.directive_marker())?,
-            open_bracket: mk_token_ref_opt(py, r.open_bracket())?,
-            number: mk_token_ref_opt(py, r.label())?,
-            close_bracket: mk_token_ref_opt(py, r.close_bracket())?,
-            content: mk_text_block_opt(py, r.content())?,
-        },
-    )
-}
-
 // ─── NumPyAttribute ──────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "NumPyAttribute")]
-struct PyNumPyAttribute {
-    range: TextRange,
-    name: Py<PyToken>,
-    colon: Option<Py<PyToken>>,
-    r#type: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyNumPyAttribute, "NumPyAttribute", nn::NumPyAttribute);
 
 #[pymethods]
 impl PyNumPyAttribute {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn name(&self, py: Python<'_>) -> Py<PyToken> {
-        self.name.clone_ref(py)
+    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().name().syntax())
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().colon())
     }
     #[getter]
-    fn r#type(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.r#type.as_ref().map(|t| t.clone_ref(py))
+    fn r#type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr
+            .token_or_missing(py, self.view().type_annotation(), SyntaxKind::TYPE)
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr
+            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
-        format!("NumPyAttribute({:?})", self.name.borrow(py).text)
+    fn __repr__(&self) -> String {
+        format!("NumPyAttribute({:?})", self.view().name().text())
     }
-}
-
-fn build_numpy_attribute(
-    py: Python<'_>,
-    att: &nn::NumPyAttribute<'_>,
-    parsed: &Parsed,
-) -> PyResult<Py<PyNumPyAttribute>> {
-    let source = parsed.source();
-    Py::new(
-        py,
-        PyNumPyAttribute {
-            range: *att.syntax().range(),
-            name: mk_token_ref(py, att.name())?,
-            colon: mk_token_ref_opt(py, att.colon())?,
-            r#type: mk_token_or_missing(py, att.type_annotation(), att.syntax(), SyntaxKind::TYPE, source)?,
-            description: mk_text_block_or_missing(
-                py,
-                att.description(),
-                parsed,
-                att.syntax(),
-                SyntaxKind::DESCRIPTION,
-            )?,
-        },
-    )
 }
 
 // ─── NumPyMethod ─────────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "NumPyMethod")]
-struct PyNumPyMethod {
-    range: TextRange,
-    name: Py<PyToken>,
-    colon: Option<Py<PyToken>>,
-    description: Option<Py<PyTextBlock>>,
-}
+lazy_node!(PyNumPyMethod, "NumPyMethod", nn::NumPyMethod);
 
 #[pymethods]
 impl PyNumPyMethod {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn name(&self, py: Python<'_>) -> Py<PyToken> {
-        self.name.clone_ref(py)
+    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().name().syntax())
     }
     #[getter]
-    fn colon(&self, py: Python<'_>) -> Option<Py<PyToken>> {
-        self.colon.as_ref().map(|t| t.clone_ref(py))
+    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().colon())
     }
     #[getter]
-    fn description(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.description.as_ref().map(|t| t.clone_ref(py))
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr
+            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
-        format!("NumPyMethod({:?})", self.name.borrow(py).text)
+    fn __repr__(&self) -> String {
+        format!("NumPyMethod({:?})", self.view().name().text())
     }
-}
-
-fn build_numpy_method(py: Python<'_>, mtd: &nn::NumPyMethod<'_>, parsed: &Parsed) -> PyResult<Py<PyNumPyMethod>> {
-    Py::new(
-        py,
-        PyNumPyMethod {
-            range: *mtd.syntax().range(),
-            name: mk_token_ref(py, mtd.name())?,
-            colon: mk_token_ref_opt(py, mtd.colon())?,
-            description: mk_text_block_or_missing(
-                py,
-                mtd.description(),
-                parsed,
-                mtd.syntax(),
-                SyntaxKind::DESCRIPTION,
-            )?,
-        },
-    )
 }
 
 // ─── NumPySection ────────────────────────────────────────────────────────────
 
-/// A thin wrapper for a NumPy section node (no eager child allocation).
-#[pyclass(frozen, skip_from_py_object, name = "NumPySection")]
-struct PyNumPySection {
-    range: TextRange,
-    section_kind: PyNumPySectionKind,
-    header_name: Py<PyToken>,
-}
+lazy_node!(PyNumPySection, "NumPySection", nn::NumPySection);
 
 #[pymethods]
 impl PyNumPySection {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
     fn section_kind(&self) -> PyNumPySectionKind {
-        self.section_kind
+        numpy_section_kind_to_py(self.view().section_kind())
     }
     #[getter]
-    fn header_name(&self, py: Python<'_>) -> Py<PyToken> {
-        self.header_name.clone_ref(py)
+    fn header_name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().header().name().syntax())
     }
-    fn __repr__(&self, py: Python<'_>) -> String {
-        format!("NumPySection({:?})", self.header_name.borrow(py).text)
+    fn __repr__(&self) -> String {
+        format!("NumPySection({:?})", self.view().header().name().text())
     }
-}
-
-fn build_numpy_section(py: Python<'_>, sec: &nn::NumPySection<'_>, _parsed: &Parsed) -> PyResult<Py<PyNumPySection>> {
-    Py::new(
-        py,
-        PyNumPySection {
-            range: *sec.syntax().range(),
-            section_kind: numpy_section_kind_to_py(sec.section_kind()),
-            header_name: mk_token_ref(py, sec.header().name())?,
-        },
-    )
 }
 
 // ─── NumPyDocstring ──────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "NumPyDocstring")]
-struct PyNumPyDocstring {
-    range: TextRange,
-    summary: Option<Py<PyTextBlock>>,
-    extended_summary: Option<Py<PyTextBlock>>,
-    deprecation: Option<Py<PyNumPyDeprecation>>,
-    paragraphs: Vec<Py<PyTextBlock>>,
-    sections: Vec<Py<PyNumPySection>>,
-    source: String,
-    /// Cached CST — avoids re-parsing when `walk()` is called.
-    parsed: Arc<Parsed>,
-}
+lazy_node!(PyNumPyDocstring, "NumPyDocstring", nn::NumPyDocstring);
 
 #[pymethods]
 impl PyNumPyDocstring {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn summary(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.summary.as_ref().map(|t| t.clone_ref(py))
+    fn summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().summary())
     }
     #[getter]
-    fn extended_summary(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.extended_summary.as_ref().map(|t| t.clone_ref(py))
+    fn extended_summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().extended_summary())
     }
     #[getter]
-    fn deprecation(&self, py: Python<'_>) -> Option<Py<PyNumPyDeprecation>> {
-        self.deprecation.as_ref().map(|d| d.clone_ref(py))
+    fn deprecation(&self, py: Python<'_>) -> PyResult<Option<Py<PyNumPyDeprecation>>> {
+        self.view()
+            .deprecation()
+            .map(|d| self.nr.wrap_child(py, d.syntax()))
+            .transpose()
     }
     /// Stray-prose paragraph blocks between sections, in source order.
     #[getter]
-    fn paragraphs(&self, py: Python<'_>) -> Vec<Py<PyTextBlock>> {
-        self.paragraphs.iter().map(|t| t.clone_ref(py)).collect()
+    fn paragraphs(&self, py: Python<'_>) -> PyResult<Vec<Py<PyTextBlock>>> {
+        self.nr.blocks(py, self.view().paragraphs())
     }
     #[getter]
-    fn sections(&self, py: Python<'_>) -> Vec<Py<PyNumPySection>> {
-        self.sections.iter().map(|s| s.clone_ref(py)).collect()
+    fn sections(&self, py: Python<'_>) -> PyResult<Vec<Py<PyNumPySection>>> {
+        self.view()
+            .sections()
+            .map(|s| self.nr.wrap_child(py, s.syntax()))
+            .collect()
     }
     #[getter]
     fn source(&self) -> &str {
-        &self.source
+        self.nr.parsed.source()
     }
     #[getter]
     fn style(&self) -> PyStyle {
         PyStyle::NumPy
     }
     fn pretty_print(&self) -> String {
-        self.parsed.pretty_print()
+        self.nr.parsed.pretty_print()
     }
     fn to_model(&self) -> PyResult<PyModelDocstring> {
-        pydocstring_core::parse::numpy::to_model::to_model(&self.parsed)
+        pydocstring_core::parse::numpy::to_model::to_model(&self.nr.parsed)
             .map(|doc| PyModelDocstring::try_from(&doc))
             .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
@@ -2042,90 +1599,46 @@ impl PyNumPyDocstring {
     }
 }
 
-fn build_numpy_docstring_node(
-    py: Python<'_>,
-    doc: &nn::NumPyDocstring<'_>,
-    parsed_ref: &Parsed,
-    parsed: Arc<Parsed>,
-) -> PyResult<Py<PyNumPyDocstring>> {
-    let summary = mk_text_block_opt(py, doc.summary())?;
-    let extended_summary = mk_text_block_opt(py, doc.extended_summary())?;
-    let deprecation = doc
-        .deprecation()
-        .map(|dep| build_numpy_deprecation(py, &dep, parsed_ref))
-        .transpose()?;
-    let paragraphs = doc
-        .paragraphs()
-        .map(|p| mk_text_block(py, &p))
-        .collect::<PyResult<_>>()?;
-    let sections = doc
-        .sections()
-        .map(|sec| build_numpy_section(py, &sec, parsed_ref))
-        .collect::<PyResult<_>>()?;
-    Py::new(
-        py,
-        PyNumPyDocstring {
-            range: *doc.syntax().range(),
-            summary,
-            extended_summary,
-            deprecation,
-            paragraphs,
-            sections,
-            source: parsed_ref.source().to_string(),
-            parsed,
-        },
-    )
-}
-
 fn build_numpy_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyNumPyDocstring>> {
     let arc = Arc::new(parsed);
-    let arc2 = Arc::clone(&arc);
-    let doc = nn::NumPyDocstring::cast(&arc, arc.root())
+    nn::NumPyDocstring::cast(&arc, arc.root())
         .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not a DOCUMENT node"))?;
-    build_numpy_docstring_node(py, &doc, &arc, arc2)
+    Py::new(py, PyNumPyDocstring::from(NodeRef::root(arc)))
 }
 
 // =============================================================================
 // Plain docstring
 // =============================================================================
 
-#[pyclass(frozen, skip_from_py_object, name = "PlainDocstring")]
-struct PyPlainDocstring {
-    range: TextRange,
-    summary: Option<Py<PyTextBlock>>,
-    extended_summary: Option<Py<PyTextBlock>>,
-    source: String,
-    /// Cached CST — avoids re-parsing when `walk()` is called.
-    parsed: Arc<Parsed>,
-}
+lazy_node!(PyPlainDocstring, "PlainDocstring", pn::PlainDocstring);
 
 #[pymethods]
 impl PyPlainDocstring {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(self.range))
+        self.nr.py_range(py)
     }
     #[getter]
-    fn summary(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.summary.as_ref().map(|t| t.clone_ref(py))
+    fn summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().summary())
     }
     #[getter]
-    fn extended_summary(&self, py: Python<'_>) -> Option<Py<PyTextBlock>> {
-        self.extended_summary.as_ref().map(|t| t.clone_ref(py))
+    fn extended_summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().extended_summary())
     }
     #[getter]
     fn source(&self) -> &str {
-        &self.source
+        self.nr.parsed.source()
     }
     #[getter]
     fn style(&self) -> PyStyle {
         PyStyle::Plain
     }
     fn pretty_print(&self) -> String {
-        self.parsed.pretty_print()
+        self.nr.parsed.pretty_print()
     }
     fn to_model(&self) -> PyResult<PyModelDocstring> {
-        pydocstring_core::parse::plain::to_model::to_model(&self.parsed)
+        pydocstring_core::parse::plain::to_model::to_model(&self.nr.parsed)
             .map(|doc| PyModelDocstring::try_from(&doc))
             .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
@@ -2137,40 +1650,9 @@ impl PyPlainDocstring {
 
 fn build_plain_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyPlainDocstring>> {
     let arc = Arc::new(parsed);
-    let doc = pn::PlainDocstring::cast(&arc, arc.root())
+    pn::PlainDocstring::cast(&arc, arc.root())
         .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not a DOCUMENT node"))?;
-    let summary = mk_text_block_opt(py, doc.summary())?;
-    let extended_summary = mk_text_block_opt(py, doc.extended_summary())?;
-    Py::new(
-        py,
-        PyPlainDocstring {
-            range: *arc.root().range(),
-            summary,
-            extended_summary,
-            source: arc.source().to_string(),
-            parsed: arc,
-        },
-    )
-}
-
-fn build_plain_docstring_node(
-    py: Python<'_>,
-    doc: &pn::PlainDocstring<'_>,
-    parsed_ref: &Parsed,
-    parsed: Arc<Parsed>,
-) -> PyResult<Py<PyPlainDocstring>> {
-    let summary = mk_text_block_opt(py, doc.summary())?;
-    let extended_summary = mk_text_block_opt(py, doc.extended_summary())?;
-    Py::new(
-        py,
-        PyPlainDocstring {
-            range: *doc.syntax().range(),
-            summary,
-            extended_summary,
-            source: parsed_ref.source().to_string(),
-            parsed,
-        },
-    )
+    Py::new(py, PyPlainDocstring::from(NodeRef::root(arc)))
 }
 
 // =============================================================================
@@ -4026,17 +3508,6 @@ fn dispatch_with_ctx<T: pyo3::PyClass>(
     Ok(())
 }
 
-/// Walk the typed children of a Google section, dispatching visitor methods.
-///
-/// Each child collection is built at most once and shared between
-/// `enter_google_section` and per-child `enter_google_*` calls via `clone_ref`.
-/// Walk the children of a section node, dispatching visitor methods.
-///
-/// Accepts a `SECTION` node from either style.  The section
-/// kind is read from `node.kind()` — no per-style function needed.
-/// Each child collection is built at most once and shared between the
-/// section object and per-child dispatches via `clone_ref`.
-
 // =============================================================================
 // PyDispatcher — ANTLR-style Python dispatch via DocstringVisitor
 // =============================================================================
@@ -4124,6 +3595,19 @@ macro_rules! visit_node {
     }};
 }
 
+impl PyDispatcher<'_> {
+    /// Wrap `node` (from `self.arc`'s tree) in its lazy pyclass wrapper.
+    ///
+    /// Construction is cheap — a child-index path — so `walk()` can build
+    /// wrappers during traversal without materializing any content.
+    fn wrap<T>(&self, node: &SyntaxNode) -> PyResult<Py<T>>
+    where
+        T: PyClass + From<NodeRef> + Into<pyo3::PyClassInitializer<T>>,
+    {
+        Py::new(self.py, T::from(NodeRef::for_node(&self.arc, node)))
+    }
+}
+
 impl<'py> DocstringVisitor for PyDispatcher<'py> {
     type Error = PyErr;
 
@@ -4134,7 +3618,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             google_docstring,
             exit_google_docstring,
-            build_google_docstring_node(self.py, doc, parsed, Arc::clone(&self.arc)),
+            self.wrap::<PyGoogleDocstring>(doc.syntax()),
             doc.syntax()
         )
     }
@@ -4145,7 +3629,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             google_deprecation,
             exit_google_deprecation,
-            build_google_deprecation(self.py, dep, parsed),
+            self.wrap::<PyGoogleDeprecation>(dep.syntax()),
             dep.syntax()
         )
     }
@@ -4156,7 +3640,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             google_section,
             exit_google_section,
-            build_google_section(self.py, sec, parsed),
+            self.wrap::<PyGoogleSection>(sec.syntax()),
             sec.syntax()
         )
     }
@@ -4167,7 +3651,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             google_arg,
             exit_google_arg,
-            build_google_arg(self.py, arg, parsed),
+            self.wrap::<PyGoogleArg>(arg.syntax()),
             arg.syntax()
         )
     }
@@ -4178,7 +3662,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             google_return,
             exit_google_return,
-            build_google_return(self.py, rtn, parsed),
+            self.wrap::<PyGoogleReturn>(rtn.syntax()),
             rtn.syntax()
         )
     }
@@ -4189,7 +3673,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             google_yield,
             exit_google_yield,
-            build_google_yield(self.py, yld, parsed),
+            self.wrap::<PyGoogleYield>(yld.syntax()),
             yld.syntax()
         )
     }
@@ -4200,7 +3684,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             google_exception,
             exit_google_exception,
-            build_google_exception(self.py, exc, parsed),
+            self.wrap::<PyGoogleException>(exc.syntax()),
             exc.syntax()
         )
     }
@@ -4211,7 +3695,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             google_warning,
             exit_google_warning,
-            build_google_warning(self.py, wrn, parsed),
+            self.wrap::<PyGoogleWarning>(wrn.syntax()),
             wrn.syntax()
         )
     }
@@ -4222,7 +3706,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             google_see_also_item,
             exit_google_see_also_item,
-            build_google_see_also_item(self.py, sai, parsed),
+            self.wrap::<PyGoogleSeeAlsoItem>(sai.syntax()),
             sai.syntax()
         )
     }
@@ -4233,7 +3717,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             google_reference,
             exit_google_reference,
-            build_google_reference(self.py, r#ref, parsed),
+            self.wrap::<PyGoogleReference>(r#ref.syntax()),
             r#ref.syntax()
         )
     }
@@ -4244,7 +3728,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             google_attribute,
             exit_google_attribute,
-            build_google_attribute(self.py, att, parsed),
+            self.wrap::<PyGoogleAttribute>(att.syntax()),
             att.syntax()
         )
     }
@@ -4255,7 +3739,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             google_method,
             exit_google_method,
-            build_google_method(self.py, mtd, parsed),
+            self.wrap::<PyGoogleMethod>(mtd.syntax()),
             mtd.syntax()
         )
     }
@@ -4267,7 +3751,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             numpy_docstring,
             exit_numpy_docstring,
-            build_numpy_docstring_node(self.py, doc, parsed, Arc::clone(&self.arc)),
+            self.wrap::<PyNumPyDocstring>(doc.syntax()),
             doc.syntax()
         )
     }
@@ -4278,7 +3762,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             numpy_deprecation,
             exit_numpy_deprecation,
-            build_numpy_deprecation(self.py, dep, parsed),
+            self.wrap::<PyNumPyDeprecation>(dep.syntax()),
             dep.syntax()
         )
     }
@@ -4289,7 +3773,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             numpy_section,
             exit_numpy_section,
-            build_numpy_section(self.py, sec, parsed),
+            self.wrap::<PyNumPySection>(sec.syntax()),
             sec.syntax()
         )
     }
@@ -4300,7 +3784,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             numpy_parameter,
             exit_numpy_parameter,
-            build_numpy_parameter(self.py, prm, parsed),
+            self.wrap::<PyNumPyParameter>(prm.syntax()),
             prm.syntax()
         )
     }
@@ -4311,7 +3795,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             numpy_returns,
             exit_numpy_returns,
-            build_numpy_returns(self.py, rtn, parsed),
+            self.wrap::<PyNumPyReturns>(rtn.syntax()),
             rtn.syntax()
         )
     }
@@ -4322,7 +3806,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             numpy_yields,
             exit_numpy_yields,
-            build_numpy_yields(self.py, yld, parsed),
+            self.wrap::<PyNumPyYields>(yld.syntax()),
             yld.syntax()
         )
     }
@@ -4333,7 +3817,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             numpy_exception,
             exit_numpy_exception,
-            build_numpy_exception(self.py, exc, parsed),
+            self.wrap::<PyNumPyException>(exc.syntax()),
             exc.syntax()
         )
     }
@@ -4344,7 +3828,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             numpy_warning,
             exit_numpy_warning,
-            build_numpy_warning(self.py, wrn, parsed),
+            self.wrap::<PyNumPyWarning>(wrn.syntax()),
             wrn.syntax()
         )
     }
@@ -4355,7 +3839,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             numpy_see_also_item,
             exit_numpy_see_also_item,
-            build_numpy_see_also_item(self.py, sai, parsed),
+            self.wrap::<PyNumPySeeAlsoItem>(sai.syntax()),
             sai.syntax()
         )
     }
@@ -4366,7 +3850,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             numpy_reference,
             exit_numpy_reference,
-            build_numpy_reference(self.py, r#ref, parsed),
+            self.wrap::<PyNumPyReference>(r#ref.syntax()),
             r#ref.syntax()
         )
     }
@@ -4377,7 +3861,7 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             numpy_attribute,
             exit_numpy_attribute,
-            build_numpy_attribute(self.py, att, parsed),
+            self.wrap::<PyNumPyAttribute>(att.syntax()),
             att.syntax()
         )
     }
@@ -4388,19 +3872,19 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
             parsed,
             numpy_method,
             exit_numpy_method,
-            build_numpy_method(self.py, mtd, parsed),
+            self.wrap::<PyNumPyMethod>(mtd.syntax()),
             mtd.syntax()
         )
     }
 
     // ── Plain ─────────────────────────────────────────────────────────────
-    fn visit_plain_docstring(&mut self, parsed: &Parsed, doc: &pn::PlainDocstring<'_>) -> Result<(), PyErr> {
+    fn visit_plain_docstring(&mut self, _parsed: &Parsed, doc: &pn::PlainDocstring<'_>) -> Result<(), PyErr> {
         visit_node!(
             self,
-            parsed,
+            _parsed,
             plain_docstring,
             exit_plain_docstring,
-            build_plain_docstring_node(self.py, doc, parsed, Arc::clone(&self.arc))
+            self.wrap::<PyPlainDocstring>(doc.syntax())
         )
     }
 }
@@ -4446,11 +3930,11 @@ fn walk(py: Python<'_>, doc: Py<PyAny>, visitor: Py<PyAny>) -> PyResult<Py<PyAny
     let active = collect_active(py, &visitor)?;
 
     let arc = if let Ok(d) = bound.cast::<PyGoogleDocstring>() {
-        d.borrow().parsed.clone()
+        d.borrow().nr.parsed.clone()
     } else if let Ok(d) = bound.cast::<PyNumPyDocstring>() {
-        d.borrow().parsed.clone()
+        d.borrow().nr.parsed.clone()
     } else if let Ok(d) = bound.cast::<PyPlainDocstring>() {
-        d.borrow().parsed.clone()
+        d.borrow().nr.parsed.clone()
     } else {
         return Err(pyo3::exceptions::PyTypeError::new_err(
             "expected GoogleDocstring, NumPyDocstring, or PlainDocstring",
