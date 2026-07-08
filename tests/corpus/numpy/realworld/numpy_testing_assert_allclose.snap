@@ -1,0 +1,396 @@
+=== CST ===
+DOCUMENT@0..3142 {
+  SUMMARY@0..78 {
+    TEXT_LINE: "Raises an AssertionError if two objects are not equal up to desired"@0..67
+    NEWLINE: "\n"@67..68
+    TEXT_LINE: "tolerance."@68..78
+  }
+  NEWLINE: "\n"@78..79
+  BLANK_LINE: "\n"@79..80
+  EXTENDED_SUMMARY@80..704 {
+    TEXT_LINE: "Given two array_like objects, check that their shapes and all elements"@80..150
+    NEWLINE: "\n"@150..151
+    TEXT_LINE: "are equal (but see the Notes for the special handling of a scalar). An"@151..221
+    NEWLINE: "\n"@221..222
+    TEXT_LINE: "exception is raised if the shapes mismatch or any values conflict. In"@222..291
+    NEWLINE: "\n"@291..292
+    TEXT_LINE: "contrast to the standard usage in numpy, NaNs are compared like numbers,"@292..364
+    NEWLINE: "\n"@364..365
+    TEXT_LINE: "no assertion is raised if both objects have NaNs in the same positions."@365..436
+    NEWLINE: "\n"@436..437
+    BLANK_LINE: "\n"@437..438
+    TEXT_LINE: "The test is equivalent to ``allclose(actual, desired, rtol, atol)``,"@438..506
+    NEWLINE: "\n"@506..507
+    TEXT_LINE: "except that it is stricter: it doesn't broadcast its operands, and has"@507..577
+    NEWLINE: "\n"@577..578
+    TEXT_LINE: "tighter default tolerance values. It compares the difference between"@578..646
+    NEWLINE: "\n"@646..647
+    TEXT_LINE: "`actual` and `desired` to ``atol + rtol * abs(desired)``."@647..704
+  }
+  NEWLINE: "\n"@704..705
+  BLANK_LINE: "\n"@705..706
+  SECTION@706..1410 {
+    SECTION_HEADER@706..727 {
+      NAME: "Parameters"@706..716
+      NEWLINE: "\n"@716..717
+      UNDERLINE: "----------"@717..727
+    }
+    NEWLINE: "\n"@727..728
+    ENTRY@728..767 {
+      NAME: "actual"@728..734
+      WHITESPACE: " "@734..735
+      COLON: ":"@735..736
+      WHITESPACE: " "@736..737
+      TYPE: "array_like"@737..747
+      NEWLINE: "\n"@747..748
+      WHITESPACE: "    "@748..752
+      DESCRIPTION@752..767 {
+        TEXT_LINE: "Array obtained."@752..767
+      }
+    }
+    NEWLINE: "\n"@767..768
+    ENTRY@768..807 {
+      NAME: "desired"@768..775
+      WHITESPACE: " "@775..776
+      COLON: ":"@776..777
+      WHITESPACE: " "@777..778
+      TYPE: "array_like"@778..788
+      NEWLINE: "\n"@788..789
+      WHITESPACE: "    "@789..793
+      DESCRIPTION@793..807 {
+        TEXT_LINE: "Array desired."@793..807
+      }
+    }
+    NEWLINE: "\n"@807..808
+    ENTRY@808..854 {
+      NAME: "rtol"@808..812
+      WHITESPACE: " "@812..813
+      COLON: ":"@813..814
+      WHITESPACE: " "@814..815
+      TYPE: "float"@815..820
+      COMMA: ","@820..821
+      WHITESPACE: " "@821..822
+      OPTIONAL: "optional"@822..830
+      NEWLINE: "\n"@830..831
+      WHITESPACE: "    "@831..835
+      DESCRIPTION@835..854 {
+        TEXT_LINE: "Relative tolerance."@835..854
+      }
+    }
+    NEWLINE: "\n"@854..855
+    ENTRY@855..918 {
+      NAME: "atol"@855..859
+      WHITESPACE: " "@859..860
+      COLON: ":"@860..861
+      WHITESPACE: " "@861..862
+      TYPE: "float | np.timedelta64"@862..884
+      COMMA: ","@884..885
+      WHITESPACE: " "@885..886
+      OPTIONAL: "optional"@886..894
+      NEWLINE: "\n"@894..895
+      WHITESPACE: "    "@895..899
+      DESCRIPTION@899..918 {
+        TEXT_LINE: "Absolute tolerance."@899..918
+      }
+    }
+    NEWLINE: "\n"@918..919
+    ENTRY@919..984 {
+      NAME: "equal_nan"@919..928
+      WHITESPACE: " "@928..929
+      COLON: ":"@929..930
+      WHITESPACE: " "@930..931
+      TYPE: "bool, optional."@931..946
+      NEWLINE: "\n"@946..947
+      WHITESPACE: "    "@947..951
+      DESCRIPTION@951..984 {
+        TEXT_LINE: "If True, NaNs will compare equal."@951..984
+      }
+    }
+    NEWLINE: "\n"@984..985
+    ENTRY@985..1064 {
+      NAME: "err_msg"@985..992
+      WHITESPACE: " "@992..993
+      COLON: ":"@993..994
+      WHITESPACE: " "@994..995
+      TYPE: "str"@995..998
+      COMMA: ","@998..999
+      WHITESPACE: " "@999..1000
+      OPTIONAL: "optional"@1000..1008
+      NEWLINE: "\n"@1008..1009
+      WHITESPACE: "    "@1009..1013
+      DESCRIPTION@1013..1064 {
+        TEXT_LINE: "The error message to be printed in case of failure."@1013..1064
+      }
+    }
+    NEWLINE: "\n"@1064..1065
+    ENTRY@1065..1160 {
+      NAME: "verbose"@1065..1072
+      WHITESPACE: " "@1072..1073
+      COLON: ":"@1073..1074
+      WHITESPACE: " "@1074..1075
+      TYPE: "bool"@1075..1079
+      COMMA: ","@1079..1080
+      WHITESPACE: " "@1080..1081
+      OPTIONAL: "optional"@1081..1089
+      NEWLINE: "\n"@1089..1090
+      WHITESPACE: "    "@1090..1094
+      DESCRIPTION@1094..1160 {
+        TEXT_LINE: "If True, the conflicting values are appended to the error message."@1094..1160
+      }
+    }
+    NEWLINE: "\n"@1160..1161
+    ENTRY@1161..1410 {
+      NAME: "strict"@1161..1167
+      WHITESPACE: " "@1167..1168
+      COLON: ":"@1168..1169
+      WHITESPACE: " "@1169..1170
+      TYPE: "bool"@1170..1174
+      COMMA: ","@1174..1175
+      WHITESPACE: " "@1175..1176
+      OPTIONAL: "optional"@1176..1184
+      NEWLINE: "\n"@1184..1185
+      WHITESPACE: "    "@1185..1189
+      DESCRIPTION@1189..1410 {
+        TEXT_LINE: "If True, raise an ``AssertionError`` when either the shape or the data"@1189..1259
+        NEWLINE: "\n"@1259..1260
+        WHITESPACE: "    "@1260..1264
+        TEXT_LINE: "type of the arguments does not match. The special handling of scalars"@1264..1333
+        NEWLINE: "\n"@1333..1334
+        WHITESPACE: "    "@1334..1338
+        TEXT_LINE: "mentioned in the Notes section is disabled."@1338..1381
+        NEWLINE: "\n"@1381..1382
+        BLANK_LINE: "\n"@1382..1383
+        WHITESPACE: "    "@1383..1387
+        TEXT_LINE: ".. versionadded:: 2.0.0"@1387..1410
+      }
+    }
+  }
+  NEWLINE: "\n"@1410..1411
+  BLANK_LINE: "\n"@1411..1412
+  SECTION@1412..1507 {
+    SECTION_HEADER@1412..1425 {
+      NAME: "Raises"@1412..1418
+      NEWLINE: "\n"@1418..1419
+      UNDERLINE: "------"@1419..1425
+    }
+    NEWLINE: "\n"@1425..1426
+    ENTRY@1426..1507 {
+      TYPE: "AssertionError"@1426..1440
+      NEWLINE: "\n"@1440..1441
+      WHITESPACE: "    "@1441..1445
+      DESCRIPTION@1445..1507 {
+        TEXT_LINE: "If actual and desired are not equal up to specified precision."@1445..1507
+      }
+    }
+  }
+  NEWLINE: "\n"@1507..1508
+  BLANK_LINE: "\n"@1508..1509
+  SECTION@1509..1579 {
+    SECTION_HEADER@1509..1526 {
+      NAME: "See Also"@1509..1517
+      NEWLINE: "\n"@1517..1518
+      UNDERLINE: "--------"@1518..1526
+    }
+    NEWLINE: "\n"@1526..1527
+    ENTRY@1527..1579 {
+      NAME: "assert_array_almost_equal_nulp"@1527..1557
+      COMMA: ","@1557..1558
+      WHITESPACE: " "@1558..1559
+      NAME: "assert_array_max_ulp"@1559..1579
+    }
+  }
+  NEWLINE: "\n"@1579..1580
+  BLANK_LINE: "\n"@1580..1581
+  SECTION@1581..1892 {
+    SECTION_HEADER@1581..1592 {
+      NAME: "Notes"@1581..1586
+      NEWLINE: "\n"@1586..1587
+      UNDERLINE: "-----"@1587..1592
+    }
+    NEWLINE: "\n"@1592..1593
+    DESCRIPTION@1593..1892 {
+      TEXT_LINE: "When one of `actual` and `desired` is a scalar and the other is array_like, the"@1593..1672
+      NEWLINE: "\n"@1672..1673
+      TEXT_LINE: "function performs the comparison as if the scalar were broadcasted to the shape"@1673..1752
+      NEWLINE: "\n"@1752..1753
+      TEXT_LINE: "of the array. Note that empty arrays are therefore considered equal to scalars."@1753..1832
+      NEWLINE: "\n"@1832..1833
+      TEXT_LINE: "This behaviour can be disabled by setting ``strict==True``."@1833..1892
+    }
+  }
+  NEWLINE: "\n"@1892..1893
+  BLANK_LINE: "\n"@1893..1894
+  SECTION@1894..3142 {
+    SECTION_HEADER@1894..1911 {
+      NAME: "Examples"@1894..1902
+      NEWLINE: "\n"@1902..1903
+      UNDERLINE: "--------"@1903..1911
+    }
+    NEWLINE: "\n"@1911..1912
+    DESCRIPTION@1912..3142 {
+      TEXT_LINE: ">>> x = [1e-5, 1e-3, 1e-1]"@1912..1938
+      NEWLINE: "\n"@1938..1939
+      TEXT_LINE: ">>> y = np.arccos(np.cos(x))"@1939..1967
+      NEWLINE: "\n"@1967..1968
+      TEXT_LINE: ">>> np.testing.assert_allclose(x, y, rtol=1e-5, atol=0)"@1968..2023
+      NEWLINE: "\n"@2023..2024
+      BLANK_LINE: "\n"@2024..2025
+      TEXT_LINE: "As mentioned in the Notes section, `assert_allclose` has special"@2025..2089
+      NEWLINE: "\n"@2089..2090
+      TEXT_LINE: "handling for scalars. Here, the test checks that the value of `numpy.sin`"@2090..2163
+      NEWLINE: "\n"@2163..2164
+      TEXT_LINE: "is nearly zero at integer multiples of π."@2164..2206
+      NEWLINE: "\n"@2206..2207
+      BLANK_LINE: "\n"@2207..2208
+      TEXT_LINE: ">>> x = np.arange(3) * np.pi"@2208..2236
+      NEWLINE: "\n"@2236..2237
+      TEXT_LINE: ">>> np.testing.assert_allclose(np.sin(x), 0, atol=1e-15)"@2237..2293
+      NEWLINE: "\n"@2293..2294
+      BLANK_LINE: "\n"@2294..2295
+      TEXT_LINE: "Use `strict` to raise an ``AssertionError`` when comparing an array"@2295..2362
+      NEWLINE: "\n"@2362..2363
+      TEXT_LINE: "with one or more dimensions against a scalar."@2363..2408
+      NEWLINE: "\n"@2408..2409
+      BLANK_LINE: "\n"@2409..2410
+      TEXT_LINE: ">>> np.testing.assert_allclose(np.sin(x), 0, atol=1e-15, strict=True)"@2410..2479
+      NEWLINE: "\n"@2479..2480
+      TEXT_LINE: "Traceback (most recent call last):"@2480..2514
+      NEWLINE: "\n"@2514..2515
+      WHITESPACE: "    "@2515..2519
+      TEXT_LINE: "..."@2519..2522
+      NEWLINE: "\n"@2522..2523
+      TEXT_LINE: "AssertionError:"@2523..2538
+      NEWLINE: "\n"@2538..2539
+      TEXT_LINE: "Not equal to tolerance rtol=1e-07, atol=1e-15"@2539..2584
+      NEWLINE: "\n"@2584..2585
+      TEXT_LINE: "<BLANKLINE>"@2585..2596
+      NEWLINE: "\n"@2596..2597
+      TEXT_LINE: "(shapes (3,), () mismatch)"@2597..2623
+      NEWLINE: "\n"@2623..2624
+      WHITESPACE: " "@2624..2625
+      TEXT_LINE: "ACTUAL: array([ 0.000000e+00,  1.224647e-16, -2.449294e-16])"@2625..2685
+      NEWLINE: "\n"@2685..2686
+      WHITESPACE: " "@2686..2687
+      TEXT_LINE: "DESIRED: array(0)"@2687..2704
+      NEWLINE: "\n"@2704..2705
+      BLANK_LINE: "\n"@2705..2706
+      TEXT_LINE: "The `strict` parameter also ensures that the array data types match:"@2706..2774
+      NEWLINE: "\n"@2774..2775
+      BLANK_LINE: "\n"@2775..2776
+      TEXT_LINE: ">>> y = np.zeros(3, dtype=np.float32)"@2776..2813
+      NEWLINE: "\n"@2813..2814
+      TEXT_LINE: ">>> np.testing.assert_allclose(np.sin(x), y, atol=1e-15, strict=True)"@2814..2883
+      NEWLINE: "\n"@2883..2884
+      TEXT_LINE: "Traceback (most recent call last):"@2884..2918
+      NEWLINE: "\n"@2918..2919
+      WHITESPACE: "    "@2919..2923
+      TEXT_LINE: "..."@2923..2926
+      NEWLINE: "\n"@2926..2927
+      TEXT_LINE: "AssertionError:"@2927..2942
+      NEWLINE: "\n"@2942..2943
+      TEXT_LINE: "Not equal to tolerance rtol=1e-07, atol=1e-15"@2943..2988
+      NEWLINE: "\n"@2988..2989
+      TEXT_LINE: "<BLANKLINE>"@2989..3000
+      NEWLINE: "\n"@3000..3001
+      TEXT_LINE: "(dtypes float64, float32 mismatch)"@3001..3035
+      NEWLINE: "\n"@3035..3036
+      WHITESPACE: " "@3036..3037
+      TEXT_LINE: "ACTUAL: array([ 0.000000e+00,  1.224647e-16, -2.449294e-16])"@3037..3097
+      NEWLINE: "\n"@3097..3098
+      WHITESPACE: " "@3098..3099
+      TEXT_LINE: "DESIRED: array([0., 0., 0.], dtype=float32)"@3099..3142
+    }
+  }
+}
+=== EMIT ===
+Raises an AssertionError if two objects are not equal up to desired
+tolerance.
+
+Given two array_like objects, check that their shapes and all elements
+are equal (but see the Notes for the special handling of a scalar). An
+exception is raised if the shapes mismatch or any values conflict. In
+contrast to the standard usage in numpy, NaNs are compared like numbers,
+no assertion is raised if both objects have NaNs in the same positions.
+
+The test is equivalent to ``allclose(actual, desired, rtol, atol)``,
+except that it is stricter: it doesn't broadcast its operands, and has
+tighter default tolerance values. It compares the difference between
+`actual` and `desired` to ``atol + rtol * abs(desired)``.
+
+Parameters
+----------
+actual : array_like
+    Array obtained.
+desired : array_like
+    Array desired.
+rtol : float, optional
+    Relative tolerance.
+atol : float | np.timedelta64, optional
+    Absolute tolerance.
+equal_nan : bool, optional.
+    If True, NaNs will compare equal.
+err_msg : str, optional
+    The error message to be printed in case of failure.
+verbose : bool, optional
+    If True, the conflicting values are appended to the error message.
+strict : bool, optional
+    If True, raise an ``AssertionError`` when either the shape or the data
+    type of the arguments does not match. The special handling of scalars
+    mentioned in the Notes section is disabled.
+
+    .. versionadded:: 2.0.0
+
+Raises
+------
+AssertionError
+    If actual and desired are not equal up to specified precision.
+
+See Also
+--------
+assert_array_almost_equal_nulp, assert_array_max_ulp
+
+Notes
+-----
+When one of `actual` and `desired` is a scalar and the other is array_like, the
+function performs the comparison as if the scalar were broadcasted to the shape
+of the array. Note that empty arrays are therefore considered equal to scalars.
+This behaviour can be disabled by setting ``strict==True``.
+
+Examples
+--------
+>>> x = [1e-5, 1e-3, 1e-1]
+>>> y = np.arccos(np.cos(x))
+>>> np.testing.assert_allclose(x, y, rtol=1e-5, atol=0)
+
+As mentioned in the Notes section, `assert_allclose` has special
+handling for scalars. Here, the test checks that the value of `numpy.sin`
+is nearly zero at integer multiples of π.
+
+>>> x = np.arange(3) * np.pi
+>>> np.testing.assert_allclose(np.sin(x), 0, atol=1e-15)
+
+Use `strict` to raise an ``AssertionError`` when comparing an array
+with one or more dimensions against a scalar.
+
+>>> np.testing.assert_allclose(np.sin(x), 0, atol=1e-15, strict=True)
+Traceback (most recent call last):
+    ...
+AssertionError:
+Not equal to tolerance rtol=1e-07, atol=1e-15
+<BLANKLINE>
+(shapes (3,), () mismatch)
+ ACTUAL: array([ 0.000000e+00,  1.224647e-16, -2.449294e-16])
+ DESIRED: array(0)
+
+The `strict` parameter also ensures that the array data types match:
+
+>>> y = np.zeros(3, dtype=np.float32)
+>>> np.testing.assert_allclose(np.sin(x), y, atol=1e-15, strict=True)
+Traceback (most recent call last):
+    ...
+AssertionError:
+Not equal to tolerance rtol=1e-07, atol=1e-15
+<BLANKLINE>
+(dtypes float64, float32 mismatch)
+ ACTUAL: array([ 0.000000e+00,  1.224647e-16, -2.449294e-16])
+ DESIRED: array([0., 0., 0.], dtype=float32)

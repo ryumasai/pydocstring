@@ -1,0 +1,60 @@
+fromstring(string, dtype=np.float64, count=-1, *, sep, like=None)
+
+A new 1-D array initialized from text data in a string.
+
+Parameters
+----------
+string : str
+    A string containing the data.
+dtype : data-type, optional
+    The data type of the array; default: `numpy.float64`.  For binary input data,
+    the data must be in exactly this format. Most builtin numeric types are
+    supported and extension types may be supported.
+count : int, optional
+    Read this number of `dtype` elements from the data.  If this is
+    negative (the default), the count will be determined from the
+    length of the data.
+sep : str, optional
+    The string separating numbers in the data; extra whitespace between
+    elements is also ignored.
+
+    .. deprecated:: 1.14
+        Passing ``sep=''``, the default, is deprecated since it will
+        trigger the deprecated binary mode of this function. This mode
+        interprets `string` as binary bytes, rather than ASCII text with
+        decimal numbers, an operation which is better spelt
+        ``frombuffer(string, dtype, count)``. If `string` contains unicode
+        text, the binary mode of `fromstring` will first encode it into
+        bytes using utf-8, which will not produce sane results.
+
+like : array_like, optional
+    Reference object to allow the creation of arrays which are not
+    NumPy arrays. If an array-like passed in as ``like`` supports
+    the ``__array_function__`` protocol, the result will be defined
+    by it. In this case, it ensures the creation of an array object
+    compatible with that passed in via this argument.
+
+    .. versionadded:: 1.20.0
+
+Returns
+-------
+arr : ndarray
+    The constructed array.
+
+Raises
+------
+ValueError
+    If the string is not the correct size to satisfy the requested
+    `dtype` and `count`.
+
+See Also
+--------
+frombuffer, fromfile, fromiter
+
+Examples
+--------
+>>> import numpy as np
+>>> np.fromstring('1 2', dtype=np.int_, sep=' ')
+array([1, 2])
+>>> np.fromstring('1, 2', dtype=np.int_, sep=',')
+array([1, 2])

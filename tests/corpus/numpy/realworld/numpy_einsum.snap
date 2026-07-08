@@ -1,0 +1,1209 @@
+=== CST ===
+DOCUMENT@0..12600 {
+  SUMMARY@0..101 {
+    TEXT_LINE: "einsum(subscripts, *operands, out=None, dtype=None, order='K',"@0..62
+    NEWLINE: "\n"@62..63
+    WHITESPACE: "       "@63..70
+    TEXT_LINE: "casting='safe', optimize=False)"@70..101
+  }
+  NEWLINE: "\n"@101..102
+  BLANK_LINE: "\n"@102..103
+  EXTENDED_SUMMARY@103..639 {
+    TEXT_LINE: "Evaluates the Einstein summation convention on the operands."@103..163
+    NEWLINE: "\n"@163..164
+    BLANK_LINE: "\n"@164..165
+    TEXT_LINE: "Using the Einstein summation convention, many common multi-dimensional,"@165..236
+    NEWLINE: "\n"@236..237
+    TEXT_LINE: "linear algebraic array operations can be represented in a simple fashion."@237..310
+    NEWLINE: "\n"@310..311
+    TEXT_LINE: "In *implicit* mode `einsum` computes these values."@311..361
+    NEWLINE: "\n"@361..362
+    BLANK_LINE: "\n"@362..363
+    TEXT_LINE: "In *explicit* mode, `einsum` provides further flexibility to compute"@363..431
+    NEWLINE: "\n"@431..432
+    TEXT_LINE: "other array operations that might not be considered classical Einstein"@432..502
+    NEWLINE: "\n"@502..503
+    TEXT_LINE: "summation operations, by disabling, or forcing summation over specified"@503..574
+    NEWLINE: "\n"@574..575
+    TEXT_LINE: "subscript labels."@575..592
+    NEWLINE: "\n"@592..593
+    BLANK_LINE: "\n"@593..594
+    TEXT_LINE: "See the notes and examples for clarification."@594..639
+  }
+  NEWLINE: "\n"@639..640
+  BLANK_LINE: "\n"@640..641
+  SECTION@641..2650 {
+    SECTION_HEADER@641..662 {
+      NAME: "Parameters"@641..651
+      NEWLINE: "\n"@651..652
+      UNDERLINE: "----------"@652..662
+    }
+    NEWLINE: "\n"@662..663
+    ENTRY@663..950 {
+      NAME: "subscripts"@663..673
+      WHITESPACE: " "@673..674
+      COLON: ":"@674..675
+      WHITESPACE: " "@675..676
+      TYPE: "str"@676..679
+      NEWLINE: "\n"@679..680
+      WHITESPACE: "    "@680..684
+      DESCRIPTION@684..950 {
+        TEXT_LINE: "Specifies the subscripts for summation as comma separated list of"@684..749
+        NEWLINE: "\n"@749..750
+        WHITESPACE: "    "@750..754
+        TEXT_LINE: "subscript labels. An implicit (classical Einstein summation)"@754..814
+        NEWLINE: "\n"@814..815
+        WHITESPACE: "    "@815..819
+        TEXT_LINE: "calculation is performed unless the explicit indicator '->' is"@819..881
+        NEWLINE: "\n"@881..882
+        WHITESPACE: "    "@882..886
+        TEXT_LINE: "included as well as subscript labels of the precise output form."@886..950
+      }
+    }
+    NEWLINE: "\n"@950..951
+    ENTRY@951..1024 {
+      NAME: "operands"@951..959
+      WHITESPACE: " "@959..960
+      COLON: ":"@960..961
+      WHITESPACE: " "@961..962
+      TYPE: "list of array_like"@962..980
+      NEWLINE: "\n"@980..981
+      WHITESPACE: "    "@981..985
+      DESCRIPTION@985..1024 {
+        TEXT_LINE: "These are the arrays for the operation."@985..1024
+      }
+    }
+    NEWLINE: "\n"@1024..1025
+    ENTRY@1025..1106 {
+      NAME: "out"@1025..1028
+      WHITESPACE: " "@1028..1029
+      COLON: ":"@1029..1030
+      WHITESPACE: " "@1030..1031
+      TYPE: "ndarray"@1031..1038
+      COMMA: ","@1038..1039
+      WHITESPACE: " "@1039..1040
+      OPTIONAL: "optional"@1040..1048
+      NEWLINE: "\n"@1048..1049
+      WHITESPACE: "    "@1049..1053
+      DESCRIPTION@1053..1106 {
+        TEXT_LINE: "If provided, the calculation is done into this array."@1053..1106
+      }
+    }
+    NEWLINE: "\n"@1106..1107
+    ENTRY@1107..1336 {
+      NAME: "dtype"@1107..1112
+      WHITESPACE: " "@1112..1113
+      COLON: ":"@1113..1114
+      WHITESPACE: " "@1114..1115
+      TYPE: "{data-type, None}"@1115..1132
+      COMMA: ","@1132..1133
+      WHITESPACE: " "@1133..1134
+      OPTIONAL: "optional"@1134..1142
+      NEWLINE: "\n"@1142..1143
+      WHITESPACE: "    "@1143..1147
+      DESCRIPTION@1147..1336 {
+        TEXT_LINE: "If provided, forces the calculation to use the data type specified."@1147..1214
+        NEWLINE: "\n"@1214..1215
+        WHITESPACE: "    "@1215..1219
+        TEXT_LINE: "Note that you may have to also give a more liberal `casting`"@1219..1279
+        NEWLINE: "\n"@1279..1280
+        WHITESPACE: "    "@1280..1284
+        TEXT_LINE: "parameter to allow the conversions. Default is None."@1284..1336
+      }
+    }
+    NEWLINE: "\n"@1336..1337
+    ENTRY@1337..1719 {
+      NAME: "order"@1337..1342
+      WHITESPACE: " "@1342..1343
+      COLON: ":"@1343..1344
+      WHITESPACE: " "@1344..1345
+      TYPE: "{'C', 'F', 'A', 'K'}"@1345..1365
+      COMMA: ","@1365..1366
+      WHITESPACE: " "@1366..1367
+      OPTIONAL: "optional"@1367..1375
+      NEWLINE: "\n"@1375..1376
+      WHITESPACE: "    "@1376..1380
+      DESCRIPTION@1380..1719 {
+        TEXT_LINE: "Controls the memory layout of the output. 'C' means it should"@1380..1441
+        NEWLINE: "\n"@1441..1442
+        WHITESPACE: "    "@1442..1446
+        TEXT_LINE: "be C contiguous. 'F' means it should be Fortran contiguous,"@1446..1505
+        NEWLINE: "\n"@1505..1506
+        WHITESPACE: "    "@1506..1510
+        TEXT_LINE: "'A' means it should be 'F' if the inputs are all 'F', 'C' otherwise."@1510..1578
+        NEWLINE: "\n"@1578..1579
+        WHITESPACE: "    "@1579..1583
+        TEXT_LINE: "'K' means it should be as close to the layout as the inputs as"@1583..1645
+        NEWLINE: "\n"@1645..1646
+        WHITESPACE: "    "@1646..1650
+        TEXT_LINE: "is possible, including arbitrarily permuted axes."@1650..1699
+        NEWLINE: "\n"@1699..1700
+        WHITESPACE: "    "@1700..1704
+        TEXT_LINE: "Default is 'K'."@1704..1719
+      }
+    }
+    NEWLINE: "\n"@1719..1720
+    ENTRY@1720..2301 {
+      NAME: "casting"@1720..1727
+      WHITESPACE: " "@1727..1728
+      COLON: ":"@1728..1729
+      WHITESPACE: " "@1729..1730
+      TYPE: "{'no', 'equiv', 'safe', 'same_kind', 'unsafe'}"@1730..1776
+      COMMA: ","@1776..1777
+      WHITESPACE: " "@1777..1778
+      OPTIONAL: "optional"@1778..1786
+      NEWLINE: "\n"@1786..1787
+      WHITESPACE: "    "@1787..1791
+      DESCRIPTION@1791..2301 {
+        TEXT_LINE: "Controls what kind of data casting may occur.  Setting this to"@1791..1853
+        NEWLINE: "\n"@1853..1854
+        WHITESPACE: "    "@1854..1858
+        TEXT_LINE: "'unsafe' is not recommended, as it can adversely affect accumulations."@1858..1928
+        NEWLINE: "\n"@1928..1929
+        BLANK_LINE: "\n"@1929..1930
+        WHITESPACE: "    "@1930..1934
+        TEXT_LINE: "* 'no' means the data types should not be cast at all."@1934..1988
+        NEWLINE: "\n"@1988..1989
+        WHITESPACE: "    "@1989..1993
+        TEXT_LINE: "* 'equiv' means only byte-order changes are allowed."@1993..2045
+        NEWLINE: "\n"@2045..2046
+        WHITESPACE: "    "@2046..2050
+        TEXT_LINE: "* 'safe' means only casts which can preserve values are allowed."@2050..2114
+        NEWLINE: "\n"@2114..2115
+        WHITESPACE: "    "@2115..2119
+        TEXT_LINE: "* 'same_kind' means only safe casts or casts within a kind,"@2119..2178
+        NEWLINE: "\n"@2178..2179
+        WHITESPACE: "      "@2179..2185
+        TEXT_LINE: "like float64 to float32, are allowed."@2185..2222
+        NEWLINE: "\n"@2222..2223
+        WHITESPACE: "    "@2223..2227
+        TEXT_LINE: "* 'unsafe' means any data conversions may be done."@2227..2277
+        NEWLINE: "\n"@2277..2278
+        BLANK_LINE: "\n"@2278..2279
+        WHITESPACE: "    "@2279..2283
+        TEXT_LINE: "Default is 'safe'."@2283..2301
+      }
+    }
+    NEWLINE: "\n"@2301..2302
+    ENTRY@2302..2650 {
+      NAME: "optimize"@2302..2310
+      WHITESPACE: " "@2310..2311
+      COLON: ":"@2311..2312
+      WHITESPACE: " "@2312..2313
+      TYPE: "{False, True, 'greedy', 'optimal'}"@2313..2347
+      COMMA: ","@2347..2348
+      WHITESPACE: " "@2348..2349
+      OPTIONAL: "optional"@2349..2357
+      NEWLINE: "\n"@2357..2358
+      WHITESPACE: "    "@2358..2362
+      DESCRIPTION@2362..2650 {
+        TEXT_LINE: "Controls if intermediate optimization should occur. No optimization"@2362..2429
+        NEWLINE: "\n"@2429..2430
+        WHITESPACE: "    "@2430..2434
+        TEXT_LINE: "will occur if False and True will default to the 'greedy' algorithm."@2434..2502
+        NEWLINE: "\n"@2502..2503
+        WHITESPACE: "    "@2503..2507
+        TEXT_LINE: "Also accepts an explicit contraction list from the ``np.einsum_path``"@2507..2576
+        NEWLINE: "\n"@2576..2577
+        WHITESPACE: "    "@2577..2581
+        TEXT_LINE: "function. See ``np.einsum_path`` for more details. Defaults to False."@2581..2650
+      }
+    }
+  }
+  NEWLINE: "\n"@2650..2651
+  BLANK_LINE: "\n"@2651..2652
+  SECTION@2652..2748 {
+    SECTION_HEADER@2652..2667 {
+      NAME: "Returns"@2652..2659
+      NEWLINE: "\n"@2659..2660
+      UNDERLINE: "-------"@2660..2667
+    }
+    NEWLINE: "\n"@2667..2668
+    ENTRY@2668..2748 {
+      NAME: "output"@2668..2674
+      WHITESPACE: " "@2674..2675
+      COLON: ":"@2675..2676
+      WHITESPACE: " "@2676..2677
+      TYPE: "ndarray"@2677..2684
+      NEWLINE: "\n"@2684..2685
+      WHITESPACE: "    "@2685..2689
+      DESCRIPTION@2689..2748 {
+        TEXT_LINE: "The calculation based on the Einstein summation convention."@2689..2748
+      }
+    }
+  }
+  NEWLINE: "\n"@2748..2749
+  BLANK_LINE: "\n"@2749..2750
+  SECTION@2750..3229 {
+    SECTION_HEADER@2750..2767 {
+      NAME: "See Also"@2750..2758
+      NEWLINE: "\n"@2758..2759
+      UNDERLINE: "--------"@2759..2767
+    }
+    NEWLINE: "\n"@2767..2768
+    ENTRY@2768..2827 {
+      NAME: "einsum_path"@2768..2779
+      COMMA: ","@2779..2780
+      WHITESPACE: " "@2780..2781
+      NAME: "dot"@2781..2784
+      COMMA: ","@2784..2785
+      WHITESPACE: " "@2785..2786
+      NAME: "inner"@2786..2791
+      COMMA: ","@2791..2792
+      WHITESPACE: " "@2792..2793
+      NAME: "outer"@2793..2798
+      COMMA: ","@2798..2799
+      WHITESPACE: " "@2799..2800
+      NAME: "tensordot"@2800..2809
+      COMMA: ","@2809..2810
+      WHITESPACE: " "@2810..2811
+      NAME: "linalg.multi_dot"@2811..2827
+    }
+    NEWLINE: "\n"@2827..2828
+    ENTRY@2828..3229 {
+      NAME: "einsum"@2828..2834
+      COLON: ":"@2834..2835
+      NEWLINE: "\n"@2835..2836
+      WHITESPACE: "    "@2836..2840
+      DESCRIPTION@2840..3229 {
+        TEXT_LINE: "Similar verbose interface is provided by the"@2840..2884
+        NEWLINE: "\n"@2884..2885
+        WHITESPACE: "    "@2885..2889
+        TEXT_LINE: "`einops <https://github.com/arogozhnikov/einops>`_ package to cover"@2889..2956
+        NEWLINE: "\n"@2956..2957
+        WHITESPACE: "    "@2957..2961
+        TEXT_LINE: "additional operations: transpose, reshape/flatten, repeat/tile,"@2961..3024
+        NEWLINE: "\n"@3024..3025
+        WHITESPACE: "    "@3025..3029
+        TEXT_LINE: "squeeze/unsqueeze and reductions."@3029..3062
+        NEWLINE: "\n"@3062..3063
+        WHITESPACE: "    "@3063..3067
+        TEXT_LINE: "The `opt_einsum <https://optimized-einsum.readthedocs.io/en/stable/>`_"@3067..3137
+        NEWLINE: "\n"@3137..3138
+        WHITESPACE: "    "@3138..3142
+        TEXT_LINE: "optimizes contraction order for einsum-like expressions"@3142..3197
+        NEWLINE: "\n"@3197..3198
+        WHITESPACE: "    "@3198..3202
+        TEXT_LINE: "in backend-agnostic manner."@3202..3229
+      }
+    }
+  }
+  NEWLINE: "\n"@3229..3230
+  BLANK_LINE: "\n"@3230..3231
+  SECTION@3231..8166 {
+    SECTION_HEADER@3231..3242 {
+      NAME: "Notes"@3231..3236
+      NEWLINE: "\n"@3236..3237
+      UNDERLINE: "-----"@3237..3242
+    }
+    NEWLINE: "\n"@3242..3243
+    DESCRIPTION@3243..8166 {
+      TEXT_LINE: "The Einstein summation convention can be used to compute"@3243..3299
+      NEWLINE: "\n"@3299..3300
+      TEXT_LINE: "many multi-dimensional, linear algebraic array operations. `einsum`"@3300..3367
+      NEWLINE: "\n"@3367..3368
+      TEXT_LINE: "provides a succinct way of representing these."@3368..3414
+      NEWLINE: "\n"@3414..3415
+      BLANK_LINE: "\n"@3415..3416
+      TEXT_LINE: "A non-exhaustive list of these operations,"@3416..3458
+      NEWLINE: "\n"@3458..3459
+      TEXT_LINE: "which can be computed by `einsum`, is shown below along with examples:"@3459..3529
+      NEWLINE: "\n"@3529..3530
+      BLANK_LINE: "\n"@3530..3531
+      TEXT_LINE: "* Trace of an array, :py:func:`numpy.trace`."@3531..3575
+      NEWLINE: "\n"@3575..3576
+      TEXT_LINE: "* Return a diagonal, :py:func:`numpy.diag`."@3576..3619
+      NEWLINE: "\n"@3619..3620
+      TEXT_LINE: "* Array axis summations, :py:func:`numpy.sum`."@3620..3666
+      NEWLINE: "\n"@3666..3667
+      TEXT_LINE: "* Transpositions and permutations, :py:func:`numpy.transpose`."@3667..3729
+      NEWLINE: "\n"@3729..3730
+      TEXT_LINE: "* Matrix multiplication and dot product, :py:func:`numpy.matmul`"@3730..3794
+      NEWLINE: "\n"@3794..3795
+      WHITESPACE: "    "@3795..3799
+      TEXT_LINE: ":py:func:`numpy.dot`."@3799..3820
+      NEWLINE: "\n"@3820..3821
+      TEXT_LINE: "* Vector inner and outer products, :py:func:`numpy.inner`"@3821..3878
+      NEWLINE: "\n"@3878..3879
+      WHITESPACE: "    "@3879..3883
+      TEXT_LINE: ":py:func:`numpy.outer`."@3883..3906
+      NEWLINE: "\n"@3906..3907
+      TEXT_LINE: "* Broadcasting, element-wise and scalar multiplication,"@3907..3962
+      NEWLINE: "\n"@3962..3963
+      WHITESPACE: "    "@3963..3967
+      TEXT_LINE: ":py:func:`numpy.multiply`."@3967..3993
+      NEWLINE: "\n"@3993..3994
+      TEXT_LINE: "* Tensor contractions, :py:func:`numpy.tensordot`."@3994..4044
+      NEWLINE: "\n"@4044..4045
+      TEXT_LINE: "* Chained array operations, in efficient calculation order,"@4045..4104
+      NEWLINE: "\n"@4104..4105
+      WHITESPACE: "    "@4105..4109
+      TEXT_LINE: ":py:func:`numpy.einsum_path`."@4109..4138
+      NEWLINE: "\n"@4138..4139
+      BLANK_LINE: "\n"@4139..4140
+      TEXT_LINE: "The subscripts string is a comma-separated list of subscript labels,"@4140..4208
+      NEWLINE: "\n"@4208..4209
+      TEXT_LINE: "where each label refers to a dimension of the corresponding operand."@4209..4277
+      NEWLINE: "\n"@4277..4278
+      TEXT_LINE: "Whenever a label is repeated it is summed, so ``np.einsum('i,i', a, b)``"@4278..4350
+      NEWLINE: "\n"@4350..4351
+      TEXT_LINE: "is equivalent to :py:func:`np.inner(a,b) <numpy.inner>`. If a label"@4351..4418
+      NEWLINE: "\n"@4418..4419
+      TEXT_LINE: "appears only once, it is not summed, so ``np.einsum('i', a)``"@4419..4480
+      NEWLINE: "\n"@4480..4481
+      TEXT_LINE: "produces a view of ``a`` with no changes. A further example"@4481..4540
+      NEWLINE: "\n"@4540..4541
+      TEXT_LINE: "``np.einsum('ij,jk', a, b)`` describes traditional matrix multiplication"@4541..4613
+      NEWLINE: "\n"@4613..4614
+      TEXT_LINE: "and is equivalent to :py:func:`np.matmul(a,b) <numpy.matmul>`."@4614..4676
+      NEWLINE: "\n"@4676..4677
+      TEXT_LINE: "Repeated subscript labels in one operand take the diagonal."@4677..4736
+      NEWLINE: "\n"@4736..4737
+      TEXT_LINE: "For example, ``np.einsum('ii', a)`` is equivalent to"@4737..4789
+      NEWLINE: "\n"@4789..4790
+      TEXT_LINE: ":py:func:`np.trace(a) <numpy.trace>`."@4790..4827
+      NEWLINE: "\n"@4827..4828
+      BLANK_LINE: "\n"@4828..4829
+      TEXT_LINE: "In *implicit mode*, the chosen subscripts are important"@4829..4884
+      NEWLINE: "\n"@4884..4885
+      TEXT_LINE: "since the axes of the output are reordered alphabetically.  This"@4885..4949
+      NEWLINE: "\n"@4949..4950
+      TEXT_LINE: "means that ``np.einsum('ij', a)`` doesn't affect a 2D array, while"@4950..5016
+      NEWLINE: "\n"@5016..5017
+      TEXT_LINE: "``np.einsum('ji', a)`` takes its transpose. Additionally,"@5017..5074
+      NEWLINE: "\n"@5074..5075
+      TEXT_LINE: "``np.einsum('ij,jk', a, b)`` returns a matrix multiplication, while,"@5075..5143
+      NEWLINE: "\n"@5143..5144
+      TEXT_LINE: "``np.einsum('ij,jh', a, b)`` returns the transpose of the"@5144..5201
+      NEWLINE: "\n"@5201..5202
+      TEXT_LINE: "multiplication since subscript 'h' precedes subscript 'i'."@5202..5260
+      NEWLINE: "\n"@5260..5261
+      BLANK_LINE: "\n"@5261..5262
+      TEXT_LINE: "In *explicit mode* the output can be directly controlled by"@5262..5321
+      NEWLINE: "\n"@5321..5322
+      TEXT_LINE: "specifying output subscript labels.  This requires the"@5322..5376
+      NEWLINE: "\n"@5376..5377
+      TEXT_LINE: "identifier '->' as well as the list of output subscript labels."@5377..5440
+      NEWLINE: "\n"@5440..5441
+      TEXT_LINE: "This feature increases the flexibility of the function since"@5441..5501
+      NEWLINE: "\n"@5501..5502
+      TEXT_LINE: "summing can be disabled or forced when required. The call"@5502..5559
+      NEWLINE: "\n"@5559..5560
+      TEXT_LINE: "``np.einsum('i->', a)`` is like :py:func:`np.sum(a) <numpy.sum>`"@5560..5624
+      NEWLINE: "\n"@5624..5625
+      TEXT_LINE: "if ``a`` is a 1-D array, and ``np.einsum('ii->i', a)``"@5625..5679
+      NEWLINE: "\n"@5679..5680
+      TEXT_LINE: "is like :py:func:`np.diag(a) <numpy.diag>` if ``a`` is a square 2-D array."@5680..5754
+      NEWLINE: "\n"@5754..5755
+      TEXT_LINE: "The difference is that `einsum` does not allow broadcasting by default."@5755..5826
+      NEWLINE: "\n"@5826..5827
+      TEXT_LINE: "Additionally ``np.einsum('ij,jh->ih', a, b)`` directly specifies the"@5827..5895
+      NEWLINE: "\n"@5895..5896
+      TEXT_LINE: "order of the output subscript labels and therefore returns matrix"@5896..5961
+      NEWLINE: "\n"@5961..5962
+      TEXT_LINE: "multiplication, unlike the example above in implicit mode."@5962..6020
+      NEWLINE: "\n"@6020..6021
+      BLANK_LINE: "\n"@6021..6022
+      TEXT_LINE: "To enable and control broadcasting, use an ellipsis.  Default"@6022..6083
+      NEWLINE: "\n"@6083..6084
+      TEXT_LINE: "NumPy-style broadcasting is done by adding an ellipsis"@6084..6138
+      NEWLINE: "\n"@6138..6139
+      TEXT_LINE: "to the left of each term, like ``np.einsum('...ii->...i', a)``."@6139..6202
+      NEWLINE: "\n"@6202..6203
+      TEXT_LINE: "``np.einsum('...i->...', a)`` is like"@6203..6240
+      NEWLINE: "\n"@6240..6241
+      TEXT_LINE: ":py:func:`np.sum(a, axis=-1) <numpy.sum>` for array ``a`` of any shape."@6241..6312
+      NEWLINE: "\n"@6312..6313
+      TEXT_LINE: "To take the trace along the first and last axes,"@6313..6361
+      NEWLINE: "\n"@6361..6362
+      TEXT_LINE: "you can do ``np.einsum('i...i', a)``, or to do a matrix-matrix"@6362..6424
+      NEWLINE: "\n"@6424..6425
+      TEXT_LINE: "product with the left-most indices instead of rightmost, one can do"@6425..6492
+      NEWLINE: "\n"@6492..6493
+      TEXT_LINE: "``np.einsum('ij...,jk...->ik...', a, b)``."@6493..6535
+      NEWLINE: "\n"@6535..6536
+      BLANK_LINE: "\n"@6536..6537
+      TEXT_LINE: "When there is only one operand, no axes are summed, and no output"@6537..6602
+      NEWLINE: "\n"@6602..6603
+      TEXT_LINE: "parameter is provided, a view into the operand is returned instead"@6603..6669
+      NEWLINE: "\n"@6669..6670
+      TEXT_LINE: "of a new array.  Thus, taking the diagonal as ``np.einsum('ii->i', a)``"@6670..6741
+      NEWLINE: "\n"@6741..6742
+      TEXT_LINE: "produces a view (changed in version 1.10.0)."@6742..6786
+      NEWLINE: "\n"@6786..6787
+      BLANK_LINE: "\n"@6787..6788
+      TEXT_LINE: "`einsum` also provides an alternative way to provide the subscripts and"@6788..6859
+      NEWLINE: "\n"@6859..6860
+      TEXT_LINE: "operands as ``einsum(op0, sublist0, op1, sublist1, ..., [sublistout])``."@6860..6932
+      NEWLINE: "\n"@6932..6933
+      TEXT_LINE: "If the output shape is not provided in this format `einsum` will be"@6933..7000
+      NEWLINE: "\n"@7000..7001
+      TEXT_LINE: "calculated in implicit mode, otherwise it will be performed explicitly."@7001..7072
+      NEWLINE: "\n"@7072..7073
+      TEXT_LINE: "The examples below have corresponding `einsum` calls with the two"@7073..7138
+      NEWLINE: "\n"@7138..7139
+      TEXT_LINE: "parameter methods."@7139..7157
+      NEWLINE: "\n"@7157..7158
+      BLANK_LINE: "\n"@7158..7159
+      TEXT_LINE: "Views returned from einsum are now writeable whenever the input array"@7159..7228
+      NEWLINE: "\n"@7228..7229
+      TEXT_LINE: "is writeable. For example, ``np.einsum('ijk...->kji...', a)`` will now"@7229..7299
+      NEWLINE: "\n"@7299..7300
+      TEXT_LINE: "have the same effect as :py:func:`np.swapaxes(a, 0, 2) <numpy.swapaxes>`"@7300..7372
+      NEWLINE: "\n"@7372..7373
+      TEXT_LINE: "and ``np.einsum('ii->i', a)`` will return a writeable view of the diagonal"@7373..7447
+      NEWLINE: "\n"@7447..7448
+      TEXT_LINE: "of a 2D array."@7448..7462
+      NEWLINE: "\n"@7462..7463
+      BLANK_LINE: "\n"@7463..7464
+      TEXT_LINE: "Added the ``optimize`` argument which will optimize the contraction order"@7464..7537
+      NEWLINE: "\n"@7537..7538
+      TEXT_LINE: "of an einsum expression. For a contraction with three or more operands"@7538..7608
+      NEWLINE: "\n"@7608..7609
+      TEXT_LINE: "this can greatly increase the computational efficiency at the cost of"@7609..7678
+      NEWLINE: "\n"@7678..7679
+      TEXT_LINE: "a larger memory footprint during computation."@7679..7724
+      NEWLINE: "\n"@7724..7725
+      BLANK_LINE: "\n"@7725..7726
+      TEXT_LINE: "Typically a 'greedy' algorithm is applied which empirical tests have shown"@7726..7800
+      NEWLINE: "\n"@7800..7801
+      TEXT_LINE: "returns the optimal path in the majority of cases. In some cases 'optimal'"@7801..7875
+      NEWLINE: "\n"@7875..7876
+      TEXT_LINE: "will return the superlative path through a more expensive, exhaustive"@7876..7945
+      NEWLINE: "\n"@7945..7946
+      TEXT_LINE: "search. For iterative calculations it may be advisable to calculate"@7946..8013
+      NEWLINE: "\n"@8013..8014
+      TEXT_LINE: "the optimal path once and reuse that path by supplying it as an argument."@8014..8087
+      NEWLINE: "\n"@8087..8088
+      TEXT_LINE: "An example is given below."@8088..8114
+      NEWLINE: "\n"@8114..8115
+      BLANK_LINE: "\n"@8115..8116
+      TEXT_LINE: "See :py:func:`numpy.einsum_path` for more details."@8116..8166
+    }
+  }
+  NEWLINE: "\n"@8166..8167
+  BLANK_LINE: "\n"@8167..8168
+  SECTION@8168..12600 {
+    SECTION_HEADER@8168..8185 {
+      NAME: "Examples"@8168..8176
+      NEWLINE: "\n"@8176..8177
+      UNDERLINE: "--------"@8177..8185
+    }
+    NEWLINE: "\n"@8185..8186
+    DESCRIPTION@8186..12600 {
+      TEXT_LINE: ">>> a = np.arange(25).reshape(5,5)"@8186..8220
+      NEWLINE: "\n"@8220..8221
+      TEXT_LINE: ">>> b = np.arange(5)"@8221..8241
+      NEWLINE: "\n"@8241..8242
+      TEXT_LINE: ">>> c = np.arange(6).reshape(2,3)"@8242..8275
+      NEWLINE: "\n"@8275..8276
+      BLANK_LINE: "\n"@8276..8277
+      TEXT_LINE: "Trace of a matrix:"@8277..8295
+      NEWLINE: "\n"@8295..8296
+      BLANK_LINE: "\n"@8296..8297
+      TEXT_LINE: ">>> np.einsum('ii', a)"@8297..8319
+      NEWLINE: "\n"@8319..8320
+      TEXT_LINE: "60"@8320..8322
+      NEWLINE: "\n"@8322..8323
+      TEXT_LINE: ">>> np.einsum(a, [0,0])"@8323..8346
+      NEWLINE: "\n"@8346..8347
+      TEXT_LINE: "60"@8347..8349
+      NEWLINE: "\n"@8349..8350
+      TEXT_LINE: ">>> np.trace(a)"@8350..8365
+      NEWLINE: "\n"@8365..8366
+      TEXT_LINE: "60"@8366..8368
+      NEWLINE: "\n"@8368..8369
+      BLANK_LINE: "\n"@8369..8370
+      TEXT_LINE: "Extract the diagonal (requires explicit form):"@8370..8416
+      NEWLINE: "\n"@8416..8417
+      BLANK_LINE: "\n"@8417..8418
+      TEXT_LINE: ">>> np.einsum('ii->i', a)"@8418..8443
+      NEWLINE: "\n"@8443..8444
+      TEXT_LINE: "array([ 0,  6, 12, 18, 24])"@8444..8471
+      NEWLINE: "\n"@8471..8472
+      TEXT_LINE: ">>> np.einsum(a, [0,0], [0])"@8472..8500
+      NEWLINE: "\n"@8500..8501
+      TEXT_LINE: "array([ 0,  6, 12, 18, 24])"@8501..8528
+      NEWLINE: "\n"@8528..8529
+      TEXT_LINE: ">>> np.diag(a)"@8529..8543
+      NEWLINE: "\n"@8543..8544
+      TEXT_LINE: "array([ 0,  6, 12, 18, 24])"@8544..8571
+      NEWLINE: "\n"@8571..8572
+      BLANK_LINE: "\n"@8572..8573
+      TEXT_LINE: "Sum over an axis (requires explicit form):"@8573..8615
+      NEWLINE: "\n"@8615..8616
+      BLANK_LINE: "\n"@8616..8617
+      TEXT_LINE: ">>> np.einsum('ij->i', a)"@8617..8642
+      NEWLINE: "\n"@8642..8643
+      TEXT_LINE: "array([ 10,  35,  60,  85, 110])"@8643..8675
+      NEWLINE: "\n"@8675..8676
+      TEXT_LINE: ">>> np.einsum(a, [0,1], [0])"@8676..8704
+      NEWLINE: "\n"@8704..8705
+      TEXT_LINE: "array([ 10,  35,  60,  85, 110])"@8705..8737
+      NEWLINE: "\n"@8737..8738
+      TEXT_LINE: ">>> np.sum(a, axis=1)"@8738..8759
+      NEWLINE: "\n"@8759..8760
+      TEXT_LINE: "array([ 10,  35,  60,  85, 110])"@8760..8792
+      NEWLINE: "\n"@8792..8793
+      BLANK_LINE: "\n"@8793..8794
+      TEXT_LINE: "For higher dimensional arrays summing a single axis can be done"@8794..8857
+      NEWLINE: "\n"@8857..8858
+      TEXT_LINE: "with ellipsis:"@8858..8872
+      NEWLINE: "\n"@8872..8873
+      BLANK_LINE: "\n"@8873..8874
+      TEXT_LINE: ">>> np.einsum('...j->...', a)"@8874..8903
+      NEWLINE: "\n"@8903..8904
+      TEXT_LINE: "array([ 10,  35,  60,  85, 110])"@8904..8936
+      NEWLINE: "\n"@8936..8937
+      TEXT_LINE: ">>> np.einsum(a, [Ellipsis,1], [Ellipsis])"@8937..8979
+      NEWLINE: "\n"@8979..8980
+      TEXT_LINE: "array([ 10,  35,  60,  85, 110])"@8980..9012
+      NEWLINE: "\n"@9012..9013
+      BLANK_LINE: "\n"@9013..9014
+      TEXT_LINE: "Compute a matrix transpose, or reorder any number of axes:"@9014..9072
+      NEWLINE: "\n"@9072..9073
+      BLANK_LINE: "\n"@9073..9074
+      TEXT_LINE: ">>> np.einsum('ji', c)"@9074..9096
+      NEWLINE: "\n"@9096..9097
+      TEXT_LINE: "array([[0, 3],"@9097..9111
+      NEWLINE: "\n"@9111..9112
+      WHITESPACE: "       "@9112..9119
+      TEXT_LINE: "[1, 4],"@9119..9126
+      NEWLINE: "\n"@9126..9127
+      WHITESPACE: "       "@9127..9134
+      TEXT_LINE: "[2, 5]])"@9134..9142
+      NEWLINE: "\n"@9142..9143
+      TEXT_LINE: ">>> np.einsum('ij->ji', c)"@9143..9169
+      NEWLINE: "\n"@9169..9170
+      TEXT_LINE: "array([[0, 3],"@9170..9184
+      NEWLINE: "\n"@9184..9185
+      WHITESPACE: "       "@9185..9192
+      TEXT_LINE: "[1, 4],"@9192..9199
+      NEWLINE: "\n"@9199..9200
+      WHITESPACE: "       "@9200..9207
+      TEXT_LINE: "[2, 5]])"@9207..9215
+      NEWLINE: "\n"@9215..9216
+      TEXT_LINE: ">>> np.einsum(c, [1,0])"@9216..9239
+      NEWLINE: "\n"@9239..9240
+      TEXT_LINE: "array([[0, 3],"@9240..9254
+      NEWLINE: "\n"@9254..9255
+      WHITESPACE: "       "@9255..9262
+      TEXT_LINE: "[1, 4],"@9262..9269
+      NEWLINE: "\n"@9269..9270
+      WHITESPACE: "       "@9270..9277
+      TEXT_LINE: "[2, 5]])"@9277..9285
+      NEWLINE: "\n"@9285..9286
+      TEXT_LINE: ">>> np.transpose(c)"@9286..9305
+      NEWLINE: "\n"@9305..9306
+      TEXT_LINE: "array([[0, 3],"@9306..9320
+      NEWLINE: "\n"@9320..9321
+      WHITESPACE: "       "@9321..9328
+      TEXT_LINE: "[1, 4],"@9328..9335
+      NEWLINE: "\n"@9335..9336
+      WHITESPACE: "       "@9336..9343
+      TEXT_LINE: "[2, 5]])"@9343..9351
+      NEWLINE: "\n"@9351..9352
+      BLANK_LINE: "\n"@9352..9353
+      TEXT_LINE: "Vector inner products:"@9353..9375
+      NEWLINE: "\n"@9375..9376
+      BLANK_LINE: "\n"@9376..9377
+      TEXT_LINE: ">>> np.einsum('i,i', b, b)"@9377..9403
+      NEWLINE: "\n"@9403..9404
+      TEXT_LINE: "30"@9404..9406
+      NEWLINE: "\n"@9406..9407
+      TEXT_LINE: ">>> np.einsum(b, [0], b, [0])"@9407..9436
+      NEWLINE: "\n"@9436..9437
+      TEXT_LINE: "30"@9437..9439
+      NEWLINE: "\n"@9439..9440
+      TEXT_LINE: ">>> np.inner(b,b)"@9440..9457
+      NEWLINE: "\n"@9457..9458
+      TEXT_LINE: "30"@9458..9460
+      NEWLINE: "\n"@9460..9461
+      BLANK_LINE: "\n"@9461..9462
+      TEXT_LINE: "Matrix vector multiplication:"@9462..9491
+      NEWLINE: "\n"@9491..9492
+      BLANK_LINE: "\n"@9492..9493
+      TEXT_LINE: ">>> np.einsum('ij,j', a, b)"@9493..9520
+      NEWLINE: "\n"@9520..9521
+      TEXT_LINE: "array([ 30,  80, 130, 180, 230])"@9521..9553
+      NEWLINE: "\n"@9553..9554
+      TEXT_LINE: ">>> np.einsum(a, [0,1], b, [1])"@9554..9585
+      NEWLINE: "\n"@9585..9586
+      TEXT_LINE: "array([ 30,  80, 130, 180, 230])"@9586..9618
+      NEWLINE: "\n"@9618..9619
+      TEXT_LINE: ">>> np.dot(a, b)"@9619..9635
+      NEWLINE: "\n"@9635..9636
+      TEXT_LINE: "array([ 30,  80, 130, 180, 230])"@9636..9668
+      NEWLINE: "\n"@9668..9669
+      TEXT_LINE: ">>> np.einsum('...j,j', a, b)"@9669..9698
+      NEWLINE: "\n"@9698..9699
+      TEXT_LINE: "array([ 30,  80, 130, 180, 230])"@9699..9731
+      NEWLINE: "\n"@9731..9732
+      BLANK_LINE: "\n"@9732..9733
+      TEXT_LINE: "Broadcasting and scalar multiplication:"@9733..9772
+      NEWLINE: "\n"@9772..9773
+      BLANK_LINE: "\n"@9773..9774
+      TEXT_LINE: ">>> np.einsum('..., ...', 3, c)"@9774..9805
+      NEWLINE: "\n"@9805..9806
+      TEXT_LINE: "array([[ 0,  3,  6],"@9806..9826
+      NEWLINE: "\n"@9826..9827
+      WHITESPACE: "       "@9827..9834
+      TEXT_LINE: "[ 9, 12, 15]])"@9834..9848
+      NEWLINE: "\n"@9848..9849
+      TEXT_LINE: ">>> np.einsum(',ij', 3, c)"@9849..9875
+      NEWLINE: "\n"@9875..9876
+      TEXT_LINE: "array([[ 0,  3,  6],"@9876..9896
+      NEWLINE: "\n"@9896..9897
+      WHITESPACE: "       "@9897..9904
+      TEXT_LINE: "[ 9, 12, 15]])"@9904..9918
+      NEWLINE: "\n"@9918..9919
+      TEXT_LINE: ">>> np.einsum(3, [Ellipsis], c, [Ellipsis])"@9919..9962
+      NEWLINE: "\n"@9962..9963
+      TEXT_LINE: "array([[ 0,  3,  6],"@9963..9983
+      NEWLINE: "\n"@9983..9984
+      WHITESPACE: "       "@9984..9991
+      TEXT_LINE: "[ 9, 12, 15]])"@9991..10005
+      NEWLINE: "\n"@10005..10006
+      TEXT_LINE: ">>> np.multiply(3, c)"@10006..10027
+      NEWLINE: "\n"@10027..10028
+      TEXT_LINE: "array([[ 0,  3,  6],"@10028..10048
+      NEWLINE: "\n"@10048..10049
+      WHITESPACE: "       "@10049..10056
+      TEXT_LINE: "[ 9, 12, 15]])"@10056..10070
+      NEWLINE: "\n"@10070..10071
+      BLANK_LINE: "\n"@10071..10072
+      TEXT_LINE: "Vector outer product:"@10072..10093
+      NEWLINE: "\n"@10093..10094
+      BLANK_LINE: "\n"@10094..10095
+      TEXT_LINE: ">>> np.einsum('i,j', np.arange(2)+1, b)"@10095..10134
+      NEWLINE: "\n"@10134..10135
+      TEXT_LINE: "array([[0, 1, 2, 3, 4],"@10135..10158
+      NEWLINE: "\n"@10158..10159
+      WHITESPACE: "       "@10159..10166
+      TEXT_LINE: "[0, 2, 4, 6, 8]])"@10166..10183
+      NEWLINE: "\n"@10183..10184
+      TEXT_LINE: ">>> np.einsum(np.arange(2)+1, [0], b, [1])"@10184..10226
+      NEWLINE: "\n"@10226..10227
+      TEXT_LINE: "array([[0, 1, 2, 3, 4],"@10227..10250
+      NEWLINE: "\n"@10250..10251
+      WHITESPACE: "       "@10251..10258
+      TEXT_LINE: "[0, 2, 4, 6, 8]])"@10258..10275
+      NEWLINE: "\n"@10275..10276
+      TEXT_LINE: ">>> np.outer(np.arange(2)+1, b)"@10276..10307
+      NEWLINE: "\n"@10307..10308
+      TEXT_LINE: "array([[0, 1, 2, 3, 4],"@10308..10331
+      NEWLINE: "\n"@10331..10332
+      WHITESPACE: "       "@10332..10339
+      TEXT_LINE: "[0, 2, 4, 6, 8]])"@10339..10356
+      NEWLINE: "\n"@10356..10357
+      BLANK_LINE: "\n"@10357..10358
+      TEXT_LINE: "Tensor contraction:"@10358..10377
+      NEWLINE: "\n"@10377..10378
+      BLANK_LINE: "\n"@10378..10379
+      TEXT_LINE: ">>> a = np.arange(60.).reshape(3,4,5)"@10379..10416
+      NEWLINE: "\n"@10416..10417
+      TEXT_LINE: ">>> b = np.arange(24.).reshape(4,3,2)"@10417..10454
+      NEWLINE: "\n"@10454..10455
+      TEXT_LINE: ">>> np.einsum('ijk,jil->kl', a, b)"@10455..10489
+      NEWLINE: "\n"@10489..10490
+      TEXT_LINE: "array([[4400., 4730.],"@10490..10512
+      NEWLINE: "\n"@10512..10513
+      WHITESPACE: "       "@10513..10520
+      TEXT_LINE: "[4532., 4874.],"@10520..10535
+      NEWLINE: "\n"@10535..10536
+      WHITESPACE: "       "@10536..10543
+      TEXT_LINE: "[4664., 5018.],"@10543..10558
+      NEWLINE: "\n"@10558..10559
+      WHITESPACE: "       "@10559..10566
+      TEXT_LINE: "[4796., 5162.],"@10566..10581
+      NEWLINE: "\n"@10581..10582
+      WHITESPACE: "       "@10582..10589
+      TEXT_LINE: "[4928., 5306.]])"@10589..10605
+      NEWLINE: "\n"@10605..10606
+      TEXT_LINE: ">>> np.einsum(a, [0,1,2], b, [1,0,3], [2,3])"@10606..10650
+      NEWLINE: "\n"@10650..10651
+      TEXT_LINE: "array([[4400., 4730.],"@10651..10673
+      NEWLINE: "\n"@10673..10674
+      WHITESPACE: "       "@10674..10681
+      TEXT_LINE: "[4532., 4874.],"@10681..10696
+      NEWLINE: "\n"@10696..10697
+      WHITESPACE: "       "@10697..10704
+      TEXT_LINE: "[4664., 5018.],"@10704..10719
+      NEWLINE: "\n"@10719..10720
+      WHITESPACE: "       "@10720..10727
+      TEXT_LINE: "[4796., 5162.],"@10727..10742
+      NEWLINE: "\n"@10742..10743
+      WHITESPACE: "       "@10743..10750
+      TEXT_LINE: "[4928., 5306.]])"@10750..10766
+      NEWLINE: "\n"@10766..10767
+      TEXT_LINE: ">>> np.tensordot(a,b, axes=([1,0],[0,1]))"@10767..10808
+      NEWLINE: "\n"@10808..10809
+      TEXT_LINE: "array([[4400., 4730.],"@10809..10831
+      NEWLINE: "\n"@10831..10832
+      WHITESPACE: "       "@10832..10839
+      TEXT_LINE: "[4532., 4874.],"@10839..10854
+      NEWLINE: "\n"@10854..10855
+      WHITESPACE: "       "@10855..10862
+      TEXT_LINE: "[4664., 5018.],"@10862..10877
+      NEWLINE: "\n"@10877..10878
+      WHITESPACE: "       "@10878..10885
+      TEXT_LINE: "[4796., 5162.],"@10885..10900
+      NEWLINE: "\n"@10900..10901
+      WHITESPACE: "       "@10901..10908
+      TEXT_LINE: "[4928., 5306.]])"@10908..10924
+      NEWLINE: "\n"@10924..10925
+      BLANK_LINE: "\n"@10925..10926
+      TEXT_LINE: "Writeable returned arrays (since version 1.10.0):"@10926..10975
+      NEWLINE: "\n"@10975..10976
+      BLANK_LINE: "\n"@10976..10977
+      TEXT_LINE: ">>> a = np.zeros((3, 3))"@10977..11001
+      NEWLINE: "\n"@11001..11002
+      TEXT_LINE: ">>> np.einsum('ii->i', a)[:] = 1"@11002..11034
+      NEWLINE: "\n"@11034..11035
+      TEXT_LINE: ">>> a"@11035..11040
+      NEWLINE: "\n"@11040..11041
+      TEXT_LINE: "array([[1., 0., 0.],"@11041..11061
+      NEWLINE: "\n"@11061..11062
+      WHITESPACE: "       "@11062..11069
+      TEXT_LINE: "[0., 1., 0.],"@11069..11082
+      NEWLINE: "\n"@11082..11083
+      WHITESPACE: "       "@11083..11090
+      TEXT_LINE: "[0., 0., 1.]])"@11090..11104
+      NEWLINE: "\n"@11104..11105
+      BLANK_LINE: "\n"@11105..11106
+      TEXT_LINE: "Example of ellipsis use:"@11106..11130
+      NEWLINE: "\n"@11130..11131
+      BLANK_LINE: "\n"@11131..11132
+      TEXT_LINE: ">>> a = np.arange(6).reshape((3,2))"@11132..11167
+      NEWLINE: "\n"@11167..11168
+      TEXT_LINE: ">>> b = np.arange(12).reshape((4,3))"@11168..11204
+      NEWLINE: "\n"@11204..11205
+      TEXT_LINE: ">>> np.einsum('ki,jk->ij', a, b)"@11205..11237
+      NEWLINE: "\n"@11237..11238
+      TEXT_LINE: "array([[10, 28, 46, 64],"@11238..11262
+      NEWLINE: "\n"@11262..11263
+      WHITESPACE: "       "@11263..11270
+      TEXT_LINE: "[13, 40, 67, 94]])"@11270..11288
+      NEWLINE: "\n"@11288..11289
+      TEXT_LINE: ">>> np.einsum('ki,...k->i...', a, b)"@11289..11325
+      NEWLINE: "\n"@11325..11326
+      TEXT_LINE: "array([[10, 28, 46, 64],"@11326..11350
+      NEWLINE: "\n"@11350..11351
+      WHITESPACE: "       "@11351..11358
+      TEXT_LINE: "[13, 40, 67, 94]])"@11358..11376
+      NEWLINE: "\n"@11376..11377
+      TEXT_LINE: ">>> np.einsum('k...,jk', a, b)"@11377..11407
+      NEWLINE: "\n"@11407..11408
+      TEXT_LINE: "array([[10, 28, 46, 64],"@11408..11432
+      NEWLINE: "\n"@11432..11433
+      WHITESPACE: "       "@11433..11440
+      TEXT_LINE: "[13, 40, 67, 94]])"@11440..11458
+      NEWLINE: "\n"@11458..11459
+      BLANK_LINE: "\n"@11459..11460
+      TEXT_LINE: "Chained array operations. For more complicated contractions, speed ups"@11460..11530
+      NEWLINE: "\n"@11530..11531
+      TEXT_LINE: "might be achieved by repeatedly computing a 'greedy' path or pre-computing"@11531..11605
+      NEWLINE: "\n"@11605..11606
+      TEXT_LINE: "the 'optimal' path and repeatedly applying it, using an `einsum_path`"@11606..11675
+      NEWLINE: "\n"@11675..11676
+      TEXT_LINE: "insertion (since version 1.12.0). Performance improvements can be"@11676..11741
+      NEWLINE: "\n"@11741..11742
+      TEXT_LINE: "particularly significant with larger arrays:"@11742..11786
+      NEWLINE: "\n"@11786..11787
+      BLANK_LINE: "\n"@11787..11788
+      TEXT_LINE: ">>> a = np.ones(64).reshape(2,4,8)"@11788..11822
+      NEWLINE: "\n"@11822..11823
+      BLANK_LINE: "\n"@11823..11824
+      TEXT_LINE: "Basic `einsum`: ~1520ms  (benchmarked on 3.1GHz Intel i5.)"@11824..11882
+      NEWLINE: "\n"@11882..11883
+      BLANK_LINE: "\n"@11883..11884
+      TEXT_LINE: ">>> for iteration in range(500):"@11884..11916
+      NEWLINE: "\n"@11916..11917
+      TEXT_LINE: "...     _ = np.einsum('ijk,ilm,njm,nlk,abc->',a,a,a,a,a)"@11917..11973
+      NEWLINE: "\n"@11973..11974
+      BLANK_LINE: "\n"@11974..11975
+      TEXT_LINE: "Sub-optimal `einsum` (due to repeated path calculation time): ~330ms"@11975..12043
+      NEWLINE: "\n"@12043..12044
+      BLANK_LINE: "\n"@12044..12045
+      TEXT_LINE: ">>> for iteration in range(500):"@12045..12077
+      NEWLINE: "\n"@12077..12078
+      TEXT_LINE: "...     _ = np.einsum('ijk,ilm,njm,nlk,abc->',a,a,a,a,a,"@12078..12134
+      NEWLINE: "\n"@12134..12135
+      TEXT_LINE: "...         optimize='optimal')"@12135..12166
+      NEWLINE: "\n"@12166..12167
+      BLANK_LINE: "\n"@12167..12168
+      TEXT_LINE: "Greedy `einsum` (faster optimal path approximation): ~160ms"@12168..12227
+      NEWLINE: "\n"@12227..12228
+      BLANK_LINE: "\n"@12228..12229
+      TEXT_LINE: ">>> for iteration in range(500):"@12229..12261
+      NEWLINE: "\n"@12261..12262
+      TEXT_LINE: "...     _ = np.einsum('ijk,ilm,njm,nlk,abc->',a,a,a,a,a, optimize='greedy')"@12262..12337
+      NEWLINE: "\n"@12337..12338
+      BLANK_LINE: "\n"@12338..12339
+      TEXT_LINE: "Optimal `einsum` (best usage pattern in some use cases): ~110ms"@12339..12402
+      NEWLINE: "\n"@12402..12403
+      BLANK_LINE: "\n"@12403..12404
+      TEXT_LINE: ">>> path = np.einsum_path('ijk,ilm,njm,nlk,abc->',a,a,a,a,a,"@12404..12464
+      NEWLINE: "\n"@12464..12465
+      TEXT_LINE: "...     optimize='optimal')[0]"@12465..12495
+      NEWLINE: "\n"@12495..12496
+      TEXT_LINE: ">>> for iteration in range(500):"@12496..12528
+      NEWLINE: "\n"@12528..12529
+      TEXT_LINE: "...     _ = np.einsum('ijk,ilm,njm,nlk,abc->',a,a,a,a,a, optimize=path)"@12529..12600
+    }
+  }
+}
+=== EMIT ===
+einsum(subscripts, *operands, out=None, dtype=None, order='K',
+       casting='safe', optimize=False)
+
+Evaluates the Einstein summation convention on the operands.
+
+Using the Einstein summation convention, many common multi-dimensional,
+linear algebraic array operations can be represented in a simple fashion.
+In *implicit* mode `einsum` computes these values.
+
+In *explicit* mode, `einsum` provides further flexibility to compute
+other array operations that might not be considered classical Einstein
+summation operations, by disabling, or forcing summation over specified
+subscript labels.
+
+See the notes and examples for clarification.
+
+Parameters
+----------
+subscripts : str
+    Specifies the subscripts for summation as comma separated list of
+    subscript labels. An implicit (classical Einstein summation)
+    calculation is performed unless the explicit indicator '->' is
+    included as well as subscript labels of the precise output form.
+operands : list of array_like
+    These are the arrays for the operation.
+out : ndarray, optional
+    If provided, the calculation is done into this array.
+dtype : {data-type, None}, optional
+    If provided, forces the calculation to use the data type specified.
+    Note that you may have to also give a more liberal `casting`
+    parameter to allow the conversions. Default is None.
+order : {'C', 'F', 'A', 'K'}, optional
+    Controls the memory layout of the output. 'C' means it should
+    be C contiguous. 'F' means it should be Fortran contiguous,
+    'A' means it should be 'F' if the inputs are all 'F', 'C' otherwise.
+    'K' means it should be as close to the layout as the inputs as
+    is possible, including arbitrarily permuted axes.
+    Default is 'K'.
+casting : {'no', 'equiv', 'safe', 'same_kind', 'unsafe'}, optional
+    Controls what kind of data casting may occur.  Setting this to
+    'unsafe' is not recommended, as it can adversely affect accumulations.
+
+    * 'no' means the data types should not be cast at all.
+    * 'equiv' means only byte-order changes are allowed.
+    * 'safe' means only casts which can preserve values are allowed.
+    * 'same_kind' means only safe casts or casts within a kind,
+      like float64 to float32, are allowed.
+    * 'unsafe' means any data conversions may be done.
+
+    Default is 'safe'.
+optimize : {False, True, 'greedy', 'optimal'}, optional
+    Controls if intermediate optimization should occur. No optimization
+    will occur if False and True will default to the 'greedy' algorithm.
+    Also accepts an explicit contraction list from the ``np.einsum_path``
+    function. See ``np.einsum_path`` for more details. Defaults to False.
+
+Returns
+-------
+output : ndarray
+    The calculation based on the Einstein summation convention.
+
+See Also
+--------
+einsum_path, dot, inner, outer, tensordot, linalg.multi_dot
+einsum : Similar verbose interface is provided by the
+`einops <https://github.com/arogozhnikov/einops>`_ package to cover
+additional operations: transpose, reshape/flatten, repeat/tile,
+squeeze/unsqueeze and reductions.
+The `opt_einsum <https://optimized-einsum.readthedocs.io/en/stable/>`_
+optimizes contraction order for einsum-like expressions
+in backend-agnostic manner.
+
+Notes
+-----
+The Einstein summation convention can be used to compute
+many multi-dimensional, linear algebraic array operations. `einsum`
+provides a succinct way of representing these.
+
+A non-exhaustive list of these operations,
+which can be computed by `einsum`, is shown below along with examples:
+
+* Trace of an array, :py:func:`numpy.trace`.
+* Return a diagonal, :py:func:`numpy.diag`.
+* Array axis summations, :py:func:`numpy.sum`.
+* Transpositions and permutations, :py:func:`numpy.transpose`.
+* Matrix multiplication and dot product, :py:func:`numpy.matmul`
+    :py:func:`numpy.dot`.
+* Vector inner and outer products, :py:func:`numpy.inner`
+    :py:func:`numpy.outer`.
+* Broadcasting, element-wise and scalar multiplication,
+    :py:func:`numpy.multiply`.
+* Tensor contractions, :py:func:`numpy.tensordot`.
+* Chained array operations, in efficient calculation order,
+    :py:func:`numpy.einsum_path`.
+
+The subscripts string is a comma-separated list of subscript labels,
+where each label refers to a dimension of the corresponding operand.
+Whenever a label is repeated it is summed, so ``np.einsum('i,i', a, b)``
+is equivalent to :py:func:`np.inner(a,b) <numpy.inner>`. If a label
+appears only once, it is not summed, so ``np.einsum('i', a)``
+produces a view of ``a`` with no changes. A further example
+``np.einsum('ij,jk', a, b)`` describes traditional matrix multiplication
+and is equivalent to :py:func:`np.matmul(a,b) <numpy.matmul>`.
+Repeated subscript labels in one operand take the diagonal.
+For example, ``np.einsum('ii', a)`` is equivalent to
+:py:func:`np.trace(a) <numpy.trace>`.
+
+In *implicit mode*, the chosen subscripts are important
+since the axes of the output are reordered alphabetically.  This
+means that ``np.einsum('ij', a)`` doesn't affect a 2D array, while
+``np.einsum('ji', a)`` takes its transpose. Additionally,
+``np.einsum('ij,jk', a, b)`` returns a matrix multiplication, while,
+``np.einsum('ij,jh', a, b)`` returns the transpose of the
+multiplication since subscript 'h' precedes subscript 'i'.
+
+In *explicit mode* the output can be directly controlled by
+specifying output subscript labels.  This requires the
+identifier '->' as well as the list of output subscript labels.
+This feature increases the flexibility of the function since
+summing can be disabled or forced when required. The call
+``np.einsum('i->', a)`` is like :py:func:`np.sum(a) <numpy.sum>`
+if ``a`` is a 1-D array, and ``np.einsum('ii->i', a)``
+is like :py:func:`np.diag(a) <numpy.diag>` if ``a`` is a square 2-D array.
+The difference is that `einsum` does not allow broadcasting by default.
+Additionally ``np.einsum('ij,jh->ih', a, b)`` directly specifies the
+order of the output subscript labels and therefore returns matrix
+multiplication, unlike the example above in implicit mode.
+
+To enable and control broadcasting, use an ellipsis.  Default
+NumPy-style broadcasting is done by adding an ellipsis
+to the left of each term, like ``np.einsum('...ii->...i', a)``.
+``np.einsum('...i->...', a)`` is like
+:py:func:`np.sum(a, axis=-1) <numpy.sum>` for array ``a`` of any shape.
+To take the trace along the first and last axes,
+you can do ``np.einsum('i...i', a)``, or to do a matrix-matrix
+product with the left-most indices instead of rightmost, one can do
+``np.einsum('ij...,jk...->ik...', a, b)``.
+
+When there is only one operand, no axes are summed, and no output
+parameter is provided, a view into the operand is returned instead
+of a new array.  Thus, taking the diagonal as ``np.einsum('ii->i', a)``
+produces a view (changed in version 1.10.0).
+
+`einsum` also provides an alternative way to provide the subscripts and
+operands as ``einsum(op0, sublist0, op1, sublist1, ..., [sublistout])``.
+If the output shape is not provided in this format `einsum` will be
+calculated in implicit mode, otherwise it will be performed explicitly.
+The examples below have corresponding `einsum` calls with the two
+parameter methods.
+
+Views returned from einsum are now writeable whenever the input array
+is writeable. For example, ``np.einsum('ijk...->kji...', a)`` will now
+have the same effect as :py:func:`np.swapaxes(a, 0, 2) <numpy.swapaxes>`
+and ``np.einsum('ii->i', a)`` will return a writeable view of the diagonal
+of a 2D array.
+
+Added the ``optimize`` argument which will optimize the contraction order
+of an einsum expression. For a contraction with three or more operands
+this can greatly increase the computational efficiency at the cost of
+a larger memory footprint during computation.
+
+Typically a 'greedy' algorithm is applied which empirical tests have shown
+returns the optimal path in the majority of cases. In some cases 'optimal'
+will return the superlative path through a more expensive, exhaustive
+search. For iterative calculations it may be advisable to calculate
+the optimal path once and reuse that path by supplying it as an argument.
+An example is given below.
+
+See :py:func:`numpy.einsum_path` for more details.
+
+Examples
+--------
+>>> a = np.arange(25).reshape(5,5)
+>>> b = np.arange(5)
+>>> c = np.arange(6).reshape(2,3)
+
+Trace of a matrix:
+
+>>> np.einsum('ii', a)
+60
+>>> np.einsum(a, [0,0])
+60
+>>> np.trace(a)
+60
+
+Extract the diagonal (requires explicit form):
+
+>>> np.einsum('ii->i', a)
+array([ 0,  6, 12, 18, 24])
+>>> np.einsum(a, [0,0], [0])
+array([ 0,  6, 12, 18, 24])
+>>> np.diag(a)
+array([ 0,  6, 12, 18, 24])
+
+Sum over an axis (requires explicit form):
+
+>>> np.einsum('ij->i', a)
+array([ 10,  35,  60,  85, 110])
+>>> np.einsum(a, [0,1], [0])
+array([ 10,  35,  60,  85, 110])
+>>> np.sum(a, axis=1)
+array([ 10,  35,  60,  85, 110])
+
+For higher dimensional arrays summing a single axis can be done
+with ellipsis:
+
+>>> np.einsum('...j->...', a)
+array([ 10,  35,  60,  85, 110])
+>>> np.einsum(a, [Ellipsis,1], [Ellipsis])
+array([ 10,  35,  60,  85, 110])
+
+Compute a matrix transpose, or reorder any number of axes:
+
+>>> np.einsum('ji', c)
+array([[0, 3],
+       [1, 4],
+       [2, 5]])
+>>> np.einsum('ij->ji', c)
+array([[0, 3],
+       [1, 4],
+       [2, 5]])
+>>> np.einsum(c, [1,0])
+array([[0, 3],
+       [1, 4],
+       [2, 5]])
+>>> np.transpose(c)
+array([[0, 3],
+       [1, 4],
+       [2, 5]])
+
+Vector inner products:
+
+>>> np.einsum('i,i', b, b)
+30
+>>> np.einsum(b, [0], b, [0])
+30
+>>> np.inner(b,b)
+30
+
+Matrix vector multiplication:
+
+>>> np.einsum('ij,j', a, b)
+array([ 30,  80, 130, 180, 230])
+>>> np.einsum(a, [0,1], b, [1])
+array([ 30,  80, 130, 180, 230])
+>>> np.dot(a, b)
+array([ 30,  80, 130, 180, 230])
+>>> np.einsum('...j,j', a, b)
+array([ 30,  80, 130, 180, 230])
+
+Broadcasting and scalar multiplication:
+
+>>> np.einsum('..., ...', 3, c)
+array([[ 0,  3,  6],
+       [ 9, 12, 15]])
+>>> np.einsum(',ij', 3, c)
+array([[ 0,  3,  6],
+       [ 9, 12, 15]])
+>>> np.einsum(3, [Ellipsis], c, [Ellipsis])
+array([[ 0,  3,  6],
+       [ 9, 12, 15]])
+>>> np.multiply(3, c)
+array([[ 0,  3,  6],
+       [ 9, 12, 15]])
+
+Vector outer product:
+
+>>> np.einsum('i,j', np.arange(2)+1, b)
+array([[0, 1, 2, 3, 4],
+       [0, 2, 4, 6, 8]])
+>>> np.einsum(np.arange(2)+1, [0], b, [1])
+array([[0, 1, 2, 3, 4],
+       [0, 2, 4, 6, 8]])
+>>> np.outer(np.arange(2)+1, b)
+array([[0, 1, 2, 3, 4],
+       [0, 2, 4, 6, 8]])
+
+Tensor contraction:
+
+>>> a = np.arange(60.).reshape(3,4,5)
+>>> b = np.arange(24.).reshape(4,3,2)
+>>> np.einsum('ijk,jil->kl', a, b)
+array([[4400., 4730.],
+       [4532., 4874.],
+       [4664., 5018.],
+       [4796., 5162.],
+       [4928., 5306.]])
+>>> np.einsum(a, [0,1,2], b, [1,0,3], [2,3])
+array([[4400., 4730.],
+       [4532., 4874.],
+       [4664., 5018.],
+       [4796., 5162.],
+       [4928., 5306.]])
+>>> np.tensordot(a,b, axes=([1,0],[0,1]))
+array([[4400., 4730.],
+       [4532., 4874.],
+       [4664., 5018.],
+       [4796., 5162.],
+       [4928., 5306.]])
+
+Writeable returned arrays (since version 1.10.0):
+
+>>> a = np.zeros((3, 3))
+>>> np.einsum('ii->i', a)[:] = 1
+>>> a
+array([[1., 0., 0.],
+       [0., 1., 0.],
+       [0., 0., 1.]])
+
+Example of ellipsis use:
+
+>>> a = np.arange(6).reshape((3,2))
+>>> b = np.arange(12).reshape((4,3))
+>>> np.einsum('ki,jk->ij', a, b)
+array([[10, 28, 46, 64],
+       [13, 40, 67, 94]])
+>>> np.einsum('ki,...k->i...', a, b)
+array([[10, 28, 46, 64],
+       [13, 40, 67, 94]])
+>>> np.einsum('k...,jk', a, b)
+array([[10, 28, 46, 64],
+       [13, 40, 67, 94]])
+
+Chained array operations. For more complicated contractions, speed ups
+might be achieved by repeatedly computing a 'greedy' path or pre-computing
+the 'optimal' path and repeatedly applying it, using an `einsum_path`
+insertion (since version 1.12.0). Performance improvements can be
+particularly significant with larger arrays:
+
+>>> a = np.ones(64).reshape(2,4,8)
+
+Basic `einsum`: ~1520ms  (benchmarked on 3.1GHz Intel i5.)
+
+>>> for iteration in range(500):
+...     _ = np.einsum('ijk,ilm,njm,nlk,abc->',a,a,a,a,a)
+
+Sub-optimal `einsum` (due to repeated path calculation time): ~330ms
+
+>>> for iteration in range(500):
+...     _ = np.einsum('ijk,ilm,njm,nlk,abc->',a,a,a,a,a,
+...         optimize='optimal')
+
+Greedy `einsum` (faster optimal path approximation): ~160ms
+
+>>> for iteration in range(500):
+...     _ = np.einsum('ijk,ilm,njm,nlk,abc->',a,a,a,a,a, optimize='greedy')
+
+Optimal `einsum` (best usage pattern in some use cases): ~110ms
+
+>>> path = np.einsum_path('ijk,ilm,njm,nlk,abc->',a,a,a,a,a,
+...     optimize='optimal')[0]
+>>> for iteration in range(500):
+...     _ = np.einsum('ijk,ilm,njm,nlk,abc->',a,a,a,a,a, optimize=path)

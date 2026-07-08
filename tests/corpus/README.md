@@ -13,9 +13,9 @@ module split of the assertion test suite (`tests/google/args.rs` ↔
 
 ```
 google/  args/  edge_cases/  freetext/  raises/  returns/
-         sections/  structured/  summary/
+         sections/  structured/  summary/  realworld/
 numpy/   parameters/  edge_cases/  freetext/  raises/  returns/
-         sections/  structured/  summary/  regressions/
+         sections/  structured/  summary/  regressions/  realworld/
 plain/   (flat — only a handful of inputs)
 ```
 
@@ -26,6 +26,15 @@ plain/   (flat — only a handful of inputs)
 - `regressions/` — issue reproducers, named `issue<NN>_<slug>.txt`
   (e.g. `issue26_rst_roles.txt`). Keep the input exactly as reported.
   Create the directory per style when the first reproducer arrives.
+- `realworld/` — production docstrings extracted verbatim from published
+  packages via `inspect.getdoc` (which dedents, matching corpus
+  expectations), named `<pkg>_<qualname>.txt`. Do not edit these inputs;
+  they pin parser behavior on real-world shapes, not hand-minimized ones.
+  - `numpy/realworld/` — NumPy 2.5.1 and SciPy 1.18.0 (both BSD-3-Clause;
+    docstring text is included verbatim for testing purposes only, and
+    remains © the NumPy/SciPy developers under their licenses).
+  - `google/realworld/` — absl-py 2.5.0 (Apache-2.0) and Python Fire 0.7.1
+    (Apache-2.0); same verbatim-for-testing terms.
 
 ## Workflow
 

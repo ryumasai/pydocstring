@@ -1,0 +1,304 @@
+=== CST ===
+DOCUMENT@0..2131 {
+  SUMMARY@0..36 {
+    TEXT_LINE: "Clip (limit) the values in an array."@0..36
+  }
+  NEWLINE: "\n"@36..37
+  BLANK_LINE: "\n"@37..38
+  EXTENDED_SUMMARY@38..371 {
+    TEXT_LINE: "Given an interval, values outside the interval are clipped to"@38..99
+    NEWLINE: "\n"@99..100
+    TEXT_LINE: "the interval edges.  For example, if an interval of ``[0, 1]``"@100..162
+    NEWLINE: "\n"@162..163
+    TEXT_LINE: "is specified, values smaller than 0 become 0, and values larger"@163..226
+    NEWLINE: "\n"@226..227
+    TEXT_LINE: "than 1 become 1."@227..243
+    NEWLINE: "\n"@243..244
+    BLANK_LINE: "\n"@244..245
+    TEXT_LINE: "Equivalent to but faster than ``np.minimum(a_max, np.maximum(a, a_min))``."@245..319
+    NEWLINE: "\n"@319..320
+    BLANK_LINE: "\n"@320..321
+    TEXT_LINE: "No check is performed to ensure ``a_min < a_max``."@321..371
+  }
+  NEWLINE: "\n"@371..372
+  BLANK_LINE: "\n"@372..373
+  SECTION@373..1271 {
+    SECTION_HEADER@373..394 {
+      NAME: "Parameters"@373..383
+      NEWLINE: "\n"@383..384
+      UNDERLINE: "----------"@384..394
+    }
+    NEWLINE: "\n"@394..395
+    ENTRY@395..448 {
+      NAME: "a"@395..396
+      WHITESPACE: " "@396..397
+      COLON: ":"@397..398
+      WHITESPACE: " "@398..399
+      TYPE: "array_like"@399..409
+      NEWLINE: "\n"@409..410
+      WHITESPACE: "    "@410..414
+      DESCRIPTION@414..448 {
+        TEXT_LINE: "Array containing elements to clip."@414..448
+      }
+    }
+    NEWLINE: "\n"@448..449
+    ENTRY@449..723 {
+      NAME: "a_min"@449..454
+      COMMA: ","@454..455
+      WHITESPACE: " "@455..456
+      NAME: "a_max"@456..461
+      WHITESPACE: " "@461..462
+      COLON: ":"@462..463
+      WHITESPACE: " "@463..464
+      TYPE: "array_like or None"@464..482
+      NEWLINE: "\n"@482..483
+      WHITESPACE: "    "@483..487
+      DESCRIPTION@487..723 {
+        TEXT_LINE: "Minimum and maximum value. If ``None``, clipping is not performed on"@487..555
+        NEWLINE: "\n"@555..556
+        WHITESPACE: "    "@556..560
+        TEXT_LINE: "the corresponding edge. If both ``a_min`` and ``a_max`` are ``None``,"@560..629
+        NEWLINE: "\n"@629..630
+        WHITESPACE: "    "@630..634
+        TEXT_LINE: "the elements of the returned array stay the same. Both are broadcasted"@634..704
+        NEWLINE: "\n"@704..705
+        WHITESPACE: "    "@705..709
+        TEXT_LINE: "against ``a``."@709..723
+      }
+    }
+    NEWLINE: "\n"@723..724
+    ENTRY@724..928 {
+      NAME: "out"@724..727
+      WHITESPACE: " "@727..728
+      COLON: ":"@728..729
+      WHITESPACE: " "@729..730
+      TYPE: "ndarray"@730..737
+      COMMA: ","@737..738
+      WHITESPACE: " "@738..739
+      OPTIONAL: "optional"@739..747
+      NEWLINE: "\n"@747..748
+      WHITESPACE: "    "@748..752
+      DESCRIPTION@752..928 {
+        TEXT_LINE: "The results will be placed in this array. It may be the input"@752..813
+        NEWLINE: "\n"@813..814
+        WHITESPACE: "    "@814..818
+        TEXT_LINE: "array for in-place clipping.  `out` must be of the right shape"@818..880
+        NEWLINE: "\n"@880..881
+        WHITESPACE: "    "@881..885
+        TEXT_LINE: "to hold the output.  Its type is preserved."@885..928
+      }
+    }
+    NEWLINE: "\n"@928..929
+    ENTRY@929..1177 {
+      NAME: "min"@929..932
+      COMMA: ","@932..933
+      WHITESPACE: " "@933..934
+      NAME: "max"@934..937
+      WHITESPACE: " "@937..938
+      COLON: ":"@938..939
+      WHITESPACE: " "@939..940
+      TYPE: "array_like or None"@940..958
+      NEWLINE: "\n"@958..959
+      WHITESPACE: "    "@959..963
+      DESCRIPTION@963..1177 {
+        TEXT_LINE: "Array API compatible alternatives for ``a_min`` and ``a_max``"@963..1024
+        NEWLINE: "\n"@1024..1025
+        WHITESPACE: "    "@1025..1029
+        TEXT_LINE: "arguments. Either ``a_min`` and ``a_max`` or ``min`` and ``max``"@1029..1093
+        NEWLINE: "\n"@1093..1094
+        WHITESPACE: "    "@1094..1098
+        TEXT_LINE: "can be passed at the same time. Default: ``None``."@1098..1148
+        NEWLINE: "\n"@1148..1149
+        BLANK_LINE: "\n"@1149..1150
+        WHITESPACE: "    "@1150..1154
+        TEXT_LINE: ".. versionadded:: 2.1.0"@1154..1177
+      }
+    }
+    NEWLINE: "\n"@1177..1178
+    ENTRY@1178..1271 {
+      NAME: "**kwargs"@1178..1186
+      NEWLINE: "\n"@1186..1187
+      WHITESPACE: "    "@1187..1191
+      DESCRIPTION@1191..1271 {
+        TEXT_LINE: "For other keyword-only arguments, see the"@1191..1232
+        NEWLINE: "\n"@1232..1233
+        WHITESPACE: "    "@1233..1237
+        TEXT_LINE: ":ref:`ufunc docs <ufuncs.kwargs>`."@1237..1271
+      }
+    }
+  }
+  NEWLINE: "\n"@1271..1272
+  BLANK_LINE: "\n"@1272..1273
+  SECTION@1273..1447 {
+    SECTION_HEADER@1273..1288 {
+      NAME: "Returns"@1273..1280
+      NEWLINE: "\n"@1280..1281
+      UNDERLINE: "-------"@1281..1288
+    }
+    NEWLINE: "\n"@1288..1289
+    ENTRY@1289..1447 {
+      NAME: "clipped_array"@1289..1302
+      WHITESPACE: " "@1302..1303
+      COLON: ":"@1303..1304
+      WHITESPACE: " "@1304..1305
+      TYPE: "ndarray"@1305..1312
+      NEWLINE: "\n"@1312..1313
+      WHITESPACE: "    "@1313..1317
+      DESCRIPTION@1317..1447 {
+        TEXT_LINE: "An array with the elements of `a`, but where values"@1317..1368
+        NEWLINE: "\n"@1368..1369
+        WHITESPACE: "    "@1369..1373
+        TEXT_LINE: "< `a_min` are replaced with `a_min`, and those > `a_max`"@1373..1429
+        NEWLINE: "\n"@1429..1430
+        WHITESPACE: "    "@1430..1434
+        TEXT_LINE: "with `a_max`."@1434..1447
+      }
+    }
+  }
+  NEWLINE: "\n"@1447..1448
+  BLANK_LINE: "\n"@1448..1449
+  SECTION@1449..1492 {
+    SECTION_HEADER@1449..1466 {
+      NAME: "See Also"@1449..1457
+      NEWLINE: "\n"@1457..1458
+      UNDERLINE: "--------"@1458..1466
+    }
+    NEWLINE: "\n"@1466..1467
+    ENTRY@1467..1492 {
+      NAME: ":ref:`ufuncs-output-type`"@1467..1492
+    }
+  }
+  NEWLINE: "\n"@1492..1493
+  BLANK_LINE: "\n"@1493..1494
+  SECTION@1494..1641 {
+    SECTION_HEADER@1494..1505 {
+      NAME: "Notes"@1494..1499
+      NEWLINE: "\n"@1499..1500
+      UNDERLINE: "-----"@1500..1505
+    }
+    NEWLINE: "\n"@1505..1506
+    DESCRIPTION@1506..1641 {
+      TEXT_LINE: "When `a_min` is greater than `a_max`, `clip` returns an"@1506..1561
+      NEWLINE: "\n"@1561..1562
+      TEXT_LINE: "array in which all values are equal to `a_max`,"@1562..1609
+      NEWLINE: "\n"@1609..1610
+      TEXT_LINE: "as shown in the second example."@1610..1641
+    }
+  }
+  NEWLINE: "\n"@1641..1642
+  BLANK_LINE: "\n"@1642..1643
+  SECTION@1643..2131 {
+    SECTION_HEADER@1643..1660 {
+      NAME: "Examples"@1643..1651
+      NEWLINE: "\n"@1651..1652
+      UNDERLINE: "--------"@1652..1660
+    }
+    NEWLINE: "\n"@1660..1661
+    DESCRIPTION@1661..2131 {
+      TEXT_LINE: ">>> import numpy as np"@1661..1683
+      NEWLINE: "\n"@1683..1684
+      TEXT_LINE: ">>> a = np.arange(10)"@1684..1705
+      NEWLINE: "\n"@1705..1706
+      TEXT_LINE: ">>> a"@1706..1711
+      NEWLINE: "\n"@1711..1712
+      TEXT_LINE: "array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])"@1712..1749
+      NEWLINE: "\n"@1749..1750
+      TEXT_LINE: ">>> np.clip(a, 1, 8)"@1750..1770
+      NEWLINE: "\n"@1770..1771
+      TEXT_LINE: "array([1, 1, 2, 3, 4, 5, 6, 7, 8, 8])"@1771..1808
+      NEWLINE: "\n"@1808..1809
+      TEXT_LINE: ">>> np.clip(a, 8, 1)"@1809..1829
+      NEWLINE: "\n"@1829..1830
+      TEXT_LINE: "array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])"@1830..1867
+      NEWLINE: "\n"@1867..1868
+      TEXT_LINE: ">>> np.clip(a, 3, 6, out=a)"@1868..1895
+      NEWLINE: "\n"@1895..1896
+      TEXT_LINE: "array([3, 3, 3, 3, 4, 5, 6, 6, 6, 6])"@1896..1933
+      NEWLINE: "\n"@1933..1934
+      TEXT_LINE: ">>> a"@1934..1939
+      NEWLINE: "\n"@1939..1940
+      TEXT_LINE: "array([3, 3, 3, 3, 4, 5, 6, 6, 6, 6])"@1940..1977
+      NEWLINE: "\n"@1977..1978
+      TEXT_LINE: ">>> a = np.arange(10)"@1978..1999
+      NEWLINE: "\n"@1999..2000
+      TEXT_LINE: ">>> a"@2000..2005
+      NEWLINE: "\n"@2005..2006
+      TEXT_LINE: "array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])"@2006..2043
+      NEWLINE: "\n"@2043..2044
+      TEXT_LINE: ">>> np.clip(a, [3, 4, 1, 1, 1, 4, 4, 4, 4, 4], 8)"@2044..2093
+      NEWLINE: "\n"@2093..2094
+      TEXT_LINE: "array([3, 4, 2, 3, 4, 5, 6, 7, 8, 8])"@2094..2131
+    }
+  }
+}
+=== EMIT ===
+Clip (limit) the values in an array.
+
+Given an interval, values outside the interval are clipped to
+the interval edges.  For example, if an interval of ``[0, 1]``
+is specified, values smaller than 0 become 0, and values larger
+than 1 become 1.
+
+Equivalent to but faster than ``np.minimum(a_max, np.maximum(a, a_min))``.
+
+No check is performed to ensure ``a_min < a_max``.
+
+Parameters
+----------
+a : array_like
+    Array containing elements to clip.
+a_min, a_max : array_like or None
+    Minimum and maximum value. If ``None``, clipping is not performed on
+    the corresponding edge. If both ``a_min`` and ``a_max`` are ``None``,
+    the elements of the returned array stay the same. Both are broadcasted
+    against ``a``.
+out : ndarray, optional
+    The results will be placed in this array. It may be the input
+    array for in-place clipping.  `out` must be of the right shape
+    to hold the output.  Its type is preserved.
+min, max : array_like or None
+    Array API compatible alternatives for ``a_min`` and ``a_max``
+    arguments. Either ``a_min`` and ``a_max`` or ``min`` and ``max``
+    can be passed at the same time. Default: ``None``.
+
+    .. versionadded:: 2.1.0
+**kwargs
+    For other keyword-only arguments, see the
+    :ref:`ufunc docs <ufuncs.kwargs>`.
+
+Returns
+-------
+clipped_array : ndarray
+    An array with the elements of `a`, but where values
+    < `a_min` are replaced with `a_min`, and those > `a_max`
+    with `a_max`.
+
+See Also
+--------
+:ref:`ufuncs-output-type`
+
+Notes
+-----
+When `a_min` is greater than `a_max`, `clip` returns an
+array in which all values are equal to `a_max`,
+as shown in the second example.
+
+Examples
+--------
+>>> import numpy as np
+>>> a = np.arange(10)
+>>> a
+array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+>>> np.clip(a, 1, 8)
+array([1, 1, 2, 3, 4, 5, 6, 7, 8, 8])
+>>> np.clip(a, 8, 1)
+array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+>>> np.clip(a, 3, 6, out=a)
+array([3, 3, 3, 3, 4, 5, 6, 6, 6, 6])
+>>> a
+array([3, 3, 3, 3, 4, 5, 6, 6, 6, 6])
+>>> a = np.arange(10)
+>>> a
+array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+>>> np.clip(a, [3, 4, 1, 1, 1, 4, 4, 4, 4, 4], 8)
+array([3, 4, 2, 3, 4, 5, 6, 7, 8, 8])

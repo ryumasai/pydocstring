@@ -1,0 +1,98 @@
+=== CST ===
+DOCUMENT@0..540 {
+  SUMMARY@0..56 {
+    TEXT_LINE: "Logs ``msg % args`` at level 'level' once per 'n' times."@0..56
+  }
+  NEWLINE: "\n"@56..57
+  BLANK_LINE: "\n"@57..58
+  EXTENDED_SUMMARY@58..127 {
+    TEXT_LINE: "Logs the 1st call, (N+1)st call, (2N+1)st call,  etc."@58..111
+    NEWLINE: "\n"@111..112
+    TEXT_LINE: "Not threadsafe."@112..127
+  }
+  NEWLINE: "\n"@127..128
+  BLANK_LINE: "\n"@128..129
+  SECTION@129..540 {
+    SECTION_HEADER@129..134 {
+      NAME: "Args"@129..133
+      COLON: ":"@133..134
+    }
+    NEWLINE: "\n"@134..135
+    WHITESPACE: "  "@135..137
+    ENTRY@137..188 {
+      NAME: "level"@137..142
+      COLON: ":"@142..143
+      WHITESPACE: " "@143..144
+      DESCRIPTION@144..188 {
+        TEXT_LINE: "int, the absl logging level at which to log."@144..188
+      }
+    }
+    NEWLINE: "\n"@188..189
+    WHITESPACE: "  "@189..191
+    ENTRY@191..226 {
+      NAME: "msg"@191..194
+      COLON: ":"@194..195
+      WHITESPACE: " "@195..196
+      DESCRIPTION@196..226 {
+        TEXT_LINE: "str, the message to be logged."@196..226
+      }
+    }
+    NEWLINE: "\n"@226..227
+    WHITESPACE: "  "@227..229
+    ENTRY@229..299 {
+      NAME: "n"@229..230
+      COLON: ":"@230..231
+      WHITESPACE: " "@231..232
+      DESCRIPTION@232..299 {
+        TEXT_LINE: "int, the number of times this should be called before it is logged."@232..299
+      }
+    }
+    NEWLINE: "\n"@299..300
+    WHITESPACE: "  "@300..302
+    ENTRY@302..349 {
+      NAME: "*args"@302..307
+      COLON: ":"@307..308
+      WHITESPACE: " "@308..309
+      DESCRIPTION@309..349 {
+        TEXT_LINE: "The args to be substituted into the msg."@309..349
+      }
+    }
+    NEWLINE: "\n"@349..350
+    WHITESPACE: "  "@350..352
+    ENTRY@352..468 {
+      NAME: "use_call_stack"@352..366
+      COLON: ":"@366..367
+      WHITESPACE: " "@367..368
+      DESCRIPTION@368..468 {
+        TEXT_LINE: "bool, whether to include the call stack when counting the"@368..425
+        NEWLINE: "\n"@425..426
+        WHITESPACE: "    "@426..430
+        TEXT_LINE: "number of times the message is logged."@430..468
+      }
+    }
+    NEWLINE: "\n"@468..469
+    WHITESPACE: "  "@469..471
+    ENTRY@471..540 {
+      NAME: "**kwargs"@471..479
+      COLON: ":"@479..480
+      WHITESPACE: " "@480..481
+      DESCRIPTION@481..540 {
+        TEXT_LINE: "May contain exc_info to add exception traceback to message."@481..540
+      }
+    }
+  }
+}
+=== EMIT ===
+Logs ``msg % args`` at level 'level' once per 'n' times.
+
+Logs the 1st call, (N+1)st call, (2N+1)st call,  etc.
+Not threadsafe.
+
+Args:
+    level: int, the absl logging level at which to log.
+    msg: str, the message to be logged.
+    n: int, the number of times this should be called before it is logged.
+    *args: The args to be substituted into the msg.
+    use_call_stack: bool, whether to include the call stack when counting the
+        number of times the message is logged.
+    **kwargs: May contain exc_info to add exception traceback to message.

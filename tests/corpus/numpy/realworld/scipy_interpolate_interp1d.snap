@@ -1,0 +1,503 @@
+=== CST ===
+DOCUMENT@0..4369 {
+  SUMMARY@0..36 {
+    TEXT_LINE: "Interpolate a 1-D function (legacy)."@0..36
+  }
+  NEWLINE: "\n"@36..37
+  BLANK_LINE: "\n"@37..38
+  EXTENDED_SUMMARY@38..348 {
+    TEXT_LINE: ".. legacy:: class"@38..55
+    NEWLINE: "\n"@55..56
+    BLANK_LINE: "\n"@56..57
+    WHITESPACE: "    "@57..61
+    TEXT_LINE: "For a guide to the intended replacements for `interp1d` see"@61..120
+    NEWLINE: "\n"@120..121
+    WHITESPACE: "    "@121..125
+    TEXT_LINE: ":ref:`tutorial-interpolate_1Dsection`."@125..163
+    NEWLINE: "\n"@163..164
+    BLANK_LINE: "\n"@164..165
+    TEXT_LINE: "`x` and `y` are arrays of values used to approximate some function f:"@165..234
+    NEWLINE: "\n"@234..235
+    TEXT_LINE: "``y = f(x)``. This class returns a function whose call method uses"@235..301
+    NEWLINE: "\n"@301..302
+    TEXT_LINE: "interpolation to find the value of new points."@302..348
+  }
+  NEWLINE: "\n"@348..349
+  BLANK_LINE: "\n"@349..350
+  SECTION@350..3181 {
+    SECTION_HEADER@350..371 {
+      NAME: "Parameters"@350..360
+      NEWLINE: "\n"@360..361
+      UNDERLINE: "----------"@361..371
+    }
+    NEWLINE: "\n"@371..372
+    ENTRY@372..430 {
+      NAME: "x"@372..373
+      WHITESPACE: " "@373..374
+      COLON: ":"@374..375
+      WHITESPACE: " "@375..376
+      TYPE: "(npoints, ) array_like"@376..398
+      NEWLINE: "\n"@398..399
+      WHITESPACE: "    "@399..403
+      DESCRIPTION@403..430 {
+        TEXT_LINE: "A 1-D array of real values."@403..430
+      }
+    }
+    NEWLINE: "\n"@430..431
+    ENTRY@431..728 {
+      NAME: "y"@431..432
+      WHITESPACE: " "@432..433
+      COLON: ":"@433..434
+      WHITESPACE: " "@434..435
+      TYPE: "(..., npoints, ...) array_like"@435..465
+      NEWLINE: "\n"@465..466
+      WHITESPACE: "    "@466..470
+      DESCRIPTION@470..728 {
+        TEXT_LINE: "An N-D array of real values. The length of `y` along the interpolation"@470..540
+        NEWLINE: "\n"@540..541
+        WHITESPACE: "    "@541..545
+        TEXT_LINE: "axis must be equal to the length of `x`. Use the ``axis`` parameter"@545..612
+        NEWLINE: "\n"@612..613
+        WHITESPACE: "    "@613..617
+        TEXT_LINE: "to select correct axis. Unlike other interpolators, the default"@617..680
+        NEWLINE: "\n"@680..681
+        WHITESPACE: "    "@681..685
+        TEXT_LINE: "interpolation axis is the last axis of `y`."@685..728
+      }
+    }
+    NEWLINE: "\n"@728..729
+    ENTRY@729..1399 {
+      NAME: "kind"@729..733
+      WHITESPACE: " "@733..734
+      COLON: ":"@734..735
+      WHITESPACE: " "@735..736
+      TYPE: "str or int"@736..746
+      COMMA: ","@746..747
+      WHITESPACE: " "@747..748
+      OPTIONAL: "optional"@748..756
+      NEWLINE: "\n"@756..757
+      WHITESPACE: "    "@757..761
+      DESCRIPTION@761..1399 {
+        TEXT_LINE: "Specifies the kind of interpolation as a string or as an integer"@761..825
+        NEWLINE: "\n"@825..826
+        WHITESPACE: "    "@826..830
+        TEXT_LINE: "specifying the order of the spline interpolator to use."@830..885
+        NEWLINE: "\n"@885..886
+        WHITESPACE: "    "@886..890
+        TEXT_LINE: "The string has to be one of 'linear', 'nearest', 'nearest-up', 'zero',"@890..960
+        NEWLINE: "\n"@960..961
+        WHITESPACE: "    "@961..965
+        TEXT_LINE: "'slinear', 'quadratic', 'cubic', 'previous', or 'next'. 'zero',"@965..1028
+        NEWLINE: "\n"@1028..1029
+        WHITESPACE: "    "@1029..1033
+        TEXT_LINE: "'slinear', 'quadratic' and 'cubic' refer to a spline interpolation of"@1033..1102
+        NEWLINE: "\n"@1102..1103
+        WHITESPACE: "    "@1103..1107
+        TEXT_LINE: "zeroth, first, second or third order; 'previous' and 'next' simply"@1107..1173
+        NEWLINE: "\n"@1173..1174
+        WHITESPACE: "    "@1174..1178
+        TEXT_LINE: "return the previous or next value of the point; 'nearest-up' and"@1178..1242
+        NEWLINE: "\n"@1242..1243
+        WHITESPACE: "    "@1243..1247
+        TEXT_LINE: "'nearest' differ when interpolating half-integers (e.g. 0.5, 1.5)"@1247..1312
+        NEWLINE: "\n"@1312..1313
+        WHITESPACE: "    "@1313..1317
+        TEXT_LINE: "in that 'nearest-up' rounds up and 'nearest' rounds down. Default"@1317..1382
+        NEWLINE: "\n"@1382..1383
+        WHITESPACE: "    "@1383..1387
+        TEXT_LINE: "is 'linear'."@1387..1399
+      }
+    }
+    NEWLINE: "\n"@1399..1400
+    ENTRY@1400..1547 {
+      NAME: "axis"@1400..1404
+      WHITESPACE: " "@1404..1405
+      COLON: ":"@1405..1406
+      WHITESPACE: " "@1406..1407
+      TYPE: "int"@1407..1410
+      COMMA: ","@1410..1411
+      WHITESPACE: " "@1411..1412
+      OPTIONAL: "optional"@1412..1420
+      NEWLINE: "\n"@1420..1421
+      WHITESPACE: "    "@1421..1425
+      DESCRIPTION@1425..1547 {
+        TEXT_LINE: "Axis in the ``y`` array corresponding to the x-coordinate values. Unlike"@1425..1497
+        NEWLINE: "\n"@1497..1498
+        WHITESPACE: "    "@1498..1502
+        TEXT_LINE: "other interpolators, defaults to ``axis=-1``."@1502..1547
+      }
+    }
+    NEWLINE: "\n"@1547..1548
+    ENTRY@1548..1724 {
+      NAME: "copy"@1548..1552
+      WHITESPACE: " "@1552..1553
+      COLON: ":"@1553..1554
+      WHITESPACE: " "@1554..1555
+      TYPE: "bool"@1555..1559
+      COMMA: ","@1559..1560
+      WHITESPACE: " "@1560..1561
+      OPTIONAL: "optional"@1561..1569
+      NEWLINE: "\n"@1569..1570
+      WHITESPACE: "    "@1570..1574
+      DESCRIPTION@1574..1724 {
+        TEXT_LINE: "If ``True``, the class makes internal copies of x and y. If ``False``,"@1574..1644
+        NEWLINE: "\n"@1644..1645
+        WHITESPACE: "    "@1645..1649
+        TEXT_LINE: "references to ``x`` and ``y`` are used if possible. The default is to copy."@1649..1724
+      }
+    }
+    NEWLINE: "\n"@1724..1725
+    ENTRY@1725..2037 {
+      NAME: "bounds_error"@1725..1737
+      WHITESPACE: " "@1737..1738
+      COLON: ":"@1738..1739
+      WHITESPACE: " "@1739..1740
+      TYPE: "bool"@1740..1744
+      COMMA: ","@1744..1745
+      WHITESPACE: " "@1745..1746
+      OPTIONAL: "optional"@1746..1754
+      NEWLINE: "\n"@1754..1755
+      WHITESPACE: "    "@1755..1759
+      DESCRIPTION@1759..2037 {
+        TEXT_LINE: "If True, a ValueError is raised any time interpolation is attempted on"@1759..1829
+        NEWLINE: "\n"@1829..1830
+        WHITESPACE: "    "@1830..1834
+        TEXT_LINE: "a value outside of the range of x (where extrapolation is"@1834..1891
+        NEWLINE: "\n"@1891..1892
+        WHITESPACE: "    "@1892..1896
+        TEXT_LINE: "necessary). If False, out of bounds values are assigned `fill_value`."@1896..1965
+        NEWLINE: "\n"@1965..1966
+        WHITESPACE: "    "@1966..1970
+        TEXT_LINE: "By default, an error is raised unless ``fill_value=\"extrapolate\"``."@1970..2037
+      }
+    }
+    NEWLINE: "\n"@2037..2038
+    ENTRY@2038..3003 {
+      NAME: "fill_value"@2038..2048
+      WHITESPACE: " "@2048..2049
+      COLON: ":"@2049..2050
+      WHITESPACE: " "@2050..2051
+      TYPE: "array-like or (array-like, array_like) or \"extrapolate\""@2051..2106
+      COMMA: ","@2106..2107
+      WHITESPACE: " "@2107..2108
+      OPTIONAL: "optional"@2108..2116
+      NEWLINE: "\n"@2116..2117
+      WHITESPACE: "    "@2117..2121
+      DESCRIPTION@2121..3003 {
+        TEXT_LINE: "- if an ndarray (or float), this value will be used to fill in for"@2121..2187
+        NEWLINE: "\n"@2187..2188
+        WHITESPACE: "      "@2188..2194
+        TEXT_LINE: "requested points outside of the data range. If not provided, then"@2194..2259
+        NEWLINE: "\n"@2259..2260
+        WHITESPACE: "      "@2260..2266
+        TEXT_LINE: "the default is NaN. The array-like must broadcast properly to the"@2266..2331
+        NEWLINE: "\n"@2331..2332
+        WHITESPACE: "      "@2332..2338
+        TEXT_LINE: "dimensions of the non-interpolation axes."@2338..2379
+        NEWLINE: "\n"@2379..2380
+        WHITESPACE: "    "@2380..2384
+        TEXT_LINE: "- If a two-element tuple, then the first element is used as a"@2384..2445
+        NEWLINE: "\n"@2445..2446
+        WHITESPACE: "      "@2446..2452
+        TEXT_LINE: "fill value for ``x_new < x[0]`` and the second element is used for"@2452..2518
+        NEWLINE: "\n"@2518..2519
+        WHITESPACE: "      "@2519..2525
+        TEXT_LINE: "``x_new > x[-1]``. Anything that is not a 2-element tuple (e.g.,"@2525..2589
+        NEWLINE: "\n"@2589..2590
+        WHITESPACE: "      "@2590..2596
+        TEXT_LINE: "list or ndarray, regardless of shape) is taken to be a single"@2596..2657
+        NEWLINE: "\n"@2657..2658
+        WHITESPACE: "      "@2658..2664
+        TEXT_LINE: "array-like argument meant to be used for both bounds as"@2664..2719
+        NEWLINE: "\n"@2719..2720
+        WHITESPACE: "      "@2720..2726
+        TEXT_LINE: "``below, above = fill_value, fill_value``. Using a two-element tuple"@2726..2794
+        NEWLINE: "\n"@2794..2795
+        WHITESPACE: "      "@2795..2801
+        TEXT_LINE: "or ndarray requires ``bounds_error=False``."@2801..2844
+        NEWLINE: "\n"@2844..2845
+        BLANK_LINE: "    \n"@2845..2850
+        WHITESPACE: "      "@2850..2856
+        TEXT_LINE: ".. versionadded:: 0.17.0"@2856..2880
+        NEWLINE: "\n"@2880..2881
+        WHITESPACE: "    "@2881..2885
+        TEXT_LINE: "- If \"extrapolate\", then points outside the data range will be"@2885..2947
+        NEWLINE: "\n"@2947..2948
+        WHITESPACE: "      "@2948..2954
+        TEXT_LINE: "extrapolated."@2954..2967
+        NEWLINE: "\n"@2967..2968
+        BLANK_LINE: "    \n"@2968..2973
+        WHITESPACE: "      "@2973..2979
+        TEXT_LINE: ".. versionadded:: 0.17.0"@2979..3003
+      }
+    }
+    NEWLINE: "\n"@3003..3004
+    ENTRY@3004..3181 {
+      NAME: "assume_sorted"@3004..3017
+      WHITESPACE: " "@3017..3018
+      COLON: ":"@3018..3019
+      WHITESPACE: " "@3019..3020
+      TYPE: "bool"@3020..3024
+      COMMA: ","@3024..3025
+      WHITESPACE: " "@3025..3026
+      OPTIONAL: "optional"@3026..3034
+      NEWLINE: "\n"@3034..3035
+      WHITESPACE: "    "@3035..3039
+      DESCRIPTION@3039..3181 {
+        TEXT_LINE: "If False, values of `x` can be in any order and they are sorted first."@3039..3109
+        NEWLINE: "\n"@3109..3110
+        WHITESPACE: "    "@3110..3114
+        TEXT_LINE: "If True, `x` has to be an array of monotonically increasing values."@3114..3181
+      }
+    }
+  }
+  NEWLINE: "\n"@3181..3182
+  BLANK_LINE: "\n"@3182..3183
+  SECTION@3183..3215 {
+    SECTION_HEADER@3183..3204 {
+      NAME: "Attributes"@3183..3193
+      NEWLINE: "\n"@3193..3194
+      UNDERLINE: "----------"@3194..3204
+    }
+    NEWLINE: "\n"@3204..3205
+    ENTRY@3205..3215 {
+      NAME: "fill_value"@3205..3215
+    }
+  }
+  NEWLINE: "\n"@3215..3216
+  BLANK_LINE: "\n"@3216..3217
+  SECTION@3217..3241 {
+    SECTION_HEADER@3217..3232 {
+      NAME: "Methods"@3217..3224
+      NEWLINE: "\n"@3224..3225
+      UNDERLINE: "-------"@3225..3232
+    }
+    NEWLINE: "\n"@3232..3233
+    ENTRY@3233..3241 {
+      NAME: "__call__"@3233..3241
+    }
+  }
+  NEWLINE: "\n"@3241..3242
+  BLANK_LINE: "\n"@3242..3243
+  SECTION@3243..3464 {
+    SECTION_HEADER@3243..3260 {
+      NAME: "See Also"@3243..3251
+      NEWLINE: "\n"@3251..3252
+      UNDERLINE: "--------"@3252..3260
+    }
+    NEWLINE: "\n"@3260..3261
+    BLANK_LINE: "\n"@3261..3262
+    ENTRY@3262..3344 {
+      NAME: ":func:`splrep`"@3262..3276
+      COMMA: ","@3276..3277
+      WHITESPACE: " "@3277..3278
+      NAME: ":func:`splev`"@3278..3291
+      NEWLINE: "\n"@3291..3292
+      WHITESPACE: "    "@3292..3296
+      DESCRIPTION@3296..3344 {
+        TEXT_LINE: "Spline interpolation/smoothing based on FITPACK."@3296..3344
+      }
+    }
+    NEWLINE: "\n"@3344..3345
+    ENTRY@3345..3425 {
+      NAME: ":func:`UnivariateSpline`"@3345..3369
+      NEWLINE: "\n"@3369..3370
+      WHITESPACE: "    "@3370..3374
+      DESCRIPTION@3374..3425 {
+        TEXT_LINE: "An object-oriented wrapper of the FITPACK routines."@3374..3425
+      }
+    }
+    NEWLINE: "\n"@3425..3426
+    ENTRY@3426..3464 {
+      NAME: ":func:`interp2d`"@3426..3442
+      NEWLINE: "\n"@3442..3443
+      WHITESPACE: "    "@3443..3447
+      DESCRIPTION@3447..3464 {
+        TEXT_LINE: "2-D interpolation"@3447..3464
+      }
+    }
+  }
+  NEWLINE: "\n"@3464..3465
+  BLANK_LINE: "\n"@3465..3466
+  BLANK_LINE: "\n"@3466..3467
+  SECTION@3467..4011 {
+    SECTION_HEADER@3467..3478 {
+      NAME: "Notes"@3467..3472
+      NEWLINE: "\n"@3472..3473
+      UNDERLINE: "-----"@3473..3478
+    }
+    NEWLINE: "\n"@3478..3479
+    DESCRIPTION@3479..4011 {
+      TEXT_LINE: "Calling `interp1d` with NaNs present in input values results in"@3479..3542
+      NEWLINE: "\n"@3542..3543
+      TEXT_LINE: "undefined behaviour."@3543..3563
+      NEWLINE: "\n"@3563..3564
+      BLANK_LINE: "\n"@3564..3565
+      TEXT_LINE: "Input values `x` and `y` must be convertible to `float` values like"@3565..3632
+      NEWLINE: "\n"@3632..3633
+      TEXT_LINE: "`int` or `float`."@3633..3650
+      NEWLINE: "\n"@3650..3651
+      BLANK_LINE: "\n"@3651..3652
+      TEXT_LINE: "If the values in `x` are not unique, the resulting behavior is"@3652..3714
+      NEWLINE: "\n"@3714..3715
+      TEXT_LINE: "undefined and specific to the choice of `kind`, i.e., changing"@3715..3777
+      NEWLINE: "\n"@3777..3778
+      TEXT_LINE: "`kind` will change the behavior for duplicates."@3778..3825
+      NEWLINE: "\n"@3825..3826
+      BLANK_LINE: "\n"@3826..3827
+      TEXT_LINE: "**Array API Standard Support**"@3827..3857
+      NEWLINE: "\n"@3857..3858
+      BLANK_LINE: "\n"@3858..3859
+      TEXT_LINE: "`interp1d` is not in-scope for support of Python Array API Standard compatible"@3859..3937
+      NEWLINE: "\n"@3937..3938
+      TEXT_LINE: "backends other than NumPy."@3938..3964
+      NEWLINE: "\n"@3964..3965
+      BLANK_LINE: "\n"@3965..3966
+      TEXT_LINE: "See :ref:`dev-arrayapi` for more information."@3966..4011
+    }
+  }
+  NEWLINE: "\n"@4011..4012
+  BLANK_LINE: "\n"@4012..4013
+  BLANK_LINE: "\n"@4013..4014
+  SECTION@4014..4369 {
+    SECTION_HEADER@4014..4031 {
+      NAME: "Examples"@4014..4022
+      NEWLINE: "\n"@4022..4023
+      UNDERLINE: "--------"@4023..4031
+    }
+    NEWLINE: "\n"@4031..4032
+    DESCRIPTION@4032..4369 {
+      TEXT_LINE: ">>> import numpy as np"@4032..4054
+      NEWLINE: "\n"@4054..4055
+      TEXT_LINE: ">>> import matplotlib.pyplot as plt"@4055..4090
+      NEWLINE: "\n"@4090..4091
+      TEXT_LINE: ">>> from scipy import interpolate"@4091..4124
+      NEWLINE: "\n"@4124..4125
+      TEXT_LINE: ">>> x = np.arange(0, 10)"@4125..4149
+      NEWLINE: "\n"@4149..4150
+      TEXT_LINE: ">>> y = np.exp(-x/3.0)"@4150..4172
+      NEWLINE: "\n"@4172..4173
+      TEXT_LINE: ">>> f = interpolate.interp1d(x, y)"@4173..4207
+      NEWLINE: "\n"@4207..4208
+      BLANK_LINE: "\n"@4208..4209
+      TEXT_LINE: ">>> xnew = np.arange(0, 9, 0.1)"@4209..4240
+      NEWLINE: "\n"@4240..4241
+      TEXT_LINE: ">>> ynew = f(xnew)   # use interpolation function returned by `interp1d`"@4241..4313
+      NEWLINE: "\n"@4313..4314
+      TEXT_LINE: ">>> plt.plot(x, y, 'o', xnew, ynew, '-')"@4314..4354
+      NEWLINE: "\n"@4354..4355
+      TEXT_LINE: ">>> plt.show()"@4355..4369
+    }
+  }
+}
+=== EMIT ===
+Interpolate a 1-D function (legacy).
+
+.. legacy:: class
+
+    For a guide to the intended replacements for `interp1d` see
+    :ref:`tutorial-interpolate_1Dsection`.
+
+`x` and `y` are arrays of values used to approximate some function f:
+``y = f(x)``. This class returns a function whose call method uses
+interpolation to find the value of new points.
+
+Parameters
+----------
+x : (npoints, ) array_like
+    A 1-D array of real values.
+y : (..., npoints, ...) array_like
+    An N-D array of real values. The length of `y` along the interpolation
+    axis must be equal to the length of `x`. Use the ``axis`` parameter
+    to select correct axis. Unlike other interpolators, the default
+    interpolation axis is the last axis of `y`.
+kind : str or int, optional
+    Specifies the kind of interpolation as a string or as an integer
+    specifying the order of the spline interpolator to use.
+    The string has to be one of 'linear', 'nearest', 'nearest-up', 'zero',
+    'slinear', 'quadratic', 'cubic', 'previous', or 'next'. 'zero',
+    'slinear', 'quadratic' and 'cubic' refer to a spline interpolation of
+    zeroth, first, second or third order; 'previous' and 'next' simply
+    return the previous or next value of the point; 'nearest-up' and
+    'nearest' differ when interpolating half-integers (e.g. 0.5, 1.5)
+    in that 'nearest-up' rounds up and 'nearest' rounds down. Default
+    is 'linear'.
+axis : int, optional
+    Axis in the ``y`` array corresponding to the x-coordinate values. Unlike
+    other interpolators, defaults to ``axis=-1``.
+copy : bool, optional
+    If ``True``, the class makes internal copies of x and y. If ``False``,
+    references to ``x`` and ``y`` are used if possible. The default is to copy.
+bounds_error : bool, optional
+    If True, a ValueError is raised any time interpolation is attempted on
+    a value outside of the range of x (where extrapolation is
+    necessary). If False, out of bounds values are assigned `fill_value`.
+    By default, an error is raised unless ``fill_value="extrapolate"``.
+fill_value : array-like or (array-like, array_like) or "extrapolate", optional
+    - if an ndarray (or float), this value will be used to fill in for
+      requested points outside of the data range. If not provided, then
+      the default is NaN. The array-like must broadcast properly to the
+      dimensions of the non-interpolation axes.
+    - If a two-element tuple, then the first element is used as a
+      fill value for ``x_new < x[0]`` and the second element is used for
+      ``x_new > x[-1]``. Anything that is not a 2-element tuple (e.g.,
+      list or ndarray, regardless of shape) is taken to be a single
+      array-like argument meant to be used for both bounds as
+      ``below, above = fill_value, fill_value``. Using a two-element tuple
+      or ndarray requires ``bounds_error=False``.
+
+      .. versionadded:: 0.17.0
+    - If "extrapolate", then points outside the data range will be
+      extrapolated.
+
+      .. versionadded:: 0.17.0
+assume_sorted : bool, optional
+    If False, values of `x` can be in any order and they are sorted first.
+    If True, `x` has to be an array of monotonically increasing values.
+
+Attributes
+----------
+fill_value
+
+Methods
+-------
+__call__
+
+See Also
+--------
+:func:`splrep`, :func:`splev` : Spline interpolation/smoothing based on FITPACK.
+:func:`UnivariateSpline` : An object-oriented wrapper of the FITPACK routines.
+:func:`interp2d` : 2-D interpolation
+
+Notes
+-----
+Calling `interp1d` with NaNs present in input values results in
+undefined behaviour.
+
+Input values `x` and `y` must be convertible to `float` values like
+`int` or `float`.
+
+If the values in `x` are not unique, the resulting behavior is
+undefined and specific to the choice of `kind`, i.e., changing
+`kind` will change the behavior for duplicates.
+
+**Array API Standard Support**
+
+`interp1d` is not in-scope for support of Python Array API Standard compatible
+backends other than NumPy.
+
+See :ref:`dev-arrayapi` for more information.
+
+Examples
+--------
+>>> import numpy as np
+>>> import matplotlib.pyplot as plt
+>>> from scipy import interpolate
+>>> x = np.arange(0, 10)
+>>> y = np.exp(-x/3.0)
+>>> f = interpolate.interp1d(x, y)
+
+>>> xnew = np.arange(0, 9, 0.1)
+>>> ynew = f(xnew)   # use interpolation function returned by `interp1d`
+>>> plt.plot(x, y, 'o', xnew, ynew, '-')
+>>> plt.show()

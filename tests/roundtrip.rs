@@ -25,8 +25,62 @@ use common::diff;
 use common::style_dirs;
 use pydocstring::model::Docstring;
 
-const KNOWN_IDEMPOTENCE_FAILURES: &[&str] = &[];
-const KNOWN_MODEL_STABILITY_FAILURES: &[&str] = &[];
+// Real bugs flushed out by the realworld corpus ingest — each entry below is
+// an emit/parse disagreement, NOT a representational limit. Clusters:
+//
+// (SA-indent) numpy emit_see_also writes a multi-line description raw
+// (src/emit/numpy.rs), so continuation lines land at entry indent and
+// re-parse as new name-only SeeAlso entries.
+//
+// (SA-role) emitters collapse `name` + description to one line `name : desc`
+// (numpy) / `name: desc` (google); when the name starts with an rST role
+// (`:func:`x``), find_term_colon's leading-colon guard (src/parse/utils.rs)
+// rejects the whole line, so the re-parse keeps it as a single name (and
+// comma-splits the description into extra names).
+//
+// (DEP-indent) the `.. deprecated::` body is stored with its continuation
+// indent NOT dedented, and numpy emit re-indents by 4 on top — the indent
+// grows by 4 each emit/parse cycle.
+//
+// (RET-flat) google emit_return writes a description-only Return's
+// continuation lines raw at column 0 (src/emit/google.rs), dedenting them
+// out of the Returns section; the re-parse silently drops every line after
+// the first.
+const KNOWN_IDEMPOTENCE_FAILURES: &[&str] = &[
+    // (RET-flat)
+    "google/realworld/fire_fire.txt",
+    // (SA-indent) — the comma-split names lose their trailing comma.
+    "numpy/realworld/numpy_einsum.txt",
+    // (DEP-indent)
+    "numpy/realworld/scipy_interpolate_pade.txt",
+];
+const KNOWN_MODEL_STABILITY_FAILURES: &[&str] = &[
+    // (RET-flat)
+    "google/realworld/fire_fire.txt",
+    // (SA-indent)
+    "numpy/realworld/numpy_convolve.txt",
+    "numpy/realworld/numpy_einsum.txt",
+    "numpy/realworld/numpy_linspace.txt",
+    "numpy/realworld/numpy_ndarray.txt",
+    "numpy/realworld/numpy_outer.txt",
+    "numpy/realworld/numpy_packbits.txt",
+    "numpy/realworld/numpy_roll.txt",
+    "numpy/realworld/numpy_split.txt",
+    "numpy/realworld/scipy_optimize_curve_fit.txt",
+    "numpy/realworld/scipy_optimize_minimize.txt",
+    // (SA-role)
+    "numpy/realworld/scipy_integrate_simpson.txt",
+    "numpy/realworld/scipy_interpolate_cubicspline.txt",
+    "numpy/realworld/scipy_interpolate_interp1d.txt",
+    "numpy/realworld/scipy_ndimage_label.txt",
+    "numpy/realworld/scipy_signal_butter.txt",
+    "numpy/realworld/scipy_signal_hilbert.txt",
+    "numpy/realworld/scipy_signal_medfilt.txt",
+    "numpy/realworld/scipy_signal_welch.txt",
+    "numpy/realworld/scipy_stats_linregress.txt",
+    // (DEP-indent)
+    "numpy/realworld/scipy_interpolate_pade.txt",
+];
 /// Entries are `"<from>-><to>: <corpus path>"`, e.g. `"numpy->google: numpy/returns/yields_basic.txt"`.
 const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     // Fundamental NumPy ambiguity: a description-only Return has no
@@ -49,6 +103,82 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     "numpy->google: numpy/returns/returns_multiline_description.txt",
     "numpy->google: numpy/returns/returns_no_spaces_around_colon.txt",
     "numpy->google: numpy/returns/yields_named.txt",
+    //
+    // ---- realworld corpus ----
+    //
+    // Description-only Returns/Yields (prefer_type ambiguity, same as
+    // returns_without_type.txt above). fire_fire.txt is aggravated by the
+    // (RET-flat) bug (see KNOWN_MODEL_STABILITY_FAILURES): its multi-line
+    // description becomes one bare numpy line PER LINE, i.e. many entries.
+    "google->numpy: google/realworld/absl_flags_define.txt",
+    "google->numpy: google/realworld/absl_flags_define_enum.txt",
+    "google->numpy: google/realworld/absl_flags_define_multi.txt",
+    "google->numpy: google/realworld/absl_flags_flag_dict_to_args.txt",
+    "google->numpy: google/realworld/absl_flags_text_wrap.txt",
+    "google->numpy: google/realworld/absl_flags_validator.txt",
+    "google->numpy: google/realworld/absl_logging_skip_log_prefix.txt",
+    "google->numpy: google/realworld/fire_completion_membervisible.txt",
+    "google->numpy: google/realworld/fire_decorators_setparsefns.txt",
+    "google->numpy: google/realworld/fire_fire.txt",
+    // Named and/or multiple NumPy returns — permanent limits (a)/(b) above.
+    // (numpydoc's `name : type` return convention is near-universal in
+    // real numpy/scipy docstrings, hence the breadth of this cluster.)
+    "numpy->google: numpy/realworld/numpy_bincount.txt",
+    "numpy->google: numpy/realworld/numpy_broadcast.txt",
+    "numpy->google: numpy/realworld/numpy_busday_count.txt",
+    "numpy->google: numpy/realworld/numpy_clip.txt",
+    "numpy->google: numpy/realworld/numpy_convolve.txt",
+    "numpy->google: numpy/realworld/numpy_diff.txt",
+    "numpy->google: numpy/realworld/numpy_einsum.txt",
+    "numpy->google: numpy/realworld/numpy_fft_fft.txt",
+    "numpy->google: numpy/realworld/numpy_fft_fftfreq.txt",
+    "numpy->google: numpy/realworld/numpy_fromfunction.txt",
+    "numpy->google: numpy/realworld/numpy_fromiter.txt",
+    "numpy->google: numpy/realworld/numpy_fromstring.txt",
+    "numpy->google: numpy/realworld/numpy_histogram.txt",
+    "numpy->google: numpy/realworld/numpy_interp.txt",
+    "numpy->google: numpy/realworld/numpy_isclose.txt",
+    "numpy->google: numpy/realworld/numpy_linalg_solve.txt",
+    "numpy->google: numpy/realworld/numpy_linalg_svd.txt",
+    "numpy->google: numpy/realworld/numpy_linspace.txt",
+    "numpy->google: numpy/realworld/numpy_ma_masked_where.txt",
+    "numpy->google: numpy/realworld/numpy_nanmean.txt",
+    "numpy->google: numpy/realworld/numpy_outer.txt",
+    "numpy->google: numpy/realworld/numpy_packbits.txt",
+    "numpy->google: numpy/realworld/numpy_repeat.txt",
+    "numpy->google: numpy/realworld/numpy_reshape.txt",
+    "numpy->google: numpy/realworld/numpy_roll.txt",
+    "numpy->google: numpy/realworld/numpy_searchsorted.txt",
+    "numpy->google: numpy/realworld/numpy_split.txt",
+    "numpy->google: numpy/realworld/numpy_stack.txt",
+    "numpy->google: numpy/realworld/numpy_tile.txt",
+    "numpy->google: numpy/realworld/scipy_linalg_expm.txt",
+    "numpy->google: numpy/realworld/scipy_linalg_solve_triangular.txt",
+    "numpy->google: numpy/realworld/scipy_optimize_curve_fit.txt",
+    "numpy->google: numpy/realworld/scipy_optimize_minimize.txt",
+    // (SA-role) through the google side — real bug, see
+    // KNOWN_MODEL_STABILITY_FAILURES. Most of these ALSO hit the named-return
+    // limits above, so fixing (SA-role) alone will not clear them.
+    "numpy->google: numpy/realworld/scipy_integrate_simpson.txt",
+    "numpy->google: numpy/realworld/scipy_interpolate_cubicspline.txt",
+    "numpy->google: numpy/realworld/scipy_interpolate_interp1d.txt",
+    "numpy->google: numpy/realworld/scipy_ndimage_label.txt",
+    "numpy->google: numpy/realworld/scipy_signal_butter.txt",
+    "numpy->google: numpy/realworld/scipy_signal_hilbert.txt",
+    "numpy->google: numpy/realworld/scipy_signal_medfilt.txt",
+    "numpy->google: numpy/realworld/scipy_signal_welch.txt",
+    "numpy->google: numpy/realworld/scipy_stats_linregress.txt",
+    // Free-text fidelity through the google round trip (real bugs):
+    // numpy_where — a `::` literal block inside Notes loses its 4-space base
+    // indent on google re-parse (plus the named-return limit).
+    // numpy_dtype — a numpy unknown section whose header is a signature line
+    // (`dtype(...)` underlined with `--` in the real docstring) has no valid
+    // google header form; its google spelling re-parses as summary text.
+    // scipy_interpolate_pade — (DEP-indent) directive-body indent drift
+    // (plus the named-return limit).
+    "numpy->google: numpy/realworld/numpy_where.txt",
+    "numpy->google: numpy/realworld/numpy_dtype.txt",
+    "numpy->google: numpy/realworld/scipy_interpolate_pade.txt",
 ];
 
 fn model_for(style: &str, input: &str) -> Option<Docstring> {

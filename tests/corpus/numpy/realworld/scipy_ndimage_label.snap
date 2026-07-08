@@ -1,0 +1,555 @@
+=== CST ===
+DOCUMENT@0..4603 {
+  SUMMARY@0..27 {
+    TEXT_LINE: "Label features in an array."@0..27
+  }
+  NEWLINE: "\n"@27..28
+  BLANK_LINE: "\n"@28..29
+  SECTION@29..1070 {
+    SECTION_HEADER@29..50 {
+      NAME: "Parameters"@29..39
+      NEWLINE: "\n"@39..40
+      UNDERLINE: "----------"@40..50
+    }
+    NEWLINE: "\n"@50..51
+    ENTRY@51..215 {
+      NAME: "input"@51..56
+      WHITESPACE: " "@56..57
+      COLON: ":"@57..58
+      WHITESPACE: " "@58..59
+      TYPE: "array_like"@59..69
+      NEWLINE: "\n"@69..70
+      WHITESPACE: "    "@70..74
+      DESCRIPTION@74..215 {
+        TEXT_LINE: "An array-like object to be labeled. Any non-zero values in `input` are"@74..144
+        NEWLINE: "\n"@144..145
+        WHITESPACE: "    "@145..149
+        TEXT_LINE: "counted as features and zero values are considered the background."@149..215
+      }
+    }
+    NEWLINE: "\n"@215..216
+    ENTRY@216..624 {
+      NAME: "structure"@216..225
+      WHITESPACE: " "@225..226
+      COLON: ":"@226..227
+      WHITESPACE: " "@227..228
+      TYPE: "array_like"@228..238
+      COMMA: ","@238..239
+      WHITESPACE: " "@239..240
+      OPTIONAL: "optional"@240..248
+      NEWLINE: "\n"@248..249
+      WHITESPACE: "    "@249..253
+      DESCRIPTION@253..624 {
+        TEXT_LINE: "A structuring element that defines feature connections."@253..308
+        NEWLINE: "\n"@308..309
+        WHITESPACE: "    "@309..313
+        TEXT_LINE: "`structure` must be centrosymmetric"@313..348
+        NEWLINE: "\n"@348..349
+        WHITESPACE: "    "@349..353
+        TEXT_LINE: "(see Notes)."@353..365
+        NEWLINE: "\n"@365..366
+        WHITESPACE: "    "@366..370
+        TEXT_LINE: "If no structuring element is provided,"@370..408
+        NEWLINE: "\n"@408..409
+        WHITESPACE: "    "@409..413
+        TEXT_LINE: "one is automatically generated with a squared connectivity equal to"@413..480
+        NEWLINE: "\n"@480..481
+        WHITESPACE: "    "@481..485
+        TEXT_LINE: "one.  That is, for a 2-D `input` array, the default structuring element"@485..556
+        NEWLINE: "\n"@556..557
+        WHITESPACE: "    "@557..561
+        TEXT_LINE: "is::"@561..565
+        NEWLINE: "\n"@565..566
+        BLANK_LINE: "    \n"@566..571
+        WHITESPACE: "        "@571..579
+        TEXT_LINE: "[[0,1,0],"@579..588
+        NEWLINE: "\n"@588..589
+        WHITESPACE: "         "@589..598
+        TEXT_LINE: "[1,1,1],"@598..606
+        NEWLINE: "\n"@606..607
+        WHITESPACE: "         "@607..616
+        TEXT_LINE: "[0,1,0]]"@616..624
+      }
+    }
+    NEWLINE: "\n"@624..625
+    ENTRY@625..1070 {
+      NAME: "output"@625..631
+      WHITESPACE: " "@631..632
+      COLON: ":"@632..633
+      WHITESPACE: " "@633..634
+      TYPE: "(None, data-type, array_like)"@634..663
+      COMMA: ","@663..664
+      WHITESPACE: " "@664..665
+      OPTIONAL: "optional"@665..673
+      NEWLINE: "\n"@673..674
+      WHITESPACE: "    "@674..678
+      DESCRIPTION@678..1070 {
+        TEXT_LINE: "If `output` is a data type, it specifies the type of the resulting"@678..744
+        NEWLINE: "\n"@744..745
+        WHITESPACE: "    "@745..749
+        TEXT_LINE: "labeled feature array."@749..771
+        NEWLINE: "\n"@771..772
+        WHITESPACE: "    "@772..776
+        TEXT_LINE: "If `output` is an array-like object, then `output` will be updated"@776..842
+        NEWLINE: "\n"@842..843
+        WHITESPACE: "    "@843..847
+        TEXT_LINE: "with the labeled features from this function.  This function can"@847..911
+        NEWLINE: "\n"@911..912
+        WHITESPACE: "    "@912..916
+        TEXT_LINE: "operate in-place, by passing output=input."@916..958
+        NEWLINE: "\n"@958..959
+        WHITESPACE: "    "@959..963
+        TEXT_LINE: "Note that the output must be able to store the largest label, or this"@963..1032
+        NEWLINE: "\n"@1032..1033
+        WHITESPACE: "    "@1033..1037
+        TEXT_LINE: "function will raise an Exception."@1037..1070
+      }
+    }
+  }
+  NEWLINE: "\n"@1070..1071
+  BLANK_LINE: "\n"@1071..1072
+  SECTION@1072..1528 {
+    SECTION_HEADER@1072..1087 {
+      NAME: "Returns"@1072..1079
+      NEWLINE: "\n"@1079..1080
+      UNDERLINE: "-------"@1080..1087
+    }
+    NEWLINE: "\n"@1087..1088
+    ENTRY@1088..1216 {
+      NAME: "label"@1088..1093
+      WHITESPACE: " "@1093..1094
+      COLON: ":"@1094..1095
+      WHITESPACE: " "@1095..1096
+      TYPE: "ndarray or int"@1096..1110
+      NEWLINE: "\n"@1110..1111
+      WHITESPACE: "    "@1111..1115
+      DESCRIPTION@1115..1216 {
+        TEXT_LINE: "An integer ndarray where each unique feature in `input` has a unique"@1115..1183
+        NEWLINE: "\n"@1183..1184
+        WHITESPACE: "    "@1184..1188
+        TEXT_LINE: "label in the returned array."@1188..1216
+      }
+    }
+    NEWLINE: "\n"@1216..1217
+    ENTRY@1217..1528 {
+      NAME: "num_features"@1217..1229
+      WHITESPACE: " "@1229..1230
+      COLON: ":"@1230..1231
+      WHITESPACE: " "@1231..1232
+      TYPE: "int"@1232..1235
+      NEWLINE: "\n"@1235..1236
+      WHITESPACE: "    "@1236..1240
+      DESCRIPTION@1240..1528 {
+        TEXT_LINE: "How many objects were found."@1240..1268
+        NEWLINE: "\n"@1268..1269
+        BLANK_LINE: "    \n"@1269..1274
+        WHITESPACE: "    "@1274..1278
+        TEXT_LINE: "If `output` is None, this function returns a tuple of"@1278..1331
+        NEWLINE: "\n"@1331..1332
+        WHITESPACE: "    "@1332..1336
+        TEXT_LINE: "(`labeled_array`, `num_features`)."@1336..1370
+        NEWLINE: "\n"@1370..1371
+        BLANK_LINE: "    \n"@1371..1376
+        WHITESPACE: "    "@1376..1380
+        TEXT_LINE: "If `output` is an ndarray, then it will be updated with values in"@1380..1445
+        NEWLINE: "\n"@1445..1446
+        WHITESPACE: "    "@1446..1450
+        TEXT_LINE: "`labeled_array` and only `num_features` will be returned by this"@1450..1514
+        NEWLINE: "\n"@1514..1515
+        WHITESPACE: "    "@1515..1519
+        TEXT_LINE: "function."@1519..1528
+      }
+    }
+  }
+  NEWLINE: "\n"@1528..1529
+  BLANK_LINE: "\n"@1529..1530
+  SECTION@1530..1690 {
+    SECTION_HEADER@1530..1547 {
+      NAME: "See Also"@1530..1538
+      NEWLINE: "\n"@1538..1539
+      UNDERLINE: "--------"@1539..1547
+    }
+    NEWLINE: "\n"@1547..1548
+    BLANK_LINE: "\n"@1548..1549
+    ENTRY@1549..1690 {
+      NAME: ":func:`find_objects`"@1549..1569
+      NEWLINE: "\n"@1569..1570
+      WHITESPACE: "    "@1570..1574
+      DESCRIPTION@1574..1690 {
+        TEXT_LINE: "generate a list of slices for the labeled features (or objects); useful for finding features' position or dimensions"@1574..1690
+      }
+    }
+  }
+  NEWLINE: "\n"@1690..1691
+  BLANK_LINE: "\n"@1691..1692
+  BLANK_LINE: "\n"@1692..1693
+  SECTION@1693..3200 {
+    SECTION_HEADER@1693..1704 {
+      NAME: "Notes"@1693..1698
+      NEWLINE: "\n"@1698..1699
+      UNDERLINE: "-----"@1699..1704
+    }
+    NEWLINE: "\n"@1704..1705
+    DESCRIPTION@1705..3200 {
+      TEXT_LINE: "A centrosymmetric matrix is a matrix that is symmetric about the center."@1705..1777
+      NEWLINE: "\n"@1777..1778
+      TEXT_LINE: "See [1]_ for more information."@1778..1808
+      NEWLINE: "\n"@1808..1809
+      BLANK_LINE: "\n"@1809..1810
+      TEXT_LINE: "The `structure` matrix must be centrosymmetric to ensure"@1810..1866
+      NEWLINE: "\n"@1866..1867
+      TEXT_LINE: "two-way connections."@1867..1887
+      NEWLINE: "\n"@1887..1888
+      TEXT_LINE: "For instance, if the `structure` matrix is not centrosymmetric"@1888..1950
+      NEWLINE: "\n"@1950..1951
+      TEXT_LINE: "and is defined as::"@1951..1970
+      NEWLINE: "\n"@1970..1971
+      BLANK_LINE: "\n"@1971..1972
+      WHITESPACE: "    "@1972..1976
+      TEXT_LINE: "[[0,1,0],"@1976..1985
+      NEWLINE: "\n"@1985..1986
+      WHITESPACE: "     "@1986..1991
+      TEXT_LINE: "[1,1,0],"@1991..1999
+      NEWLINE: "\n"@1999..2000
+      WHITESPACE: "     "@2000..2005
+      TEXT_LINE: "[0,0,0]]"@2005..2013
+      NEWLINE: "\n"@2013..2014
+      BLANK_LINE: "\n"@2014..2015
+      TEXT_LINE: "and the `input` is::"@2015..2035
+      NEWLINE: "\n"@2035..2036
+      BLANK_LINE: "\n"@2036..2037
+      WHITESPACE: "    "@2037..2041
+      TEXT_LINE: "[[1,2],"@2041..2048
+      NEWLINE: "\n"@2048..2049
+      WHITESPACE: "     "@2049..2054
+      TEXT_LINE: "[0,3]]"@2054..2060
+      NEWLINE: "\n"@2060..2061
+      BLANK_LINE: "\n"@2061..2062
+      TEXT_LINE: "then the structure matrix would indicate the"@2062..2106
+      NEWLINE: "\n"@2106..2107
+      TEXT_LINE: "entry 2 in the input is connected to 1,"@2107..2146
+      NEWLINE: "\n"@2146..2147
+      TEXT_LINE: "but 1 is not connected to 2."@2147..2175
+      NEWLINE: "\n"@2175..2176
+      BLANK_LINE: "\n"@2176..2177
+      TEXT_LINE: "**Array API Standard Support**"@2177..2207
+      NEWLINE: "\n"@2207..2208
+      BLANK_LINE: "\n"@2208..2209
+      TEXT_LINE: "`label` has experimental support for Python Array API Standard compatible"@2209..2282
+      NEWLINE: "\n"@2282..2283
+      TEXT_LINE: "backends in addition to NumPy. Please consider testing these features"@2283..2352
+      NEWLINE: "\n"@2352..2353
+      TEXT_LINE: "by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing"@2353..2423
+      NEWLINE: "\n"@2423..2424
+      TEXT_LINE: "CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following"@2424..2492
+      NEWLINE: "\n"@2492..2493
+      TEXT_LINE: "combinations of backend and device (or other capability) are supported."@2493..2564
+      NEWLINE: "\n"@2564..2565
+      BLANK_LINE: "\n"@2565..2566
+      TEXT_LINE: "====================  ====================  ===================="@2566..2630
+      NEWLINE: "\n"@2630..2631
+      TEXT_LINE: "Library               CPU                   GPU"@2631..2678
+      NEWLINE: "\n"@2678..2679
+      TEXT_LINE: "====================  ====================  ===================="@2679..2743
+      NEWLINE: "\n"@2743..2744
+      TEXT_LINE: "NumPy                 ✅                     n/a"@2744..2793
+      WHITESPACE: "                 "@2793..2810
+      NEWLINE: "\n"@2810..2811
+      TEXT_LINE: "CuPy                  n/a                   ✅"@2811..2858
+      WHITESPACE: "                   "@2858..2877
+      NEWLINE: "\n"@2877..2878
+      TEXT_LINE: "PyTorch               ✅                     ⛔"@2878..2927
+      WHITESPACE: "                   "@2927..2946
+      NEWLINE: "\n"@2946..2947
+      TEXT_LINE: "JAX                   ⚠\u{fe0f} no JIT             ⛔"@2947..2998
+      WHITESPACE: "                   "@2998..3017
+      NEWLINE: "\n"@3017..3018
+      TEXT_LINE: "Dask                  ⚠\u{fe0f} computes graph     n/a"@3018..3069
+      WHITESPACE: "                 "@3069..3086
+      NEWLINE: "\n"@3086..3087
+      TEXT_LINE: "====================  ====================  ===================="@3087..3151
+      NEWLINE: "\n"@3151..3152
+      BLANK_LINE: "\n"@3152..3153
+      BLANK_LINE: "\n"@3153..3154
+      BLANK_LINE: "\n"@3154..3155
+      TEXT_LINE: "See :ref:`dev-arrayapi` for more information."@3155..3200
+    }
+  }
+  NEWLINE: "\n"@3200..3201
+  BLANK_LINE: "\n"@3201..3202
+  BLANK_LINE: "\n"@3202..3203
+  SECTION@3203..3415 {
+    SECTION_HEADER@3203..3224 {
+      NAME: "References"@3203..3213
+      NEWLINE: "\n"@3213..3214
+      UNDERLINE: "----------"@3214..3224
+    }
+    NEWLINE: "\n"@3224..3225
+    CITATION@3225..3415 {
+      DIRECTIVE_MARKER: ".."@3225..3227
+      WHITESPACE: " "@3227..3228
+      OPEN_BRACKET: "["@3228..3229
+      LABEL: "1"@3229..3230
+      CLOSE_BRACKET: "]"@3230..3231
+      WHITESPACE: " "@3231..3232
+      DESCRIPTION@3232..3415 {
+        TEXT_LINE: "James R. Weaver, \"Centrosymmetric (cross-symmetric)"@3232..3283
+        NEWLINE: "\n"@3283..3284
+        WHITESPACE: "   "@3284..3287
+        TEXT_LINE: "matrices, their basic properties, eigenvalues, and"@3287..3337
+        NEWLINE: "\n"@3337..3338
+        WHITESPACE: "   "@3338..3341
+        TEXT_LINE: "eigenvectors.\" The American Mathematical Monthly 92.10"@3341..3395
+        NEWLINE: "\n"@3395..3396
+        WHITESPACE: "   "@3396..3399
+        TEXT_LINE: "(1985): 711-717."@3399..3415
+      }
+    }
+  }
+  NEWLINE: "\n"@3415..3416
+  BLANK_LINE: "\n"@3416..3417
+  SECTION@3417..4603 {
+    SECTION_HEADER@3417..3434 {
+      NAME: "Examples"@3417..3425
+      NEWLINE: "\n"@3425..3426
+      UNDERLINE: "--------"@3426..3434
+    }
+    NEWLINE: "\n"@3434..3435
+    DESCRIPTION@3435..4603 {
+      TEXT_LINE: "Create an image with some features, then label it using the default"@3435..3502
+      NEWLINE: "\n"@3502..3503
+      TEXT_LINE: "(cross-shaped) structuring element:"@3503..3538
+      NEWLINE: "\n"@3538..3539
+      BLANK_LINE: "\n"@3539..3540
+      TEXT_LINE: ">>> from scipy.ndimage import label, generate_binary_structure"@3540..3602
+      NEWLINE: "\n"@3602..3603
+      TEXT_LINE: ">>> import numpy as np"@3603..3625
+      NEWLINE: "\n"@3625..3626
+      TEXT_LINE: ">>> a = np.array([[0,0,1,1,0,0],"@3626..3658
+      NEWLINE: "\n"@3658..3659
+      TEXT_LINE: "...               [0,0,0,1,0,0],"@3659..3691
+      NEWLINE: "\n"@3691..3692
+      TEXT_LINE: "...               [1,1,0,0,1,0],"@3692..3724
+      NEWLINE: "\n"@3724..3725
+      TEXT_LINE: "...               [0,0,0,1,0,0]])"@3725..3758
+      NEWLINE: "\n"@3758..3759
+      TEXT_LINE: ">>> labeled_array, num_features = label(a)"@3759..3801
+      NEWLINE: "\n"@3801..3802
+      BLANK_LINE: "\n"@3802..3803
+      TEXT_LINE: "Each of the 4 features are labeled with a different integer:"@3803..3863
+      NEWLINE: "\n"@3863..3864
+      BLANK_LINE: "\n"@3864..3865
+      TEXT_LINE: ">>> num_features"@3865..3881
+      NEWLINE: "\n"@3881..3882
+      TEXT_LINE: "4"@3882..3883
+      NEWLINE: "\n"@3883..3884
+      TEXT_LINE: ">>> labeled_array"@3884..3901
+      NEWLINE: "\n"@3901..3902
+      TEXT_LINE: "array([[0, 0, 1, 1, 0, 0],"@3902..3928
+      NEWLINE: "\n"@3928..3929
+      WHITESPACE: "       "@3929..3936
+      TEXT_LINE: "[0, 0, 0, 1, 0, 0],"@3936..3955
+      NEWLINE: "\n"@3955..3956
+      WHITESPACE: "       "@3956..3963
+      TEXT_LINE: "[2, 2, 0, 0, 3, 0],"@3963..3982
+      NEWLINE: "\n"@3982..3983
+      WHITESPACE: "       "@3983..3990
+      TEXT_LINE: "[0, 0, 0, 4, 0, 0]], dtype=int32)"@3990..4023
+      NEWLINE: "\n"@4023..4024
+      BLANK_LINE: "\n"@4024..4025
+      TEXT_LINE: "Generate a structuring element that will consider features connected even"@4025..4098
+      NEWLINE: "\n"@4098..4099
+      TEXT_LINE: "if they touch diagonally:"@4099..4124
+      NEWLINE: "\n"@4124..4125
+      BLANK_LINE: "\n"@4125..4126
+      TEXT_LINE: ">>> s = generate_binary_structure(2,2)"@4126..4164
+      NEWLINE: "\n"@4164..4165
+      BLANK_LINE: "\n"@4165..4166
+      TEXT_LINE: "or,"@4166..4169
+      NEWLINE: "\n"@4169..4170
+      BLANK_LINE: "\n"@4170..4171
+      TEXT_LINE: ">>> s = [[1,1,1],"@4171..4188
+      NEWLINE: "\n"@4188..4189
+      TEXT_LINE: "...      [1,1,1],"@4189..4206
+      NEWLINE: "\n"@4206..4207
+      TEXT_LINE: "...      [1,1,1]]"@4207..4224
+      NEWLINE: "\n"@4224..4225
+      BLANK_LINE: "\n"@4225..4226
+      TEXT_LINE: "Label the image using the new structuring element:"@4226..4276
+      NEWLINE: "\n"@4276..4277
+      BLANK_LINE: "\n"@4277..4278
+      TEXT_LINE: ">>> labeled_array, num_features = label(a, structure=s)"@4278..4333
+      NEWLINE: "\n"@4333..4334
+      BLANK_LINE: "\n"@4334..4335
+      TEXT_LINE: "Show the 2 labeled features (note that features 1, 3, and 4 from above are"@4335..4409
+      NEWLINE: "\n"@4409..4410
+      TEXT_LINE: "now considered a single feature):"@4410..4443
+      NEWLINE: "\n"@4443..4444
+      BLANK_LINE: "\n"@4444..4445
+      TEXT_LINE: ">>> num_features"@4445..4461
+      NEWLINE: "\n"@4461..4462
+      TEXT_LINE: "2"@4462..4463
+      NEWLINE: "\n"@4463..4464
+      TEXT_LINE: ">>> labeled_array"@4464..4481
+      NEWLINE: "\n"@4481..4482
+      TEXT_LINE: "array([[0, 0, 1, 1, 0, 0],"@4482..4508
+      NEWLINE: "\n"@4508..4509
+      WHITESPACE: "       "@4509..4516
+      TEXT_LINE: "[0, 0, 0, 1, 0, 0],"@4516..4535
+      NEWLINE: "\n"@4535..4536
+      WHITESPACE: "       "@4536..4543
+      TEXT_LINE: "[2, 2, 0, 0, 1, 0],"@4543..4562
+      NEWLINE: "\n"@4562..4563
+      WHITESPACE: "       "@4563..4570
+      TEXT_LINE: "[0, 0, 0, 1, 0, 0]], dtype=int32)"@4570..4603
+    }
+  }
+}
+=== EMIT ===
+Label features in an array.
+
+Parameters
+----------
+input : array_like
+    An array-like object to be labeled. Any non-zero values in `input` are
+    counted as features and zero values are considered the background.
+structure : array_like, optional
+    A structuring element that defines feature connections.
+    `structure` must be centrosymmetric
+    (see Notes).
+    If no structuring element is provided,
+    one is automatically generated with a squared connectivity equal to
+    one.  That is, for a 2-D `input` array, the default structuring element
+    is::
+
+        [[0,1,0],
+         [1,1,1],
+         [0,1,0]]
+output : (None, data-type, array_like), optional
+    If `output` is a data type, it specifies the type of the resulting
+    labeled feature array.
+    If `output` is an array-like object, then `output` will be updated
+    with the labeled features from this function.  This function can
+    operate in-place, by passing output=input.
+    Note that the output must be able to store the largest label, or this
+    function will raise an Exception.
+
+Returns
+-------
+label : ndarray or int
+    An integer ndarray where each unique feature in `input` has a unique
+    label in the returned array.
+num_features : int
+    How many objects were found.
+
+    If `output` is None, this function returns a tuple of
+    (`labeled_array`, `num_features`).
+
+    If `output` is an ndarray, then it will be updated with values in
+    `labeled_array` and only `num_features` will be returned by this
+    function.
+
+See Also
+--------
+:func:`find_objects` : generate a list of slices for the labeled features (or objects); useful for finding features' position or dimensions
+
+Notes
+-----
+A centrosymmetric matrix is a matrix that is symmetric about the center.
+See [1]_ for more information.
+
+The `structure` matrix must be centrosymmetric to ensure
+two-way connections.
+For instance, if the `structure` matrix is not centrosymmetric
+and is defined as::
+
+    [[0,1,0],
+     [1,1,0],
+     [0,0,0]]
+
+and the `input` is::
+
+    [[1,2],
+     [0,3]]
+
+then the structure matrix would indicate the
+entry 2 in the input is connected to 1,
+but 1 is not connected to 2.
+
+**Array API Standard Support**
+
+`label` has experimental support for Python Array API Standard compatible
+backends in addition to NumPy. Please consider testing these features
+by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing
+CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following
+combinations of backend and device (or other capability) are supported.
+
+====================  ====================  ====================
+Library               CPU                   GPU
+====================  ====================  ====================
+NumPy                 ✅                     n/a                 
+CuPy                  n/a                   ✅                   
+PyTorch               ✅                     ⛔                   
+JAX                   ⚠️ no JIT             ⛔                   
+Dask                  ⚠️ computes graph     n/a                 
+====================  ====================  ====================
+
+
+
+See :ref:`dev-arrayapi` for more information.
+
+References
+----------
+.. [1] James R. Weaver, "Centrosymmetric (cross-symmetric)
+    matrices, their basic properties, eigenvalues, and
+    eigenvectors." The American Mathematical Monthly 92.10
+    (1985): 711-717.
+
+Examples
+--------
+Create an image with some features, then label it using the default
+(cross-shaped) structuring element:
+
+>>> from scipy.ndimage import label, generate_binary_structure
+>>> import numpy as np
+>>> a = np.array([[0,0,1,1,0,0],
+...               [0,0,0,1,0,0],
+...               [1,1,0,0,1,0],
+...               [0,0,0,1,0,0]])
+>>> labeled_array, num_features = label(a)
+
+Each of the 4 features are labeled with a different integer:
+
+>>> num_features
+4
+>>> labeled_array
+array([[0, 0, 1, 1, 0, 0],
+       [0, 0, 0, 1, 0, 0],
+       [2, 2, 0, 0, 3, 0],
+       [0, 0, 0, 4, 0, 0]], dtype=int32)
+
+Generate a structuring element that will consider features connected even
+if they touch diagonally:
+
+>>> s = generate_binary_structure(2,2)
+
+or,
+
+>>> s = [[1,1,1],
+...      [1,1,1],
+...      [1,1,1]]
+
+Label the image using the new structuring element:
+
+>>> labeled_array, num_features = label(a, structure=s)
+
+Show the 2 labeled features (note that features 1, 3, and 4 from above are
+now considered a single feature):
+
+>>> num_features
+2
+>>> labeled_array
+array([[0, 0, 1, 1, 0, 0],
+       [0, 0, 0, 1, 0, 0],
+       [2, 2, 0, 0, 1, 0],
+       [0, 0, 0, 1, 0, 0]], dtype=int32)

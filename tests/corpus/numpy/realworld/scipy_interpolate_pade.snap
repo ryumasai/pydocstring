@@ -1,0 +1,212 @@
+=== CST ===
+DOCUMENT@0..1138 {
+  SUMMARY@0..74 {
+    TEXT_LINE: "Return Pade approximation to a polynomial as the ratio of two polynomials."@0..74
+  }
+  NEWLINE: "\n"@74..75
+  BLANK_LINE: "\n"@75..76
+  DIRECTIVE@76..198 {
+    DIRECTIVE_MARKER: ".."@76..78
+    WHITESPACE: " "@78..79
+    DIRECTIVE_NAME: "deprecated"@79..89
+    DOUBLE_COLON: "::"@89..91
+    WHITESPACE: " "@91..92
+    ARGUMENT: "1.18.0"@92..98
+    NEWLINE: "\n"@98..99
+    WHITESPACE: "    "@99..103
+    DESCRIPTION@103..198 {
+      TEXT_LINE: "This function is deprecated and will be removed in SciPy 1.20.0. Use"@103..171
+      NEWLINE: "\n"@171..172
+      WHITESPACE: "    "@172..176
+      TEXT_LINE: "`mpmath.pade` instead."@176..198
+    }
+  }
+  NEWLINE: "\n"@198..199
+  BLANK_LINE: "\n"@199..200
+  SECTION@200..466 {
+    SECTION_HEADER@200..221 {
+      NAME: "Parameters"@200..210
+      NEWLINE: "\n"@210..211
+      UNDERLINE: "----------"@211..221
+    }
+    NEWLINE: "\n"@221..222
+    ENTRY@222..274 {
+      NAME: "an"@222..224
+      WHITESPACE: " "@224..225
+      COLON: ":"@225..226
+      WHITESPACE: " "@226..227
+      TYPE: "(N,) array_like"@227..242
+      NEWLINE: "\n"@242..243
+      WHITESPACE: "    "@243..247
+      DESCRIPTION@247..274 {
+        TEXT_LINE: "Taylor series coefficients."@247..274
+      }
+    }
+    NEWLINE: "\n"@274..275
+    ENTRY@275..342 {
+      NAME: "m"@275..276
+      WHITESPACE: " "@276..277
+      COLON: ":"@277..278
+      WHITESPACE: " "@278..279
+      TYPE: "int"@279..282
+      NEWLINE: "\n"@282..283
+      WHITESPACE: "    "@283..287
+      DESCRIPTION@287..342 {
+        TEXT_LINE: "The order of the returned approximating polynomial `q`."@287..342
+      }
+    }
+    NEWLINE: "\n"@342..343
+    ENTRY@343..466 {
+      NAME: "n"@343..344
+      WHITESPACE: " "@344..345
+      COLON: ":"@345..346
+      WHITESPACE: " "@346..347
+      TYPE: "int"@347..350
+      COMMA: ","@350..351
+      WHITESPACE: " "@351..352
+      OPTIONAL: "optional"@352..360
+      NEWLINE: "\n"@360..361
+      WHITESPACE: "    "@361..365
+      DESCRIPTION@365..466 {
+        TEXT_LINE: "The order of the returned approximating polynomial `p`. By default,"@365..432
+        NEWLINE: "\n"@432..433
+        WHITESPACE: "    "@433..437
+        TEXT_LINE: "the order is ``len(an)-1-m``."@437..466
+      }
+    }
+  }
+  NEWLINE: "\n"@466..467
+  BLANK_LINE: "\n"@467..468
+  SECTION@468..590 {
+    SECTION_HEADER@468..483 {
+      NAME: "Returns"@468..475
+      NEWLINE: "\n"@475..476
+      UNDERLINE: "-------"@476..483
+    }
+    NEWLINE: "\n"@483..484
+    ENTRY@484..590 {
+      NAME: "p, q"@484..488
+      WHITESPACE: " "@488..489
+      COLON: ":"@489..490
+      WHITESPACE: " "@490..491
+      TYPE: "Polynomial class"@491..507
+      NEWLINE: "\n"@507..508
+      WHITESPACE: "    "@508..512
+      DESCRIPTION@512..590 {
+        TEXT_LINE: "The Pade approximation of the polynomial defined by `an` is"@512..571
+        NEWLINE: "\n"@571..572
+        WHITESPACE: "    "@572..576
+        TEXT_LINE: "``p(x)/q(x)``."@576..590
+      }
+    }
+  }
+  NEWLINE: "\n"@590..591
+  BLANK_LINE: "\n"@591..592
+  SECTION@592..785 {
+    SECTION_HEADER@592..603 {
+      NAME: "Notes"@592..597
+      NEWLINE: "\n"@597..598
+      UNDERLINE: "-----"@598..603
+    }
+    NEWLINE: "\n"@603..604
+    BLANK_LINE: "\n"@604..605
+    DESCRIPTION@605..785 {
+      TEXT_LINE: "**Array API Standard Support**"@605..635
+      NEWLINE: "\n"@635..636
+      BLANK_LINE: "\n"@636..637
+      TEXT_LINE: "`pade` is not in-scope for support of Python Array API Standard compatible"@637..711
+      NEWLINE: "\n"@711..712
+      TEXT_LINE: "backends other than NumPy."@712..738
+      NEWLINE: "\n"@738..739
+      BLANK_LINE: "\n"@739..740
+      TEXT_LINE: "See :ref:`dev-arrayapi` for more information."@740..785
+    }
+  }
+  NEWLINE: "\n"@785..786
+  BLANK_LINE: "\n"@786..787
+  BLANK_LINE: "\n"@787..788
+  SECTION@788..1138 {
+    SECTION_HEADER@788..805 {
+      NAME: "Examples"@788..796
+      NEWLINE: "\n"@796..797
+      UNDERLINE: "--------"@797..805
+    }
+    NEWLINE: "\n"@805..806
+    DESCRIPTION@806..1138 {
+      TEXT_LINE: ">>> import numpy as np"@806..828
+      NEWLINE: "\n"@828..829
+      TEXT_LINE: ">>> from scipy.interpolate import pade"@829..867
+      NEWLINE: "\n"@867..868
+      TEXT_LINE: ">>> e_exp = [1.0, 1.0, 1.0/2.0, 1.0/6.0, 1.0/24.0, 1.0/120.0]"@868..929
+      NEWLINE: "\n"@929..930
+      TEXT_LINE: ">>> p, q = pade(e_exp, 2)"@930..955
+      NEWLINE: "\n"@955..956
+      BLANK_LINE: "\n"@956..957
+      TEXT_LINE: ">>> e_exp.reverse()"@957..976
+      NEWLINE: "\n"@976..977
+      TEXT_LINE: ">>> e_poly = np.poly1d(e_exp)"@977..1006
+      NEWLINE: "\n"@1006..1007
+      BLANK_LINE: "\n"@1007..1008
+      TEXT_LINE: "Compare ``e_poly(x)`` and the Pade approximation ``p(x)/q(x)``"@1008..1070
+      NEWLINE: "\n"@1070..1071
+      BLANK_LINE: "\n"@1071..1072
+      TEXT_LINE: ">>> e_poly(1)"@1072..1085
+      NEWLINE: "\n"@1085..1086
+      TEXT_LINE: "2.7166666666666668"@1086..1104
+      NEWLINE: "\n"@1104..1105
+      BLANK_LINE: "\n"@1105..1106
+      TEXT_LINE: ">>> p(1)/q(1)"@1106..1119
+      NEWLINE: "\n"@1119..1120
+      TEXT_LINE: "2.7179487179487181"@1120..1138
+    }
+  }
+}
+=== EMIT ===
+Return Pade approximation to a polynomial as the ratio of two polynomials.
+
+.. deprecated:: 1.18.0
+    This function is deprecated and will be removed in SciPy 1.20.0. Use
+        `mpmath.pade` instead.
+
+Parameters
+----------
+an : (N,) array_like
+    Taylor series coefficients.
+m : int
+    The order of the returned approximating polynomial `q`.
+n : int, optional
+    The order of the returned approximating polynomial `p`. By default,
+    the order is ``len(an)-1-m``.
+
+Returns
+-------
+p, q : Polynomial class
+    The Pade approximation of the polynomial defined by `an` is
+    ``p(x)/q(x)``.
+
+Notes
+-----
+**Array API Standard Support**
+
+`pade` is not in-scope for support of Python Array API Standard compatible
+backends other than NumPy.
+
+See :ref:`dev-arrayapi` for more information.
+
+Examples
+--------
+>>> import numpy as np
+>>> from scipy.interpolate import pade
+>>> e_exp = [1.0, 1.0, 1.0/2.0, 1.0/6.0, 1.0/24.0, 1.0/120.0]
+>>> p, q = pade(e_exp, 2)
+
+>>> e_exp.reverse()
+>>> e_poly = np.poly1d(e_exp)
+
+Compare ``e_poly(x)`` and the Pade approximation ``p(x)/q(x)``
+
+>>> e_poly(1)
+2.7166666666666668
+
+>>> p(1)/q(1)
+2.7179487179487181

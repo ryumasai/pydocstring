@@ -1,0 +1,58 @@
+Perform a median filter on an N-dimensional array.
+
+Apply a median filter to the input array using a local window-size
+given by `kernel_size`. The array will automatically be zero-padded.
+
+Parameters
+----------
+volume : array_like
+    An N-dimensional input array.
+kernel_size : array_like, optional
+    A scalar or an N-length list giving the size of the median filter
+    window in each dimension.  Elements of `kernel_size` should be odd.
+    If `kernel_size` is a scalar, then this scalar is used as the size in
+    each dimension. Default size is 3 for each dimension.
+
+Returns
+-------
+out : ndarray
+    An array the same size as input containing the median filtered
+    result.
+
+Warns
+-----
+UserWarning
+    If array size is smaller than kernel size along any dimension
+
+See Also
+--------
+
+:func:`scipy.ndimage.median_filter`
+    ..
+:func:`scipy.signal.medfilt2d`
+    ..
+
+Notes
+-----
+
+**Array API Standard Support**
+
+`medfilt` has experimental support for Python Array API Standard compatible
+backends in addition to NumPy. Please consider testing these features
+by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing
+CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following
+combinations of backend and device (or other capability) are supported.
+
+====================  ====================  ====================
+Library               CPU                   GPU
+====================  ====================  ====================
+NumPy                 ✅                     n/a                 
+CuPy                  n/a                   ✅                   
+PyTorch               ✅                     ⛔                   
+JAX                   ⚠️ no JIT             ⛔                   
+Dask                  ⚠️ computes graph     n/a                 
+====================  ====================  ====================
+
+
+
+See :ref:`dev-arrayapi` for more information.

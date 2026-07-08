@@ -1,0 +1,155 @@
+=== CST ===
+DOCUMENT@0..1219 {
+  SUMMARY@0..67 {
+    TEXT_LINE: "Adds a constraint, which will be enforced during program execution."@0..67
+  }
+  NEWLINE: "\n"@67..68
+  BLANK_LINE: "\n"@68..69
+  EXTENDED_SUMMARY@69..186 {
+    TEXT_LINE: "The constraint is validated when flags are initially parsed, and after each"@69..144
+    NEWLINE: "\n"@144..145
+    TEXT_LINE: "change of the corresponding flag's value."@145..186
+  }
+  NEWLINE: "\n"@186..187
+  BLANK_LINE: "\n"@187..188
+  SECTION@188..994 {
+    SECTION_HEADER@188..193 {
+      NAME: "Args"@188..192
+      COLON: ":"@192..193
+    }
+    NEWLINE: "\n"@193..194
+    WHITESPACE: "  "@194..196
+    ENTRY@196..297 {
+      NAME: "flag_name"@196..205
+      COLON: ":"@205..206
+      WHITESPACE: " "@206..207
+      DESCRIPTION@207..297 {
+        TEXT_LINE: "str | FlagHolder, name or holder of the flag to be checked."@207..266
+        NEWLINE: "\n"@266..267
+        WHITESPACE: "    "@267..271
+        TEXT_LINE: "Positional-only parameter."@271..297
+      }
+    }
+    NEWLINE: "\n"@297..298
+    WHITESPACE: "  "@298..300
+    ENTRY@300..735 {
+      NAME: "checker"@300..307
+      COLON: ":"@307..308
+      WHITESPACE: " "@308..309
+      DESCRIPTION@309..735 {
+        TEXT_LINE: "callable, a function to validate the flag."@309..351
+        NEWLINE: "\n"@351..352
+        BLANK_LINE: "\n"@352..353
+        WHITESPACE: "      "@353..359
+        TEXT_LINE: "* input - A single positional argument: The value of the corresponding"@359..429
+        NEWLINE: "\n"@429..430
+        WHITESPACE: "        "@430..438
+        TEXT_LINE: "flag (string, boolean, etc.  This value will be passed to checker"@438..503
+        NEWLINE: "\n"@503..504
+        WHITESPACE: "        "@504..512
+        TEXT_LINE: "by the library)."@512..528
+        NEWLINE: "\n"@528..529
+        WHITESPACE: "      "@529..535
+        TEXT_LINE: "* output - bool, True if validator constraint is satisfied."@535..594
+        NEWLINE: "\n"@594..595
+        WHITESPACE: "        "@595..603
+        TEXT_LINE: "If constraint is not satisfied, it should either ``return False`` or"@603..671
+        NEWLINE: "\n"@671..672
+        WHITESPACE: "        "@672..680
+        TEXT_LINE: "``raise flags.ValidationError(desired_error_message)``."@680..735
+      }
+    }
+    NEWLINE: "\n"@735..736
+    BLANK_LINE: "\n"@736..737
+    WHITESPACE: "  "@737..739
+    ENTRY@739..907 {
+      NAME: "message"@739..746
+      COLON: ":"@746..747
+      WHITESPACE: " "@747..748
+      DESCRIPTION@748..907 {
+        TEXT_LINE: "str, error text to be shown to the user if checker returns False."@748..813
+        NEWLINE: "\n"@813..814
+        WHITESPACE: "    "@814..818
+        TEXT_LINE: "If checker raises flags.ValidationError, message from the raised error"@818..888
+        NEWLINE: "\n"@888..889
+        WHITESPACE: "    "@889..893
+        TEXT_LINE: "will be shown."@893..907
+      }
+    }
+    NEWLINE: "\n"@907..908
+    WHITESPACE: "  "@908..910
+    ENTRY@910..994 {
+      NAME: "flag_values"@910..921
+      COLON: ":"@921..922
+      WHITESPACE: " "@922..923
+      DESCRIPTION@923..994 {
+        TEXT_LINE: "flags.FlagValues, optional FlagValues instance to validate"@923..981
+        NEWLINE: "\n"@981..982
+        WHITESPACE: "    "@982..986
+        TEXT_LINE: "against."@986..994
+      }
+    }
+  }
+  NEWLINE: "\n"@994..995
+  BLANK_LINE: "\n"@995..996
+  SECTION@996..1219 {
+    SECTION_HEADER@996..1003 {
+      NAME: "Raises"@996..1002
+      COLON: ":"@1002..1003
+    }
+    NEWLINE: "\n"@1003..1004
+    WHITESPACE: "  "@1004..1006
+    ENTRY@1006..1089 {
+      TYPE: "AttributeError"@1006..1020
+      COLON: ":"@1020..1021
+      WHITESPACE: " "@1021..1022
+      DESCRIPTION@1022..1089 {
+        TEXT_LINE: "Raised when flag_name is not registered as a valid flag"@1022..1077
+        NEWLINE: "\n"@1077..1078
+        WHITESPACE: "      "@1078..1084
+        TEXT_LINE: "name."@1084..1089
+      }
+    }
+    NEWLINE: "\n"@1089..1090
+    WHITESPACE: "  "@1090..1092
+    ENTRY@1092..1219 {
+      TYPE: "ValueError"@1092..1102
+      COLON: ":"@1102..1103
+      WHITESPACE: " "@1103..1104
+      DESCRIPTION@1104..1219 {
+        TEXT_LINE: "Raised when flag_values is non-default and does not match the"@1104..1165
+        NEWLINE: "\n"@1165..1166
+        WHITESPACE: "      "@1166..1172
+        TEXT_LINE: "FlagValues of the provided FlagHolder instance."@1172..1219
+      }
+    }
+  }
+}
+=== EMIT ===
+Adds a constraint, which will be enforced during program execution.
+
+The constraint is validated when flags are initially parsed, and after each
+change of the corresponding flag's value.
+
+Args:
+    flag_name: str | FlagHolder, name or holder of the flag to be checked.
+        Positional-only parameter.
+    checker: callable, a function to validate the flag.
+
+        * input - A single positional argument: The value of the corresponding
+          flag (string, boolean, etc.  This value will be passed to checker
+          by the library).
+        * output - bool, True if validator constraint is satisfied.
+          If constraint is not satisfied, it should either ``return False`` or
+          ``raise flags.ValidationError(desired_error_message)``.
+    message: str, error text to be shown to the user if checker returns False.
+        If checker raises flags.ValidationError, message from the raised error
+        will be shown.
+    flag_values: flags.FlagValues, optional FlagValues instance to validate
+        against.
+
+Raises:
+    AttributeError: Raised when flag_name is not registered as a valid flag
+        name.
+    ValueError: Raised when flag_values is non-default and does not match the
+        FlagValues of the provided FlagHolder instance.

@@ -1,0 +1,303 @@
+=== CST ===
+DOCUMENT@0..2486 {
+  SECTION@0..303 {
+    SECTION_HEADER@0..50 {
+      NAME: "dtype(dtype, align=False, copy=False, **kwargs)"@0..47
+      NEWLINE: "\n"@47..48
+      UNDERLINE: "--"@48..50
+    }
+    NEWLINE: "\n"@50..51
+    BLANK_LINE: "\n"@51..52
+    DESCRIPTION@52..303 {
+      TEXT_LINE: "dtype(dtype, align=False, copy=False, [metadata])"@52..101
+      NEWLINE: "\n"@101..102
+      BLANK_LINE: "\n"@102..103
+      TEXT_LINE: "Create a data type object."@103..129
+      NEWLINE: "\n"@129..130
+      BLANK_LINE: "\n"@130..131
+      TEXT_LINE: "A numpy array is homogeneous, and contains elements described by a"@131..197
+      NEWLINE: "\n"@197..198
+      TEXT_LINE: "dtype object. A dtype object can be constructed from different"@198..260
+      NEWLINE: "\n"@260..261
+      TEXT_LINE: "combinations of fundamental numeric types."@261..303
+    }
+  }
+  NEWLINE: "\n"@303..304
+  BLANK_LINE: "\n"@304..305
+  SECTION@305..908 {
+    SECTION_HEADER@305..326 {
+      NAME: "Parameters"@305..315
+      NEWLINE: "\n"@315..316
+      UNDERLINE: "----------"@316..326
+    }
+    NEWLINE: "\n"@326..327
+    ENTRY@327..382 {
+      NAME: "dtype"@327..332
+      NEWLINE: "\n"@332..333
+      WHITESPACE: "    "@333..337
+      DESCRIPTION@337..382 {
+        TEXT_LINE: "Object to be converted to a data type object."@337..382
+      }
+    }
+    NEWLINE: "\n"@382..383
+    ENTRY@383..682 {
+      NAME: "align"@383..388
+      WHITESPACE: " "@388..389
+      COLON: ":"@389..390
+      WHITESPACE: " "@390..391
+      TYPE: "bool"@391..395
+      COMMA: ","@395..396
+      WHITESPACE: " "@396..397
+      OPTIONAL: "optional"@397..405
+      NEWLINE: "\n"@405..406
+      WHITESPACE: "    "@406..410
+      DESCRIPTION@410..682 {
+        TEXT_LINE: "Add padding to the fields to match what a C compiler would output"@410..475
+        NEWLINE: "\n"@475..476
+        WHITESPACE: "    "@476..480
+        TEXT_LINE: "for a similar C-struct. Can be ``True`` only if `obj` is a dictionary"@480..549
+        NEWLINE: "\n"@549..550
+        WHITESPACE: "    "@550..554
+        TEXT_LINE: "or a comma-separated string. If a struct dtype is being created,"@554..618
+        NEWLINE: "\n"@618..619
+        WHITESPACE: "    "@619..623
+        TEXT_LINE: "this also sets a sticky alignment flag ``isalignedstruct``."@623..682
+      }
+    }
+    NEWLINE: "\n"@682..683
+    ENTRY@683..834 {
+      NAME: "copy"@683..687
+      WHITESPACE: " "@687..688
+      COLON: ":"@688..689
+      WHITESPACE: " "@689..690
+      TYPE: "bool"@690..694
+      COMMA: ","@694..695
+      WHITESPACE: " "@695..696
+      OPTIONAL: "optional"@696..704
+      NEWLINE: "\n"@704..705
+      WHITESPACE: "    "@705..709
+      DESCRIPTION@709..834 {
+        TEXT_LINE: "Make a new copy of the data-type object. If ``False``, the result"@709..774
+        NEWLINE: "\n"@774..775
+        WHITESPACE: "    "@775..779
+        TEXT_LINE: "may just be a reference to a built-in data-type object."@779..834
+      }
+    }
+    NEWLINE: "\n"@834..835
+    ENTRY@835..908 {
+      NAME: "metadata"@835..843
+      WHITESPACE: " "@843..844
+      COLON: ":"@844..845
+      WHITESPACE: " "@845..846
+      TYPE: "dict"@846..850
+      COMMA: ","@850..851
+      WHITESPACE: " "@851..852
+      OPTIONAL: "optional"@852..860
+      NEWLINE: "\n"@860..861
+      WHITESPACE: "    "@861..865
+      DESCRIPTION@865..908 {
+        TEXT_LINE: "An optional dictionary with dtype metadata."@865..908
+      }
+    }
+  }
+  NEWLINE: "\n"@908..909
+  BLANK_LINE: "\n"@909..910
+  SECTION@910..939 {
+    SECTION_HEADER@910..927 {
+      NAME: "See also"@910..918
+      NEWLINE: "\n"@918..919
+      UNDERLINE: "--------"@919..927
+    }
+    NEWLINE: "\n"@927..928
+    ENTRY@928..939 {
+      NAME: "result_type"@928..939
+    }
+  }
+  NEWLINE: "\n"@939..940
+  BLANK_LINE: "\n"@940..941
+  SECTION@941..2486 {
+    SECTION_HEADER@941..958 {
+      NAME: "Examples"@941..949
+      NEWLINE: "\n"@949..950
+      UNDERLINE: "--------"@950..958
+    }
+    NEWLINE: "\n"@958..959
+    DESCRIPTION@959..2486 {
+      TEXT_LINE: "Using array-scalar type:"@959..983
+      NEWLINE: "\n"@983..984
+      BLANK_LINE: "\n"@984..985
+      TEXT_LINE: ">>> import numpy as np"@985..1007
+      NEWLINE: "\n"@1007..1008
+      TEXT_LINE: ">>> np.dtype(np.int16)"@1008..1030
+      NEWLINE: "\n"@1030..1031
+      TEXT_LINE: "dtype('int16')"@1031..1045
+      NEWLINE: "\n"@1045..1046
+      BLANK_LINE: "\n"@1046..1047
+      TEXT_LINE: "Structured type, one field name 'f1', containing int16:"@1047..1102
+      NEWLINE: "\n"@1102..1103
+      BLANK_LINE: "\n"@1103..1104
+      TEXT_LINE: ">>> np.dtype([('f1', np.int16)])"@1104..1136
+      NEWLINE: "\n"@1136..1137
+      TEXT_LINE: "dtype([('f1', '<i2')])"@1137..1159
+      NEWLINE: "\n"@1159..1160
+      BLANK_LINE: "\n"@1160..1161
+      TEXT_LINE: "Structured type, one field named 'f1', in itself containing a structured"@1161..1233
+      NEWLINE: "\n"@1233..1234
+      TEXT_LINE: "type with one field:"@1234..1254
+      NEWLINE: "\n"@1254..1255
+      BLANK_LINE: "\n"@1255..1256
+      TEXT_LINE: ">>> np.dtype([('f1', [('f1', np.int16)])])"@1256..1298
+      NEWLINE: "\n"@1298..1299
+      TEXT_LINE: "dtype([('f1', [('f1', '<i2')])])"@1299..1331
+      NEWLINE: "\n"@1331..1332
+      BLANK_LINE: "\n"@1332..1333
+      TEXT_LINE: "Structured type, two fields: the first field contains an unsigned int, the"@1333..1407
+      NEWLINE: "\n"@1407..1408
+      TEXT_LINE: "second an int32:"@1408..1424
+      NEWLINE: "\n"@1424..1425
+      BLANK_LINE: "\n"@1425..1426
+      TEXT_LINE: ">>> np.dtype([('f1', np.uint64), ('f2', np.int32)])"@1426..1477
+      NEWLINE: "\n"@1477..1478
+      TEXT_LINE: "dtype([('f1', '<u8'), ('f2', '<i4')])"@1478..1515
+      NEWLINE: "\n"@1515..1516
+      BLANK_LINE: "\n"@1516..1517
+      TEXT_LINE: "Using array-protocol type strings:"@1517..1551
+      NEWLINE: "\n"@1551..1552
+      BLANK_LINE: "\n"@1552..1553
+      TEXT_LINE: ">>> np.dtype([('a','f8'),('b','S10')])"@1553..1591
+      NEWLINE: "\n"@1591..1592
+      TEXT_LINE: "dtype([('a', '<f8'), ('b', 'S10')])"@1592..1627
+      NEWLINE: "\n"@1627..1628
+      BLANK_LINE: "\n"@1628..1629
+      TEXT_LINE: "Using comma-separated field formats.  The shape is (2,3):"@1629..1686
+      NEWLINE: "\n"@1686..1687
+      BLANK_LINE: "\n"@1687..1688
+      TEXT_LINE: ">>> np.dtype(\"i4, (2,3)f8\")"@1688..1715
+      NEWLINE: "\n"@1715..1716
+      TEXT_LINE: "dtype([('f0', '<i4'), ('f1', '<f8', (2, 3))])"@1716..1761
+      NEWLINE: "\n"@1761..1762
+      BLANK_LINE: "\n"@1762..1763
+      TEXT_LINE: "Using tuples.  ``int`` is a fixed type, 3 the field's shape.  ``void``"@1763..1833
+      NEWLINE: "\n"@1833..1834
+      TEXT_LINE: "is a flexible type, here of size 10:"@1834..1870
+      NEWLINE: "\n"@1870..1871
+      BLANK_LINE: "\n"@1871..1872
+      TEXT_LINE: ">>> np.dtype([('hello',(np.int64,3)),('world',np.void,10)])"@1872..1931
+      NEWLINE: "\n"@1931..1932
+      TEXT_LINE: "dtype([('hello', '<i8', (3,)), ('world', 'V10')])"@1932..1981
+      NEWLINE: "\n"@1981..1982
+      BLANK_LINE: "\n"@1982..1983
+      TEXT_LINE: "Subdivide ``int16`` into 2 ``int8``'s, called x and y.  0 and 1 are"@1983..2050
+      NEWLINE: "\n"@2050..2051
+      TEXT_LINE: "the offsets in bytes:"@2051..2072
+      NEWLINE: "\n"@2072..2073
+      BLANK_LINE: "\n"@2073..2074
+      TEXT_LINE: ">>> np.dtype((np.int16, {'x':(np.int8,0), 'y':(np.int8,1)}))"@2074..2134
+      NEWLINE: "\n"@2134..2135
+      TEXT_LINE: "dtype((numpy.int16, [('x', 'i1'), ('y', 'i1')]))"@2135..2183
+      NEWLINE: "\n"@2183..2184
+      BLANK_LINE: "\n"@2184..2185
+      TEXT_LINE: "Using dictionaries.  Two fields named 'gender' and 'age':"@2185..2242
+      NEWLINE: "\n"@2242..2243
+      BLANK_LINE: "\n"@2243..2244
+      TEXT_LINE: ">>> np.dtype({'names':['gender','age'], 'formats':['S1',np.uint8]})"@2244..2311
+      NEWLINE: "\n"@2311..2312
+      TEXT_LINE: "dtype([('gender', 'S1'), ('age', 'u1')])"@2312..2352
+      NEWLINE: "\n"@2352..2353
+      BLANK_LINE: "\n"@2353..2354
+      TEXT_LINE: "Offsets in bytes, here 0 and 25:"@2354..2386
+      NEWLINE: "\n"@2386..2387
+      BLANK_LINE: "\n"@2387..2388
+      TEXT_LINE: ">>> np.dtype({'surname':('S25',0),'age':(np.uint8,25)})"@2388..2443
+      NEWLINE: "\n"@2443..2444
+      TEXT_LINE: "dtype([('surname', 'S25'), ('age', 'u1')])"@2444..2486
+    }
+  }
+}
+=== EMIT ===
+
+dtype(dtype, align=False, copy=False, **kwargs)
+-----------------------------------------------
+dtype(dtype, align=False, copy=False, [metadata])
+
+Create a data type object.
+
+A numpy array is homogeneous, and contains elements described by a
+dtype object. A dtype object can be constructed from different
+combinations of fundamental numeric types.
+
+Parameters
+----------
+dtype
+    Object to be converted to a data type object.
+align : bool, optional
+    Add padding to the fields to match what a C compiler would output
+    for a similar C-struct. Can be ``True`` only if `obj` is a dictionary
+    or a comma-separated string. If a struct dtype is being created,
+    this also sets a sticky alignment flag ``isalignedstruct``.
+copy : bool, optional
+    Make a new copy of the data-type object. If ``False``, the result
+    may just be a reference to a built-in data-type object.
+metadata : dict, optional
+    An optional dictionary with dtype metadata.
+
+See Also
+--------
+result_type
+
+Examples
+--------
+Using array-scalar type:
+
+>>> import numpy as np
+>>> np.dtype(np.int16)
+dtype('int16')
+
+Structured type, one field name 'f1', containing int16:
+
+>>> np.dtype([('f1', np.int16)])
+dtype([('f1', '<i2')])
+
+Structured type, one field named 'f1', in itself containing a structured
+type with one field:
+
+>>> np.dtype([('f1', [('f1', np.int16)])])
+dtype([('f1', [('f1', '<i2')])])
+
+Structured type, two fields: the first field contains an unsigned int, the
+second an int32:
+
+>>> np.dtype([('f1', np.uint64), ('f2', np.int32)])
+dtype([('f1', '<u8'), ('f2', '<i4')])
+
+Using array-protocol type strings:
+
+>>> np.dtype([('a','f8'),('b','S10')])
+dtype([('a', '<f8'), ('b', 'S10')])
+
+Using comma-separated field formats.  The shape is (2,3):
+
+>>> np.dtype("i4, (2,3)f8")
+dtype([('f0', '<i4'), ('f1', '<f8', (2, 3))])
+
+Using tuples.  ``int`` is a fixed type, 3 the field's shape.  ``void``
+is a flexible type, here of size 10:
+
+>>> np.dtype([('hello',(np.int64,3)),('world',np.void,10)])
+dtype([('hello', '<i8', (3,)), ('world', 'V10')])
+
+Subdivide ``int16`` into 2 ``int8``'s, called x and y.  0 and 1 are
+the offsets in bytes:
+
+>>> np.dtype((np.int16, {'x':(np.int8,0), 'y':(np.int8,1)}))
+dtype((numpy.int16, [('x', 'i1'), ('y', 'i1')]))
+
+Using dictionaries.  Two fields named 'gender' and 'age':
+
+>>> np.dtype({'names':['gender','age'], 'formats':['S1',np.uint8]})
+dtype([('gender', 'S1'), ('age', 'u1')])
+
+Offsets in bytes, here 0 and 25:
+
+>>> np.dtype({'surname':('S25',0),'age':(np.uint8,25)})
+dtype([('surname', 'S25'), ('age', 'u1')])

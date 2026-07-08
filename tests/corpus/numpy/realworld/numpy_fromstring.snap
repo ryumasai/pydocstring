@@ -1,0 +1,297 @@
+=== CST ===
+DOCUMENT@0..2019 {
+  SUMMARY@0..65 {
+    TEXT_LINE: "fromstring(string, dtype=np.float64, count=-1, *, sep, like=None)"@0..65
+  }
+  NEWLINE: "\n"@65..66
+  BLANK_LINE: "\n"@66..67
+  EXTENDED_SUMMARY@67..122 {
+    TEXT_LINE: "A new 1-D array initialized from text data in a string."@67..122
+  }
+  NEWLINE: "\n"@122..123
+  BLANK_LINE: "\n"@123..124
+  SECTION@124..1624 {
+    SECTION_HEADER@124..145 {
+      NAME: "Parameters"@124..134
+      NEWLINE: "\n"@134..135
+      UNDERLINE: "----------"@135..145
+    }
+    NEWLINE: "\n"@145..146
+    ENTRY@146..192 {
+      NAME: "string"@146..152
+      WHITESPACE: " "@152..153
+      COLON: ":"@153..154
+      WHITESPACE: " "@154..155
+      TYPE: "str"@155..158
+      NEWLINE: "\n"@158..159
+      WHITESPACE: "    "@159..163
+      DESCRIPTION@163..192 {
+        TEXT_LINE: "A string containing the data."@163..192
+      }
+    }
+    NEWLINE: "\n"@192..193
+    ENTRY@193..430 {
+      NAME: "dtype"@193..198
+      WHITESPACE: " "@198..199
+      COLON: ":"@199..200
+      WHITESPACE: " "@200..201
+      TYPE: "data-type"@201..210
+      COMMA: ","@210..211
+      WHITESPACE: " "@211..212
+      OPTIONAL: "optional"@212..220
+      NEWLINE: "\n"@220..221
+      WHITESPACE: "    "@221..225
+      DESCRIPTION@225..430 {
+        TEXT_LINE: "The data type of the array; default: `numpy.float64`.  For binary input data,"@225..302
+        NEWLINE: "\n"@302..303
+        WHITESPACE: "    "@303..307
+        TEXT_LINE: "the data must be in exactly this format. Most builtin numeric types are"@307..378
+        NEWLINE: "\n"@378..379
+        WHITESPACE: "    "@379..383
+        TEXT_LINE: "supported and extension types may be supported."@383..430
+      }
+    }
+    NEWLINE: "\n"@430..431
+    ENTRY@431..610 {
+      NAME: "count"@431..436
+      WHITESPACE: " "@436..437
+      COLON: ":"@437..438
+      WHITESPACE: " "@438..439
+      TYPE: "int"@439..442
+      COMMA: ","@442..443
+      WHITESPACE: " "@443..444
+      OPTIONAL: "optional"@444..452
+      NEWLINE: "\n"@452..453
+      WHITESPACE: "    "@453..457
+      DESCRIPTION@457..610 {
+        TEXT_LINE: "Read this number of `dtype` elements from the data.  If this is"@457..520
+        NEWLINE: "\n"@520..521
+        WHITESPACE: "    "@521..525
+        TEXT_LINE: "negative (the default), the count will be determined from the"@525..586
+        NEWLINE: "\n"@586..587
+        WHITESPACE: "    "@587..591
+        TEXT_LINE: "length of the data."@591..610
+      }
+    }
+    NEWLINE: "\n"@610..611
+    ENTRY@611..1242 {
+      NAME: "sep"@611..614
+      WHITESPACE: " "@614..615
+      COLON: ":"@615..616
+      WHITESPACE: " "@616..617
+      TYPE: "str"@617..620
+      COMMA: ","@620..621
+      WHITESPACE: " "@621..622
+      OPTIONAL: "optional"@622..630
+      NEWLINE: "\n"@630..631
+      WHITESPACE: "    "@631..635
+      DESCRIPTION@635..1242 {
+        TEXT_LINE: "The string separating numbers in the data; extra whitespace between"@635..702
+        NEWLINE: "\n"@702..703
+        WHITESPACE: "    "@703..707
+        TEXT_LINE: "elements is also ignored."@707..732
+        NEWLINE: "\n"@732..733
+        BLANK_LINE: "\n"@733..734
+        WHITESPACE: "    "@734..738
+        TEXT_LINE: ".. deprecated:: 1.14"@738..758
+        NEWLINE: "\n"@758..759
+        WHITESPACE: "        "@759..767
+        TEXT_LINE: "Passing ``sep=''``, the default, is deprecated since it will"@767..827
+        NEWLINE: "\n"@827..828
+        WHITESPACE: "        "@828..836
+        TEXT_LINE: "trigger the deprecated binary mode of this function. This mode"@836..898
+        NEWLINE: "\n"@898..899
+        WHITESPACE: "        "@899..907
+        TEXT_LINE: "interprets `string` as binary bytes, rather than ASCII text with"@907..971
+        NEWLINE: "\n"@971..972
+        WHITESPACE: "        "@972..980
+        TEXT_LINE: "decimal numbers, an operation which is better spelt"@980..1031
+        NEWLINE: "\n"@1031..1032
+        WHITESPACE: "        "@1032..1040
+        TEXT_LINE: "``frombuffer(string, dtype, count)``. If `string` contains unicode"@1040..1106
+        NEWLINE: "\n"@1106..1107
+        WHITESPACE: "        "@1107..1115
+        TEXT_LINE: "text, the binary mode of `fromstring` will first encode it into"@1115..1178
+        NEWLINE: "\n"@1178..1179
+        WHITESPACE: "        "@1179..1187
+        TEXT_LINE: "bytes using utf-8, which will not produce sane results."@1187..1242
+      }
+    }
+    NEWLINE: "\n"@1242..1243
+    BLANK_LINE: "\n"@1243..1244
+    ENTRY@1244..1624 {
+      NAME: "like"@1244..1248
+      WHITESPACE: " "@1248..1249
+      COLON: ":"@1249..1250
+      WHITESPACE: " "@1250..1251
+      TYPE: "array_like"@1251..1261
+      COMMA: ","@1261..1262
+      WHITESPACE: " "@1262..1263
+      OPTIONAL: "optional"@1263..1271
+      NEWLINE: "\n"@1271..1272
+      WHITESPACE: "    "@1272..1276
+      DESCRIPTION@1276..1624 {
+        TEXT_LINE: "Reference object to allow the creation of arrays which are not"@1276..1338
+        NEWLINE: "\n"@1338..1339
+        WHITESPACE: "    "@1339..1343
+        TEXT_LINE: "NumPy arrays. If an array-like passed in as ``like`` supports"@1343..1404
+        NEWLINE: "\n"@1404..1405
+        WHITESPACE: "    "@1405..1409
+        TEXT_LINE: "the ``__array_function__`` protocol, the result will be defined"@1409..1472
+        NEWLINE: "\n"@1472..1473
+        WHITESPACE: "    "@1473..1477
+        TEXT_LINE: "by it. In this case, it ensures the creation of an array object"@1477..1540
+        NEWLINE: "\n"@1540..1541
+        WHITESPACE: "    "@1541..1545
+        TEXT_LINE: "compatible with that passed in via this argument."@1545..1594
+        NEWLINE: "\n"@1594..1595
+        BLANK_LINE: "\n"@1595..1596
+        WHITESPACE: "    "@1596..1600
+        TEXT_LINE: ".. versionadded:: 1.20.0"@1600..1624
+      }
+    }
+  }
+  NEWLINE: "\n"@1624..1625
+  BLANK_LINE: "\n"@1625..1626
+  SECTION@1626..1682 {
+    SECTION_HEADER@1626..1641 {
+      NAME: "Returns"@1626..1633
+      NEWLINE: "\n"@1633..1634
+      UNDERLINE: "-------"@1634..1641
+    }
+    NEWLINE: "\n"@1641..1642
+    ENTRY@1642..1682 {
+      NAME: "arr"@1642..1645
+      WHITESPACE: " "@1645..1646
+      COLON: ":"@1646..1647
+      WHITESPACE: " "@1647..1648
+      TYPE: "ndarray"@1648..1655
+      NEWLINE: "\n"@1655..1656
+      WHITESPACE: "    "@1656..1660
+      DESCRIPTION@1660..1682 {
+        TEXT_LINE: "The constructed array."@1660..1682
+      }
+    }
+  }
+  NEWLINE: "\n"@1682..1683
+  BLANK_LINE: "\n"@1683..1684
+  SECTION@1684..1800 {
+    SECTION_HEADER@1684..1697 {
+      NAME: "Raises"@1684..1690
+      NEWLINE: "\n"@1690..1691
+      UNDERLINE: "------"@1691..1697
+    }
+    NEWLINE: "\n"@1697..1698
+    ENTRY@1698..1800 {
+      TYPE: "ValueError"@1698..1708
+      NEWLINE: "\n"@1708..1709
+      WHITESPACE: "    "@1709..1713
+      DESCRIPTION@1713..1800 {
+        TEXT_LINE: "If the string is not the correct size to satisfy the requested"@1713..1775
+        NEWLINE: "\n"@1775..1776
+        WHITESPACE: "    "@1776..1780
+        TEXT_LINE: "`dtype` and `count`."@1780..1800
+      }
+    }
+  }
+  NEWLINE: "\n"@1800..1801
+  BLANK_LINE: "\n"@1801..1802
+  SECTION@1802..1850 {
+    SECTION_HEADER@1802..1819 {
+      NAME: "See Also"@1802..1810
+      NEWLINE: "\n"@1810..1811
+      UNDERLINE: "--------"@1811..1819
+    }
+    NEWLINE: "\n"@1819..1820
+    ENTRY@1820..1850 {
+      NAME: "frombuffer"@1820..1830
+      COMMA: ","@1830..1831
+      WHITESPACE: " "@1831..1832
+      NAME: "fromfile"@1832..1840
+      COMMA: ","@1840..1841
+      WHITESPACE: " "@1841..1842
+      NAME: "fromiter"@1842..1850
+    }
+  }
+  NEWLINE: "\n"@1850..1851
+  BLANK_LINE: "\n"@1851..1852
+  SECTION@1852..2019 {
+    SECTION_HEADER@1852..1869 {
+      NAME: "Examples"@1852..1860
+      NEWLINE: "\n"@1860..1861
+      UNDERLINE: "--------"@1861..1869
+    }
+    NEWLINE: "\n"@1869..1870
+    DESCRIPTION@1870..2019 {
+      TEXT_LINE: ">>> import numpy as np"@1870..1892
+      NEWLINE: "\n"@1892..1893
+      TEXT_LINE: ">>> np.fromstring('1 2', dtype=np.int_, sep=' ')"@1893..1941
+      NEWLINE: "\n"@1941..1942
+      TEXT_LINE: "array([1, 2])"@1942..1955
+      NEWLINE: "\n"@1955..1956
+      TEXT_LINE: ">>> np.fromstring('1, 2', dtype=np.int_, sep=',')"@1956..2005
+      NEWLINE: "\n"@2005..2006
+      TEXT_LINE: "array([1, 2])"@2006..2019
+    }
+  }
+}
+=== EMIT ===
+fromstring(string, dtype=np.float64, count=-1, *, sep, like=None)
+
+A new 1-D array initialized from text data in a string.
+
+Parameters
+----------
+string : str
+    A string containing the data.
+dtype : data-type, optional
+    The data type of the array; default: `numpy.float64`.  For binary input data,
+    the data must be in exactly this format. Most builtin numeric types are
+    supported and extension types may be supported.
+count : int, optional
+    Read this number of `dtype` elements from the data.  If this is
+    negative (the default), the count will be determined from the
+    length of the data.
+sep : str, optional
+    The string separating numbers in the data; extra whitespace between
+    elements is also ignored.
+
+    .. deprecated:: 1.14
+        Passing ``sep=''``, the default, is deprecated since it will
+        trigger the deprecated binary mode of this function. This mode
+        interprets `string` as binary bytes, rather than ASCII text with
+        decimal numbers, an operation which is better spelt
+        ``frombuffer(string, dtype, count)``. If `string` contains unicode
+        text, the binary mode of `fromstring` will first encode it into
+        bytes using utf-8, which will not produce sane results.
+like : array_like, optional
+    Reference object to allow the creation of arrays which are not
+    NumPy arrays. If an array-like passed in as ``like`` supports
+    the ``__array_function__`` protocol, the result will be defined
+    by it. In this case, it ensures the creation of an array object
+    compatible with that passed in via this argument.
+
+    .. versionadded:: 1.20.0
+
+Returns
+-------
+arr : ndarray
+    The constructed array.
+
+Raises
+------
+ValueError
+    If the string is not the correct size to satisfy the requested
+    `dtype` and `count`.
+
+See Also
+--------
+frombuffer, fromfile, fromiter
+
+Examples
+--------
+>>> import numpy as np
+>>> np.fromstring('1 2', dtype=np.int_, sep=' ')
+array([1, 2])
+>>> np.fromstring('1, 2', dtype=np.int_, sep=',')
+array([1, 2])

@@ -1,0 +1,437 @@
+=== CST ===
+DOCUMENT@0..3169 {
+  SUMMARY@0..55 {
+    TEXT_LINE: "Return evenly spaced numbers over a specified interval."@0..55
+  }
+  NEWLINE: "\n"@55..56
+  BLANK_LINE: "\n"@56..57
+  EXTENDED_SUMMARY@57..426 {
+    TEXT_LINE: "Returns `num` evenly spaced samples, calculated over the"@57..113
+    NEWLINE: "\n"@113..114
+    TEXT_LINE: "interval [`start`, `stop`]."@114..141
+    NEWLINE: "\n"@141..142
+    BLANK_LINE: "\n"@142..143
+    TEXT_LINE: "The endpoint of the interval can optionally be excluded."@143..199
+    NEWLINE: "\n"@199..200
+    BLANK_LINE: "\n"@200..201
+    TEXT_LINE: ".. versionchanged:: 1.20.0"@201..227
+    NEWLINE: "\n"@227..228
+    WHITESPACE: "    "@228..232
+    TEXT_LINE: "Values are rounded towards ``-inf`` instead of ``0`` when an"@232..292
+    NEWLINE: "\n"@292..293
+    WHITESPACE: "    "@293..297
+    TEXT_LINE: "integer ``dtype`` is specified. The old behavior can"@297..349
+    NEWLINE: "\n"@349..350
+    WHITESPACE: "    "@350..354
+    TEXT_LINE: "still be obtained with ``np.linspace(start, stop, num).astype(np.int_)``"@354..426
+  }
+  NEWLINE: "\n"@426..427
+  BLANK_LINE: "\n"@427..428
+  SECTION@428..1815 {
+    SECTION_HEADER@428..449 {
+      NAME: "Parameters"@428..438
+      NEWLINE: "\n"@438..439
+      UNDERLINE: "----------"@439..449
+    }
+    NEWLINE: "\n"@449..450
+    ENTRY@450..508 {
+      NAME: "start"@450..455
+      WHITESPACE: " "@455..456
+      COLON: ":"@456..457
+      WHITESPACE: " "@457..458
+      TYPE: "array_like"@458..468
+      NEWLINE: "\n"@468..469
+      WHITESPACE: "    "@469..473
+      DESCRIPTION@473..508 {
+        TEXT_LINE: "The starting value of the sequence."@473..508
+      }
+    }
+    NEWLINE: "\n"@508..509
+    ENTRY@509..789 {
+      NAME: "stop"@509..513
+      WHITESPACE: " "@513..514
+      COLON: ":"@514..515
+      WHITESPACE: " "@515..516
+      TYPE: "array_like"@516..526
+      NEWLINE: "\n"@526..527
+      WHITESPACE: "    "@527..531
+      DESCRIPTION@531..789 {
+        TEXT_LINE: "The end value of the sequence, unless `endpoint` is set to False."@531..596
+        NEWLINE: "\n"@596..597
+        WHITESPACE: "    "@597..601
+        TEXT_LINE: "In that case, the sequence consists of all but the last of ``num + 1``"@601..671
+        NEWLINE: "\n"@671..672
+        WHITESPACE: "    "@672..676
+        TEXT_LINE: "evenly spaced samples, so that `stop` is excluded.  Note that the step"@676..746
+        NEWLINE: "\n"@746..747
+        WHITESPACE: "    "@747..751
+        TEXT_LINE: "size changes when `endpoint` is False."@751..789
+      }
+    }
+    NEWLINE: "\n"@789..790
+    ENTRY@790..881 {
+      NAME: "num"@790..793
+      WHITESPACE: " "@793..794
+      COLON: ":"@794..795
+      WHITESPACE: " "@795..796
+      TYPE: "int"@796..799
+      COMMA: ","@799..800
+      WHITESPACE: " "@800..801
+      OPTIONAL: "optional"@801..809
+      NEWLINE: "\n"@809..810
+      WHITESPACE: "    "@810..814
+      DESCRIPTION@814..881 {
+        TEXT_LINE: "Number of samples to generate. Default is 50. Must be non-negative."@814..881
+      }
+    }
+    NEWLINE: "\n"@881..882
+    ENTRY@882..999 {
+      NAME: "endpoint"@882..890
+      WHITESPACE: " "@890..891
+      COLON: ":"@891..892
+      WHITESPACE: " "@892..893
+      TYPE: "bool"@893..897
+      COMMA: ","@897..898
+      WHITESPACE: " "@898..899
+      OPTIONAL: "optional"@899..907
+      NEWLINE: "\n"@907..908
+      WHITESPACE: "    "@908..912
+      DESCRIPTION@912..999 {
+        TEXT_LINE: "If True, `stop` is the last sample. Otherwise, it is not included."@912..978
+        NEWLINE: "\n"@978..979
+        WHITESPACE: "    "@979..983
+        TEXT_LINE: "Default is True."@983..999
+      }
+    }
+    NEWLINE: "\n"@999..1000
+    ENTRY@1000..1114 {
+      NAME: "retstep"@1000..1007
+      WHITESPACE: " "@1007..1008
+      COLON: ":"@1008..1009
+      WHITESPACE: " "@1009..1010
+      TYPE: "bool"@1010..1014
+      COMMA: ","@1014..1015
+      WHITESPACE: " "@1015..1016
+      OPTIONAL: "optional"@1016..1024
+      NEWLINE: "\n"@1024..1025
+      WHITESPACE: "    "@1025..1029
+      DESCRIPTION@1029..1114 {
+        TEXT_LINE: "If True, return (`samples`, `step`), where `step` is the spacing"@1029..1093
+        NEWLINE: "\n"@1093..1094
+        WHITESPACE: "    "@1094..1098
+        TEXT_LINE: "between samples."@1098..1114
+      }
+    }
+    NEWLINE: "\n"@1114..1115
+    ENTRY@1115..1382 {
+      NAME: "dtype"@1115..1120
+      WHITESPACE: " "@1120..1121
+      COLON: ":"@1121..1122
+      WHITESPACE: " "@1122..1123
+      TYPE: "dtype"@1123..1128
+      COMMA: ","@1128..1129
+      WHITESPACE: " "@1129..1130
+      OPTIONAL: "optional"@1130..1138
+      NEWLINE: "\n"@1138..1139
+      WHITESPACE: "    "@1139..1143
+      DESCRIPTION@1143..1382 {
+        TEXT_LINE: "The type of the output array.  If `dtype` is not given, the data type"@1143..1212
+        NEWLINE: "\n"@1212..1213
+        WHITESPACE: "    "@1213..1217
+        TEXT_LINE: "is inferred from `start` and `stop`. The inferred dtype will never be"@1217..1286
+        NEWLINE: "\n"@1286..1287
+        WHITESPACE: "    "@1287..1291
+        TEXT_LINE: "an integer; `float` is chosen even if the arguments would produce an"@1291..1359
+        NEWLINE: "\n"@1359..1360
+        WHITESPACE: "    "@1360..1364
+        TEXT_LINE: "array of integers."@1364..1382
+      }
+    }
+    NEWLINE: "\n"@1382..1383
+    ENTRY@1383..1623 {
+      NAME: "axis"@1383..1387
+      WHITESPACE: " "@1387..1388
+      COLON: ":"@1388..1389
+      WHITESPACE: " "@1389..1390
+      TYPE: "int"@1390..1393
+      COMMA: ","@1393..1394
+      WHITESPACE: " "@1394..1395
+      OPTIONAL: "optional"@1395..1403
+      NEWLINE: "\n"@1403..1404
+      WHITESPACE: "    "@1404..1408
+      DESCRIPTION@1408..1623 {
+        TEXT_LINE: "The axis in the result to store the samples.  Relevant only if start"@1408..1476
+        NEWLINE: "\n"@1476..1477
+        WHITESPACE: "    "@1477..1481
+        TEXT_LINE: "or stop are array-like.  By default (0), the samples will be along a"@1481..1549
+        NEWLINE: "\n"@1549..1550
+        WHITESPACE: "    "@1550..1554
+        TEXT_LINE: "new axis inserted at the beginning. Use -1 to get an axis at the end."@1554..1623
+      }
+    }
+    NEWLINE: "\n"@1623..1624
+    ENTRY@1624..1815 {
+      NAME: "device"@1624..1630
+      WHITESPACE: " "@1630..1631
+      COLON: ":"@1631..1632
+      WHITESPACE: " "@1632..1633
+      TYPE: "str"@1633..1636
+      COMMA: ","@1636..1637
+      WHITESPACE: " "@1637..1638
+      OPTIONAL: "optional"@1638..1646
+      NEWLINE: "\n"@1646..1647
+      WHITESPACE: "    "@1647..1651
+      DESCRIPTION@1651..1815 {
+        TEXT_LINE: "The device on which to place the created array. Default: None."@1651..1713
+        NEWLINE: "\n"@1713..1714
+        WHITESPACE: "    "@1714..1718
+        TEXT_LINE: "For Array-API interoperability only, so must be ``\"cpu\"`` if passed."@1718..1786
+        NEWLINE: "\n"@1786..1787
+        BLANK_LINE: "\n"@1787..1788
+        WHITESPACE: "    "@1788..1792
+        TEXT_LINE: ".. versionadded:: 2.0.0"@1792..1815
+      }
+    }
+  }
+  NEWLINE: "\n"@1815..1816
+  BLANK_LINE: "\n"@1816..1817
+  SECTION@1817..2138 {
+    SECTION_HEADER@1817..1832 {
+      NAME: "Returns"@1817..1824
+      NEWLINE: "\n"@1824..1825
+      UNDERLINE: "-------"@1825..1832
+    }
+    NEWLINE: "\n"@1832..1833
+    ENTRY@1833..2038 {
+      NAME: "samples"@1833..1840
+      WHITESPACE: " "@1840..1841
+      COLON: ":"@1841..1842
+      WHITESPACE: " "@1842..1843
+      TYPE: "ndarray"@1843..1850
+      NEWLINE: "\n"@1850..1851
+      WHITESPACE: "    "@1851..1855
+      DESCRIPTION@1855..2038 {
+        TEXT_LINE: "There are `num` equally spaced samples in the closed interval"@1855..1916
+        NEWLINE: "\n"@1916..1917
+        WHITESPACE: "    "@1917..1921
+        TEXT_LINE: "``[start, stop]`` or the half-open interval ``[start, stop)``"@1921..1982
+        NEWLINE: "\n"@1982..1983
+        WHITESPACE: "    "@1983..1987
+        TEXT_LINE: "(depending on whether `endpoint` is True or False)."@1987..2038
+      }
+    }
+    NEWLINE: "\n"@2038..2039
+    ENTRY@2039..2138 {
+      NAME: "step"@2039..2043
+      WHITESPACE: " "@2043..2044
+      COLON: ":"@2044..2045
+      WHITESPACE: " "@2045..2046
+      TYPE: "float, optional"@2046..2061
+      NEWLINE: "\n"@2061..2062
+      WHITESPACE: "    "@2062..2066
+      DESCRIPTION@2066..2138 {
+        TEXT_LINE: "Only returned if `retstep` is True"@2066..2100
+        NEWLINE: "\n"@2100..2101
+        BLANK_LINE: "\n"@2101..2102
+        WHITESPACE: "    "@2102..2106
+        TEXT_LINE: "Size of spacing between samples."@2106..2138
+      }
+    }
+  }
+  NEWLINE: "\n"@2138..2139
+  BLANK_LINE: "\n"@2139..2140
+  BLANK_LINE: "\n"@2140..2141
+  SECTION@2141..2495 {
+    SECTION_HEADER@2141..2158 {
+      NAME: "See Also"@2141..2149
+      NEWLINE: "\n"@2149..2150
+      UNDERLINE: "--------"@2150..2158
+    }
+    NEWLINE: "\n"@2158..2159
+    ENTRY@2159..2256 {
+      NAME: "arange"@2159..2165
+      WHITESPACE: " "@2165..2166
+      COLON: ":"@2166..2167
+      WHITESPACE: " "@2167..2168
+      DESCRIPTION@2168..2256 {
+        TEXT_LINE: "Similar to `linspace`, but uses a step size (instead of the"@2168..2227
+        NEWLINE: "\n"@2227..2228
+        WHITESPACE: "         "@2228..2237
+        TEXT_LINE: "number of samples)."@2237..2256
+      }
+    }
+    NEWLINE: "\n"@2256..2257
+    ENTRY@2257..2376 {
+      NAME: "geomspace"@2257..2266
+      WHITESPACE: " "@2266..2267
+      COLON: ":"@2267..2268
+      WHITESPACE: " "@2268..2269
+      DESCRIPTION@2269..2376 {
+        TEXT_LINE: "Similar to `linspace`, but with numbers spaced evenly on a log"@2269..2331
+        NEWLINE: "\n"@2331..2332
+        WHITESPACE: "            "@2332..2344
+        TEXT_LINE: "scale (a geometric progression)."@2344..2376
+      }
+    }
+    NEWLINE: "\n"@2376..2377
+    ENTRY@2377..2471 {
+      NAME: "logspace"@2377..2385
+      WHITESPACE: " "@2385..2386
+      COLON: ":"@2386..2387
+      WHITESPACE: " "@2387..2388
+      DESCRIPTION@2388..2471 {
+        TEXT_LINE: "Similar to `geomspace`, but with the end points specified as"@2388..2448
+        NEWLINE: "\n"@2448..2449
+        WHITESPACE: "           "@2449..2460
+        TEXT_LINE: "logarithms."@2460..2471
+      }
+    }
+    NEWLINE: "\n"@2471..2472
+    ENTRY@2472..2495 {
+      NAME: ":ref:`how-to-partition`"@2472..2495
+    }
+  }
+  NEWLINE: "\n"@2495..2496
+  BLANK_LINE: "\n"@2496..2497
+  SECTION@2497..3169 {
+    SECTION_HEADER@2497..2514 {
+      NAME: "Examples"@2497..2505
+      NEWLINE: "\n"@2505..2506
+      UNDERLINE: "--------"@2506..2514
+    }
+    NEWLINE: "\n"@2514..2515
+    DESCRIPTION@2515..3169 {
+      TEXT_LINE: ">>> import numpy as np"@2515..2537
+      NEWLINE: "\n"@2537..2538
+      TEXT_LINE: ">>> np.linspace(2.0, 3.0, num=5)"@2538..2570
+      NEWLINE: "\n"@2570..2571
+      TEXT_LINE: "array([2.  , 2.25, 2.5 , 2.75, 3.  ])"@2571..2608
+      NEWLINE: "\n"@2608..2609
+      TEXT_LINE: ">>> np.linspace(2.0, 3.0, num=5, endpoint=False)"@2609..2657
+      NEWLINE: "\n"@2657..2658
+      TEXT_LINE: "array([2. ,  2.2,  2.4,  2.6,  2.8])"@2658..2694
+      NEWLINE: "\n"@2694..2695
+      TEXT_LINE: ">>> np.linspace(2.0, 3.0, num=5, retstep=True)"@2695..2741
+      NEWLINE: "\n"@2741..2742
+      TEXT_LINE: "(array([2.  ,  2.25,  2.5 ,  2.75,  3.  ]), 0.25)"@2742..2791
+      NEWLINE: "\n"@2791..2792
+      BLANK_LINE: "\n"@2792..2793
+      TEXT_LINE: "Graphical illustration:"@2793..2816
+      NEWLINE: "\n"@2816..2817
+      BLANK_LINE: "\n"@2817..2818
+      TEXT_LINE: ">>> import matplotlib.pyplot as plt"@2818..2853
+      NEWLINE: "\n"@2853..2854
+      TEXT_LINE: ">>> N = 8"@2854..2863
+      NEWLINE: "\n"@2863..2864
+      TEXT_LINE: ">>> y = np.zeros(N)"@2864..2883
+      NEWLINE: "\n"@2883..2884
+      TEXT_LINE: ">>> x1 = np.linspace(0, 10, N, endpoint=True)"@2884..2929
+      NEWLINE: "\n"@2929..2930
+      TEXT_LINE: ">>> x2 = np.linspace(0, 10, N, endpoint=False)"@2930..2976
+      NEWLINE: "\n"@2976..2977
+      TEXT_LINE: ">>> plt.plot(x1, y, 'o')"@2977..3001
+      NEWLINE: "\n"@3001..3002
+      TEXT_LINE: "[<matplotlib.lines.Line2D object at 0x...>]"@3002..3045
+      NEWLINE: "\n"@3045..3046
+      TEXT_LINE: ">>> plt.plot(x2, y + 0.5, 'o')"@3046..3076
+      NEWLINE: "\n"@3076..3077
+      TEXT_LINE: "[<matplotlib.lines.Line2D object at 0x...>]"@3077..3120
+      NEWLINE: "\n"@3120..3121
+      TEXT_LINE: ">>> plt.ylim([-0.5, 1])"@3121..3144
+      NEWLINE: "\n"@3144..3145
+      TEXT_LINE: "(-0.5, 1)"@3145..3154
+      NEWLINE: "\n"@3154..3155
+      TEXT_LINE: ">>> plt.show()"@3155..3169
+    }
+  }
+}
+=== EMIT ===
+Return evenly spaced numbers over a specified interval.
+
+Returns `num` evenly spaced samples, calculated over the
+interval [`start`, `stop`].
+
+The endpoint of the interval can optionally be excluded.
+
+.. versionchanged:: 1.20.0
+    Values are rounded towards ``-inf`` instead of ``0`` when an
+    integer ``dtype`` is specified. The old behavior can
+    still be obtained with ``np.linspace(start, stop, num).astype(np.int_)``
+
+Parameters
+----------
+start : array_like
+    The starting value of the sequence.
+stop : array_like
+    The end value of the sequence, unless `endpoint` is set to False.
+    In that case, the sequence consists of all but the last of ``num + 1``
+    evenly spaced samples, so that `stop` is excluded.  Note that the step
+    size changes when `endpoint` is False.
+num : int, optional
+    Number of samples to generate. Default is 50. Must be non-negative.
+endpoint : bool, optional
+    If True, `stop` is the last sample. Otherwise, it is not included.
+    Default is True.
+retstep : bool, optional
+    If True, return (`samples`, `step`), where `step` is the spacing
+    between samples.
+dtype : dtype, optional
+    The type of the output array.  If `dtype` is not given, the data type
+    is inferred from `start` and `stop`. The inferred dtype will never be
+    an integer; `float` is chosen even if the arguments would produce an
+    array of integers.
+axis : int, optional
+    The axis in the result to store the samples.  Relevant only if start
+    or stop are array-like.  By default (0), the samples will be along a
+    new axis inserted at the beginning. Use -1 to get an axis at the end.
+device : str, optional
+    The device on which to place the created array. Default: None.
+    For Array-API interoperability only, so must be ``"cpu"`` if passed.
+
+    .. versionadded:: 2.0.0
+
+Returns
+-------
+samples : ndarray
+    There are `num` equally spaced samples in the closed interval
+    ``[start, stop]`` or the half-open interval ``[start, stop)``
+    (depending on whether `endpoint` is True or False).
+step : float, optional
+    Only returned if `retstep` is True
+
+    Size of spacing between samples.
+
+See Also
+--------
+arange : Similar to `linspace`, but uses a step size (instead of the
+number of samples).
+geomspace : Similar to `linspace`, but with numbers spaced evenly on a log
+scale (a geometric progression).
+logspace : Similar to `geomspace`, but with the end points specified as
+logarithms.
+:ref:`how-to-partition`
+
+Examples
+--------
+>>> import numpy as np
+>>> np.linspace(2.0, 3.0, num=5)
+array([2.  , 2.25, 2.5 , 2.75, 3.  ])
+>>> np.linspace(2.0, 3.0, num=5, endpoint=False)
+array([2. ,  2.2,  2.4,  2.6,  2.8])
+>>> np.linspace(2.0, 3.0, num=5, retstep=True)
+(array([2.  ,  2.25,  2.5 ,  2.75,  3.  ]), 0.25)
+
+Graphical illustration:
+
+>>> import matplotlib.pyplot as plt
+>>> N = 8
+>>> y = np.zeros(N)
+>>> x1 = np.linspace(0, 10, N, endpoint=True)
+>>> x2 = np.linspace(0, 10, N, endpoint=False)
+>>> plt.plot(x1, y, 'o')
+[<matplotlib.lines.Line2D object at 0x...>]
+>>> plt.plot(x2, y + 0.5, 'o')
+[<matplotlib.lines.Line2D object at 0x...>]
+>>> plt.ylim([-0.5, 1])
+(-0.5, 1)
+>>> plt.show()

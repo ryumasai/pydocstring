@@ -1,0 +1,284 @@
+=== CST ===
+DOCUMENT@0..2029 {
+  SUMMARY@0..41 {
+    TEXT_LINE: "bincount(x, /, weights=None, minlength=0)"@0..41
+  }
+  NEWLINE: "\n"@41..42
+  BLANK_LINE: "\n"@42..43
+  EXTENDED_SUMMARY@43..590 {
+    TEXT_LINE: "Count number of occurrences of each value in array of non-negative ints."@43..115
+    NEWLINE: "\n"@115..116
+    BLANK_LINE: "\n"@116..117
+    TEXT_LINE: "The number of bins (of size 1) is one larger than the largest value in"@117..187
+    NEWLINE: "\n"@187..188
+    TEXT_LINE: "`x`. If `minlength` is specified, there will be at least this number"@188..256
+    NEWLINE: "\n"@256..257
+    TEXT_LINE: "of bins in the output array (though it will be longer if necessary,"@257..324
+    NEWLINE: "\n"@324..325
+    TEXT_LINE: "depending on the contents of `x`)."@325..359
+    NEWLINE: "\n"@359..360
+    TEXT_LINE: "Each bin gives the number of occurrences of its index value in `x`."@360..427
+    NEWLINE: "\n"@427..428
+    TEXT_LINE: "If `weights` is specified the input array is weighted by it, i.e. if a"@428..498
+    NEWLINE: "\n"@498..499
+    TEXT_LINE: "value ``n`` is found at position ``i``, ``out[n] += weight[i]`` instead"@499..570
+    NEWLINE: "\n"@570..571
+    TEXT_LINE: "of ``out[n] += 1``."@571..590
+  }
+  NEWLINE: "\n"@590..591
+  BLANK_LINE: "\n"@591..592
+  SECTION@592..829 {
+    SECTION_HEADER@592..613 {
+      NAME: "Parameters"@592..602
+      NEWLINE: "\n"@602..603
+      UNDERLINE: "----------"@603..613
+    }
+    NEWLINE: "\n"@613..614
+    ENTRY@614..676 {
+      NAME: "x"@614..615
+      WHITESPACE: " "@615..616
+      COLON: ":"@616..617
+      WHITESPACE: " "@617..618
+      TYPE: "array_like, 1 dimension, nonnegative ints"@618..659
+      NEWLINE: "\n"@659..660
+      WHITESPACE: "    "@660..664
+      DESCRIPTION@664..676 {
+        TEXT_LINE: "Input array."@664..676
+      }
+    }
+    NEWLINE: "\n"@676..677
+    ENTRY@677..752 {
+      NAME: "weights"@677..684
+      WHITESPACE: " "@684..685
+      COLON: ":"@685..686
+      WHITESPACE: " "@686..687
+      TYPE: "array_like"@687..697
+      COMMA: ","@697..698
+      WHITESPACE: " "@698..699
+      OPTIONAL: "optional"@699..707
+      NEWLINE: "\n"@707..708
+      WHITESPACE: "    "@708..712
+      DESCRIPTION@712..752 {
+        TEXT_LINE: "Weights, array of the same shape as `x`."@712..752
+      }
+    }
+    NEWLINE: "\n"@752..753
+    ENTRY@753..829 {
+      NAME: "minlength"@753..762
+      WHITESPACE: " "@762..763
+      COLON: ":"@763..764
+      WHITESPACE: " "@764..765
+      TYPE: "int"@765..768
+      COMMA: ","@768..769
+      WHITESPACE: " "@769..770
+      OPTIONAL: "optional"@770..778
+      NEWLINE: "\n"@778..779
+      WHITESPACE: "    "@779..783
+      DESCRIPTION@783..829 {
+        TEXT_LINE: "A minimum number of bins for the output array."@783..829
+      }
+    }
+  }
+  NEWLINE: "\n"@829..830
+  BLANK_LINE: "\n"@830..831
+  SECTION@831..965 {
+    SECTION_HEADER@831..846 {
+      NAME: "Returns"@831..838
+      NEWLINE: "\n"@838..839
+      UNDERLINE: "-------"@839..846
+    }
+    NEWLINE: "\n"@846..847
+    ENTRY@847..965 {
+      NAME: "out"@847..850
+      WHITESPACE: " "@850..851
+      COLON: ":"@851..852
+      WHITESPACE: " "@852..853
+      TYPE: "ndarray of ints"@853..868
+      NEWLINE: "\n"@868..869
+      WHITESPACE: "    "@869..873
+      DESCRIPTION@873..965 {
+        TEXT_LINE: "The result of binning the input array."@873..911
+        NEWLINE: "\n"@911..912
+        WHITESPACE: "    "@912..916
+        TEXT_LINE: "The length of `out` is equal to ``np.amax(x)+1``."@916..965
+      }
+    }
+  }
+  NEWLINE: "\n"@965..966
+  BLANK_LINE: "\n"@966..967
+  SECTION@967..1168 {
+    SECTION_HEADER@967..980 {
+      NAME: "Raises"@967..973
+      NEWLINE: "\n"@973..974
+      UNDERLINE: "------"@974..980
+    }
+    NEWLINE: "\n"@980..981
+    ENTRY@981..1108 {
+      TYPE: "ValueError"@981..991
+      NEWLINE: "\n"@991..992
+      WHITESPACE: "    "@992..996
+      DESCRIPTION@996..1108 {
+        TEXT_LINE: "If the input is not 1-dimensional, or contains elements with negative"@996..1065
+        NEWLINE: "\n"@1065..1066
+        WHITESPACE: "    "@1066..1070
+        TEXT_LINE: "values, or if `minlength` is negative."@1070..1108
+      }
+    }
+    NEWLINE: "\n"@1108..1109
+    ENTRY@1109..1168 {
+      TYPE: "TypeError"@1109..1118
+      NEWLINE: "\n"@1118..1119
+      WHITESPACE: "    "@1119..1123
+      DESCRIPTION@1123..1168 {
+        TEXT_LINE: "If the type of the input is float or complex."@1123..1168
+      }
+    }
+  }
+  NEWLINE: "\n"@1168..1169
+  BLANK_LINE: "\n"@1169..1170
+  SECTION@1170..1215 {
+    SECTION_HEADER@1170..1187 {
+      NAME: "See Also"@1170..1178
+      NEWLINE: "\n"@1178..1179
+      UNDERLINE: "--------"@1179..1187
+    }
+    NEWLINE: "\n"@1187..1188
+    ENTRY@1188..1215 {
+      NAME: "histogram"@1188..1197
+      COMMA: ","@1197..1198
+      WHITESPACE: " "@1198..1199
+      NAME: "digitize"@1199..1207
+      COMMA: ","@1207..1208
+      WHITESPACE: " "@1208..1209
+      NAME: "unique"@1209..1215
+    }
+  }
+  NEWLINE: "\n"@1215..1216
+  BLANK_LINE: "\n"@1216..1217
+  SECTION@1217..2029 {
+    SECTION_HEADER@1217..1234 {
+      NAME: "Examples"@1217..1225
+      NEWLINE: "\n"@1225..1226
+      UNDERLINE: "--------"@1226..1234
+    }
+    NEWLINE: "\n"@1234..1235
+    DESCRIPTION@1235..2029 {
+      TEXT_LINE: ">>> import numpy as np"@1235..1257
+      NEWLINE: "\n"@1257..1258
+      TEXT_LINE: ">>> np.bincount(np.arange(5))"@1258..1287
+      NEWLINE: "\n"@1287..1288
+      TEXT_LINE: "array([1, 1, 1, 1, 1])"@1288..1310
+      NEWLINE: "\n"@1310..1311
+      TEXT_LINE: ">>> np.bincount(np.array([0, 1, 1, 3, 2, 1, 7]))"@1311..1359
+      NEWLINE: "\n"@1359..1360
+      TEXT_LINE: "array([1, 3, 1, 1, 0, 0, 0, 1])"@1360..1391
+      NEWLINE: "\n"@1391..1392
+      BLANK_LINE: "\n"@1392..1393
+      TEXT_LINE: ">>> x = np.array([0, 1, 1, 3, 2, 1, 7, 23])"@1393..1436
+      NEWLINE: "\n"@1436..1437
+      TEXT_LINE: ">>> np.bincount(x).size == np.amax(x)+1"@1437..1476
+      NEWLINE: "\n"@1476..1477
+      TEXT_LINE: "True"@1477..1481
+      NEWLINE: "\n"@1481..1482
+      BLANK_LINE: "\n"@1482..1483
+      TEXT_LINE: "The input array needs to be of integer dtype, otherwise a"@1483..1540
+      NEWLINE: "\n"@1540..1541
+      TEXT_LINE: "TypeError is raised:"@1541..1561
+      NEWLINE: "\n"@1561..1562
+      BLANK_LINE: "\n"@1562..1563
+      TEXT_LINE: ">>> np.bincount(np.arange(5, dtype=np.float64))"@1563..1610
+      NEWLINE: "\n"@1610..1611
+      TEXT_LINE: "Traceback (most recent call last):"@1611..1645
+      NEWLINE: "\n"@1645..1646
+      WHITESPACE: "  "@1646..1648
+      TEXT_LINE: "..."@1648..1651
+      NEWLINE: "\n"@1651..1652
+      TEXT_LINE: "TypeError: Cannot cast array data from dtype('float64') to dtype('int64')"@1652..1725
+      NEWLINE: "\n"@1725..1726
+      TEXT_LINE: "according to the rule 'safe'"@1726..1754
+      NEWLINE: "\n"@1754..1755
+      BLANK_LINE: "\n"@1755..1756
+      TEXT_LINE: "A possible use of ``bincount`` is to perform sums over"@1756..1810
+      NEWLINE: "\n"@1810..1811
+      TEXT_LINE: "variable-size chunks of an array, using the ``weights`` keyword."@1811..1875
+      NEWLINE: "\n"@1875..1876
+      BLANK_LINE: "\n"@1876..1877
+      TEXT_LINE: ">>> w = np.array([0.3, 0.5, 0.2, 0.7, 1., -0.6]) # weights"@1877..1935
+      NEWLINE: "\n"@1935..1936
+      TEXT_LINE: ">>> x = np.array([0, 1, 1, 2, 2, 2])"@1936..1972
+      NEWLINE: "\n"@1972..1973
+      TEXT_LINE: ">>> np.bincount(x,  weights=w)"@1973..2003
+      NEWLINE: "\n"@2003..2004
+      TEXT_LINE: "array([ 0.3,  0.7,  1.1])"@2004..2029
+    }
+  }
+}
+=== EMIT ===
+bincount(x, /, weights=None, minlength=0)
+
+Count number of occurrences of each value in array of non-negative ints.
+
+The number of bins (of size 1) is one larger than the largest value in
+`x`. If `minlength` is specified, there will be at least this number
+of bins in the output array (though it will be longer if necessary,
+depending on the contents of `x`).
+Each bin gives the number of occurrences of its index value in `x`.
+If `weights` is specified the input array is weighted by it, i.e. if a
+value ``n`` is found at position ``i``, ``out[n] += weight[i]`` instead
+of ``out[n] += 1``.
+
+Parameters
+----------
+x : array_like, 1 dimension, nonnegative ints
+    Input array.
+weights : array_like, optional
+    Weights, array of the same shape as `x`.
+minlength : int, optional
+    A minimum number of bins for the output array.
+
+Returns
+-------
+out : ndarray of ints
+    The result of binning the input array.
+    The length of `out` is equal to ``np.amax(x)+1``.
+
+Raises
+------
+ValueError
+    If the input is not 1-dimensional, or contains elements with negative
+    values, or if `minlength` is negative.
+TypeError
+    If the type of the input is float or complex.
+
+See Also
+--------
+histogram, digitize, unique
+
+Examples
+--------
+>>> import numpy as np
+>>> np.bincount(np.arange(5))
+array([1, 1, 1, 1, 1])
+>>> np.bincount(np.array([0, 1, 1, 3, 2, 1, 7]))
+array([1, 3, 1, 1, 0, 0, 0, 1])
+
+>>> x = np.array([0, 1, 1, 3, 2, 1, 7, 23])
+>>> np.bincount(x).size == np.amax(x)+1
+True
+
+The input array needs to be of integer dtype, otherwise a
+TypeError is raised:
+
+>>> np.bincount(np.arange(5, dtype=np.float64))
+Traceback (most recent call last):
+  ...
+TypeError: Cannot cast array data from dtype('float64') to dtype('int64')
+according to the rule 'safe'
+
+A possible use of ``bincount`` is to perform sums over
+variable-size chunks of an array, using the ``weights`` keyword.
+
+>>> w = np.array([0.3, 0.5, 0.2, 0.7, 1., -0.6]) # weights
+>>> x = np.array([0, 1, 1, 2, 2, 2])
+>>> np.bincount(x,  weights=w)
+array([ 0.3,  0.7,  1.1])

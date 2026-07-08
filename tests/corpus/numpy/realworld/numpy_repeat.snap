@@ -1,0 +1,197 @@
+=== CST ===
+DOCUMENT@0..933 {
+  SUMMARY@0..48 {
+    TEXT_LINE: "Repeat each element of an array after themselves"@0..48
+  }
+  NEWLINE: "\n"@48..49
+  BLANK_LINE: "\n"@49..50
+  SECTION@50..392 {
+    SECTION_HEADER@50..71 {
+      NAME: "Parameters"@50..60
+      NEWLINE: "\n"@60..61
+      UNDERLINE: "----------"@61..71
+    }
+    NEWLINE: "\n"@71..72
+    ENTRY@72..103 {
+      NAME: "a"@72..73
+      WHITESPACE: " "@73..74
+      COLON: ":"@74..75
+      WHITESPACE: " "@75..76
+      TYPE: "array_like"@76..86
+      NEWLINE: "\n"@86..87
+      WHITESPACE: "    "@87..91
+      DESCRIPTION@91..103 {
+        TEXT_LINE: "Input array."@91..103
+      }
+    }
+    NEWLINE: "\n"@103..104
+    ENTRY@104..248 {
+      NAME: "repeats"@104..111
+      WHITESPACE: " "@111..112
+      COLON: ":"@112..113
+      WHITESPACE: " "@113..114
+      TYPE: "int or array of ints"@114..134
+      NEWLINE: "\n"@134..135
+      WHITESPACE: "    "@135..139
+      DESCRIPTION@139..248 {
+        TEXT_LINE: "The number of repetitions for each element.  `repeats` is broadcasted"@139..208
+        NEWLINE: "\n"@208..209
+        WHITESPACE: "    "@209..213
+        TEXT_LINE: "to fit the shape of the given axis."@213..248
+      }
+    }
+    NEWLINE: "\n"@248..249
+    ENTRY@249..392 {
+      NAME: "axis"@249..253
+      WHITESPACE: " "@253..254
+      COLON: ":"@254..255
+      WHITESPACE: " "@255..256
+      TYPE: "int"@256..259
+      COMMA: ","@259..260
+      WHITESPACE: " "@260..261
+      OPTIONAL: "optional"@261..269
+      NEWLINE: "\n"@269..270
+      WHITESPACE: "    "@270..274
+      DESCRIPTION@274..392 {
+        TEXT_LINE: "The axis along which to repeat values.  By default, use the"@274..333
+        NEWLINE: "\n"@333..334
+        WHITESPACE: "    "@334..338
+        TEXT_LINE: "flattened input array, and return a flat output array."@338..392
+      }
+    }
+  }
+  NEWLINE: "\n"@392..393
+  BLANK_LINE: "\n"@393..394
+  SECTION@394..517 {
+    SECTION_HEADER@394..409 {
+      NAME: "Returns"@394..401
+      NEWLINE: "\n"@401..402
+      UNDERLINE: "-------"@402..409
+    }
+    NEWLINE: "\n"@409..410
+    ENTRY@410..517 {
+      NAME: "repeated_array"@410..424
+      WHITESPACE: " "@424..425
+      COLON: ":"@425..426
+      WHITESPACE: " "@426..427
+      TYPE: "ndarray"@427..434
+      NEWLINE: "\n"@434..435
+      WHITESPACE: "    "@435..439
+      DESCRIPTION@439..517 {
+        TEXT_LINE: "Output array which has the same shape as `a`, except along"@439..497
+        NEWLINE: "\n"@497..498
+        WHITESPACE: "    "@498..502
+        TEXT_LINE: "the given axis."@502..517
+      }
+    }
+  }
+  NEWLINE: "\n"@517..518
+  BLANK_LINE: "\n"@518..519
+  SECTION@519..605 {
+    SECTION_HEADER@519..536 {
+      NAME: "See Also"@519..527
+      NEWLINE: "\n"@527..528
+      UNDERLINE: "--------"@528..536
+    }
+    NEWLINE: "\n"@536..537
+    ENTRY@537..558 {
+      NAME: "tile"@537..541
+      WHITESPACE: " "@541..542
+      COLON: ":"@542..543
+      WHITESPACE: " "@543..544
+      DESCRIPTION@544..558 {
+        TEXT_LINE: "Tile an array."@544..558
+      }
+    }
+    NEWLINE: "\n"@558..559
+    ENTRY@559..605 {
+      NAME: "unique"@559..565
+      WHITESPACE: " "@565..566
+      COLON: ":"@566..567
+      WHITESPACE: " "@567..568
+      DESCRIPTION@568..605 {
+        TEXT_LINE: "Find the unique elements of an array."@568..605
+      }
+    }
+  }
+  NEWLINE: "\n"@605..606
+  BLANK_LINE: "\n"@606..607
+  SECTION@607..933 {
+    SECTION_HEADER@607..624 {
+      NAME: "Examples"@607..615
+      NEWLINE: "\n"@615..616
+      UNDERLINE: "--------"@616..624
+    }
+    NEWLINE: "\n"@624..625
+    DESCRIPTION@625..933 {
+      TEXT_LINE: ">>> import numpy as np"@625..647
+      NEWLINE: "\n"@647..648
+      TEXT_LINE: ">>> np.repeat(3, 4)"@648..667
+      NEWLINE: "\n"@667..668
+      TEXT_LINE: "array([3, 3, 3, 3])"@668..687
+      NEWLINE: "\n"@687..688
+      TEXT_LINE: ">>> x = np.array([[1,2],[3,4]])"@688..719
+      NEWLINE: "\n"@719..720
+      TEXT_LINE: ">>> np.repeat(x, 2)"@720..739
+      NEWLINE: "\n"@739..740
+      TEXT_LINE: "array([1, 1, 2, 2, 3, 3, 4, 4])"@740..771
+      NEWLINE: "\n"@771..772
+      TEXT_LINE: ">>> np.repeat(x, 3, axis=1)"@772..799
+      NEWLINE: "\n"@799..800
+      TEXT_LINE: "array([[1, 1, 1, 2, 2, 2],"@800..826
+      NEWLINE: "\n"@826..827
+      WHITESPACE: "       "@827..834
+      TEXT_LINE: "[3, 3, 3, 4, 4, 4]])"@834..854
+      NEWLINE: "\n"@854..855
+      TEXT_LINE: ">>> np.repeat(x, [1, 2], axis=0)"@855..887
+      NEWLINE: "\n"@887..888
+      TEXT_LINE: "array([[1, 2],"@888..902
+      NEWLINE: "\n"@902..903
+      WHITESPACE: "       "@903..910
+      TEXT_LINE: "[3, 4],"@910..917
+      NEWLINE: "\n"@917..918
+      WHITESPACE: "       "@918..925
+      TEXT_LINE: "[3, 4]])"@925..933
+    }
+  }
+}
+=== EMIT ===
+Repeat each element of an array after themselves
+
+Parameters
+----------
+a : array_like
+    Input array.
+repeats : int or array of ints
+    The number of repetitions for each element.  `repeats` is broadcasted
+    to fit the shape of the given axis.
+axis : int, optional
+    The axis along which to repeat values.  By default, use the
+    flattened input array, and return a flat output array.
+
+Returns
+-------
+repeated_array : ndarray
+    Output array which has the same shape as `a`, except along
+    the given axis.
+
+See Also
+--------
+tile : Tile an array.
+unique : Find the unique elements of an array.
+
+Examples
+--------
+>>> import numpy as np
+>>> np.repeat(3, 4)
+array([3, 3, 3, 3])
+>>> x = np.array([[1,2],[3,4]])
+>>> np.repeat(x, 2)
+array([1, 1, 2, 2, 3, 3, 4, 4])
+>>> np.repeat(x, 3, axis=1)
+array([[1, 1, 1, 2, 2, 2],
+       [3, 3, 3, 4, 4, 4]])
+>>> np.repeat(x, [1, 2], axis=0)
+array([[1, 2],
+       [3, 4],
+       [3, 4]])

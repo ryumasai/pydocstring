@@ -1,0 +1,431 @@
+=== CST ===
+DOCUMENT@0..3034 {
+  SUMMARY@0..55 {
+    TEXT_LINE: "Compute the one-dimensional discrete Fourier Transform."@0..55
+  }
+  NEWLINE: "\n"@55..56
+  BLANK_LINE: "\n"@56..57
+  EXTENDED_SUMMARY@57..207 {
+    TEXT_LINE: "This function computes the one-dimensional *n*-point discrete Fourier"@57..126
+    NEWLINE: "\n"@126..127
+    TEXT_LINE: "Transform (DFT) with the efficient Fast Fourier Transform (FFT)"@127..190
+    NEWLINE: "\n"@190..191
+    TEXT_LINE: "algorithm [CT]_."@191..207
+  }
+  NEWLINE: "\n"@207..208
+  BLANK_LINE: "\n"@208..209
+  SECTION@209..1164 {
+    SECTION_HEADER@209..230 {
+      NAME: "Parameters"@209..219
+      NEWLINE: "\n"@219..220
+      UNDERLINE: "----------"@220..230
+    }
+    NEWLINE: "\n"@230..231
+    ENTRY@231..278 {
+      NAME: "a"@231..232
+      WHITESPACE: " "@232..233
+      COLON: ":"@233..234
+      WHITESPACE: " "@234..235
+      TYPE: "array_like"@235..245
+      NEWLINE: "\n"@245..246
+      WHITESPACE: "    "@246..250
+      DESCRIPTION@250..278 {
+        TEXT_LINE: "Input array, can be complex."@250..278
+      }
+    }
+    NEWLINE: "\n"@278..279
+    ENTRY@279..567 {
+      NAME: "n"@279..280
+      WHITESPACE: " "@280..281
+      COLON: ":"@281..282
+      WHITESPACE: " "@282..283
+      TYPE: "int"@283..286
+      COMMA: ","@286..287
+      WHITESPACE: " "@287..288
+      OPTIONAL: "optional"@288..296
+      NEWLINE: "\n"@296..297
+      WHITESPACE: "    "@297..301
+      DESCRIPTION@301..567 {
+        TEXT_LINE: "Length of the transformed axis of the output."@301..346
+        NEWLINE: "\n"@346..347
+        WHITESPACE: "    "@347..351
+        TEXT_LINE: "If `n` is smaller than the length of the input, the input is cropped."@351..420
+        NEWLINE: "\n"@420..421
+        WHITESPACE: "    "@421..425
+        TEXT_LINE: "If it is larger, the input is padded with zeros.  If `n` is not given,"@425..495
+        NEWLINE: "\n"@495..496
+        WHITESPACE: "    "@496..500
+        TEXT_LINE: "the length of the input along the axis specified by `axis` is used."@500..567
+      }
+    }
+    NEWLINE: "\n"@567..568
+    ENTRY@568..670 {
+      NAME: "axis"@568..572
+      WHITESPACE: " "@572..573
+      COLON: ":"@573..574
+      WHITESPACE: " "@574..575
+      TYPE: "int"@575..578
+      COMMA: ","@578..579
+      WHITESPACE: " "@579..580
+      OPTIONAL: "optional"@580..588
+      NEWLINE: "\n"@588..589
+      WHITESPACE: "    "@589..593
+      DESCRIPTION@593..670 {
+        TEXT_LINE: "Axis over which to compute the FFT.  If not given, the last axis is"@593..660
+        NEWLINE: "\n"@660..661
+        WHITESPACE: "    "@661..665
+        TEXT_LINE: "used."@665..670
+      }
+    }
+    NEWLINE: "\n"@670..671
+    ENTRY@671..992 {
+      NAME: "norm"@671..675
+      WHITESPACE: " "@675..676
+      COLON: ":"@676..677
+      WHITESPACE: " "@677..678
+      TYPE: "{\"backward\", \"ortho\", \"forward\"}"@678..710
+      COMMA: ","@710..711
+      WHITESPACE: " "@711..712
+      OPTIONAL: "optional"@712..720
+      NEWLINE: "\n"@720..721
+      WHITESPACE: "    "@721..725
+      DESCRIPTION@725..992 {
+        TEXT_LINE: "Normalization mode (see `numpy.fft`). Default is \"backward\"."@725..785
+        NEWLINE: "\n"@785..786
+        WHITESPACE: "    "@786..790
+        TEXT_LINE: "Indicates which direction of the forward/backward pair of transforms"@790..858
+        NEWLINE: "\n"@858..859
+        WHITESPACE: "    "@859..863
+        TEXT_LINE: "is scaled and with what normalization factor."@863..908
+        NEWLINE: "\n"@908..909
+        BLANK_LINE: "\n"@909..910
+        WHITESPACE: "    "@910..914
+        TEXT_LINE: ".. versionadded:: 1.20.0"@914..938
+        NEWLINE: "\n"@938..939
+        BLANK_LINE: "\n"@939..940
+        WHITESPACE: "        "@940..948
+        TEXT_LINE: "The \"backward\", \"forward\" values were added."@948..992
+      }
+    }
+    NEWLINE: "\n"@992..993
+    ENTRY@993..1164 {
+      NAME: "out"@993..996
+      WHITESPACE: " "@996..997
+      COLON: ":"@997..998
+      WHITESPACE: " "@998..999
+      TYPE: "complex ndarray"@999..1014
+      COMMA: ","@1014..1015
+      WHITESPACE: " "@1015..1016
+      OPTIONAL: "optional"@1016..1024
+      NEWLINE: "\n"@1024..1025
+      WHITESPACE: "    "@1025..1029
+      DESCRIPTION@1029..1164 {
+        TEXT_LINE: "If provided, the result will be placed in this array. It should be"@1029..1095
+        NEWLINE: "\n"@1095..1096
+        WHITESPACE: "    "@1096..1100
+        TEXT_LINE: "of the appropriate shape and dtype."@1100..1135
+        NEWLINE: "\n"@1135..1136
+        BLANK_LINE: "\n"@1136..1137
+        WHITESPACE: "    "@1137..1141
+        TEXT_LINE: ".. versionadded:: 2.0.0"@1141..1164
+      }
+    }
+  }
+  NEWLINE: "\n"@1164..1165
+  BLANK_LINE: "\n"@1165..1166
+  SECTION@1166..1339 {
+    SECTION_HEADER@1166..1181 {
+      NAME: "Returns"@1166..1173
+      NEWLINE: "\n"@1173..1174
+      UNDERLINE: "-------"@1174..1181
+    }
+    NEWLINE: "\n"@1181..1182
+    ENTRY@1182..1339 {
+      NAME: "out"@1182..1185
+      WHITESPACE: " "@1185..1186
+      COLON: ":"@1186..1187
+      WHITESPACE: " "@1187..1188
+      TYPE: "complex ndarray"@1188..1203
+      NEWLINE: "\n"@1203..1204
+      WHITESPACE: "    "@1204..1208
+      DESCRIPTION@1208..1339 {
+        TEXT_LINE: "The truncated or zero-padded input, transformed along the axis"@1208..1270
+        NEWLINE: "\n"@1270..1271
+        WHITESPACE: "    "@1271..1275
+        TEXT_LINE: "indicated by `axis`, or the last one if `axis` is not specified."@1275..1339
+      }
+    }
+  }
+  NEWLINE: "\n"@1339..1340
+  BLANK_LINE: "\n"@1340..1341
+  SECTION@1341..1407 {
+    SECTION_HEADER@1341..1354 {
+      NAME: "Raises"@1341..1347
+      NEWLINE: "\n"@1347..1348
+      UNDERLINE: "------"@1348..1354
+    }
+    NEWLINE: "\n"@1354..1355
+    ENTRY@1355..1407 {
+      TYPE: "IndexError"@1355..1365
+      NEWLINE: "\n"@1365..1366
+      WHITESPACE: "    "@1366..1370
+      DESCRIPTION@1370..1407 {
+        TEXT_LINE: "If `axis` is not a valid axis of `a`."@1370..1407
+      }
+    }
+  }
+  NEWLINE: "\n"@1407..1408
+  BLANK_LINE: "\n"@1408..1409
+  SECTION@1409..1677 {
+    SECTION_HEADER@1409..1426 {
+      NAME: "See Also"@1409..1417
+      NEWLINE: "\n"@1417..1418
+      UNDERLINE: "--------"@1418..1426
+    }
+    NEWLINE: "\n"@1426..1427
+    ENTRY@1427..1486 {
+      NAME: "numpy.fft"@1427..1436
+      WHITESPACE: " "@1436..1437
+      COLON: ":"@1437..1438
+      WHITESPACE: " "@1438..1439
+      DESCRIPTION@1439..1486 {
+        TEXT_LINE: "for definition of the DFT and conventions used."@1439..1486
+      }
+    }
+    NEWLINE: "\n"@1486..1487
+    ENTRY@1487..1515 {
+      NAME: "ifft"@1487..1491
+      WHITESPACE: " "@1491..1492
+      COLON: ":"@1492..1493
+      WHITESPACE: " "@1493..1494
+      DESCRIPTION@1494..1515 {
+        TEXT_LINE: "The inverse of `fft`."@1494..1515
+      }
+    }
+    NEWLINE: "\n"@1515..1516
+    ENTRY@1516..1547 {
+      NAME: "fft2"@1516..1520
+      WHITESPACE: " "@1520..1521
+      COLON: ":"@1521..1522
+      WHITESPACE: " "@1522..1523
+      DESCRIPTION@1523..1547 {
+        TEXT_LINE: "The two-dimensional FFT."@1523..1547
+      }
+    }
+    NEWLINE: "\n"@1547..1548
+    ENTRY@1548..1579 {
+      NAME: "fftn"@1548..1552
+      WHITESPACE: " "@1552..1553
+      COLON: ":"@1553..1554
+      WHITESPACE: " "@1554..1555
+      DESCRIPTION@1555..1579 {
+        TEXT_LINE: "The *n*-dimensional FFT."@1555..1579
+      }
+    }
+    NEWLINE: "\n"@1579..1580
+    ENTRY@1580..1626 {
+      NAME: "rfftn"@1580..1585
+      WHITESPACE: " "@1585..1586
+      COLON: ":"@1586..1587
+      WHITESPACE: " "@1587..1588
+      DESCRIPTION@1588..1626 {
+        TEXT_LINE: "The *n*-dimensional FFT of real input."@1588..1626
+      }
+    }
+    NEWLINE: "\n"@1626..1627
+    ENTRY@1627..1677 {
+      NAME: "fftfreq"@1627..1634
+      WHITESPACE: " "@1634..1635
+      COLON: ":"@1635..1636
+      WHITESPACE: " "@1636..1637
+      DESCRIPTION@1637..1677 {
+        TEXT_LINE: "Frequency bins for given FFT parameters."@1637..1677
+      }
+    }
+  }
+  NEWLINE: "\n"@1677..1678
+  BLANK_LINE: "\n"@1678..1679
+  SECTION@1679..2082 {
+    SECTION_HEADER@1679..1690 {
+      NAME: "Notes"@1679..1684
+      NEWLINE: "\n"@1684..1685
+      UNDERLINE: "-----"@1685..1690
+    }
+    NEWLINE: "\n"@1690..1691
+    DESCRIPTION@1691..2082 {
+      TEXT_LINE: "FFT (Fast Fourier Transform) refers to a way the discrete Fourier"@1691..1756
+      NEWLINE: "\n"@1756..1757
+      TEXT_LINE: "Transform (DFT) can be calculated efficiently, by using symmetries in the"@1757..1830
+      NEWLINE: "\n"@1830..1831
+      TEXT_LINE: "calculated terms.  The symmetry is highest when `n` is a power of 2, and"@1831..1903
+      NEWLINE: "\n"@1903..1904
+      TEXT_LINE: "the transform is therefore most efficient for these sizes."@1904..1962
+      NEWLINE: "\n"@1962..1963
+      BLANK_LINE: "\n"@1963..1964
+      TEXT_LINE: "The DFT is defined, with the conventions used in this implementation, in"@1964..2036
+      NEWLINE: "\n"@2036..2037
+      TEXT_LINE: "the documentation for the `numpy.fft` module."@2037..2082
+    }
+  }
+  NEWLINE: "\n"@2082..2083
+  BLANK_LINE: "\n"@2083..2084
+  SECTION@2084..2271 {
+    SECTION_HEADER@2084..2105 {
+      NAME: "References"@2084..2094
+      NEWLINE: "\n"@2094..2095
+      UNDERLINE: "----------"@2095..2105
+    }
+    NEWLINE: "\n"@2105..2106
+    CITATION@2106..2271 {
+      DIRECTIVE_MARKER: ".."@2106..2108
+      WHITESPACE: " "@2108..2109
+      OPEN_BRACKET: "["@2109..2110
+      LABEL: "CT"@2110..2112
+      CLOSE_BRACKET: "]"@2112..2113
+      WHITESPACE: " "@2113..2114
+      DESCRIPTION@2114..2271 {
+        TEXT_LINE: "Cooley, James W., and John W. Tukey, 1965, \"An algorithm for the"@2114..2178
+        NEWLINE: "\n"@2178..2179
+        WHITESPACE: "        "@2179..2187
+        TEXT_LINE: "machine calculation of complex Fourier series,\" *Math. Comput.*"@2187..2250
+        NEWLINE: "\n"@2250..2251
+        WHITESPACE: "        "@2251..2259
+        TEXT_LINE: "19: 297-301."@2259..2271
+      }
+    }
+  }
+  NEWLINE: "\n"@2271..2272
+  BLANK_LINE: "\n"@2272..2273
+  SECTION@2273..3034 {
+    SECTION_HEADER@2273..2290 {
+      NAME: "Examples"@2273..2281
+      NEWLINE: "\n"@2281..2282
+      UNDERLINE: "--------"@2282..2290
+    }
+    NEWLINE: "\n"@2290..2291
+    DESCRIPTION@2291..3034 {
+      TEXT_LINE: ">>> import numpy as np"@2291..2313
+      NEWLINE: "\n"@2313..2314
+      TEXT_LINE: ">>> np.fft.fft(np.exp(2j * np.pi * np.arange(8) / 8))"@2314..2367
+      NEWLINE: "\n"@2367..2368
+      TEXT_LINE: "array([-2.33486982e-16+1.14423775e-17j,  8.00000000e+00-1.25557246e-15j,"@2368..2440
+      NEWLINE: "\n"@2440..2441
+      WHITESPACE: "        "@2441..2449
+      TEXT_LINE: "2.33486982e-16+2.33486982e-16j,  0.00000000e+00+1.22464680e-16j,"@2449..2513
+      NEWLINE: "\n"@2513..2514
+      WHITESPACE: "       "@2514..2521
+      TEXT_LINE: "-1.14423775e-17+2.33486982e-16j,  0.00000000e+00+5.20784380e-16j,"@2521..2586
+      NEWLINE: "\n"@2586..2587
+      WHITESPACE: "        "@2587..2595
+      TEXT_LINE: "1.14423775e-17+1.14423775e-17j,  0.00000000e+00+1.22464680e-16j])"@2595..2660
+      NEWLINE: "\n"@2660..2661
+      BLANK_LINE: "\n"@2661..2662
+      TEXT_LINE: "In this example, real input has an FFT which is Hermitian, i.e., symmetric"@2662..2736
+      NEWLINE: "\n"@2736..2737
+      TEXT_LINE: "in the real part and anti-symmetric in the imaginary part, as described in"@2737..2811
+      NEWLINE: "\n"@2811..2812
+      TEXT_LINE: "the `numpy.fft` documentation:"@2812..2842
+      NEWLINE: "\n"@2842..2843
+      BLANK_LINE: "\n"@2843..2844
+      TEXT_LINE: ">>> import matplotlib.pyplot as plt"@2844..2879
+      NEWLINE: "\n"@2879..2880
+      TEXT_LINE: ">>> t = np.arange(256)"@2880..2902
+      NEWLINE: "\n"@2902..2903
+      TEXT_LINE: ">>> sp = np.fft.fft(np.sin(t))"@2903..2933
+      NEWLINE: "\n"@2933..2934
+      TEXT_LINE: ">>> freq = np.fft.fftfreq(t.shape[-1])"@2934..2972
+      NEWLINE: "\n"@2972..2973
+      TEXT_LINE: ">>> _ = plt.plot(freq, sp.real, freq, sp.imag)"@2973..3019
+      NEWLINE: "\n"@3019..3020
+      TEXT_LINE: ">>> plt.show()"@3020..3034
+    }
+  }
+}
+=== EMIT ===
+Compute the one-dimensional discrete Fourier Transform.
+
+This function computes the one-dimensional *n*-point discrete Fourier
+Transform (DFT) with the efficient Fast Fourier Transform (FFT)
+algorithm [CT]_.
+
+Parameters
+----------
+a : array_like
+    Input array, can be complex.
+n : int, optional
+    Length of the transformed axis of the output.
+    If `n` is smaller than the length of the input, the input is cropped.
+    If it is larger, the input is padded with zeros.  If `n` is not given,
+    the length of the input along the axis specified by `axis` is used.
+axis : int, optional
+    Axis over which to compute the FFT.  If not given, the last axis is
+    used.
+norm : {"backward", "ortho", "forward"}, optional
+    Normalization mode (see `numpy.fft`). Default is "backward".
+    Indicates which direction of the forward/backward pair of transforms
+    is scaled and with what normalization factor.
+
+    .. versionadded:: 1.20.0
+
+        The "backward", "forward" values were added.
+out : complex ndarray, optional
+    If provided, the result will be placed in this array. It should be
+    of the appropriate shape and dtype.
+
+    .. versionadded:: 2.0.0
+
+Returns
+-------
+out : complex ndarray
+    The truncated or zero-padded input, transformed along the axis
+    indicated by `axis`, or the last one if `axis` is not specified.
+
+Raises
+------
+IndexError
+    If `axis` is not a valid axis of `a`.
+
+See Also
+--------
+numpy.fft : for definition of the DFT and conventions used.
+ifft : The inverse of `fft`.
+fft2 : The two-dimensional FFT.
+fftn : The *n*-dimensional FFT.
+rfftn : The *n*-dimensional FFT of real input.
+fftfreq : Frequency bins for given FFT parameters.
+
+Notes
+-----
+FFT (Fast Fourier Transform) refers to a way the discrete Fourier
+Transform (DFT) can be calculated efficiently, by using symmetries in the
+calculated terms.  The symmetry is highest when `n` is a power of 2, and
+the transform is therefore most efficient for these sizes.
+
+The DFT is defined, with the conventions used in this implementation, in
+the documentation for the `numpy.fft` module.
+
+References
+----------
+.. [CT] Cooley, James W., and John W. Tukey, 1965, "An algorithm for the
+    machine calculation of complex Fourier series," *Math. Comput.*
+    19: 297-301.
+
+Examples
+--------
+>>> import numpy as np
+>>> np.fft.fft(np.exp(2j * np.pi * np.arange(8) / 8))
+array([-2.33486982e-16+1.14423775e-17j,  8.00000000e+00-1.25557246e-15j,
+        2.33486982e-16+2.33486982e-16j,  0.00000000e+00+1.22464680e-16j,
+       -1.14423775e-17+2.33486982e-16j,  0.00000000e+00+5.20784380e-16j,
+        1.14423775e-17+1.14423775e-17j,  0.00000000e+00+1.22464680e-16j])
+
+In this example, real input has an FFT which is Hermitian, i.e., symmetric
+in the real part and anti-symmetric in the imaginary part, as described in
+the `numpy.fft` documentation:
+
+>>> import matplotlib.pyplot as plt
+>>> t = np.arange(256)
+>>> sp = np.fft.fft(np.sin(t))
+>>> freq = np.fft.fftfreq(t.shape[-1])
+>>> _ = plt.plot(freq, sp.real, freq, sp.imag)
+>>> plt.show()

@@ -1,0 +1,300 @@
+=== CST ===
+DOCUMENT@0..1823 {
+  SUMMARY@0..39 {
+    TEXT_LINE: "Roll array elements along a given axis."@0..39
+  }
+  NEWLINE: "\n"@39..40
+  BLANK_LINE: "\n"@40..41
+  EXTENDED_SUMMARY@41..116 {
+    TEXT_LINE: "Elements that roll beyond the last position are re-introduced at"@41..105
+    NEWLINE: "\n"@105..106
+    TEXT_LINE: "the first."@106..116
+  }
+  NEWLINE: "\n"@116..117
+  BLANK_LINE: "\n"@117..118
+  SECTION@118..684 {
+    SECTION_HEADER@118..139 {
+      NAME: "Parameters"@118..128
+      NEWLINE: "\n"@128..129
+      UNDERLINE: "----------"@129..139
+    }
+    NEWLINE: "\n"@139..140
+    ENTRY@140..171 {
+      NAME: "a"@140..141
+      WHITESPACE: " "@141..142
+      COLON: ":"@142..143
+      WHITESPACE: " "@143..144
+      TYPE: "array_like"@144..154
+      NEWLINE: "\n"@154..155
+      WHITESPACE: "    "@155..159
+      DESCRIPTION@159..171 {
+        TEXT_LINE: "Input array."@159..171
+      }
+    }
+    NEWLINE: "\n"@171..172
+    ENTRY@172..490 {
+      NAME: "shift"@172..177
+      WHITESPACE: " "@177..178
+      COLON: ":"@178..179
+      WHITESPACE: " "@179..180
+      TYPE: "int or tuple of ints"@180..200
+      NEWLINE: "\n"@200..201
+      WHITESPACE: "    "@201..205
+      DESCRIPTION@205..490 {
+        TEXT_LINE: "The number of places by which elements are shifted.  If a tuple,"@205..269
+        NEWLINE: "\n"@269..270
+        WHITESPACE: "    "@270..274
+        TEXT_LINE: "then `axis` must be a tuple of the same size, and each of the"@274..335
+        NEWLINE: "\n"@335..336
+        WHITESPACE: "    "@336..340
+        TEXT_LINE: "given axes is shifted by the corresponding number.  If an int"@340..401
+        NEWLINE: "\n"@401..402
+        WHITESPACE: "    "@402..406
+        TEXT_LINE: "while `axis` is a tuple of ints, then the same value is used for"@406..470
+        NEWLINE: "\n"@470..471
+        WHITESPACE: "    "@471..475
+        TEXT_LINE: "all given axes."@475..490
+      }
+    }
+    NEWLINE: "\n"@490..491
+    ENTRY@491..684 {
+      NAME: "axis"@491..495
+      WHITESPACE: " "@495..496
+      COLON: ":"@496..497
+      WHITESPACE: " "@497..498
+      TYPE: "int or tuple of ints"@498..518
+      COMMA: ","@518..519
+      WHITESPACE: " "@519..520
+      OPTIONAL: "optional"@520..528
+      NEWLINE: "\n"@528..529
+      WHITESPACE: "    "@529..533
+      DESCRIPTION@533..684 {
+        TEXT_LINE: "Axis or axes along which elements are shifted.  By default, the"@533..596
+        NEWLINE: "\n"@596..597
+        WHITESPACE: "    "@597..601
+        TEXT_LINE: "array is flattened before shifting, after which the original"@601..661
+        NEWLINE: "\n"@661..662
+        WHITESPACE: "    "@662..666
+        TEXT_LINE: "shape is restored."@666..684
+      }
+    }
+  }
+  NEWLINE: "\n"@684..685
+  BLANK_LINE: "\n"@685..686
+  SECTION@686..761 {
+    SECTION_HEADER@686..701 {
+      NAME: "Returns"@686..693
+      NEWLINE: "\n"@693..694
+      UNDERLINE: "-------"@694..701
+    }
+    NEWLINE: "\n"@701..702
+    ENTRY@702..761 {
+      NAME: "res"@702..705
+      WHITESPACE: " "@705..706
+      COLON: ":"@706..707
+      WHITESPACE: " "@707..708
+      TYPE: "ndarray"@708..715
+      NEWLINE: "\n"@715..716
+      WHITESPACE: "    "@716..720
+      DESCRIPTION@720..761 {
+        TEXT_LINE: "Output array, with the same shape as `a`."@720..761
+      }
+    }
+  }
+  NEWLINE: "\n"@761..762
+  BLANK_LINE: "\n"@762..763
+  SECTION@763..872 {
+    SECTION_HEADER@763..780 {
+      NAME: "See Also"@763..771
+      NEWLINE: "\n"@771..772
+      UNDERLINE: "--------"@772..780
+    }
+    NEWLINE: "\n"@780..781
+    ENTRY@781..872 {
+      NAME: "rollaxis"@781..789
+      WHITESPACE: " "@789..790
+      COLON: ":"@790..791
+      WHITESPACE: " "@791..792
+      DESCRIPTION@792..872 {
+        TEXT_LINE: "Roll the specified axis backwards, until it lies in a"@792..845
+        NEWLINE: "\n"@845..846
+        WHITESPACE: "           "@846..857
+        TEXT_LINE: "given position."@857..872
+      }
+    }
+  }
+  NEWLINE: "\n"@872..873
+  BLANK_LINE: "\n"@873..874
+  SECTION@874..943 {
+    SECTION_HEADER@874..885 {
+      NAME: "Notes"@874..879
+      NEWLINE: "\n"@879..880
+      UNDERLINE: "-----"@880..885
+    }
+    NEWLINE: "\n"@885..886
+    DESCRIPTION@886..943 {
+      TEXT_LINE: "Supports rolling over multiple dimensions simultaneously."@886..943
+    }
+  }
+  NEWLINE: "\n"@943..944
+  BLANK_LINE: "\n"@944..945
+  SECTION@945..1823 {
+    SECTION_HEADER@945..962 {
+      NAME: "Examples"@945..953
+      NEWLINE: "\n"@953..954
+      UNDERLINE: "--------"@954..962
+    }
+    NEWLINE: "\n"@962..963
+    DESCRIPTION@963..1823 {
+      TEXT_LINE: ">>> import numpy as np"@963..985
+      NEWLINE: "\n"@985..986
+      TEXT_LINE: ">>> x = np.arange(10)"@986..1007
+      NEWLINE: "\n"@1007..1008
+      TEXT_LINE: ">>> np.roll(x, 2)"@1008..1025
+      NEWLINE: "\n"@1025..1026
+      TEXT_LINE: "array([8, 9, 0, 1, 2, 3, 4, 5, 6, 7])"@1026..1063
+      NEWLINE: "\n"@1063..1064
+      TEXT_LINE: ">>> np.roll(x, -2)"@1064..1082
+      NEWLINE: "\n"@1082..1083
+      TEXT_LINE: "array([2, 3, 4, 5, 6, 7, 8, 9, 0, 1])"@1083..1120
+      NEWLINE: "\n"@1120..1121
+      BLANK_LINE: "\n"@1121..1122
+      TEXT_LINE: ">>> x2 = np.reshape(x, (2, 5))"@1122..1152
+      NEWLINE: "\n"@1152..1153
+      TEXT_LINE: ">>> x2"@1153..1159
+      NEWLINE: "\n"@1159..1160
+      TEXT_LINE: "array([[0, 1, 2, 3, 4],"@1160..1183
+      NEWLINE: "\n"@1183..1184
+      WHITESPACE: "       "@1184..1191
+      TEXT_LINE: "[5, 6, 7, 8, 9]])"@1191..1208
+      NEWLINE: "\n"@1208..1209
+      TEXT_LINE: ">>> np.roll(x2, 1)"@1209..1227
+      NEWLINE: "\n"@1227..1228
+      TEXT_LINE: "array([[9, 0, 1, 2, 3],"@1228..1251
+      NEWLINE: "\n"@1251..1252
+      WHITESPACE: "       "@1252..1259
+      TEXT_LINE: "[4, 5, 6, 7, 8]])"@1259..1276
+      NEWLINE: "\n"@1276..1277
+      TEXT_LINE: ">>> np.roll(x2, -1)"@1277..1296
+      NEWLINE: "\n"@1296..1297
+      TEXT_LINE: "array([[1, 2, 3, 4, 5],"@1297..1320
+      NEWLINE: "\n"@1320..1321
+      WHITESPACE: "       "@1321..1328
+      TEXT_LINE: "[6, 7, 8, 9, 0]])"@1328..1345
+      NEWLINE: "\n"@1345..1346
+      TEXT_LINE: ">>> np.roll(x2, 1, axis=0)"@1346..1372
+      NEWLINE: "\n"@1372..1373
+      TEXT_LINE: "array([[5, 6, 7, 8, 9],"@1373..1396
+      NEWLINE: "\n"@1396..1397
+      WHITESPACE: "       "@1397..1404
+      TEXT_LINE: "[0, 1, 2, 3, 4]])"@1404..1421
+      NEWLINE: "\n"@1421..1422
+      TEXT_LINE: ">>> np.roll(x2, -1, axis=0)"@1422..1449
+      NEWLINE: "\n"@1449..1450
+      TEXT_LINE: "array([[5, 6, 7, 8, 9],"@1450..1473
+      NEWLINE: "\n"@1473..1474
+      WHITESPACE: "       "@1474..1481
+      TEXT_LINE: "[0, 1, 2, 3, 4]])"@1481..1498
+      NEWLINE: "\n"@1498..1499
+      TEXT_LINE: ">>> np.roll(x2, 1, axis=1)"@1499..1525
+      NEWLINE: "\n"@1525..1526
+      TEXT_LINE: "array([[4, 0, 1, 2, 3],"@1526..1549
+      NEWLINE: "\n"@1549..1550
+      WHITESPACE: "       "@1550..1557
+      TEXT_LINE: "[9, 5, 6, 7, 8]])"@1557..1574
+      NEWLINE: "\n"@1574..1575
+      TEXT_LINE: ">>> np.roll(x2, -1, axis=1)"@1575..1602
+      NEWLINE: "\n"@1602..1603
+      TEXT_LINE: "array([[1, 2, 3, 4, 0],"@1603..1626
+      NEWLINE: "\n"@1626..1627
+      WHITESPACE: "       "@1627..1634
+      TEXT_LINE: "[6, 7, 8, 9, 5]])"@1634..1651
+      NEWLINE: "\n"@1651..1652
+      TEXT_LINE: ">>> np.roll(x2, (1, 1), axis=(1, 0))"@1652..1688
+      NEWLINE: "\n"@1688..1689
+      TEXT_LINE: "array([[9, 5, 6, 7, 8],"@1689..1712
+      NEWLINE: "\n"@1712..1713
+      WHITESPACE: "       "@1713..1720
+      TEXT_LINE: "[4, 0, 1, 2, 3]])"@1720..1737
+      NEWLINE: "\n"@1737..1738
+      TEXT_LINE: ">>> np.roll(x2, (2, 1), axis=(1, 0))"@1738..1774
+      NEWLINE: "\n"@1774..1775
+      TEXT_LINE: "array([[8, 9, 5, 6, 7],"@1775..1798
+      NEWLINE: "\n"@1798..1799
+      WHITESPACE: "       "@1799..1806
+      TEXT_LINE: "[3, 4, 0, 1, 2]])"@1806..1823
+    }
+  }
+}
+=== EMIT ===
+Roll array elements along a given axis.
+
+Elements that roll beyond the last position are re-introduced at
+the first.
+
+Parameters
+----------
+a : array_like
+    Input array.
+shift : int or tuple of ints
+    The number of places by which elements are shifted.  If a tuple,
+    then `axis` must be a tuple of the same size, and each of the
+    given axes is shifted by the corresponding number.  If an int
+    while `axis` is a tuple of ints, then the same value is used for
+    all given axes.
+axis : int or tuple of ints, optional
+    Axis or axes along which elements are shifted.  By default, the
+    array is flattened before shifting, after which the original
+    shape is restored.
+
+Returns
+-------
+res : ndarray
+    Output array, with the same shape as `a`.
+
+See Also
+--------
+rollaxis : Roll the specified axis backwards, until it lies in a
+given position.
+
+Notes
+-----
+Supports rolling over multiple dimensions simultaneously.
+
+Examples
+--------
+>>> import numpy as np
+>>> x = np.arange(10)
+>>> np.roll(x, 2)
+array([8, 9, 0, 1, 2, 3, 4, 5, 6, 7])
+>>> np.roll(x, -2)
+array([2, 3, 4, 5, 6, 7, 8, 9, 0, 1])
+
+>>> x2 = np.reshape(x, (2, 5))
+>>> x2
+array([[0, 1, 2, 3, 4],
+       [5, 6, 7, 8, 9]])
+>>> np.roll(x2, 1)
+array([[9, 0, 1, 2, 3],
+       [4, 5, 6, 7, 8]])
+>>> np.roll(x2, -1)
+array([[1, 2, 3, 4, 5],
+       [6, 7, 8, 9, 0]])
+>>> np.roll(x2, 1, axis=0)
+array([[5, 6, 7, 8, 9],
+       [0, 1, 2, 3, 4]])
+>>> np.roll(x2, -1, axis=0)
+array([[5, 6, 7, 8, 9],
+       [0, 1, 2, 3, 4]])
+>>> np.roll(x2, 1, axis=1)
+array([[4, 0, 1, 2, 3],
+       [9, 5, 6, 7, 8]])
+>>> np.roll(x2, -1, axis=1)
+array([[1, 2, 3, 4, 0],
+       [6, 7, 8, 9, 5]])
+>>> np.roll(x2, (1, 1), axis=(1, 0))
+array([[9, 5, 6, 7, 8],
+       [4, 0, 1, 2, 3]])
+>>> np.roll(x2, (2, 1), axis=(1, 0))
+array([[8, 9, 5, 6, 7],
+       [3, 4, 0, 1, 2]])

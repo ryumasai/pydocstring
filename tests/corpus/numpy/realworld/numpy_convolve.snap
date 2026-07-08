@@ -1,0 +1,361 @@
+=== CST ===
+DOCUMENT@0..2824 {
+  SUMMARY@0..74 {
+    TEXT_LINE: "Returns the discrete, linear convolution of two one-dimensional sequences."@0..74
+  }
+  NEWLINE: "\n"@74..75
+  BLANK_LINE: "\n"@75..76
+  EXTENDED_SUMMARY@76..433 {
+    TEXT_LINE: "The convolution operator is often seen in signal processing, where it"@76..145
+    NEWLINE: "\n"@145..146
+    TEXT_LINE: "models the effect of a linear time-invariant system on a signal [1]_.  In"@146..219
+    NEWLINE: "\n"@219..220
+    TEXT_LINE: "probability theory, the sum of two independent random variables is"@220..286
+    NEWLINE: "\n"@286..287
+    TEXT_LINE: "distributed according to the convolution of their individual"@287..347
+    NEWLINE: "\n"@347..348
+    TEXT_LINE: "distributions."@348..362
+    NEWLINE: "\n"@362..363
+    BLANK_LINE: "\n"@363..364
+    TEXT_LINE: "If `v` is longer than `a`, the arrays are swapped before computation."@364..433
+  }
+  NEWLINE: "\n"@433..434
+  BLANK_LINE: "\n"@434..435
+  SECTION@435..1244 {
+    SECTION_HEADER@435..456 {
+      NAME: "Parameters"@435..445
+      NEWLINE: "\n"@445..446
+      UNDERLINE: "----------"@446..456
+    }
+    NEWLINE: "\n"@456..457
+    ENTRY@457..515 {
+      NAME: "a"@457..458
+      WHITESPACE: " "@458..459
+      COLON: ":"@459..460
+      WHITESPACE: " "@460..461
+      TYPE: "(N,) array_like"@461..476
+      NEWLINE: "\n"@476..477
+      WHITESPACE: "    "@477..481
+      DESCRIPTION@481..515 {
+        TEXT_LINE: "First one-dimensional input array."@481..515
+      }
+    }
+    NEWLINE: "\n"@515..516
+    ENTRY@516..575 {
+      NAME: "v"@516..517
+      WHITESPACE: " "@517..518
+      COLON: ":"@518..519
+      WHITESPACE: " "@519..520
+      TYPE: "(M,) array_like"@520..535
+      NEWLINE: "\n"@535..536
+      WHITESPACE: "    "@536..540
+      DESCRIPTION@540..575 {
+        TEXT_LINE: "Second one-dimensional input array."@540..575
+      }
+    }
+    NEWLINE: "\n"@575..576
+    ENTRY@576..1244 {
+      NAME: "mode"@576..580
+      WHITESPACE: " "@580..581
+      COLON: ":"@581..582
+      WHITESPACE: " "@582..583
+      TYPE: "{'full', 'valid', 'same'}"@583..608
+      COMMA: ","@608..609
+      WHITESPACE: " "@609..610
+      OPTIONAL: "optional"@610..618
+      NEWLINE: "\n"@618..619
+      WHITESPACE: "    "@619..623
+      DESCRIPTION@623..1244 {
+        TEXT_LINE: "'full':"@623..630
+        NEWLINE: "\n"@630..631
+        WHITESPACE: "      "@631..637
+        TEXT_LINE: "By default, mode is 'full'.  This returns the convolution"@637..694
+        NEWLINE: "\n"@694..695
+        WHITESPACE: "      "@695..701
+        TEXT_LINE: "at each point of overlap, with an output shape of (N+M-1,). At"@701..763
+        NEWLINE: "\n"@763..764
+        WHITESPACE: "      "@764..770
+        TEXT_LINE: "the end-points of the convolution, the signals do not overlap"@770..831
+        NEWLINE: "\n"@831..832
+        WHITESPACE: "      "@832..838
+        TEXT_LINE: "completely, and boundary effects may be seen."@838..883
+        NEWLINE: "\n"@883..884
+        BLANK_LINE: "\n"@884..885
+        WHITESPACE: "    "@885..889
+        TEXT_LINE: "'same':"@889..896
+        NEWLINE: "\n"@896..897
+        WHITESPACE: "      "@897..903
+        TEXT_LINE: "Mode 'same' returns output of length ``max(M, N)``.  Boundary"@903..964
+        NEWLINE: "\n"@964..965
+        WHITESPACE: "      "@965..971
+        TEXT_LINE: "effects are still visible."@971..997
+        NEWLINE: "\n"@997..998
+        BLANK_LINE: "\n"@998..999
+        WHITESPACE: "    "@999..1003
+        TEXT_LINE: "'valid':"@1003..1011
+        NEWLINE: "\n"@1011..1012
+        WHITESPACE: "      "@1012..1018
+        TEXT_LINE: "Mode 'valid' returns output of length"@1018..1055
+        NEWLINE: "\n"@1055..1056
+        WHITESPACE: "      "@1056..1062
+        TEXT_LINE: "``max(M, N) - min(M, N) + 1``.  The convolution product is only given"@1062..1131
+        NEWLINE: "\n"@1131..1132
+        WHITESPACE: "      "@1132..1138
+        TEXT_LINE: "for points where the signals overlap completely.  Values outside"@1138..1202
+        NEWLINE: "\n"@1202..1203
+        WHITESPACE: "      "@1203..1209
+        TEXT_LINE: "the signal boundary have no effect."@1209..1244
+      }
+    }
+  }
+  NEWLINE: "\n"@1244..1245
+  BLANK_LINE: "\n"@1245..1246
+  SECTION@1246..1324 {
+    SECTION_HEADER@1246..1261 {
+      NAME: "Returns"@1246..1253
+      NEWLINE: "\n"@1253..1254
+      UNDERLINE: "-------"@1254..1261
+    }
+    NEWLINE: "\n"@1261..1262
+    ENTRY@1262..1324 {
+      NAME: "out"@1262..1265
+      WHITESPACE: " "@1265..1266
+      COLON: ":"@1266..1267
+      WHITESPACE: " "@1267..1268
+      TYPE: "ndarray"@1268..1275
+      NEWLINE: "\n"@1275..1276
+      WHITESPACE: "    "@1276..1280
+      DESCRIPTION@1280..1324 {
+        TEXT_LINE: "Discrete, linear convolution of `a` and `v`."@1280..1324
+      }
+    }
+  }
+  NEWLINE: "\n"@1324..1325
+  BLANK_LINE: "\n"@1325..1326
+  SECTION@1326..1633 {
+    SECTION_HEADER@1326..1343 {
+      NAME: "See Also"@1326..1334
+      NEWLINE: "\n"@1334..1335
+      UNDERLINE: "--------"@1335..1343
+    }
+    NEWLINE: "\n"@1343..1344
+    ENTRY@1344..1451 {
+      NAME: "scipy.signal.fftconvolve"@1344..1368
+      WHITESPACE: " "@1368..1369
+      COLON: ":"@1369..1370
+      WHITESPACE: " "@1370..1371
+      DESCRIPTION@1371..1451 {
+        TEXT_LINE: "Convolve two arrays using the Fast Fourier"@1371..1413
+        NEWLINE: "\n"@1413..1414
+        WHITESPACE: "                           "@1414..1441
+        TEXT_LINE: "Transform."@1441..1451
+      }
+    }
+    NEWLINE: "\n"@1451..1452
+    ENTRY@1452..1519 {
+      NAME: "scipy.linalg.toeplitz"@1452..1473
+      WHITESPACE: " "@1473..1474
+      COLON: ":"@1474..1475
+      WHITESPACE: " "@1475..1476
+      DESCRIPTION@1476..1519 {
+        TEXT_LINE: "Used to construct the convolution operator."@1476..1519
+      }
+    }
+    NEWLINE: "\n"@1519..1520
+    ENTRY@1520..1633 {
+      NAME: "polymul"@1520..1527
+      WHITESPACE: " "@1527..1528
+      COLON: ":"@1528..1529
+      WHITESPACE: " "@1529..1530
+      DESCRIPTION@1530..1633 {
+        TEXT_LINE: "Polynomial multiplication. Same output as convolve, but also"@1530..1590
+        NEWLINE: "\n"@1590..1591
+        WHITESPACE: "          "@1591..1601
+        TEXT_LINE: "accepts poly1d objects as input."@1601..1633
+      }
+    }
+  }
+  NEWLINE: "\n"@1633..1634
+  BLANK_LINE: "\n"@1634..1635
+  SECTION@1635..2162 {
+    SECTION_HEADER@1635..1646 {
+      NAME: "Notes"@1635..1640
+      NEWLINE: "\n"@1640..1641
+      UNDERLINE: "-----"@1641..1646
+    }
+    NEWLINE: "\n"@1646..1647
+    DESCRIPTION@1647..2162 {
+      TEXT_LINE: "The discrete convolution operation is defined as"@1647..1695
+      NEWLINE: "\n"@1695..1696
+      BLANK_LINE: "\n"@1696..1697
+      TEXT_LINE: ".. math:: (a * v)_n = \\sum_{m = -\\infty}^{\\infty} a_m v_{n - m}"@1697..1760
+      NEWLINE: "\n"@1760..1761
+      BLANK_LINE: "\n"@1761..1762
+      TEXT_LINE: "It can be shown that a convolution :math:`x(t) * y(t)` in time/space"@1762..1830
+      NEWLINE: "\n"@1830..1831
+      TEXT_LINE: "is equivalent to the multiplication :math:`X(f) Y(f)` in the Fourier"@1831..1899
+      NEWLINE: "\n"@1899..1900
+      TEXT_LINE: "domain, after appropriate padding (padding is necessary to prevent"@1900..1966
+      NEWLINE: "\n"@1966..1967
+      TEXT_LINE: "circular convolution).  Since multiplication is more efficient (faster)"@1967..2038
+      NEWLINE: "\n"@2038..2039
+      TEXT_LINE: "than convolution, the function `scipy.signal.fftconvolve` exploits the"@2039..2109
+      NEWLINE: "\n"@2109..2110
+      TEXT_LINE: "FFT to calculate the convolution of large data-sets."@2110..2162
+    }
+  }
+  NEWLINE: "\n"@2162..2163
+  BLANK_LINE: "\n"@2163..2164
+  SECTION@2164..2264 {
+    SECTION_HEADER@2164..2185 {
+      NAME: "References"@2164..2174
+      NEWLINE: "\n"@2174..2175
+      UNDERLINE: "----------"@2175..2185
+    }
+    NEWLINE: "\n"@2185..2186
+    CITATION@2186..2264 {
+      DIRECTIVE_MARKER: ".."@2186..2188
+      WHITESPACE: " "@2188..2189
+      OPEN_BRACKET: "["@2189..2190
+      LABEL: "1"@2190..2191
+      CLOSE_BRACKET: "]"@2191..2192
+      WHITESPACE: " "@2192..2193
+      DESCRIPTION@2193..2264 {
+        TEXT_LINE: "Wikipedia, \"Convolution\","@2193..2218
+        NEWLINE: "\n"@2218..2219
+        WHITESPACE: "    "@2219..2223
+        TEXT_LINE: "https://en.wikipedia.org/wiki/Convolution"@2223..2264
+      }
+    }
+  }
+  NEWLINE: "\n"@2264..2265
+  BLANK_LINE: "\n"@2265..2266
+  SECTION@2266..2824 {
+    SECTION_HEADER@2266..2283 {
+      NAME: "Examples"@2266..2274
+      NEWLINE: "\n"@2274..2275
+      UNDERLINE: "--------"@2275..2283
+    }
+    NEWLINE: "\n"@2283..2284
+    DESCRIPTION@2284..2824 {
+      TEXT_LINE: "Note how the convolution operator flips the second array"@2284..2340
+      NEWLINE: "\n"@2340..2341
+      TEXT_LINE: "before \"sliding\" the two across one another:"@2341..2385
+      NEWLINE: "\n"@2385..2386
+      BLANK_LINE: "\n"@2386..2387
+      TEXT_LINE: ">>> import numpy as np"@2387..2409
+      NEWLINE: "\n"@2409..2410
+      TEXT_LINE: ">>> np.convolve([1, 2, 3], [0, 1, 0.5])"@2410..2449
+      NEWLINE: "\n"@2449..2450
+      TEXT_LINE: "array([0. , 1. , 2.5, 4. , 1.5])"@2450..2482
+      NEWLINE: "\n"@2482..2483
+      BLANK_LINE: "\n"@2483..2484
+      TEXT_LINE: "Only return the middle values of the convolution."@2484..2533
+      NEWLINE: "\n"@2533..2534
+      TEXT_LINE: "Contains boundary effects, where zeros are taken"@2534..2582
+      NEWLINE: "\n"@2582..2583
+      TEXT_LINE: "into account:"@2583..2596
+      NEWLINE: "\n"@2596..2597
+      BLANK_LINE: "\n"@2597..2598
+      TEXT_LINE: ">>> np.convolve([1,2,3],[0,1,0.5], 'same')"@2598..2640
+      NEWLINE: "\n"@2640..2641
+      TEXT_LINE: "array([1. ,  2.5,  4. ])"@2641..2665
+      NEWLINE: "\n"@2665..2666
+      BLANK_LINE: "\n"@2666..2667
+      TEXT_LINE: "The two arrays are of the same length, so there"@2667..2714
+      NEWLINE: "\n"@2714..2715
+      TEXT_LINE: "is only one position where they completely overlap:"@2715..2766
+      NEWLINE: "\n"@2766..2767
+      BLANK_LINE: "\n"@2767..2768
+      TEXT_LINE: ">>> np.convolve([1,2,3],[0,1,0.5], 'valid')"@2768..2811
+      NEWLINE: "\n"@2811..2812
+      TEXT_LINE: "array([2.5])"@2812..2824
+    }
+  }
+}
+=== EMIT ===
+Returns the discrete, linear convolution of two one-dimensional sequences.
+
+The convolution operator is often seen in signal processing, where it
+models the effect of a linear time-invariant system on a signal [1]_.  In
+probability theory, the sum of two independent random variables is
+distributed according to the convolution of their individual
+distributions.
+
+If `v` is longer than `a`, the arrays are swapped before computation.
+
+Parameters
+----------
+a : (N,) array_like
+    First one-dimensional input array.
+v : (M,) array_like
+    Second one-dimensional input array.
+mode : {'full', 'valid', 'same'}, optional
+    'full':
+      By default, mode is 'full'.  This returns the convolution
+      at each point of overlap, with an output shape of (N+M-1,). At
+      the end-points of the convolution, the signals do not overlap
+      completely, and boundary effects may be seen.
+
+    'same':
+      Mode 'same' returns output of length ``max(M, N)``.  Boundary
+      effects are still visible.
+
+    'valid':
+      Mode 'valid' returns output of length
+      ``max(M, N) - min(M, N) + 1``.  The convolution product is only given
+      for points where the signals overlap completely.  Values outside
+      the signal boundary have no effect.
+
+Returns
+-------
+out : ndarray
+    Discrete, linear convolution of `a` and `v`.
+
+See Also
+--------
+scipy.signal.fftconvolve : Convolve two arrays using the Fast Fourier
+Transform.
+scipy.linalg.toeplitz : Used to construct the convolution operator.
+polymul : Polynomial multiplication. Same output as convolve, but also
+accepts poly1d objects as input.
+
+Notes
+-----
+The discrete convolution operation is defined as
+
+.. math:: (a * v)_n = \sum_{m = -\infty}^{\infty} a_m v_{n - m}
+
+It can be shown that a convolution :math:`x(t) * y(t)` in time/space
+is equivalent to the multiplication :math:`X(f) Y(f)` in the Fourier
+domain, after appropriate padding (padding is necessary to prevent
+circular convolution).  Since multiplication is more efficient (faster)
+than convolution, the function `scipy.signal.fftconvolve` exploits the
+FFT to calculate the convolution of large data-sets.
+
+References
+----------
+.. [1] Wikipedia, "Convolution",
+    https://en.wikipedia.org/wiki/Convolution
+
+Examples
+--------
+Note how the convolution operator flips the second array
+before "sliding" the two across one another:
+
+>>> import numpy as np
+>>> np.convolve([1, 2, 3], [0, 1, 0.5])
+array([0. , 1. , 2.5, 4. , 1.5])
+
+Only return the middle values of the convolution.
+Contains boundary effects, where zeros are taken
+into account:
+
+>>> np.convolve([1,2,3],[0,1,0.5], 'same')
+array([1. ,  2.5,  4. ])
+
+The two arrays are of the same length, so there
+is only one position where they completely overlap:
+
+>>> np.convolve([1,2,3],[0,1,0.5], 'valid')
+array([2.5])

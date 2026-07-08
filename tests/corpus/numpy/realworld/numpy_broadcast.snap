@@ -1,0 +1,182 @@
+=== CST ===
+DOCUMENT@0..857 {
+  SUMMARY@0..43 {
+    TEXT_LINE: "Produce an object that mimics broadcasting."@0..43
+  }
+  NEWLINE: "\n"@43..44
+  BLANK_LINE: "\n"@44..45
+  SECTION@45..115 {
+    SECTION_HEADER@45..66 {
+      NAME: "Parameters"@45..55
+      NEWLINE: "\n"@55..56
+      UNDERLINE: "----------"@56..66
+    }
+    NEWLINE: "\n"@66..67
+    ENTRY@67..115 {
+      NAME: "in1"@67..70
+      COMMA: ","@70..71
+      WHITESPACE: " "@71..72
+      NAME: "in2"@72..75
+      COMMA: ","@75..76
+      WHITESPACE: " "@76..77
+      NAME: "..."@77..80
+      WHITESPACE: " "@80..81
+      COLON: ":"@81..82
+      WHITESPACE: " "@82..83
+      TYPE: "array_like"@83..93
+      NEWLINE: "\n"@93..94
+      WHITESPACE: "    "@94..98
+      DESCRIPTION@98..115 {
+        TEXT_LINE: "Input parameters."@98..115
+      }
+    }
+  }
+  NEWLINE: "\n"@115..116
+  BLANK_LINE: "\n"@116..117
+  SECTION@117..360 {
+    SECTION_HEADER@117..132 {
+      NAME: "Returns"@117..124
+      NEWLINE: "\n"@124..125
+      UNDERLINE: "-------"@125..132
+    }
+    NEWLINE: "\n"@132..133
+    ENTRY@133..360 {
+      NAME: "b"@133..134
+      WHITESPACE: " "@134..135
+      COLON: ":"@135..136
+      WHITESPACE: " "@136..137
+      TYPE: "broadcast object"@137..153
+      NEWLINE: "\n"@153..154
+      WHITESPACE: "    "@154..158
+      DESCRIPTION@158..360 {
+        TEXT_LINE: "Broadcast the input parameters against one another, and"@158..213
+        NEWLINE: "\n"@213..214
+        WHITESPACE: "    "@214..218
+        TEXT_LINE: "return an object that encapsulates the result."@218..264
+        NEWLINE: "\n"@264..265
+        WHITESPACE: "    "@265..269
+        TEXT_LINE: "Amongst others, it has ``shape`` and ``nd`` properties, and"@269..328
+        NEWLINE: "\n"@328..329
+        WHITESPACE: "    "@329..333
+        TEXT_LINE: "may be used as an iterator."@333..360
+      }
+    }
+  }
+  NEWLINE: "\n"@360..361
+  BLANK_LINE: "\n"@361..362
+  SECTION@362..426 {
+    SECTION_HEADER@362..379 {
+      NAME: "See Also"@362..370
+      NEWLINE: "\n"@370..371
+      UNDERLINE: "--------"@371..379
+    }
+    NEWLINE: "\n"@379..380
+    ENTRY@380..396 {
+      NAME: "broadcast_arrays"@380..396
+    }
+    NEWLINE: "\n"@396..397
+    ENTRY@397..409 {
+      NAME: "broadcast_to"@397..409
+    }
+    NEWLINE: "\n"@409..410
+    ENTRY@410..426 {
+      NAME: "broadcast_shapes"@410..426
+    }
+  }
+  NEWLINE: "\n"@426..427
+  BLANK_LINE: "\n"@427..428
+  SECTION@428..857 {
+    SECTION_HEADER@428..445 {
+      NAME: "Examples"@428..436
+      NEWLINE: "\n"@436..437
+      UNDERLINE: "--------"@437..445
+    }
+    NEWLINE: "\n"@445..446
+    BLANK_LINE: "\n"@446..447
+    DESCRIPTION@447..857 {
+      TEXT_LINE: "Manually adding two vectors, using broadcasting:"@447..495
+      NEWLINE: "\n"@495..496
+      BLANK_LINE: "\n"@496..497
+      TEXT_LINE: ">>> import numpy as np"@497..519
+      NEWLINE: "\n"@519..520
+      TEXT_LINE: ">>> x = np.array([[1], [2], [3]])"@520..553
+      NEWLINE: "\n"@553..554
+      TEXT_LINE: ">>> y = np.array([4, 5, 6])"@554..581
+      NEWLINE: "\n"@581..582
+      TEXT_LINE: ">>> b = np.broadcast(x, y)"@582..608
+      NEWLINE: "\n"@608..609
+      BLANK_LINE: "\n"@609..610
+      TEXT_LINE: ">>> out = np.empty(b.shape)"@610..637
+      NEWLINE: "\n"@637..638
+      TEXT_LINE: ">>> out.flat = [u+v for (u,v) in b]"@638..673
+      NEWLINE: "\n"@673..674
+      TEXT_LINE: ">>> out"@674..681
+      NEWLINE: "\n"@681..682
+      TEXT_LINE: "array([[5.,  6.,  7.],"@682..704
+      NEWLINE: "\n"@704..705
+      WHITESPACE: "       "@705..712
+      TEXT_LINE: "[6.,  7.,  8.],"@712..727
+      NEWLINE: "\n"@727..728
+      WHITESPACE: "       "@728..735
+      TEXT_LINE: "[7.,  8.,  9.]])"@735..751
+      NEWLINE: "\n"@751..752
+      BLANK_LINE: "\n"@752..753
+      TEXT_LINE: "Compare against built-in broadcasting:"@753..791
+      NEWLINE: "\n"@791..792
+      BLANK_LINE: "\n"@792..793
+      TEXT_LINE: ">>> x + y"@793..802
+      NEWLINE: "\n"@802..803
+      TEXT_LINE: "array([[5, 6, 7],"@803..820
+      NEWLINE: "\n"@820..821
+      WHITESPACE: "       "@821..828
+      TEXT_LINE: "[6, 7, 8],"@828..838
+      NEWLINE: "\n"@838..839
+      WHITESPACE: "       "@839..846
+      TEXT_LINE: "[7, 8, 9]])"@846..857
+    }
+  }
+}
+=== EMIT ===
+Produce an object that mimics broadcasting.
+
+Parameters
+----------
+in1, in2, ... : array_like
+    Input parameters.
+
+Returns
+-------
+b : broadcast object
+    Broadcast the input parameters against one another, and
+    return an object that encapsulates the result.
+    Amongst others, it has ``shape`` and ``nd`` properties, and
+    may be used as an iterator.
+
+See Also
+--------
+broadcast_arrays
+broadcast_to
+broadcast_shapes
+
+Examples
+--------
+Manually adding two vectors, using broadcasting:
+
+>>> import numpy as np
+>>> x = np.array([[1], [2], [3]])
+>>> y = np.array([4, 5, 6])
+>>> b = np.broadcast(x, y)
+
+>>> out = np.empty(b.shape)
+>>> out.flat = [u+v for (u,v) in b]
+>>> out
+array([[5.,  6.,  7.],
+       [6.,  7.,  8.],
+       [7.,  8.,  9.]])
+
+Compare against built-in broadcasting:
+
+>>> x + y
+array([[5, 6, 7],
+       [6, 7, 8],
+       [7, 8, 9]])

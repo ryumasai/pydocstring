@@ -1,0 +1,242 @@
+=== CST ===
+DOCUMENT@0..1528 {
+  SUMMARY@0..45 {
+    TEXT_LINE: "fromiter(iter, dtype, count=-1, *, like=None)"@0..45
+  }
+  NEWLINE: "\n"@45..46
+  BLANK_LINE: "\n"@46..47
+  EXTENDED_SUMMARY@47..104 {
+    TEXT_LINE: "Create a new 1-dimensional array from an iterable object."@47..104
+  }
+  NEWLINE: "\n"@104..105
+  BLANK_LINE: "\n"@105..106
+  SECTION@106..922 {
+    SECTION_HEADER@106..127 {
+      NAME: "Parameters"@106..116
+      NEWLINE: "\n"@116..117
+      UNDERLINE: "----------"@117..127
+    }
+    NEWLINE: "\n"@127..128
+    ENTRY@128..203 {
+      NAME: "iter"@128..132
+      WHITESPACE: " "@132..133
+      COLON: ":"@133..134
+      WHITESPACE: " "@134..135
+      TYPE: "iterable object"@135..150
+      NEWLINE: "\n"@150..151
+      WHITESPACE: "    "@151..155
+      DESCRIPTION@155..203 {
+        TEXT_LINE: "An iterable object providing data for the array."@155..203
+      }
+    }
+    NEWLINE: "\n"@203..204
+    ENTRY@204..415 {
+      NAME: "dtype"@204..209
+      WHITESPACE: " "@209..210
+      COLON: ":"@210..211
+      WHITESPACE: " "@211..212
+      TYPE: "data-type"@212..221
+      NEWLINE: "\n"@221..222
+      WHITESPACE: "    "@222..226
+      DESCRIPTION@226..415 {
+        TEXT_LINE: "The data-type of the returned array."@226..262
+        NEWLINE: "\n"@262..263
+        BLANK_LINE: "\n"@263..264
+        WHITESPACE: "    "@264..268
+        TEXT_LINE: ".. versionchanged:: 1.23"@268..292
+        NEWLINE: "\n"@292..293
+        WHITESPACE: "        "@293..301
+        TEXT_LINE: "Object and subarray dtypes are now supported (note that the final"@301..366
+        NEWLINE: "\n"@366..367
+        WHITESPACE: "        "@367..375
+        TEXT_LINE: "result is not 1-D for a subarray dtype)."@375..415
+      }
+    }
+    NEWLINE: "\n"@415..416
+    BLANK_LINE: "\n"@416..417
+    ENTRY@417..541 {
+      NAME: "count"@417..422
+      WHITESPACE: " "@422..423
+      COLON: ":"@423..424
+      WHITESPACE: " "@424..425
+      TYPE: "int"@425..428
+      COMMA: ","@428..429
+      WHITESPACE: " "@429..430
+      OPTIONAL: "optional"@430..438
+      NEWLINE: "\n"@438..439
+      WHITESPACE: "    "@439..443
+      DESCRIPTION@443..541 {
+        TEXT_LINE: "The number of items to read from *iterable*.  The default is -1,"@443..507
+        NEWLINE: "\n"@507..508
+        WHITESPACE: "    "@508..512
+        TEXT_LINE: "which means all data is read."@512..541
+      }
+    }
+    NEWLINE: "\n"@541..542
+    ENTRY@542..922 {
+      NAME: "like"@542..546
+      WHITESPACE: " "@546..547
+      COLON: ":"@547..548
+      WHITESPACE: " "@548..549
+      TYPE: "array_like"@549..559
+      COMMA: ","@559..560
+      WHITESPACE: " "@560..561
+      OPTIONAL: "optional"@561..569
+      NEWLINE: "\n"@569..570
+      WHITESPACE: "    "@570..574
+      DESCRIPTION@574..922 {
+        TEXT_LINE: "Reference object to allow the creation of arrays which are not"@574..636
+        NEWLINE: "\n"@636..637
+        WHITESPACE: "    "@637..641
+        TEXT_LINE: "NumPy arrays. If an array-like passed in as ``like`` supports"@641..702
+        NEWLINE: "\n"@702..703
+        WHITESPACE: "    "@703..707
+        TEXT_LINE: "the ``__array_function__`` protocol, the result will be defined"@707..770
+        NEWLINE: "\n"@770..771
+        WHITESPACE: "    "@771..775
+        TEXT_LINE: "by it. In this case, it ensures the creation of an array object"@775..838
+        NEWLINE: "\n"@838..839
+        WHITESPACE: "    "@839..843
+        TEXT_LINE: "compatible with that passed in via this argument."@843..892
+        NEWLINE: "\n"@892..893
+        BLANK_LINE: "\n"@893..894
+        WHITESPACE: "    "@894..898
+        TEXT_LINE: ".. versionadded:: 1.20.0"@898..922
+      }
+    }
+  }
+  NEWLINE: "\n"@922..923
+  BLANK_LINE: "\n"@923..924
+  SECTION@924..975 {
+    SECTION_HEADER@924..939 {
+      NAME: "Returns"@924..931
+      NEWLINE: "\n"@931..932
+      UNDERLINE: "-------"@932..939
+    }
+    NEWLINE: "\n"@939..940
+    ENTRY@940..975 {
+      NAME: "out"@940..943
+      WHITESPACE: " "@943..944
+      COLON: ":"@944..945
+      WHITESPACE: " "@945..946
+      TYPE: "ndarray"@946..953
+      NEWLINE: "\n"@953..954
+      WHITESPACE: "    "@954..958
+      DESCRIPTION@958..975 {
+        TEXT_LINE: "The output array."@958..975
+      }
+    }
+  }
+  NEWLINE: "\n"@975..976
+  BLANK_LINE: "\n"@976..977
+  SECTION@977..1120 {
+    SECTION_HEADER@977..988 {
+      NAME: "Notes"@977..982
+      NEWLINE: "\n"@982..983
+      UNDERLINE: "-----"@983..988
+    }
+    NEWLINE: "\n"@988..989
+    DESCRIPTION@989..1120 {
+      TEXT_LINE: "Specify `count` to improve performance.  It allows ``fromiter`` to"@989..1055
+      NEWLINE: "\n"@1055..1056
+      TEXT_LINE: "pre-allocate the output array, instead of resizing it on demand."@1056..1120
+    }
+  }
+  NEWLINE: "\n"@1120..1121
+  BLANK_LINE: "\n"@1121..1122
+  SECTION@1122..1528 {
+    SECTION_HEADER@1122..1139 {
+      NAME: "Examples"@1122..1130
+      NEWLINE: "\n"@1130..1131
+      UNDERLINE: "--------"@1131..1139
+    }
+    NEWLINE: "\n"@1139..1140
+    DESCRIPTION@1140..1528 {
+      TEXT_LINE: ">>> import numpy as np"@1140..1162
+      NEWLINE: "\n"@1162..1163
+      TEXT_LINE: ">>> iterable = (x*x for x in range(5))"@1163..1201
+      NEWLINE: "\n"@1201..1202
+      TEXT_LINE: ">>> np.fromiter(iterable, float)"@1202..1234
+      NEWLINE: "\n"@1234..1235
+      TEXT_LINE: "array([  0.,   1.,   4.,   9.,  16.])"@1235..1272
+      NEWLINE: "\n"@1272..1273
+      BLANK_LINE: "\n"@1273..1274
+      TEXT_LINE: "A carefully constructed subarray dtype will lead to higher dimensional"@1274..1344
+      NEWLINE: "\n"@1344..1345
+      TEXT_LINE: "results:"@1345..1353
+      NEWLINE: "\n"@1353..1354
+      BLANK_LINE: "\n"@1354..1355
+      TEXT_LINE: ">>> iterable = ((x+1, x+2) for x in range(5))"@1355..1400
+      NEWLINE: "\n"@1400..1401
+      TEXT_LINE: ">>> np.fromiter(iterable, dtype=np.dtype((int, 2)))"@1401..1452
+      NEWLINE: "\n"@1452..1453
+      TEXT_LINE: "array([[1, 2],"@1453..1467
+      NEWLINE: "\n"@1467..1468
+      WHITESPACE: "       "@1468..1475
+      TEXT_LINE: "[2, 3],"@1475..1482
+      NEWLINE: "\n"@1482..1483
+      WHITESPACE: "       "@1483..1490
+      TEXT_LINE: "[3, 4],"@1490..1497
+      NEWLINE: "\n"@1497..1498
+      WHITESPACE: "       "@1498..1505
+      TEXT_LINE: "[4, 5],"@1505..1512
+      NEWLINE: "\n"@1512..1513
+      WHITESPACE: "       "@1513..1520
+      TEXT_LINE: "[5, 6]])"@1520..1528
+    }
+  }
+}
+=== EMIT ===
+fromiter(iter, dtype, count=-1, *, like=None)
+
+Create a new 1-dimensional array from an iterable object.
+
+Parameters
+----------
+iter : iterable object
+    An iterable object providing data for the array.
+dtype : data-type
+    The data-type of the returned array.
+
+    .. versionchanged:: 1.23
+        Object and subarray dtypes are now supported (note that the final
+        result is not 1-D for a subarray dtype).
+count : int, optional
+    The number of items to read from *iterable*.  The default is -1,
+    which means all data is read.
+like : array_like, optional
+    Reference object to allow the creation of arrays which are not
+    NumPy arrays. If an array-like passed in as ``like`` supports
+    the ``__array_function__`` protocol, the result will be defined
+    by it. In this case, it ensures the creation of an array object
+    compatible with that passed in via this argument.
+
+    .. versionadded:: 1.20.0
+
+Returns
+-------
+out : ndarray
+    The output array.
+
+Notes
+-----
+Specify `count` to improve performance.  It allows ``fromiter`` to
+pre-allocate the output array, instead of resizing it on demand.
+
+Examples
+--------
+>>> import numpy as np
+>>> iterable = (x*x for x in range(5))
+>>> np.fromiter(iterable, float)
+array([  0.,   1.,   4.,   9.,  16.])
+
+A carefully constructed subarray dtype will lead to higher dimensional
+results:
+
+>>> iterable = ((x+1, x+2) for x in range(5))
+>>> np.fromiter(iterable, dtype=np.dtype((int, 2)))
+array([[1, 2],
+       [2, 3],
+       [3, 4],
+       [4, 5],
+       [5, 6]])

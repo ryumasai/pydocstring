@@ -1,0 +1,590 @@
+=== CST ===
+DOCUMENT@0..6074 {
+  SUMMARY@0..73 {
+    TEXT_LINE: "Calculate a linear least-squares regression for two sets of measurements."@0..73
+  }
+  NEWLINE: "\n"@73..74
+  BLANK_LINE: "\n"@74..75
+  SECTION@75..1670 {
+    SECTION_HEADER@75..96 {
+      NAME: "Parameters"@75..85
+      NEWLINE: "\n"@85..86
+      UNDERLINE: "----------"@86..96
+    }
+    NEWLINE: "\n"@96..97
+    ENTRY@97..188 {
+      NAME: "x"@97..98
+      COMMA: ","@98..99
+      WHITESPACE: " "@99..100
+      NAME: "y"@100..101
+      WHITESPACE: " "@101..102
+      COLON: ":"@102..103
+      WHITESPACE: " "@103..104
+      TYPE: "array_like"@104..114
+      NEWLINE: "\n"@114..115
+      WHITESPACE: "    "@115..119
+      DESCRIPTION@119..188 {
+        TEXT_LINE: "Two sets of measurements.  Both arrays should have the same length N."@119..188
+      }
+    }
+    NEWLINE: "\n"@188..189
+    ENTRY@189..588 {
+      NAME: "alternative"@189..200
+      WHITESPACE: " "@200..201
+      COLON: ":"@201..202
+      WHITESPACE: " "@202..203
+      TYPE: "{'two-sided', 'less', 'greater'}"@203..235
+      COMMA: ","@235..236
+      WHITESPACE: " "@236..237
+      OPTIONAL: "optional"@237..245
+      NEWLINE: "\n"@245..246
+      WHITESPACE: "    "@246..250
+      DESCRIPTION@250..588 {
+        TEXT_LINE: "Defines the alternative hypothesis. Default is 'two-sided'."@250..309
+        NEWLINE: "\n"@309..310
+        WHITESPACE: "    "@310..314
+        TEXT_LINE: "The following options are available:"@314..350
+        NEWLINE: "\n"@350..351
+        BLANK_LINE: "    \n"@351..356
+        WHITESPACE: "    "@356..360
+        TEXT_LINE: "* 'two-sided': the slope of the regression line is nonzero"@360..418
+        NEWLINE: "\n"@418..419
+        WHITESPACE: "    "@419..423
+        TEXT_LINE: "* 'less': the slope of the regression line is less than zero"@423..483
+        NEWLINE: "\n"@483..484
+        WHITESPACE: "    "@484..488
+        TEXT_LINE: "* 'greater':  the slope of the regression line is greater than zero"@488..555
+        NEWLINE: "\n"@555..556
+        BLANK_LINE: "    \n"@556..561
+        WHITESPACE: "    "@561..565
+        TEXT_LINE: ".. versionadded:: 1.7.0"@565..588
+      }
+    }
+    NEWLINE: "\n"@588..589
+    ENTRY@589..888 {
+      NAME: "axis"@589..593
+      WHITESPACE: " "@593..594
+      COLON: ":"@594..595
+      WHITESPACE: " "@595..596
+      TYPE: "int or None"@596..607
+      COMMA: ","@607..608
+      WHITESPACE: " "@608..609
+      DEFAULT@609..619 {
+        DEFAULT_KEYWORD: "default"@609..616
+        DEFAULT_SEPARATOR: ":"@616..617
+        WHITESPACE: " "@617..618
+        DEFAULT_VALUE: "0"@618..619
+      }
+      NEWLINE: "\n"@619..620
+      WHITESPACE: "    "@620..624
+      DESCRIPTION@624..888 {
+        TEXT_LINE: "If an int, the axis of the input along which to compute the statistic."@624..694
+        NEWLINE: "\n"@694..695
+        WHITESPACE: "    "@695..699
+        TEXT_LINE: "The statistic of each axis-slice (e.g. row) of the input will appear in a"@699..772
+        NEWLINE: "\n"@772..773
+        WHITESPACE: "    "@773..777
+        TEXT_LINE: "corresponding element of the output."@777..813
+        NEWLINE: "\n"@813..814
+        WHITESPACE: "    "@814..818
+        TEXT_LINE: "If ``None``, the input will be raveled before computing the statistic."@818..888
+      }
+    }
+    NEWLINE: "\n"@888..889
+    ENTRY@889..1444 {
+      NAME: "nan_policy"@889..899
+      WHITESPACE: " "@899..900
+      COLON: ":"@900..901
+      WHITESPACE: " "@901..902
+      TYPE: "{'propagate', 'omit', 'raise'}"@902..932
+      NEWLINE: "\n"@932..933
+      WHITESPACE: "    "@933..937
+      DESCRIPTION@937..1444 {
+        TEXT_LINE: "Defines how to handle input NaNs."@937..970
+        NEWLINE: "\n"@970..971
+        BLANK_LINE: "    \n"@971..976
+        WHITESPACE: "    "@976..980
+        TEXT_LINE: "- ``propagate``: if a NaN is present in the axis slice (e.g. row) along"@980..1051
+        NEWLINE: "\n"@1051..1052
+        WHITESPACE: "      "@1052..1058
+        TEXT_LINE: "which the  statistic is computed, the corresponding entry of the output"@1058..1129
+        NEWLINE: "\n"@1129..1130
+        WHITESPACE: "      "@1130..1136
+        TEXT_LINE: "will be NaN."@1136..1148
+        NEWLINE: "\n"@1148..1149
+        WHITESPACE: "    "@1149..1153
+        TEXT_LINE: "- ``omit``: NaNs will be omitted when performing the calculation."@1153..1218
+        NEWLINE: "\n"@1218..1219
+        WHITESPACE: "      "@1219..1225
+        TEXT_LINE: "If insufficient data remains in the axis slice along which the"@1225..1287
+        NEWLINE: "\n"@1287..1288
+        WHITESPACE: "      "@1288..1294
+        TEXT_LINE: "statistic is computed, the corresponding entry of the output will be"@1294..1362
+        NEWLINE: "\n"@1362..1363
+        WHITESPACE: "      "@1363..1369
+        TEXT_LINE: "NaN."@1369..1373
+        NEWLINE: "\n"@1373..1374
+        WHITESPACE: "    "@1374..1378
+        TEXT_LINE: "- ``raise``: if a NaN is present, a ``ValueError`` will be raised."@1378..1444
+      }
+    }
+    NEWLINE: "\n"@1444..1445
+    ENTRY@1445..1670 {
+      NAME: "keepdims"@1445..1453
+      WHITESPACE: " "@1453..1454
+      COLON: ":"@1454..1455
+      WHITESPACE: " "@1455..1456
+      TYPE: "bool"@1456..1460
+      COMMA: ","@1460..1461
+      WHITESPACE: " "@1461..1462
+      DEFAULT@1462..1476 {
+        DEFAULT_KEYWORD: "default"@1462..1469
+        DEFAULT_SEPARATOR: ":"@1469..1470
+        WHITESPACE: " "@1470..1471
+        DEFAULT_VALUE: "False"@1471..1476
+      }
+      NEWLINE: "\n"@1476..1477
+      WHITESPACE: "    "@1477..1481
+      DESCRIPTION@1481..1670 {
+        TEXT_LINE: "If this is set to True, the axes which are reduced are left"@1481..1540
+        NEWLINE: "\n"@1540..1541
+        WHITESPACE: "    "@1541..1545
+        TEXT_LINE: "in the result as dimensions with size one. With this option,"@1545..1605
+        NEWLINE: "\n"@1605..1606
+        WHITESPACE: "    "@1606..1610
+        TEXT_LINE: "the result will broadcast correctly against the input array."@1610..1670
+      }
+    }
+  }
+  NEWLINE: "\n"@1670..1671
+  BLANK_LINE: "\n"@1671..1672
+  SECTION@1672..2565 {
+    SECTION_HEADER@1672..1687 {
+      NAME: "Returns"@1672..1679
+      NEWLINE: "\n"@1679..1680
+      UNDERLINE: "-------"@1680..1687
+    }
+    NEWLINE: "\n"@1687..1688
+    ENTRY@1688..2565 {
+      NAME: "result"@1688..1694
+      WHITESPACE: " "@1694..1695
+      COLON: ":"@1695..1696
+      WHITESPACE: " "@1696..1697
+      TYPE: "``LinregressResult`` instance"@1697..1726
+      NEWLINE: "\n"@1726..1727
+      WHITESPACE: "    "@1727..1731
+      DESCRIPTION@1731..2565 {
+        TEXT_LINE: "The return value is an object with the following attributes:"@1731..1791
+        NEWLINE: "\n"@1791..1792
+        BLANK_LINE: "    \n"@1792..1797
+        WHITESPACE: "    "@1797..1801
+        TEXT_LINE: "slope : float"@1801..1814
+        NEWLINE: "\n"@1814..1815
+        WHITESPACE: "        "@1815..1823
+        TEXT_LINE: "Slope of the regression line."@1823..1852
+        NEWLINE: "\n"@1852..1853
+        WHITESPACE: "    "@1853..1857
+        TEXT_LINE: "intercept : float"@1857..1874
+        NEWLINE: "\n"@1874..1875
+        WHITESPACE: "        "@1875..1883
+        TEXT_LINE: "Intercept of the regression line."@1883..1916
+        NEWLINE: "\n"@1916..1917
+        WHITESPACE: "    "@1917..1921
+        TEXT_LINE: "rvalue : float"@1921..1935
+        NEWLINE: "\n"@1935..1936
+        WHITESPACE: "        "@1936..1944
+        TEXT_LINE: "The Pearson correlation coefficient. The square of ``rvalue``"@1944..2005
+        NEWLINE: "\n"@2005..2006
+        WHITESPACE: "        "@2006..2014
+        TEXT_LINE: "is equal to the coefficient of determination."@2014..2059
+        NEWLINE: "\n"@2059..2060
+        WHITESPACE: "    "@2060..2064
+        TEXT_LINE: "pvalue : float"@2064..2078
+        NEWLINE: "\n"@2078..2079
+        WHITESPACE: "        "@2079..2087
+        TEXT_LINE: "The p-value for a hypothesis test whose null hypothesis is"@2087..2145
+        NEWLINE: "\n"@2145..2146
+        WHITESPACE: "        "@2146..2154
+        TEXT_LINE: "that the slope is zero, using Wald Test with t-distribution of"@2154..2216
+        NEWLINE: "\n"@2216..2217
+        WHITESPACE: "        "@2217..2225
+        TEXT_LINE: "the test statistic. See `alternative` above for alternative"@2225..2284
+        NEWLINE: "\n"@2284..2285
+        WHITESPACE: "        "@2285..2293
+        TEXT_LINE: "hypotheses."@2293..2304
+        NEWLINE: "\n"@2304..2305
+        WHITESPACE: "    "@2305..2309
+        TEXT_LINE: "stderr : float"@2309..2323
+        NEWLINE: "\n"@2323..2324
+        WHITESPACE: "        "@2324..2332
+        TEXT_LINE: "Standard error of the estimated slope (gradient), under the"@2332..2391
+        NEWLINE: "\n"@2391..2392
+        WHITESPACE: "        "@2392..2400
+        TEXT_LINE: "assumption of residual normality."@2400..2433
+        NEWLINE: "\n"@2433..2434
+        WHITESPACE: "    "@2434..2438
+        TEXT_LINE: "intercept_stderr : float"@2438..2462
+        NEWLINE: "\n"@2462..2463
+        WHITESPACE: "        "@2463..2471
+        TEXT_LINE: "Standard error of the estimated intercept, under the assumption"@2471..2534
+        NEWLINE: "\n"@2534..2535
+        WHITESPACE: "        "@2535..2543
+        TEXT_LINE: "of residual normality."@2543..2565
+      }
+    }
+  }
+  NEWLINE: "\n"@2565..2566
+  BLANK_LINE: "\n"@2566..2567
+  SECTION@2567..2764 {
+    SECTION_HEADER@2567..2584 {
+      NAME: "See Also"@2567..2575
+      NEWLINE: "\n"@2575..2576
+      UNDERLINE: "--------"@2576..2584
+    }
+    NEWLINE: "\n"@2584..2585
+    BLANK_LINE: "\n"@2585..2586
+    ENTRY@2586..2678 {
+      NAME: ":func:`scipy.optimize.curve_fit`"@2586..2618
+      NEWLINE: "\n"@2618..2619
+      WHITESPACE: "    "@2619..2623
+      DESCRIPTION@2623..2678 {
+        TEXT_LINE: "Use non-linear least squares to fit a function to data."@2623..2678
+      }
+    }
+    NEWLINE: "\n"@2678..2679
+    ENTRY@2679..2764 {
+      NAME: ":func:`scipy.optimize.leastsq`"@2679..2709
+      NEWLINE: "\n"@2709..2710
+      WHITESPACE: "    "@2710..2714
+      DESCRIPTION@2714..2764 {
+        TEXT_LINE: "Minimize the sum of squares of a set of equations."@2714..2764
+      }
+    }
+  }
+  NEWLINE: "\n"@2764..2765
+  BLANK_LINE: "\n"@2765..2766
+  BLANK_LINE: "\n"@2766..2767
+  SECTION@2767..4987 {
+    SECTION_HEADER@2767..2778 {
+      NAME: "Notes"@2767..2772
+      NEWLINE: "\n"@2772..2773
+      UNDERLINE: "-----"@2773..2778
+    }
+    NEWLINE: "\n"@2778..2779
+    DESCRIPTION@2779..4987 {
+      TEXT_LINE: "For compatibility with older versions of SciPy, the return value acts"@2779..2848
+      NEWLINE: "\n"@2848..2849
+      TEXT_LINE: "like a ``namedtuple`` of length 5, with fields ``slope``, ``intercept``,"@2849..2921
+      NEWLINE: "\n"@2921..2922
+      TEXT_LINE: "``rvalue``, ``pvalue`` and ``stderr``, so one can continue to write::"@2922..2991
+      NEWLINE: "\n"@2991..2992
+      BLANK_LINE: "\n"@2992..2993
+      WHITESPACE: "    "@2993..2997
+      TEXT_LINE: "slope, intercept, r, p, se = linregress(x, y)"@2997..3042
+      NEWLINE: "\n"@3042..3043
+      BLANK_LINE: "\n"@3043..3044
+      TEXT_LINE: "With that style, however, the standard error of the intercept is not"@3044..3112
+      NEWLINE: "\n"@3112..3113
+      TEXT_LINE: "available.  To have access to all the computed values, including the"@3113..3181
+      NEWLINE: "\n"@3181..3182
+      TEXT_LINE: "standard error of the intercept, use the return value as an object"@3182..3248
+      NEWLINE: "\n"@3248..3249
+      TEXT_LINE: "with attributes, e.g.::"@3249..3272
+      NEWLINE: "\n"@3272..3273
+      BLANK_LINE: "\n"@3273..3274
+      WHITESPACE: "    "@3274..3278
+      TEXT_LINE: "result = linregress(x, y)"@3278..3303
+      NEWLINE: "\n"@3303..3304
+      WHITESPACE: "    "@3304..3308
+      TEXT_LINE: "print(result.intercept, result.intercept_stderr)"@3308..3356
+      NEWLINE: "\n"@3356..3357
+      BLANK_LINE: "\n"@3357..3358
+      TEXT_LINE: "Beginning in SciPy 1.9, ``np.matrix`` inputs (not recommended for new"@3358..3427
+      NEWLINE: "\n"@3427..3428
+      TEXT_LINE: "code) are converted to ``np.ndarray`` before the calculation is performed. In"@3428..3505
+      NEWLINE: "\n"@3505..3506
+      TEXT_LINE: "this case, the output will be a scalar or ``np.ndarray`` of appropriate shape"@3506..3583
+      NEWLINE: "\n"@3583..3584
+      TEXT_LINE: "rather than a 2D ``np.matrix``. Similarly, while masked elements of masked"@3584..3658
+      NEWLINE: "\n"@3658..3659
+      TEXT_LINE: "arrays are ignored, the output will be a scalar or ``np.ndarray`` rather than a"@3659..3738
+      NEWLINE: "\n"@3738..3739
+      TEXT_LINE: "masked array with ``mask=False``."@3739..3772
+      NEWLINE: "\n"@3772..3773
+      BLANK_LINE: "\n"@3773..3774
+      TEXT_LINE: "**Array API Standard Support**"@3774..3804
+      NEWLINE: "\n"@3804..3805
+      BLANK_LINE: "\n"@3805..3806
+      TEXT_LINE: "`linregress` has experimental support for Python Array API Standard compatible"@3806..3884
+      NEWLINE: "\n"@3884..3885
+      TEXT_LINE: "backends in addition to NumPy. Please consider testing these features"@3885..3954
+      NEWLINE: "\n"@3954..3955
+      TEXT_LINE: "by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing"@3955..4025
+      NEWLINE: "\n"@4025..4026
+      TEXT_LINE: "CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following"@4026..4094
+      NEWLINE: "\n"@4094..4095
+      TEXT_LINE: "combinations of backend and device (or other capability) are supported."@4095..4166
+      NEWLINE: "\n"@4166..4167
+      BLANK_LINE: "\n"@4167..4168
+      TEXT_LINE: "====================  ====================  ===================="@4168..4232
+      NEWLINE: "\n"@4232..4233
+      TEXT_LINE: "Library               CPU                   GPU"@4233..4280
+      NEWLINE: "\n"@4280..4281
+      TEXT_LINE: "====================  ====================  ===================="@4281..4345
+      NEWLINE: "\n"@4345..4346
+      TEXT_LINE: "NumPy                 ✅                     n/a"@4346..4395
+      WHITESPACE: "                 "@4395..4412
+      NEWLINE: "\n"@4412..4413
+      TEXT_LINE: "CuPy                  n/a                   ✅"@4413..4460
+      WHITESPACE: "                   "@4460..4479
+      NEWLINE: "\n"@4479..4480
+      TEXT_LINE: "PyTorch               ✅                     ⛔"@4480..4529
+      WHITESPACE: "                   "@4529..4548
+      NEWLINE: "\n"@4548..4549
+      TEXT_LINE: "JAX                   ✅                     ✅"@4549..4598
+      WHITESPACE: "                   "@4598..4617
+      NEWLINE: "\n"@4617..4618
+      TEXT_LINE: "Dask                  ⛔                     n/a"@4618..4667
+      WHITESPACE: "                 "@4667..4684
+      NEWLINE: "\n"@4684..4685
+      TEXT_LINE: "====================  ====================  ===================="@4685..4749
+      NEWLINE: "\n"@4749..4750
+      BLANK_LINE: "\n"@4750..4751
+      TEXT_LINE: "`linregress` also accepts `MArrays <https://mdhaber.github.io/marray/tutorial.html>`__ backed by the backends indicated above; masked values will be treated as though they were not present."@4751..4940
+      NEWLINE: "\n"@4940..4941
+      BLANK_LINE: "\n"@4941..4942
+      TEXT_LINE: "See :ref:`dev-arrayapi` for more information."@4942..4987
+    }
+  }
+  NEWLINE: "\n"@4987..4988
+  BLANK_LINE: "\n"@4988..4989
+  BLANK_LINE: "\n"@4989..4990
+  SECTION@4990..6074 {
+    SECTION_HEADER@4990..5007 {
+      NAME: "Examples"@4990..4998
+      NEWLINE: "\n"@4998..4999
+      UNDERLINE: "--------"@4999..5007
+    }
+    NEWLINE: "\n"@5007..5008
+    DESCRIPTION@5008..6074 {
+      TEXT_LINE: ">>> import numpy as np"@5008..5030
+      NEWLINE: "\n"@5030..5031
+      TEXT_LINE: ">>> import matplotlib.pyplot as plt"@5031..5066
+      NEWLINE: "\n"@5066..5067
+      TEXT_LINE: ">>> from scipy import stats"@5067..5094
+      NEWLINE: "\n"@5094..5095
+      TEXT_LINE: ">>> rng = np.random.default_rng()"@5095..5128
+      NEWLINE: "\n"@5128..5129
+      BLANK_LINE: "\n"@5129..5130
+      TEXT_LINE: "Generate some data:"@5130..5149
+      NEWLINE: "\n"@5149..5150
+      BLANK_LINE: "\n"@5150..5151
+      TEXT_LINE: ">>> x = rng.random(10)"@5151..5173
+      NEWLINE: "\n"@5173..5174
+      TEXT_LINE: ">>> y = 1.6*x + rng.random(10)"@5174..5204
+      NEWLINE: "\n"@5204..5205
+      BLANK_LINE: "\n"@5205..5206
+      TEXT_LINE: "Perform the linear regression:"@5206..5236
+      NEWLINE: "\n"@5236..5237
+      BLANK_LINE: "\n"@5237..5238
+      TEXT_LINE: ">>> res = stats.linregress(x, y)"@5238..5270
+      NEWLINE: "\n"@5270..5271
+      BLANK_LINE: "\n"@5271..5272
+      TEXT_LINE: "Coefficient of determination (R-squared):"@5272..5313
+      NEWLINE: "\n"@5313..5314
+      BLANK_LINE: "\n"@5314..5315
+      TEXT_LINE: ">>> print(f\"R-squared: {res.rvalue**2:.6f}\")"@5315..5359
+      NEWLINE: "\n"@5359..5360
+      TEXT_LINE: "R-squared: 0.717533"@5360..5379
+      NEWLINE: "\n"@5379..5380
+      BLANK_LINE: "\n"@5380..5381
+      TEXT_LINE: "Plot the data along with the fitted line:"@5381..5422
+      NEWLINE: "\n"@5422..5423
+      BLANK_LINE: "\n"@5423..5424
+      TEXT_LINE: ">>> plt.plot(x, y, 'o', label='original data')"@5424..5470
+      NEWLINE: "\n"@5470..5471
+      TEXT_LINE: ">>> plt.plot(x, res.intercept + res.slope*x, 'r', label='fitted line')"@5471..5541
+      NEWLINE: "\n"@5541..5542
+      TEXT_LINE: ">>> plt.legend()"@5542..5558
+      NEWLINE: "\n"@5558..5559
+      TEXT_LINE: ">>> plt.show()"@5559..5573
+      NEWLINE: "\n"@5573..5574
+      BLANK_LINE: "\n"@5574..5575
+      TEXT_LINE: "Calculate 95% confidence interval on slope and intercept:"@5575..5632
+      NEWLINE: "\n"@5632..5633
+      BLANK_LINE: "\n"@5633..5634
+      TEXT_LINE: ">>> # Two-sided inverse Students t-distribution"@5634..5681
+      NEWLINE: "\n"@5681..5682
+      TEXT_LINE: ">>> # p - probability, df - degrees of freedom"@5682..5728
+      NEWLINE: "\n"@5728..5729
+      TEXT_LINE: ">>> from scipy.stats import t"@5729..5758
+      NEWLINE: "\n"@5758..5759
+      TEXT_LINE: ">>> tinv = lambda p, df: abs(t.ppf(p/2, df))"@5759..5803
+      NEWLINE: "\n"@5803..5804
+      BLANK_LINE: "\n"@5804..5805
+      TEXT_LINE: ">>> ts = tinv(0.05, len(x)-2)"@5805..5834
+      NEWLINE: "\n"@5834..5835
+      TEXT_LINE: ">>> print(f\"slope (95%): {res.slope:.6f} +/- {ts*res.stderr:.6f}\")"@5835..5901
+      NEWLINE: "\n"@5901..5902
+      TEXT_LINE: "slope (95%): 1.453392 +/- 0.743465"@5902..5936
+      NEWLINE: "\n"@5936..5937
+      TEXT_LINE: ">>> print(f\"intercept (95%): {res.intercept:.6f}\""@5937..5986
+      NEWLINE: "\n"@5986..5987
+      TEXT_LINE: "...       f\" +/- {ts*res.intercept_stderr:.6f}\")"@5987..6035
+      NEWLINE: "\n"@6035..6036
+      TEXT_LINE: "intercept (95%): 0.616950 +/- 0.544475"@6036..6074
+    }
+  }
+}
+=== EMIT ===
+Calculate a linear least-squares regression for two sets of measurements.
+
+Parameters
+----------
+x, y : array_like
+    Two sets of measurements.  Both arrays should have the same length N.
+alternative : {'two-sided', 'less', 'greater'}, optional
+    Defines the alternative hypothesis. Default is 'two-sided'.
+    The following options are available:
+
+    * 'two-sided': the slope of the regression line is nonzero
+    * 'less': the slope of the regression line is less than zero
+    * 'greater':  the slope of the regression line is greater than zero
+
+    .. versionadded:: 1.7.0
+axis : int or None, default: 0
+    If an int, the axis of the input along which to compute the statistic.
+    The statistic of each axis-slice (e.g. row) of the input will appear in a
+    corresponding element of the output.
+    If ``None``, the input will be raveled before computing the statistic.
+nan_policy : {'propagate', 'omit', 'raise'}
+    Defines how to handle input NaNs.
+
+    - ``propagate``: if a NaN is present in the axis slice (e.g. row) along
+      which the  statistic is computed, the corresponding entry of the output
+      will be NaN.
+    - ``omit``: NaNs will be omitted when performing the calculation.
+      If insufficient data remains in the axis slice along which the
+      statistic is computed, the corresponding entry of the output will be
+      NaN.
+    - ``raise``: if a NaN is present, a ``ValueError`` will be raised.
+keepdims : bool, default: False
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the input array.
+
+Returns
+-------
+result : ``LinregressResult`` instance
+    The return value is an object with the following attributes:
+
+    slope : float
+        Slope of the regression line.
+    intercept : float
+        Intercept of the regression line.
+    rvalue : float
+        The Pearson correlation coefficient. The square of ``rvalue``
+        is equal to the coefficient of determination.
+    pvalue : float
+        The p-value for a hypothesis test whose null hypothesis is
+        that the slope is zero, using Wald Test with t-distribution of
+        the test statistic. See `alternative` above for alternative
+        hypotheses.
+    stderr : float
+        Standard error of the estimated slope (gradient), under the
+        assumption of residual normality.
+    intercept_stderr : float
+        Standard error of the estimated intercept, under the assumption
+        of residual normality.
+
+See Also
+--------
+:func:`scipy.optimize.curve_fit` : Use non-linear least squares to fit a function to data.
+:func:`scipy.optimize.leastsq` : Minimize the sum of squares of a set of equations.
+
+Notes
+-----
+For compatibility with older versions of SciPy, the return value acts
+like a ``namedtuple`` of length 5, with fields ``slope``, ``intercept``,
+``rvalue``, ``pvalue`` and ``stderr``, so one can continue to write::
+
+    slope, intercept, r, p, se = linregress(x, y)
+
+With that style, however, the standard error of the intercept is not
+available.  To have access to all the computed values, including the
+standard error of the intercept, use the return value as an object
+with attributes, e.g.::
+
+    result = linregress(x, y)
+    print(result.intercept, result.intercept_stderr)
+
+Beginning in SciPy 1.9, ``np.matrix`` inputs (not recommended for new
+code) are converted to ``np.ndarray`` before the calculation is performed. In
+this case, the output will be a scalar or ``np.ndarray`` of appropriate shape
+rather than a 2D ``np.matrix``. Similarly, while masked elements of masked
+arrays are ignored, the output will be a scalar or ``np.ndarray`` rather than a
+masked array with ``mask=False``.
+
+**Array API Standard Support**
+
+`linregress` has experimental support for Python Array API Standard compatible
+backends in addition to NumPy. Please consider testing these features
+by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing
+CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following
+combinations of backend and device (or other capability) are supported.
+
+====================  ====================  ====================
+Library               CPU                   GPU
+====================  ====================  ====================
+NumPy                 ✅                     n/a                 
+CuPy                  n/a                   ✅                   
+PyTorch               ✅                     ⛔                   
+JAX                   ✅                     ✅                   
+Dask                  ⛔                     n/a                 
+====================  ====================  ====================
+
+`linregress` also accepts `MArrays <https://mdhaber.github.io/marray/tutorial.html>`__ backed by the backends indicated above; masked values will be treated as though they were not present.
+
+See :ref:`dev-arrayapi` for more information.
+
+Examples
+--------
+>>> import numpy as np
+>>> import matplotlib.pyplot as plt
+>>> from scipy import stats
+>>> rng = np.random.default_rng()
+
+Generate some data:
+
+>>> x = rng.random(10)
+>>> y = 1.6*x + rng.random(10)
+
+Perform the linear regression:
+
+>>> res = stats.linregress(x, y)
+
+Coefficient of determination (R-squared):
+
+>>> print(f"R-squared: {res.rvalue**2:.6f}")
+R-squared: 0.717533
+
+Plot the data along with the fitted line:
+
+>>> plt.plot(x, y, 'o', label='original data')
+>>> plt.plot(x, res.intercept + res.slope*x, 'r', label='fitted line')
+>>> plt.legend()
+>>> plt.show()
+
+Calculate 95% confidence interval on slope and intercept:
+
+>>> # Two-sided inverse Students t-distribution
+>>> # p - probability, df - degrees of freedom
+>>> from scipy.stats import t
+>>> tinv = lambda p, df: abs(t.ppf(p/2, df))
+
+>>> ts = tinv(0.05, len(x)-2)
+>>> print(f"slope (95%): {res.slope:.6f} +/- {ts*res.stderr:.6f}")
+slope (95%): 1.453392 +/- 0.743465
+>>> print(f"intercept (95%): {res.intercept:.6f}"
+...       f" +/- {ts*res.intercept_stderr:.6f}")
+intercept (95%): 0.616950 +/- 0.544475

@@ -1,0 +1,226 @@
+=== CST ===
+DOCUMENT@0..1408 {
+  SUMMARY@0..35 {
+    TEXT_LINE: "Represents the optimization result."@0..35
+  }
+  NEWLINE: "\n"@35..36
+  BLANK_LINE: "\n"@36..37
+  SECTION@37..1075 {
+    SECTION_HEADER@37..58 {
+      NAME: "Attributes"@37..47
+      NEWLINE: "\n"@47..48
+      UNDERLINE: "----------"@48..58
+    }
+    NEWLINE: "\n"@58..59
+    ENTRY@59..108 {
+      NAME: "x"@59..60
+      WHITESPACE: " "@60..61
+      COLON: ":"@61..62
+      WHITESPACE: " "@62..63
+      TYPE: "ndarray"@63..70
+      NEWLINE: "\n"@70..71
+      WHITESPACE: "    "@71..75
+      DESCRIPTION@75..108 {
+        TEXT_LINE: "The solution of the optimization."@75..108
+      }
+    }
+    NEWLINE: "\n"@108..109
+    ENTRY@109..177 {
+      NAME: "success"@109..116
+      WHITESPACE: " "@116..117
+      COLON: ":"@117..118
+      WHITESPACE: " "@118..119
+      TYPE: "bool"@119..123
+      NEWLINE: "\n"@123..124
+      WHITESPACE: "    "@124..128
+      DESCRIPTION@128..177 {
+        TEXT_LINE: "Whether or not the optimizer exited successfully."@128..177
+      }
+    }
+    NEWLINE: "\n"@177..178
+    ENTRY@178..311 {
+      NAME: "status"@178..184
+      WHITESPACE: " "@184..185
+      COLON: ":"@185..186
+      WHITESPACE: " "@186..187
+      TYPE: "int"@187..190
+      NEWLINE: "\n"@190..191
+      WHITESPACE: "    "@191..195
+      DESCRIPTION@195..311 {
+        TEXT_LINE: "Termination status of the optimizer. Its value depends on the"@195..256
+        NEWLINE: "\n"@256..257
+        WHITESPACE: "    "@257..261
+        TEXT_LINE: "underlying solver. Refer to `message` for details."@261..311
+      }
+    }
+    NEWLINE: "\n"@311..312
+    ENTRY@312..374 {
+      NAME: "message"@312..319
+      WHITESPACE: " "@319..320
+      COLON: ":"@320..321
+      WHITESPACE: " "@321..322
+      TYPE: "str"@322..325
+      NEWLINE: "\n"@325..326
+      WHITESPACE: "    "@326..330
+      DESCRIPTION@330..374 {
+        TEXT_LINE: "Description of the cause of the termination."@330..374
+      }
+    }
+    NEWLINE: "\n"@374..375
+    ENTRY@375..426 {
+      NAME: "fun"@375..378
+      WHITESPACE: " "@378..379
+      COLON: ":"@379..380
+      WHITESPACE: " "@380..381
+      TYPE: "float"@381..386
+      NEWLINE: "\n"@386..387
+      WHITESPACE: "    "@387..391
+      DESCRIPTION@391..426 {
+        TEXT_LINE: "Value of objective function at `x`."@391..426
+      }
+    }
+    NEWLINE: "\n"@426..427
+    ENTRY@427..625 {
+      NAME: "jac"@427..430
+      WHITESPACE: " "@431..432
+      WHITESPACE: " "@436..437
+      COLON: ":"@437..438
+      WHITESPACE: " "@438..439
+      TYPE: "ndarray"@439..446
+      NEWLINE: "\n"@446..447
+      WHITESPACE: "    "@447..451
+      DESCRIPTION@451..625 {
+        TEXT_LINE: "Values of objective function's Jacobian and its Hessian at `x` (if"@451..517
+        NEWLINE: "\n"@517..518
+        WHITESPACE: "    "@518..522
+        TEXT_LINE: "available). The Hessian may be an approximation, see the documentation"@522..592
+        NEWLINE: "\n"@592..593
+        WHITESPACE: "    "@593..597
+        TEXT_LINE: "of the function in question."@597..625
+      }
+    }
+    NEWLINE: "\n"@625..626
+    ENTRY@626..847 {
+      NAME: "hess_inv"@626..634
+      WHITESPACE: " "@634..635
+      COLON: ":"@635..636
+      WHITESPACE: " "@636..637
+      TYPE: "object"@637..643
+      NEWLINE: "\n"@643..644
+      WHITESPACE: "    "@644..648
+      DESCRIPTION@648..847 {
+        TEXT_LINE: "Inverse of the objective function's Hessian; may be an approximation."@648..717
+        NEWLINE: "\n"@717..718
+        WHITESPACE: "    "@718..722
+        TEXT_LINE: "Not available for all solvers. The type of this attribute may be"@722..786
+        NEWLINE: "\n"@786..787
+        WHITESPACE: "    "@787..791
+        TEXT_LINE: "either np.ndarray or scipy.sparse.linalg.LinearOperator."@791..847
+      }
+    }
+    NEWLINE: "\n"@847..848
+    ENTRY@848..960 {
+      NAME: "nfev"@848..852
+      WHITESPACE: " "@853..854
+      WHITESPACE: " "@859..860
+      WHITESPACE: " "@864..865
+      COLON: ":"@865..866
+      WHITESPACE: " "@866..867
+      TYPE: "int"@867..870
+      NEWLINE: "\n"@870..871
+      WHITESPACE: "    "@871..875
+      DESCRIPTION@875..960 {
+        TEXT_LINE: "Number of evaluations of the objective functions and of its"@875..934
+        NEWLINE: "\n"@934..935
+        WHITESPACE: "    "@935..939
+        TEXT_LINE: "Jacobian and Hessian."@939..960
+      }
+    }
+    NEWLINE: "\n"@960..961
+    ENTRY@961..1023 {
+      NAME: "nit"@961..964
+      WHITESPACE: " "@964..965
+      COLON: ":"@965..966
+      WHITESPACE: " "@966..967
+      TYPE: "int"@967..970
+      NEWLINE: "\n"@970..971
+      WHITESPACE: "    "@971..975
+      DESCRIPTION@975..1023 {
+        TEXT_LINE: "Number of iterations performed by the optimizer."@975..1023
+      }
+    }
+    NEWLINE: "\n"@1023..1024
+    ENTRY@1024..1075 {
+      NAME: "maxcv"@1024..1029
+      WHITESPACE: " "@1029..1030
+      COLON: ":"@1030..1031
+      WHITESPACE: " "@1031..1032
+      TYPE: "float"@1032..1037
+      NEWLINE: "\n"@1037..1038
+      WHITESPACE: "    "@1038..1042
+      DESCRIPTION@1042..1075 {
+        TEXT_LINE: "The maximum constraint violation."@1042..1075
+      }
+    }
+  }
+  NEWLINE: "\n"@1075..1076
+  BLANK_LINE: "\n"@1076..1077
+  SECTION@1077..1408 {
+    SECTION_HEADER@1077..1088 {
+      NAME: "Notes"@1077..1082
+      NEWLINE: "\n"@1082..1083
+      UNDERLINE: "-----"@1083..1088
+    }
+    NEWLINE: "\n"@1088..1089
+    DESCRIPTION@1089..1408 {
+      TEXT_LINE: "Depending on the specific solver being used, `OptimizeResult` may"@1089..1154
+      NEWLINE: "\n"@1154..1155
+      TEXT_LINE: "not have all attributes listed here, and they may have additional"@1155..1220
+      NEWLINE: "\n"@1220..1221
+      TEXT_LINE: "attributes not listed here. Since this class is essentially a"@1221..1282
+      NEWLINE: "\n"@1282..1283
+      TEXT_LINE: "subclass of dict with attribute accessors, one can see which"@1283..1343
+      NEWLINE: "\n"@1343..1344
+      TEXT_LINE: "attributes are available using the `OptimizeResult.keys` method."@1344..1408
+    }
+  }
+}
+=== EMIT ===
+Represents the optimization result.
+
+Attributes
+----------
+x : ndarray
+    The solution of the optimization.
+success : bool
+    Whether or not the optimizer exited successfully.
+status : int
+    Termination status of the optimizer. Its value depends on the
+    underlying solver. Refer to `message` for details.
+message : str
+    Description of the cause of the termination.
+fun : float
+    Value of objective function at `x`.
+jac : ndarray
+    Values of objective function's Jacobian and its Hessian at `x` (if
+    available). The Hessian may be an approximation, see the documentation
+    of the function in question.
+hess_inv : object
+    Inverse of the objective function's Hessian; may be an approximation.
+    Not available for all solvers. The type of this attribute may be
+    either np.ndarray or scipy.sparse.linalg.LinearOperator.
+nfev : int
+    Number of evaluations of the objective functions and of its
+    Jacobian and Hessian.
+nit : int
+    Number of iterations performed by the optimizer.
+maxcv : float
+    The maximum constraint violation.
+
+Notes
+-----
+Depending on the specific solver being used, `OptimizeResult` may
+not have all attributes listed here, and they may have additional
+attributes not listed here. Since this class is essentially a
+subclass of dict with attribute accessors, one can see which
+attributes are available using the `OptimizeResult.keys` method.

@@ -1,0 +1,515 @@
+=== CST ===
+DOCUMENT@0..4757 {
+  SUMMARY@0..29 {
+    TEXT_LINE: "Singular Value Decomposition."@0..29
+  }
+  NEWLINE: "\n"@29..30
+  BLANK_LINE: "\n"@30..31
+  EXTENDED_SUMMARY@31..364 {
+    TEXT_LINE: "When `a` is a 2D array, and ``full_matrices=False``, then it is"@31..94
+    NEWLINE: "\n"@94..95
+    TEXT_LINE: "factorized as ``u @ np.diag(s) @ vh = (u * s) @ vh``, where"@95..154
+    NEWLINE: "\n"@154..155
+    TEXT_LINE: "`u` and the Hermitian transpose of `vh` are 2D arrays with"@155..213
+    NEWLINE: "\n"@213..214
+    TEXT_LINE: "orthonormal columns and `s` is a 1D array of `a`'s singular"@214..273
+    NEWLINE: "\n"@273..274
+    TEXT_LINE: "values. When `a` is higher-dimensional, SVD is applied in"@274..331
+    NEWLINE: "\n"@331..332
+    TEXT_LINE: "stacked mode as explained below."@332..364
+  }
+  NEWLINE: "\n"@364..365
+  BLANK_LINE: "\n"@365..366
+  SECTION@366..1014 {
+    SECTION_HEADER@366..387 {
+      NAME: "Parameters"@366..376
+      NEWLINE: "\n"@376..377
+      UNDERLINE: "----------"@377..387
+    }
+    NEWLINE: "\n"@387..388
+    ENTRY@388..464 {
+      NAME: "a"@388..389
+      WHITESPACE: " "@389..390
+      COLON: ":"@390..391
+      WHITESPACE: " "@391..392
+      TYPE: "(..., M, N) array_like"@392..414
+      NEWLINE: "\n"@414..415
+      WHITESPACE: "    "@415..419
+      DESCRIPTION@419..464 {
+        TEXT_LINE: "A real or complex array with ``a.ndim >= 2``."@419..464
+      }
+    }
+    NEWLINE: "\n"@464..465
+    ENTRY@465..713 {
+      NAME: "full_matrices"@465..478
+      WHITESPACE: " "@478..479
+      COLON: ":"@479..480
+      WHITESPACE: " "@480..481
+      TYPE: "bool"@481..485
+      COMMA: ","@485..486
+      WHITESPACE: " "@486..487
+      OPTIONAL: "optional"@487..495
+      NEWLINE: "\n"@495..496
+      WHITESPACE: "    "@496..500
+      DESCRIPTION@500..713 {
+        TEXT_LINE: "If True (default), `u` and `vh` have the shapes ``(..., M, M)`` and"@500..567
+        NEWLINE: "\n"@567..568
+        WHITESPACE: "    "@568..572
+        TEXT_LINE: "``(..., N, N)``, respectively.  Otherwise, the shapes are"@572..629
+        NEWLINE: "\n"@629..630
+        WHITESPACE: "    "@630..634
+        TEXT_LINE: "``(..., M, K)`` and ``(..., K, N)``, respectively, where"@634..690
+        NEWLINE: "\n"@690..691
+        WHITESPACE: "    "@691..695
+        TEXT_LINE: "``K = min(M, N)``."@695..713
+      }
+    }
+    NEWLINE: "\n"@713..714
+    ENTRY@714..826 {
+      NAME: "compute_uv"@714..724
+      WHITESPACE: " "@724..725
+      COLON: ":"@725..726
+      WHITESPACE: " "@726..727
+      TYPE: "bool"@727..731
+      COMMA: ","@731..732
+      WHITESPACE: " "@732..733
+      OPTIONAL: "optional"@733..741
+      NEWLINE: "\n"@741..742
+      WHITESPACE: "    "@742..746
+      DESCRIPTION@746..826 {
+        TEXT_LINE: "Whether or not to compute `u` and `vh` in addition to `s`.  True"@746..810
+        NEWLINE: "\n"@810..811
+        WHITESPACE: "    "@811..815
+        TEXT_LINE: "by default."@815..826
+      }
+    }
+    NEWLINE: "\n"@826..827
+    ENTRY@827..1014 {
+      NAME: "hermitian"@827..836
+      WHITESPACE: " "@836..837
+      COLON: ":"@837..838
+      WHITESPACE: " "@838..839
+      TYPE: "bool"@839..843
+      COMMA: ","@843..844
+      WHITESPACE: " "@844..845
+      OPTIONAL: "optional"@845..853
+      NEWLINE: "\n"@853..854
+      WHITESPACE: "    "@854..858
+      DESCRIPTION@858..1014 {
+        TEXT_LINE: "If True, `a` is assumed to be Hermitian (symmetric if real-valued),"@858..925
+        NEWLINE: "\n"@925..926
+        WHITESPACE: "    "@926..930
+        TEXT_LINE: "enabling a more efficient method for finding singular values."@930..991
+        NEWLINE: "\n"@991..992
+        WHITESPACE: "    "@992..996
+        TEXT_LINE: "Defaults to False."@996..1014
+      }
+    }
+  }
+  NEWLINE: "\n"@1014..1015
+  BLANK_LINE: "\n"@1015..1016
+  SECTION@1016..1774 {
+    SECTION_HEADER@1016..1031 {
+      NAME: "Returns"@1016..1023
+      NEWLINE: "\n"@1023..1024
+      UNDERLINE: "-------"@1024..1031
+    }
+    NEWLINE: "\n"@1031..1032
+    ENTRY@1032..1304 {
+      NAME: "U"@1032..1033
+      WHITESPACE: " "@1033..1034
+      COLON: ":"@1034..1035
+      WHITESPACE: " "@1035..1036
+      TYPE: "{ (..., M, M), (..., M, K) } array"@1036..1070
+      NEWLINE: "\n"@1070..1071
+      WHITESPACE: "    "@1071..1075
+      DESCRIPTION@1075..1304 {
+        TEXT_LINE: "Unitary array(s). The first ``a.ndim - 2`` dimensions have the same"@1075..1142
+        NEWLINE: "\n"@1142..1143
+        WHITESPACE: "    "@1143..1147
+        TEXT_LINE: "size as those of the input `a`. The size of the last two dimensions"@1147..1214
+        NEWLINE: "\n"@1214..1215
+        WHITESPACE: "    "@1215..1219
+        TEXT_LINE: "depends on the value of `full_matrices`. Only returned when"@1219..1278
+        NEWLINE: "\n"@1278..1279
+        WHITESPACE: "    "@1279..1283
+        TEXT_LINE: "`compute_uv` is True."@1283..1304
+      }
+    }
+    NEWLINE: "\n"@1304..1305
+    ENTRY@1305..1500 {
+      NAME: "S"@1305..1306
+      WHITESPACE: " "@1306..1307
+      COLON: ":"@1307..1308
+      WHITESPACE: " "@1308..1309
+      TYPE: "(..., K) array"@1309..1323
+      NEWLINE: "\n"@1323..1324
+      WHITESPACE: "    "@1324..1328
+      DESCRIPTION@1328..1500 {
+        TEXT_LINE: "Vector(s) with the singular values, within each vector sorted in"@1328..1392
+        NEWLINE: "\n"@1392..1393
+        WHITESPACE: "    "@1393..1397
+        TEXT_LINE: "descending order. The first ``a.ndim - 2`` dimensions have the same"@1397..1464
+        NEWLINE: "\n"@1464..1465
+        WHITESPACE: "    "@1465..1469
+        TEXT_LINE: "size as those of the input `a`."@1469..1500
+      }
+    }
+    NEWLINE: "\n"@1500..1501
+    ENTRY@1501..1774 {
+      NAME: "Vh"@1501..1503
+      WHITESPACE: " "@1503..1504
+      COLON: ":"@1504..1505
+      WHITESPACE: " "@1505..1506
+      TYPE: "{ (..., N, N), (..., K, N) } array"@1506..1540
+      NEWLINE: "\n"@1540..1541
+      WHITESPACE: "    "@1541..1545
+      DESCRIPTION@1545..1774 {
+        TEXT_LINE: "Unitary array(s). The first ``a.ndim - 2`` dimensions have the same"@1545..1612
+        NEWLINE: "\n"@1612..1613
+        WHITESPACE: "    "@1613..1617
+        TEXT_LINE: "size as those of the input `a`. The size of the last two dimensions"@1617..1684
+        NEWLINE: "\n"@1684..1685
+        WHITESPACE: "    "@1685..1689
+        TEXT_LINE: "depends on the value of `full_matrices`. Only returned when"@1689..1748
+        NEWLINE: "\n"@1748..1749
+        WHITESPACE: "    "@1749..1753
+        TEXT_LINE: "`compute_uv` is True."@1753..1774
+      }
+    }
+  }
+  NEWLINE: "\n"@1774..1775
+  BLANK_LINE: "\n"@1775..1776
+  SECTION@1776..1843 {
+    SECTION_HEADER@1776..1789 {
+      NAME: "Raises"@1776..1782
+      NEWLINE: "\n"@1782..1783
+      UNDERLINE: "------"@1783..1789
+    }
+    NEWLINE: "\n"@1789..1790
+    ENTRY@1790..1843 {
+      TYPE: "LinAlgError"@1790..1801
+      NEWLINE: "\n"@1801..1802
+      WHITESPACE: "    "@1802..1806
+      DESCRIPTION@1806..1843 {
+        TEXT_LINE: "If SVD computation does not converge."@1806..1843
+      }
+    }
+  }
+  NEWLINE: "\n"@1843..1844
+  BLANK_LINE: "\n"@1844..1845
+  SECTION@1845..1968 {
+    SECTION_HEADER@1845..1862 {
+      NAME: "See Also"@1845..1853
+      NEWLINE: "\n"@1853..1854
+      UNDERLINE: "--------"@1854..1862
+    }
+    NEWLINE: "\n"@1862..1863
+    ENTRY@1863..1908 {
+      NAME: "scipy.linalg.svd"@1863..1879
+      WHITESPACE: " "@1879..1880
+      COLON: ":"@1880..1881
+      WHITESPACE: " "@1881..1882
+      DESCRIPTION@1882..1908 {
+        TEXT_LINE: "Similar function in SciPy."@1882..1908
+      }
+    }
+    NEWLINE: "\n"@1908..1909
+    ENTRY@1909..1968 {
+      NAME: "scipy.linalg.svdvals"@1909..1929
+      WHITESPACE: " "@1929..1930
+      COLON: ":"@1930..1931
+      WHITESPACE: " "@1931..1932
+      DESCRIPTION@1932..1968 {
+        TEXT_LINE: "Compute singular values of a matrix."@1932..1968
+      }
+    }
+  }
+  NEWLINE: "\n"@1968..1969
+  BLANK_LINE: "\n"@1969..1970
+  SECTION@1970..3348 {
+    SECTION_HEADER@1970..1981 {
+      NAME: "Notes"@1970..1975
+      NEWLINE: "\n"@1975..1976
+      UNDERLINE: "-----"@1976..1981
+    }
+    NEWLINE: "\n"@1981..1982
+    DESCRIPTION@1982..3348 {
+      TEXT_LINE: "When `compute_uv` is True, the result is a namedtuple with the following"@1982..2054
+      NEWLINE: "\n"@2054..2055
+      TEXT_LINE: "attribute names: `U`, `S`, and `Vh`."@2055..2091
+      NEWLINE: "\n"@2091..2092
+      BLANK_LINE: "\n"@2092..2093
+      TEXT_LINE: "The decomposition is performed using LAPACK routine ``_gesdd``."@2093..2156
+      NEWLINE: "\n"@2156..2157
+      BLANK_LINE: "\n"@2157..2158
+      TEXT_LINE: "SVD is usually described for the factorization of a 2D matrix :math:`A`."@2158..2230
+      NEWLINE: "\n"@2230..2231
+      TEXT_LINE: "The higher-dimensional case will be discussed below. In the 2D case, SVD is"@2231..2306
+      NEWLINE: "\n"@2306..2307
+      TEXT_LINE: "written as :math:`A = U S V^H`, where :math:`A = a`, :math:`U= u`,"@2307..2373
+      NEWLINE: "\n"@2373..2374
+      TEXT_LINE: ":math:`S= \\mathtt{np.diag}(s)` and :math:`V^H = vh`. The 1D array `s`"@2374..2443
+      NEWLINE: "\n"@2443..2444
+      TEXT_LINE: "contains the singular values of `a` and `u` and `vh` are unitary. The rows"@2444..2518
+      NEWLINE: "\n"@2518..2519
+      TEXT_LINE: "of `vh` are the eigenvectors of :math:`A^H A` and the columns of `u` are"@2519..2591
+      NEWLINE: "\n"@2591..2592
+      TEXT_LINE: "the eigenvectors of :math:`A A^H`. In both cases the corresponding"@2592..2658
+      NEWLINE: "\n"@2658..2659
+      TEXT_LINE: "(possibly non-zero) eigenvalues are given by ``s**2``."@2659..2713
+      NEWLINE: "\n"@2713..2714
+      BLANK_LINE: "\n"@2714..2715
+      TEXT_LINE: "If `a` has more than two dimensions, then broadcasting rules apply, as"@2715..2785
+      NEWLINE: "\n"@2785..2786
+      TEXT_LINE: "explained in :ref:`routines.linalg-broadcasting`. This means that SVD is"@2786..2858
+      NEWLINE: "\n"@2858..2859
+      TEXT_LINE: "working in \"stacked\" mode: it iterates over all indices of the first"@2859..2927
+      NEWLINE: "\n"@2927..2928
+      TEXT_LINE: "``a.ndim - 2`` dimensions and for each combination SVD is applied to the"@2928..3000
+      NEWLINE: "\n"@3000..3001
+      TEXT_LINE: "last two indices. The matrix `a` can be reconstructed from the"@3001..3063
+      NEWLINE: "\n"@3063..3064
+      TEXT_LINE: "decomposition with either ``(u * s[..., None, :]) @ vh`` or"@3064..3123
+      NEWLINE: "\n"@3123..3124
+      TEXT_LINE: "``u @ (s[..., None] * vh)``. (The ``@`` operator can be replaced by the"@3124..3195
+      NEWLINE: "\n"@3195..3196
+      TEXT_LINE: "function ``np.matmul`` for python versions below 3.5.)"@3196..3250
+      NEWLINE: "\n"@3250..3251
+      BLANK_LINE: "\n"@3251..3252
+      TEXT_LINE: "If `a` is a ``matrix`` object (as opposed to an ``ndarray``), then so are"@3252..3325
+      NEWLINE: "\n"@3325..3326
+      TEXT_LINE: "all the return values."@3326..3348
+    }
+  }
+  NEWLINE: "\n"@3348..3349
+  BLANK_LINE: "\n"@3349..3350
+  SECTION@3350..4757 {
+    SECTION_HEADER@3350..3367 {
+      NAME: "Examples"@3350..3358
+      NEWLINE: "\n"@3358..3359
+      UNDERLINE: "--------"@3359..3367
+    }
+    NEWLINE: "\n"@3367..3368
+    DESCRIPTION@3368..4757 {
+      TEXT_LINE: ">>> import numpy as np"@3368..3390
+      NEWLINE: "\n"@3390..3391
+      TEXT_LINE: ">>> rng = np.random.default_rng()"@3391..3424
+      NEWLINE: "\n"@3424..3425
+      TEXT_LINE: ">>> a = rng.normal(size=(9, 6)) + 1j*rng.normal(size=(9, 6))"@3425..3485
+      NEWLINE: "\n"@3485..3486
+      TEXT_LINE: ">>> b = rng.normal(size=(2, 7, 8, 3)) + 1j*rng.normal(size=(2, 7, 8, 3))"@3486..3558
+      NEWLINE: "\n"@3558..3559
+      BLANK_LINE: "\n"@3559..3560
+      BLANK_LINE: "\n"@3560..3561
+      TEXT_LINE: "Reconstruction based on full SVD, 2D case:"@3561..3603
+      NEWLINE: "\n"@3603..3604
+      BLANK_LINE: "\n"@3604..3605
+      TEXT_LINE: ">>> U, S, Vh = np.linalg.svd(a, full_matrices=True)"@3605..3656
+      NEWLINE: "\n"@3656..3657
+      TEXT_LINE: ">>> U.shape, S.shape, Vh.shape"@3657..3687
+      NEWLINE: "\n"@3687..3688
+      TEXT_LINE: "((9, 9), (6,), (6, 6))"@3688..3710
+      NEWLINE: "\n"@3710..3711
+      TEXT_LINE: ">>> np.allclose(a, np.dot(U[:, :6] * S, Vh))"@3711..3755
+      NEWLINE: "\n"@3755..3756
+      TEXT_LINE: "True"@3756..3760
+      NEWLINE: "\n"@3760..3761
+      TEXT_LINE: ">>> smat = np.zeros((9, 6), dtype=np.complex128)"@3761..3809
+      NEWLINE: "\n"@3809..3810
+      TEXT_LINE: ">>> smat[:6, :6] = np.diag(S)"@3810..3839
+      NEWLINE: "\n"@3839..3840
+      TEXT_LINE: ">>> np.allclose(a, np.dot(U, np.dot(smat, Vh)))"@3840..3887
+      NEWLINE: "\n"@3887..3888
+      TEXT_LINE: "True"@3888..3892
+      NEWLINE: "\n"@3892..3893
+      BLANK_LINE: "\n"@3893..3894
+      TEXT_LINE: "Reconstruction based on reduced SVD, 2D case:"@3894..3939
+      NEWLINE: "\n"@3939..3940
+      BLANK_LINE: "\n"@3940..3941
+      TEXT_LINE: ">>> U, S, Vh = np.linalg.svd(a, full_matrices=False)"@3941..3993
+      NEWLINE: "\n"@3993..3994
+      TEXT_LINE: ">>> U.shape, S.shape, Vh.shape"@3994..4024
+      NEWLINE: "\n"@4024..4025
+      TEXT_LINE: "((9, 6), (6,), (6, 6))"@4025..4047
+      NEWLINE: "\n"@4047..4048
+      TEXT_LINE: ">>> np.allclose(a, np.dot(U * S, Vh))"@4048..4085
+      NEWLINE: "\n"@4085..4086
+      TEXT_LINE: "True"@4086..4090
+      NEWLINE: "\n"@4090..4091
+      TEXT_LINE: ">>> smat = np.diag(S)"@4091..4112
+      NEWLINE: "\n"@4112..4113
+      TEXT_LINE: ">>> np.allclose(a, np.dot(U, np.dot(smat, Vh)))"@4113..4160
+      NEWLINE: "\n"@4160..4161
+      TEXT_LINE: "True"@4161..4165
+      NEWLINE: "\n"@4165..4166
+      BLANK_LINE: "\n"@4166..4167
+      TEXT_LINE: "Reconstruction based on full SVD, 4D case:"@4167..4209
+      NEWLINE: "\n"@4209..4210
+      BLANK_LINE: "\n"@4210..4211
+      TEXT_LINE: ">>> U, S, Vh = np.linalg.svd(b, full_matrices=True)"@4211..4262
+      NEWLINE: "\n"@4262..4263
+      TEXT_LINE: ">>> U.shape, S.shape, Vh.shape"@4263..4293
+      NEWLINE: "\n"@4293..4294
+      TEXT_LINE: "((2, 7, 8, 8), (2, 7, 3), (2, 7, 3, 3))"@4294..4333
+      NEWLINE: "\n"@4333..4334
+      TEXT_LINE: ">>> np.allclose(b, np.matmul(U[..., :3] * S[..., None, :], Vh))"@4334..4397
+      NEWLINE: "\n"@4397..4398
+      TEXT_LINE: "True"@4398..4402
+      NEWLINE: "\n"@4402..4403
+      TEXT_LINE: ">>> np.allclose(b, np.matmul(U[..., :3], S[..., None] * Vh))"@4403..4463
+      NEWLINE: "\n"@4463..4464
+      TEXT_LINE: "True"@4464..4468
+      NEWLINE: "\n"@4468..4469
+      BLANK_LINE: "\n"@4469..4470
+      TEXT_LINE: "Reconstruction based on reduced SVD, 4D case:"@4470..4515
+      NEWLINE: "\n"@4515..4516
+      BLANK_LINE: "\n"@4516..4517
+      TEXT_LINE: ">>> U, S, Vh = np.linalg.svd(b, full_matrices=False)"@4517..4569
+      NEWLINE: "\n"@4569..4570
+      TEXT_LINE: ">>> U.shape, S.shape, Vh.shape"@4570..4600
+      NEWLINE: "\n"@4600..4601
+      TEXT_LINE: "((2, 7, 8, 3), (2, 7, 3), (2, 7, 3, 3))"@4601..4640
+      NEWLINE: "\n"@4640..4641
+      TEXT_LINE: ">>> np.allclose(b, np.matmul(U * S[..., None, :], Vh))"@4641..4695
+      NEWLINE: "\n"@4695..4696
+      TEXT_LINE: "True"@4696..4700
+      NEWLINE: "\n"@4700..4701
+      TEXT_LINE: ">>> np.allclose(b, np.matmul(U, S[..., None] * Vh))"@4701..4752
+      NEWLINE: "\n"@4752..4753
+      TEXT_LINE: "True"@4753..4757
+    }
+  }
+}
+=== EMIT ===
+Singular Value Decomposition.
+
+When `a` is a 2D array, and ``full_matrices=False``, then it is
+factorized as ``u @ np.diag(s) @ vh = (u * s) @ vh``, where
+`u` and the Hermitian transpose of `vh` are 2D arrays with
+orthonormal columns and `s` is a 1D array of `a`'s singular
+values. When `a` is higher-dimensional, SVD is applied in
+stacked mode as explained below.
+
+Parameters
+----------
+a : (..., M, N) array_like
+    A real or complex array with ``a.ndim >= 2``.
+full_matrices : bool, optional
+    If True (default), `u` and `vh` have the shapes ``(..., M, M)`` and
+    ``(..., N, N)``, respectively.  Otherwise, the shapes are
+    ``(..., M, K)`` and ``(..., K, N)``, respectively, where
+    ``K = min(M, N)``.
+compute_uv : bool, optional
+    Whether or not to compute `u` and `vh` in addition to `s`.  True
+    by default.
+hermitian : bool, optional
+    If True, `a` is assumed to be Hermitian (symmetric if real-valued),
+    enabling a more efficient method for finding singular values.
+    Defaults to False.
+
+Returns
+-------
+U : { (..., M, M), (..., M, K) } array
+    Unitary array(s). The first ``a.ndim - 2`` dimensions have the same
+    size as those of the input `a`. The size of the last two dimensions
+    depends on the value of `full_matrices`. Only returned when
+    `compute_uv` is True.
+S : (..., K) array
+    Vector(s) with the singular values, within each vector sorted in
+    descending order. The first ``a.ndim - 2`` dimensions have the same
+    size as those of the input `a`.
+Vh : { (..., N, N), (..., K, N) } array
+    Unitary array(s). The first ``a.ndim - 2`` dimensions have the same
+    size as those of the input `a`. The size of the last two dimensions
+    depends on the value of `full_matrices`. Only returned when
+    `compute_uv` is True.
+
+Raises
+------
+LinAlgError
+    If SVD computation does not converge.
+
+See Also
+--------
+scipy.linalg.svd : Similar function in SciPy.
+scipy.linalg.svdvals : Compute singular values of a matrix.
+
+Notes
+-----
+When `compute_uv` is True, the result is a namedtuple with the following
+attribute names: `U`, `S`, and `Vh`.
+
+The decomposition is performed using LAPACK routine ``_gesdd``.
+
+SVD is usually described for the factorization of a 2D matrix :math:`A`.
+The higher-dimensional case will be discussed below. In the 2D case, SVD is
+written as :math:`A = U S V^H`, where :math:`A = a`, :math:`U= u`,
+:math:`S= \mathtt{np.diag}(s)` and :math:`V^H = vh`. The 1D array `s`
+contains the singular values of `a` and `u` and `vh` are unitary. The rows
+of `vh` are the eigenvectors of :math:`A^H A` and the columns of `u` are
+the eigenvectors of :math:`A A^H`. In both cases the corresponding
+(possibly non-zero) eigenvalues are given by ``s**2``.
+
+If `a` has more than two dimensions, then broadcasting rules apply, as
+explained in :ref:`routines.linalg-broadcasting`. This means that SVD is
+working in "stacked" mode: it iterates over all indices of the first
+``a.ndim - 2`` dimensions and for each combination SVD is applied to the
+last two indices. The matrix `a` can be reconstructed from the
+decomposition with either ``(u * s[..., None, :]) @ vh`` or
+``u @ (s[..., None] * vh)``. (The ``@`` operator can be replaced by the
+function ``np.matmul`` for python versions below 3.5.)
+
+If `a` is a ``matrix`` object (as opposed to an ``ndarray``), then so are
+all the return values.
+
+Examples
+--------
+>>> import numpy as np
+>>> rng = np.random.default_rng()
+>>> a = rng.normal(size=(9, 6)) + 1j*rng.normal(size=(9, 6))
+>>> b = rng.normal(size=(2, 7, 8, 3)) + 1j*rng.normal(size=(2, 7, 8, 3))
+
+
+Reconstruction based on full SVD, 2D case:
+
+>>> U, S, Vh = np.linalg.svd(a, full_matrices=True)
+>>> U.shape, S.shape, Vh.shape
+((9, 9), (6,), (6, 6))
+>>> np.allclose(a, np.dot(U[:, :6] * S, Vh))
+True
+>>> smat = np.zeros((9, 6), dtype=np.complex128)
+>>> smat[:6, :6] = np.diag(S)
+>>> np.allclose(a, np.dot(U, np.dot(smat, Vh)))
+True
+
+Reconstruction based on reduced SVD, 2D case:
+
+>>> U, S, Vh = np.linalg.svd(a, full_matrices=False)
+>>> U.shape, S.shape, Vh.shape
+((9, 6), (6,), (6, 6))
+>>> np.allclose(a, np.dot(U * S, Vh))
+True
+>>> smat = np.diag(S)
+>>> np.allclose(a, np.dot(U, np.dot(smat, Vh)))
+True
+
+Reconstruction based on full SVD, 4D case:
+
+>>> U, S, Vh = np.linalg.svd(b, full_matrices=True)
+>>> U.shape, S.shape, Vh.shape
+((2, 7, 8, 8), (2, 7, 3), (2, 7, 3, 3))
+>>> np.allclose(b, np.matmul(U[..., :3] * S[..., None, :], Vh))
+True
+>>> np.allclose(b, np.matmul(U[..., :3], S[..., None] * Vh))
+True
+
+Reconstruction based on reduced SVD, 4D case:
+
+>>> U, S, Vh = np.linalg.svd(b, full_matrices=False)
+>>> U.shape, S.shape, Vh.shape
+((2, 7, 8, 3), (2, 7, 3), (2, 7, 3, 3))
+>>> np.allclose(b, np.matmul(U * S[..., None, :], Vh))
+True
+>>> np.allclose(b, np.matmul(U, S[..., None] * Vh))
+True

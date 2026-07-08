@@ -1,0 +1,174 @@
+=== CST ===
+DOCUMENT@0..1182 {
+  SUMMARY@0..57 {
+    TEXT_LINE: "Return the Discrete Fourier Transform sample frequencies."@0..57
+  }
+  NEWLINE: "\n"@57..58
+  BLANK_LINE: "\n"@58..59
+  EXTENDED_SUMMARY@59..475 {
+    TEXT_LINE: "The returned float array `f` contains the frequency bin centers in cycles"@59..132
+    NEWLINE: "\n"@132..133
+    TEXT_LINE: "per unit of the sample spacing (with zero at the start).  For instance, if"@133..207
+    NEWLINE: "\n"@207..208
+    TEXT_LINE: "the sample spacing is in seconds, then the frequency unit is cycles/second."@208..283
+    NEWLINE: "\n"@283..284
+    BLANK_LINE: "\n"@284..285
+    TEXT_LINE: "Given a window length `n` and a sample spacing `d`::"@285..337
+    NEWLINE: "\n"@337..338
+    BLANK_LINE: "\n"@338..339
+    WHITESPACE: "  "@339..341
+    TEXT_LINE: "f = [0, 1, ...,   n/2-1,     -n/2, ..., -1] / (d*n)   if n is even"@341..407
+    NEWLINE: "\n"@407..408
+    WHITESPACE: "  "@408..410
+    TEXT_LINE: "f = [0, 1, ..., (n-1)/2, -(n-1)/2, ..., -1] / (d*n)   if n is odd"@410..475
+  }
+  NEWLINE: "\n"@475..476
+  BLANK_LINE: "\n"@476..477
+  SECTION@477..808 {
+    SECTION_HEADER@477..498 {
+      NAME: "Parameters"@477..487
+      NEWLINE: "\n"@487..488
+      UNDERLINE: "----------"@488..498
+    }
+    NEWLINE: "\n"@498..499
+    ENTRY@499..525 {
+      NAME: "n"@499..500
+      WHITESPACE: " "@500..501
+      COLON: ":"@501..502
+      WHITESPACE: " "@502..503
+      TYPE: "int"@503..506
+      NEWLINE: "\n"@506..507
+      WHITESPACE: "    "@507..511
+      DESCRIPTION@511..525 {
+        TEXT_LINE: "Window length."@511..525
+      }
+    }
+    NEWLINE: "\n"@525..526
+    ENTRY@526..612 {
+      NAME: "d"@526..527
+      WHITESPACE: " "@527..528
+      COLON: ":"@528..529
+      WHITESPACE: " "@529..530
+      TYPE: "scalar"@530..536
+      COMMA: ","@536..537
+      WHITESPACE: " "@537..538
+      OPTIONAL: "optional"@538..546
+      NEWLINE: "\n"@546..547
+      WHITESPACE: "    "@547..551
+      DESCRIPTION@551..612 {
+        TEXT_LINE: "Sample spacing (inverse of the sampling rate). Defaults to 1."@551..612
+      }
+    }
+    NEWLINE: "\n"@612..613
+    ENTRY@613..808 {
+      NAME: "device"@613..619
+      WHITESPACE: " "@619..620
+      COLON: ":"@620..621
+      WHITESPACE: " "@621..622
+      TYPE: "str"@622..625
+      COMMA: ","@625..626
+      WHITESPACE: " "@626..627
+      OPTIONAL: "optional"@627..635
+      NEWLINE: "\n"@635..636
+      WHITESPACE: "    "@636..640
+      DESCRIPTION@640..808 {
+        TEXT_LINE: "The device on which to place the created array. Default: ``None``."@640..706
+        NEWLINE: "\n"@706..707
+        WHITESPACE: "    "@707..711
+        TEXT_LINE: "For Array-API interoperability only, so must be ``\"cpu\"`` if passed."@711..779
+        NEWLINE: "\n"@779..780
+        BLANK_LINE: "\n"@780..781
+        WHITESPACE: "    "@781..785
+        TEXT_LINE: ".. versionadded:: 2.0.0"@785..808
+      }
+    }
+  }
+  NEWLINE: "\n"@808..809
+  BLANK_LINE: "\n"@809..810
+  SECTION@810..896 {
+    SECTION_HEADER@810..825 {
+      NAME: "Returns"@810..817
+      NEWLINE: "\n"@817..818
+      UNDERLINE: "-------"@818..825
+    }
+    NEWLINE: "\n"@825..826
+    ENTRY@826..896 {
+      NAME: "f"@826..827
+      WHITESPACE: " "@827..828
+      COLON: ":"@828..829
+      WHITESPACE: " "@829..830
+      TYPE: "ndarray"@830..837
+      NEWLINE: "\n"@837..838
+      WHITESPACE: "    "@838..842
+      DESCRIPTION@842..896 {
+        TEXT_LINE: "Array of length `n` containing the sample frequencies."@842..896
+      }
+    }
+  }
+  NEWLINE: "\n"@896..897
+  BLANK_LINE: "\n"@897..898
+  SECTION@898..1182 {
+    SECTION_HEADER@898..915 {
+      NAME: "Examples"@898..906
+      NEWLINE: "\n"@906..907
+      UNDERLINE: "--------"@907..915
+    }
+    NEWLINE: "\n"@915..916
+    DESCRIPTION@916..1182 {
+      TEXT_LINE: ">>> import numpy as np"@916..938
+      NEWLINE: "\n"@938..939
+      TEXT_LINE: ">>> signal = np.array([-2, 8, 6, 4, 1, 0, 3, 5], dtype=np.float64)"@939..1005
+      NEWLINE: "\n"@1005..1006
+      TEXT_LINE: ">>> fourier = np.fft.fft(signal)"@1006..1038
+      NEWLINE: "\n"@1038..1039
+      TEXT_LINE: ">>> n = signal.size"@1039..1058
+      NEWLINE: "\n"@1058..1059
+      TEXT_LINE: ">>> timestep = 0.1"@1059..1077
+      NEWLINE: "\n"@1077..1078
+      TEXT_LINE: ">>> freq = np.fft.fftfreq(n, d=timestep)"@1078..1118
+      NEWLINE: "\n"@1118..1119
+      TEXT_LINE: ">>> freq"@1119..1127
+      NEWLINE: "\n"@1127..1128
+      TEXT_LINE: "array([ 0.  ,  1.25,  2.5 , ..., -3.75, -2.5 , -1.25])"@1128..1182
+    }
+  }
+}
+=== EMIT ===
+Return the Discrete Fourier Transform sample frequencies.
+
+The returned float array `f` contains the frequency bin centers in cycles
+per unit of the sample spacing (with zero at the start).  For instance, if
+the sample spacing is in seconds, then the frequency unit is cycles/second.
+
+Given a window length `n` and a sample spacing `d`::
+
+  f = [0, 1, ...,   n/2-1,     -n/2, ..., -1] / (d*n)   if n is even
+  f = [0, 1, ..., (n-1)/2, -(n-1)/2, ..., -1] / (d*n)   if n is odd
+
+Parameters
+----------
+n : int
+    Window length.
+d : scalar, optional
+    Sample spacing (inverse of the sampling rate). Defaults to 1.
+device : str, optional
+    The device on which to place the created array. Default: ``None``.
+    For Array-API interoperability only, so must be ``"cpu"`` if passed.
+
+    .. versionadded:: 2.0.0
+
+Returns
+-------
+f : ndarray
+    Array of length `n` containing the sample frequencies.
+
+Examples
+--------
+>>> import numpy as np
+>>> signal = np.array([-2, 8, 6, 4, 1, 0, 3, 5], dtype=np.float64)
+>>> fourier = np.fft.fft(signal)
+>>> n = signal.size
+>>> timestep = 0.1
+>>> freq = np.fft.fftfreq(n, d=timestep)
+>>> freq
+array([ 0.  ,  1.25,  2.5 , ..., -3.75, -2.5 , -1.25])

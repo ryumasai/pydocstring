@@ -23,7 +23,14 @@ use pydocstring::syntax::SyntaxNode;
 use pydocstring::syntax::SyntaxToken;
 
 /// Corpus inputs currently known to violate the coverage law.
-const KNOWN_COVERAGE_FAILURES: &[&str] = &[];
+const KNOWN_COVERAGE_FAILURES: &[&str] = &[
+    // Multi-name Attributes entries (`jac, hess : ndarray`): unlike
+    // build_parameter_node, build_attribute_node keeps the FIRST name only,
+    // so the later NAME/COMMA tokens of the name list never reach the CST
+    // and their bytes are dropped (src/parse/numpy/parser.rs,
+    // "Attributes use the first name only").
+    "numpy/realworld/scipy_optimize_optimizeresult.txt",
+];
 
 fn parse_for_style(style: &str, input: &str) -> Parsed {
     match style {

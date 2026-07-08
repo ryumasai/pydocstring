@@ -1,0 +1,341 @@
+=== CST ===
+DOCUMENT@0..2238 {
+  SUMMARY@0..77 {
+    TEXT_LINE: "Solve the equation ``a @ x = b`` for ``x``, where `a` is a triangular matrix."@0..77
+  }
+  NEWLINE: "\n"@77..78
+  BLANK_LINE: "\n"@78..79
+  BLANK_LINE: "\n"@79..80
+  EXTENDED_SUMMARY@80..477 {
+    TEXT_LINE: "The documentation is written assuming array arguments are of specified"@80..150
+    NEWLINE: "\n"@150..151
+    TEXT_LINE: "\"core\" shapes. However, array argument(s) of this function may have additional"@151..229
+    NEWLINE: "\n"@229..230
+    TEXT_LINE: "\"batch\" dimensions prepended to the core shape. In this case, the array is treated"@230..312
+    NEWLINE: "\n"@312..313
+    TEXT_LINE: "as a batch of lower-dimensional slices; see :ref:`linalg_batch` for details."@313..389
+    NEWLINE: "\n"@389..390
+    TEXT_LINE: "Note that calls with zero-size batches are unsupported and will raise a ``ValueError``."@390..477
+  }
+  NEWLINE: "\n"@477..478
+  BLANK_LINE: "\n"@478..479
+  SECTION@479..1492 {
+    SECTION_HEADER@479..500 {
+      NAME: "Parameters"@479..489
+      NEWLINE: "\n"@489..490
+      UNDERLINE: "----------"@490..500
+    }
+    NEWLINE: "\n"@500..501
+    ENTRY@501..546 {
+      NAME: "a"@501..502
+      WHITESPACE: " "@502..503
+      COLON: ":"@503..504
+      WHITESPACE: " "@504..505
+      TYPE: "(M, M) array_like"@505..522
+      NEWLINE: "\n"@522..523
+      WHITESPACE: "    "@523..527
+      DESCRIPTION@527..546 {
+        TEXT_LINE: "A triangular matrix"@527..546
+      }
+    }
+    NEWLINE: "\n"@546..547
+    ENTRY@547..618 {
+      NAME: "b"@547..548
+      WHITESPACE: " "@548..549
+      COLON: ":"@549..550
+      WHITESPACE: " "@550..551
+      TYPE: "(M,) or (M, N) array_like"@551..576
+      NEWLINE: "\n"@576..577
+      WHITESPACE: "    "@577..581
+      DESCRIPTION@581..618 {
+        TEXT_LINE: "Right-hand side matrix in ``a x = b``"@581..618
+      }
+    }
+    NEWLINE: "\n"@618..619
+    ENTRY@619..859 {
+      NAME: "trans"@619..624
+      WHITESPACE: " "@624..625
+      COLON: ":"@625..626
+      WHITESPACE: " "@626..627
+      TYPE: "{0, 1, 2, 'N', 'T', 'C'}"@627..651
+      COMMA: ","@651..652
+      WHITESPACE: " "@652..653
+      OPTIONAL: "optional"@653..661
+      NEWLINE: "\n"@661..662
+      WHITESPACE: "    "@662..666
+      DESCRIPTION@666..859 {
+        TEXT_LINE: "Type of system to solve:"@666..690
+        NEWLINE: "\n"@690..691
+        BLANK_LINE: "    \n"@691..696
+        WHITESPACE: "    "@696..700
+        TEXT_LINE: "========  ========="@700..719
+        NEWLINE: "\n"@719..720
+        WHITESPACE: "    "@720..724
+        TEXT_LINE: "trans     system"@724..740
+        NEWLINE: "\n"@740..741
+        WHITESPACE: "    "@741..745
+        TEXT_LINE: "========  ========="@745..764
+        NEWLINE: "\n"@764..765
+        WHITESPACE: "    "@765..769
+        TEXT_LINE: "0 or 'N'  a x  = b"@769..787
+        NEWLINE: "\n"@787..788
+        WHITESPACE: "    "@788..792
+        TEXT_LINE: "1 or 'T'  a^T x = b"@792..811
+        NEWLINE: "\n"@811..812
+        WHITESPACE: "    "@812..816
+        TEXT_LINE: "2 or 'C'  a^H x = b"@816..835
+        NEWLINE: "\n"@835..836
+        WHITESPACE: "    "@836..840
+        TEXT_LINE: "========  ========="@840..859
+      }
+    }
+    NEWLINE: "\n"@859..860
+    ENTRY@860..978 {
+      NAME: "lower"@860..865
+      WHITESPACE: " "@865..866
+      COLON: ":"@866..867
+      WHITESPACE: " "@867..868
+      TYPE: "bool"@868..872
+      COMMA: ","@872..873
+      WHITESPACE: " "@873..874
+      OPTIONAL: "optional"@874..882
+      NEWLINE: "\n"@882..883
+      WHITESPACE: "    "@883..887
+      DESCRIPTION@887..978 {
+        TEXT_LINE: "Use only data contained in the lower triangle of `a`."@887..940
+        NEWLINE: "\n"@940..941
+        WHITESPACE: "    "@941..945
+        TEXT_LINE: "Default is to use upper triangle."@945..978
+      }
+    }
+    NEWLINE: "\n"@978..979
+    ENTRY@979..1099 {
+      NAME: "unit_diagonal"@979..992
+      WHITESPACE: " "@992..993
+      COLON: ":"@993..994
+      WHITESPACE: " "@994..995
+      TYPE: "bool"@995..999
+      COMMA: ","@999..1000
+      WHITESPACE: " "@1000..1001
+      OPTIONAL: "optional"@1001..1009
+      NEWLINE: "\n"@1009..1010
+      WHITESPACE: "    "@1010..1014
+      DESCRIPTION@1014..1099 {
+        TEXT_LINE: "If True, diagonal elements of `a` are assumed to be 1 and"@1014..1071
+        NEWLINE: "\n"@1071..1072
+        WHITESPACE: "    "@1072..1076
+        TEXT_LINE: "will not be referenced."@1076..1099
+      }
+    }
+    NEWLINE: "\n"@1099..1100
+    ENTRY@1100..1242 {
+      NAME: "overwrite_b"@1100..1111
+      WHITESPACE: " "@1111..1112
+      COLON: ":"@1112..1113
+      WHITESPACE: " "@1113..1114
+      TYPE: "bool"@1114..1118
+      COMMA: ","@1118..1119
+      WHITESPACE: " "@1119..1120
+      OPTIONAL: "optional"@1120..1128
+      NEWLINE: "\n"@1128..1129
+      WHITESPACE: "    "@1129..1133
+      DESCRIPTION@1133..1242 {
+        TEXT_LINE: "Allow overwriting data in `b` (may enhance performance)"@1133..1188
+        NEWLINE: "\n"@1188..1189
+        WHITESPACE: "    "@1189..1193
+        TEXT_LINE: "See :ref:`tutorial_linalg_overwrite` for details."@1193..1242
+      }
+    }
+    NEWLINE: "\n"@1242..1243
+    ENTRY@1243..1492 {
+      NAME: "check_finite"@1243..1255
+      WHITESPACE: " "@1255..1256
+      COLON: ":"@1256..1257
+      WHITESPACE: " "@1257..1258
+      TYPE: "bool"@1258..1262
+      COMMA: ","@1262..1263
+      WHITESPACE: " "@1263..1264
+      OPTIONAL: "optional"@1264..1272
+      NEWLINE: "\n"@1272..1273
+      WHITESPACE: "    "@1273..1277
+      DESCRIPTION@1277..1492 {
+        TEXT_LINE: "Whether to check that the input matrices contain only finite numbers."@1277..1346
+        NEWLINE: "\n"@1346..1347
+        WHITESPACE: "    "@1347..1351
+        TEXT_LINE: "Disabling may give a performance gain, but may result in problems"@1351..1416
+        NEWLINE: "\n"@1416..1417
+        WHITESPACE: "    "@1417..1421
+        TEXT_LINE: "(crashes, non-termination) if the inputs do contain infinities or NaNs."@1421..1492
+      }
+    }
+  }
+  NEWLINE: "\n"@1492..1493
+  BLANK_LINE: "\n"@1493..1494
+  SECTION@1494..1606 {
+    SECTION_HEADER@1494..1509 {
+      NAME: "Returns"@1494..1501
+      NEWLINE: "\n"@1501..1502
+      UNDERLINE: "-------"@1502..1509
+    }
+    NEWLINE: "\n"@1509..1510
+    ENTRY@1510..1606 {
+      NAME: "x"@1510..1511
+      WHITESPACE: " "@1511..1512
+      COLON: ":"@1512..1513
+      WHITESPACE: " "@1513..1514
+      TYPE: "(M,) or (M, N) ndarray"@1514..1536
+      NEWLINE: "\n"@1536..1537
+      WHITESPACE: "    "@1537..1541
+      DESCRIPTION@1541..1606 {
+        TEXT_LINE: "Solution to the system ``a x = b``.  Shape of return matches `b`."@1541..1606
+      }
+    }
+  }
+  NEWLINE: "\n"@1606..1607
+  BLANK_LINE: "\n"@1607..1608
+  SECTION@1608..1656 {
+    SECTION_HEADER@1608..1621 {
+      NAME: "Raises"@1608..1614
+      NEWLINE: "\n"@1614..1615
+      UNDERLINE: "------"@1615..1621
+    }
+    NEWLINE: "\n"@1621..1622
+    ENTRY@1622..1656 {
+      TYPE: "LinAlgError"@1622..1633
+      NEWLINE: "\n"@1633..1634
+      WHITESPACE: "    "@1634..1638
+      DESCRIPTION@1638..1656 {
+        TEXT_LINE: "If `a` is singular"@1638..1656
+      }
+    }
+  }
+  NEWLINE: "\n"@1656..1657
+  BLANK_LINE: "\n"@1657..1658
+  SECTION@1658..1693 {
+    SECTION_HEADER@1658..1669 {
+      NAME: "Notes"@1658..1663
+      NEWLINE: "\n"@1663..1664
+      UNDERLINE: "-----"@1664..1669
+    }
+    NEWLINE: "\n"@1669..1670
+    DESCRIPTION@1670..1693 {
+      TEXT_LINE: ".. versionadded:: 0.9.0"@1670..1693
+    }
+  }
+  NEWLINE: "\n"@1693..1694
+  BLANK_LINE: "\n"@1694..1695
+  SECTION@1695..2238 {
+    SECTION_HEADER@1695..1712 {
+      NAME: "Examples"@1695..1703
+      NEWLINE: "\n"@1703..1704
+      UNDERLINE: "--------"@1704..1712
+    }
+    NEWLINE: "\n"@1712..1713
+    DESCRIPTION@1713..2238 {
+      TEXT_LINE: "Solve the lower triangular system a x = b, where::"@1713..1763
+      NEWLINE: "\n"@1763..1764
+      BLANK_LINE: "\n"@1764..1765
+      WHITESPACE: "         "@1765..1774
+      TEXT_LINE: "[3  0  0  0]       [4]"@1774..1796
+      NEWLINE: "\n"@1796..1797
+      WHITESPACE: "    "@1797..1801
+      TEXT_LINE: "a =  [2  1  0  0]   b = [2]"@1801..1828
+      NEWLINE: "\n"@1828..1829
+      WHITESPACE: "         "@1829..1838
+      TEXT_LINE: "[1  0  1  0]       [4]"@1838..1860
+      NEWLINE: "\n"@1860..1861
+      WHITESPACE: "         "@1861..1870
+      TEXT_LINE: "[1  1  1  1]       [2]"@1870..1892
+      NEWLINE: "\n"@1892..1893
+      BLANK_LINE: "\n"@1893..1894
+      TEXT_LINE: ">>> import numpy as np"@1894..1916
+      NEWLINE: "\n"@1916..1917
+      TEXT_LINE: ">>> from scipy.linalg import solve_triangular"@1917..1962
+      NEWLINE: "\n"@1962..1963
+      TEXT_LINE: ">>> a = np.array([[3, 0, 0, 0], [2, 1, 0, 0], [1, 0, 1, 0], [1, 1, 1, 1]])"@1963..2037
+      NEWLINE: "\n"@2037..2038
+      TEXT_LINE: ">>> b = np.array([4, 2, 4, 2])"@2038..2068
+      NEWLINE: "\n"@2068..2069
+      TEXT_LINE: ">>> x = solve_triangular(a, b, lower=True)"@2069..2111
+      NEWLINE: "\n"@2111..2112
+      TEXT_LINE: ">>> x"@2112..2117
+      NEWLINE: "\n"@2117..2118
+      TEXT_LINE: "array([ 1.33333333, -0.66666667,  2.66666667, -1.33333333])"@2118..2177
+      NEWLINE: "\n"@2177..2178
+      TEXT_LINE: ">>> a.dot(x)  # Check the result"@2178..2210
+      NEWLINE: "\n"@2210..2211
+      TEXT_LINE: "array([ 4.,  2.,  4.,  2.])"@2211..2238
+    }
+  }
+}
+=== EMIT ===
+Solve the equation ``a @ x = b`` for ``x``, where `a` is a triangular matrix.
+
+The documentation is written assuming array arguments are of specified
+"core" shapes. However, array argument(s) of this function may have additional
+"batch" dimensions prepended to the core shape. In this case, the array is treated
+as a batch of lower-dimensional slices; see :ref:`linalg_batch` for details.
+Note that calls with zero-size batches are unsupported and will raise a ``ValueError``.
+
+Parameters
+----------
+a : (M, M) array_like
+    A triangular matrix
+b : (M,) or (M, N) array_like
+    Right-hand side matrix in ``a x = b``
+trans : {0, 1, 2, 'N', 'T', 'C'}, optional
+    Type of system to solve:
+
+    ========  =========
+    trans     system
+    ========  =========
+    0 or 'N'  a x  = b
+    1 or 'T'  a^T x = b
+    2 or 'C'  a^H x = b
+    ========  =========
+lower : bool, optional
+    Use only data contained in the lower triangle of `a`.
+    Default is to use upper triangle.
+unit_diagonal : bool, optional
+    If True, diagonal elements of `a` are assumed to be 1 and
+    will not be referenced.
+overwrite_b : bool, optional
+    Allow overwriting data in `b` (may enhance performance)
+    See :ref:`tutorial_linalg_overwrite` for details.
+check_finite : bool, optional
+    Whether to check that the input matrices contain only finite numbers.
+    Disabling may give a performance gain, but may result in problems
+    (crashes, non-termination) if the inputs do contain infinities or NaNs.
+
+Returns
+-------
+x : (M,) or (M, N) ndarray
+    Solution to the system ``a x = b``.  Shape of return matches `b`.
+
+Raises
+------
+LinAlgError
+    If `a` is singular
+
+Notes
+-----
+.. versionadded:: 0.9.0
+
+Examples
+--------
+Solve the lower triangular system a x = b, where::
+
+         [3  0  0  0]       [4]
+    a =  [2  1  0  0]   b = [2]
+         [1  0  1  0]       [4]
+         [1  1  1  1]       [2]
+
+>>> import numpy as np
+>>> from scipy.linalg import solve_triangular
+>>> a = np.array([[3, 0, 0, 0], [2, 1, 0, 0], [1, 0, 1, 0], [1, 1, 1, 1]])
+>>> b = np.array([4, 2, 4, 2])
+>>> x = solve_triangular(a, b, lower=True)
+>>> x
+array([ 1.33333333, -0.66666667,  2.66666667, -1.33333333])
+>>> a.dot(x)  # Check the result
+array([ 4.,  2.,  4.,  2.])

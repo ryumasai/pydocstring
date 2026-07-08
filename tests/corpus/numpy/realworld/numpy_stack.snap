@@ -1,0 +1,316 @@
+=== CST ===
+DOCUMENT@0..1980 {
+  SUMMARY@0..43 {
+    TEXT_LINE: "Join a sequence of arrays along a new axis."@0..43
+  }
+  NEWLINE: "\n"@43..44
+  BLANK_LINE: "\n"@44..45
+  EXTENDED_SUMMARY@45..244 {
+    TEXT_LINE: "The ``axis`` parameter specifies the index of the new axis in the"@45..110
+    NEWLINE: "\n"@110..111
+    TEXT_LINE: "dimensions of the result. For example, if ``axis=0`` it will be the first"@111..184
+    NEWLINE: "\n"@184..185
+    TEXT_LINE: "dimension and if ``axis=-1`` it will be the last dimension."@185..244
+  }
+  NEWLINE: "\n"@244..245
+  BLANK_LINE: "\n"@245..246
+  SECTION@246..1133 {
+    SECTION_HEADER@246..267 {
+      NAME: "Parameters"@246..256
+      NEWLINE: "\n"@256..257
+      UNDERLINE: "----------"@257..267
+    }
+    NEWLINE: "\n"@267..268
+    ENTRY@268..513 {
+      NAME: "arrays"@268..274
+      WHITESPACE: " "@274..275
+      COLON: ":"@275..276
+      WHITESPACE: " "@276..277
+      TYPE: "sequence of ndarrays"@277..297
+      NEWLINE: "\n"@297..298
+      WHITESPACE: "    "@298..302
+      DESCRIPTION@302..513 {
+        TEXT_LINE: "Each array must have the same shape. In the case of a single ndarray"@302..370
+        NEWLINE: "\n"@370..371
+        WHITESPACE: "    "@371..375
+        TEXT_LINE: "array_like input, it will be treated as a sequence of arrays; i.e.,"@375..442
+        NEWLINE: "\n"@442..443
+        WHITESPACE: "    "@443..447
+        TEXT_LINE: "each element along the zeroth axis is treated as a separate array."@447..513
+      }
+    }
+    NEWLINE: "\n"@513..514
+    BLANK_LINE: "\n"@514..515
+    ENTRY@515..610 {
+      NAME: "axis"@515..519
+      WHITESPACE: " "@519..520
+      COLON: ":"@520..521
+      WHITESPACE: " "@521..522
+      TYPE: "int"@522..525
+      COMMA: ","@525..526
+      WHITESPACE: " "@526..527
+      OPTIONAL: "optional"@527..535
+      NEWLINE: "\n"@535..536
+      WHITESPACE: "    "@536..540
+      DESCRIPTION@540..610 {
+        TEXT_LINE: "The axis in the result array along which the input arrays are stacked."@540..610
+      }
+    }
+    NEWLINE: "\n"@610..611
+    BLANK_LINE: "\n"@611..612
+    ENTRY@612..807 {
+      NAME: "out"@612..615
+      WHITESPACE: " "@615..616
+      COLON: ":"@616..617
+      WHITESPACE: " "@617..618
+      TYPE: "ndarray"@618..625
+      COMMA: ","@625..626
+      WHITESPACE: " "@626..627
+      OPTIONAL: "optional"@627..635
+      NEWLINE: "\n"@635..636
+      WHITESPACE: "    "@636..640
+      DESCRIPTION@640..807 {
+        TEXT_LINE: "If provided, the destination to place the result. The shape must be"@640..707
+        NEWLINE: "\n"@707..708
+        WHITESPACE: "    "@708..712
+        TEXT_LINE: "correct, matching that of what stack would have returned if no"@712..774
+        NEWLINE: "\n"@774..775
+        WHITESPACE: "    "@775..779
+        TEXT_LINE: "out argument were specified."@779..807
+      }
+    }
+    NEWLINE: "\n"@807..808
+    BLANK_LINE: "\n"@808..809
+    ENTRY@809..962 {
+      NAME: "dtype"@809..814
+      WHITESPACE: " "@814..815
+      COLON: ":"@815..816
+      WHITESPACE: " "@816..817
+      TYPE: "str or dtype"@817..829
+      NEWLINE: "\n"@829..830
+      WHITESPACE: "    "@830..834
+      DESCRIPTION@834..962 {
+        TEXT_LINE: "If provided, the destination array will have this dtype. Cannot be"@834..900
+        NEWLINE: "\n"@900..901
+        WHITESPACE: "    "@901..905
+        TEXT_LINE: "provided together with `out`."@905..934
+        NEWLINE: "\n"@934..935
+        BLANK_LINE: "\n"@935..936
+        WHITESPACE: "    "@936..940
+        TEXT_LINE: ".. versionadded:: 1.24"@940..962
+      }
+    }
+    NEWLINE: "\n"@962..963
+    BLANK_LINE: "\n"@963..964
+    ENTRY@964..1133 {
+      NAME: "casting"@964..971
+      WHITESPACE: " "@971..972
+      COLON: ":"@972..973
+      WHITESPACE: " "@973..974
+      TYPE: "{'no', 'equiv', 'safe', 'same_kind', 'unsafe'}"@974..1020
+      COMMA: ","@1020..1021
+      WHITESPACE: " "@1021..1022
+      OPTIONAL: "optional"@1022..1030
+      NEWLINE: "\n"@1030..1031
+      WHITESPACE: "    "@1031..1035
+      DESCRIPTION@1035..1133 {
+        TEXT_LINE: "Controls what kind of data casting may occur. Defaults to 'same_kind'."@1035..1105
+        NEWLINE: "\n"@1105..1106
+        BLANK_LINE: "\n"@1106..1107
+        WHITESPACE: "    "@1107..1111
+        TEXT_LINE: ".. versionadded:: 1.24"@1111..1133
+      }
+    }
+  }
+  NEWLINE: "\n"@1133..1134
+  BLANK_LINE: "\n"@1134..1135
+  BLANK_LINE: "\n"@1135..1136
+  SECTION@1136..1237 {
+    SECTION_HEADER@1136..1151 {
+      NAME: "Returns"@1136..1143
+      NEWLINE: "\n"@1143..1144
+      UNDERLINE: "-------"@1144..1151
+    }
+    NEWLINE: "\n"@1151..1152
+    ENTRY@1152..1237 {
+      NAME: "stacked"@1152..1159
+      WHITESPACE: " "@1159..1160
+      COLON: ":"@1160..1161
+      WHITESPACE: " "@1161..1162
+      TYPE: "ndarray"@1162..1169
+      NEWLINE: "\n"@1169..1170
+      WHITESPACE: "    "@1170..1174
+      DESCRIPTION@1174..1237 {
+        TEXT_LINE: "The stacked array has one more dimension than the input arrays."@1174..1237
+      }
+    }
+  }
+  NEWLINE: "\n"@1237..1238
+  BLANK_LINE: "\n"@1238..1239
+  SECTION@1239..1515 {
+    SECTION_HEADER@1239..1256 {
+      NAME: "See Also"@1239..1247
+      NEWLINE: "\n"@1247..1248
+      UNDERLINE: "--------"@1248..1256
+    }
+    NEWLINE: "\n"@1256..1257
+    ENTRY@1257..1320 {
+      NAME: "concatenate"@1257..1268
+      WHITESPACE: " "@1268..1269
+      COLON: ":"@1269..1270
+      WHITESPACE: " "@1270..1271
+      DESCRIPTION@1271..1320 {
+        TEXT_LINE: "Join a sequence of arrays along an existing axis."@1271..1320
+      }
+    }
+    NEWLINE: "\n"@1320..1321
+    ENTRY@1321..1378 {
+      NAME: "block"@1321..1326
+      WHITESPACE: " "@1326..1327
+      COLON: ":"@1327..1328
+      WHITESPACE: " "@1328..1329
+      DESCRIPTION@1329..1378 {
+        TEXT_LINE: "Assemble an nd-array from nested lists of blocks."@1329..1378
+      }
+    }
+    NEWLINE: "\n"@1378..1379
+    ENTRY@1379..1448 {
+      NAME: "split"@1379..1384
+      WHITESPACE: " "@1384..1385
+      COLON: ":"@1385..1386
+      WHITESPACE: " "@1386..1387
+      DESCRIPTION@1387..1448 {
+        TEXT_LINE: "Split array into a list of multiple sub-arrays of equal size."@1387..1448
+      }
+    }
+    NEWLINE: "\n"@1448..1449
+    ENTRY@1449..1515 {
+      NAME: "unstack"@1449..1456
+      WHITESPACE: " "@1456..1457
+      COLON: ":"@1457..1458
+      WHITESPACE: " "@1458..1459
+      DESCRIPTION@1459..1515 {
+        TEXT_LINE: "Split an array into a tuple of sub-arrays along an axis."@1459..1515
+      }
+    }
+  }
+  NEWLINE: "\n"@1515..1516
+  BLANK_LINE: "\n"@1516..1517
+  SECTION@1517..1980 {
+    SECTION_HEADER@1517..1534 {
+      NAME: "Examples"@1517..1525
+      NEWLINE: "\n"@1525..1526
+      UNDERLINE: "--------"@1526..1534
+    }
+    NEWLINE: "\n"@1534..1535
+    DESCRIPTION@1535..1980 {
+      TEXT_LINE: ">>> import numpy as np"@1535..1557
+      NEWLINE: "\n"@1557..1558
+      TEXT_LINE: ">>> rng = np.random.default_rng()"@1558..1591
+      NEWLINE: "\n"@1591..1592
+      TEXT_LINE: ">>> arrays = [rng.normal(size=(3,4)) for _ in range(10)]"@1592..1648
+      NEWLINE: "\n"@1648..1649
+      TEXT_LINE: ">>> np.stack(arrays, axis=0).shape"@1649..1683
+      NEWLINE: "\n"@1683..1684
+      TEXT_LINE: "(10, 3, 4)"@1684..1694
+      NEWLINE: "\n"@1694..1695
+      BLANK_LINE: "\n"@1695..1696
+      TEXT_LINE: ">>> np.stack(arrays, axis=1).shape"@1696..1730
+      NEWLINE: "\n"@1730..1731
+      TEXT_LINE: "(3, 10, 4)"@1731..1741
+      NEWLINE: "\n"@1741..1742
+      BLANK_LINE: "\n"@1742..1743
+      TEXT_LINE: ">>> np.stack(arrays, axis=2).shape"@1743..1777
+      NEWLINE: "\n"@1777..1778
+      TEXT_LINE: "(3, 4, 10)"@1778..1788
+      NEWLINE: "\n"@1788..1789
+      BLANK_LINE: "\n"@1789..1790
+      TEXT_LINE: ">>> a = np.array([1, 2, 3])"@1790..1817
+      NEWLINE: "\n"@1817..1818
+      TEXT_LINE: ">>> b = np.array([4, 5, 6])"@1818..1845
+      NEWLINE: "\n"@1845..1846
+      TEXT_LINE: ">>> np.stack((a, b))"@1846..1866
+      NEWLINE: "\n"@1866..1867
+      TEXT_LINE: "array([[1, 2, 3],"@1867..1884
+      NEWLINE: "\n"@1884..1885
+      WHITESPACE: "       "@1885..1892
+      TEXT_LINE: "[4, 5, 6]])"@1892..1903
+      NEWLINE: "\n"@1903..1904
+      BLANK_LINE: "\n"@1904..1905
+      TEXT_LINE: ">>> np.stack((a, b), axis=-1)"@1905..1934
+      NEWLINE: "\n"@1934..1935
+      TEXT_LINE: "array([[1, 4],"@1935..1949
+      NEWLINE: "\n"@1949..1950
+      WHITESPACE: "       "@1950..1957
+      TEXT_LINE: "[2, 5],"@1957..1964
+      NEWLINE: "\n"@1964..1965
+      WHITESPACE: "       "@1965..1972
+      TEXT_LINE: "[3, 6]])"@1972..1980
+    }
+  }
+}
+=== EMIT ===
+Join a sequence of arrays along a new axis.
+
+The ``axis`` parameter specifies the index of the new axis in the
+dimensions of the result. For example, if ``axis=0`` it will be the first
+dimension and if ``axis=-1`` it will be the last dimension.
+
+Parameters
+----------
+arrays : sequence of ndarrays
+    Each array must have the same shape. In the case of a single ndarray
+    array_like input, it will be treated as a sequence of arrays; i.e.,
+    each element along the zeroth axis is treated as a separate array.
+axis : int, optional
+    The axis in the result array along which the input arrays are stacked.
+out : ndarray, optional
+    If provided, the destination to place the result. The shape must be
+    correct, matching that of what stack would have returned if no
+    out argument were specified.
+dtype : str or dtype
+    If provided, the destination array will have this dtype. Cannot be
+    provided together with `out`.
+
+    .. versionadded:: 1.24
+casting : {'no', 'equiv', 'safe', 'same_kind', 'unsafe'}, optional
+    Controls what kind of data casting may occur. Defaults to 'same_kind'.
+
+    .. versionadded:: 1.24
+
+Returns
+-------
+stacked : ndarray
+    The stacked array has one more dimension than the input arrays.
+
+See Also
+--------
+concatenate : Join a sequence of arrays along an existing axis.
+block : Assemble an nd-array from nested lists of blocks.
+split : Split array into a list of multiple sub-arrays of equal size.
+unstack : Split an array into a tuple of sub-arrays along an axis.
+
+Examples
+--------
+>>> import numpy as np
+>>> rng = np.random.default_rng()
+>>> arrays = [rng.normal(size=(3,4)) for _ in range(10)]
+>>> np.stack(arrays, axis=0).shape
+(10, 3, 4)
+
+>>> np.stack(arrays, axis=1).shape
+(3, 10, 4)
+
+>>> np.stack(arrays, axis=2).shape
+(3, 4, 10)
+
+>>> a = np.array([1, 2, 3])
+>>> b = np.array([4, 5, 6])
+>>> np.stack((a, b))
+array([[1, 2, 3],
+       [4, 5, 6]])
+
+>>> np.stack((a, b), axis=-1)
+array([[1, 4],
+       [2, 5],
+       [3, 6]])

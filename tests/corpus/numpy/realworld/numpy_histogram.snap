@@ -1,0 +1,434 @@
+=== CST ===
+DOCUMENT@0..3667 {
+  SUMMARY@0..35 {
+    TEXT_LINE: "Compute the histogram of a dataset."@0..35
+  }
+  NEWLINE: "\n"@35..36
+  BLANK_LINE: "\n"@36..37
+  SECTION@37..1984 {
+    SECTION_HEADER@37..58 {
+      NAME: "Parameters"@37..47
+      NEWLINE: "\n"@47..48
+      UNDERLINE: "----------"@48..58
+    }
+    NEWLINE: "\n"@58..59
+    ENTRY@59..141 {
+      NAME: "a"@59..60
+      WHITESPACE: " "@60..61
+      COLON: ":"@61..62
+      WHITESPACE: " "@62..63
+      TYPE: "array_like"@63..73
+      NEWLINE: "\n"@73..74
+      WHITESPACE: "    "@74..78
+      DESCRIPTION@78..141 {
+        TEXT_LINE: "Input data. The histogram is computed over the flattened array."@78..141
+      }
+    }
+    NEWLINE: "\n"@141..142
+    ENTRY@142..590 {
+      NAME: "bins"@142..146
+      WHITESPACE: " "@146..147
+      COLON: ":"@147..148
+      WHITESPACE: " "@148..149
+      TYPE: "int or sequence of scalars or str"@149..182
+      COMMA: ","@182..183
+      WHITESPACE: " "@183..184
+      OPTIONAL: "optional"@184..192
+      NEWLINE: "\n"@192..193
+      WHITESPACE: "    "@193..197
+      DESCRIPTION@197..590 {
+        TEXT_LINE: "If `bins` is an int, it defines the number of equal-width"@197..254
+        NEWLINE: "\n"@254..255
+        WHITESPACE: "    "@255..259
+        TEXT_LINE: "bins in the given range (10, by default). If `bins` is a"@259..315
+        NEWLINE: "\n"@315..316
+        WHITESPACE: "    "@316..320
+        TEXT_LINE: "sequence, it defines a monotonically increasing array of bin edges,"@320..387
+        NEWLINE: "\n"@387..388
+        WHITESPACE: "    "@388..392
+        TEXT_LINE: "including the rightmost edge, allowing for non-uniform bin widths."@392..458
+        NEWLINE: "\n"@458..459
+        BLANK_LINE: "\n"@459..460
+        WHITESPACE: "    "@460..464
+        TEXT_LINE: "If `bins` is a string, it defines the method used to calculate the"@464..530
+        NEWLINE: "\n"@530..531
+        WHITESPACE: "    "@531..535
+        TEXT_LINE: "optimal bin width, as defined by `histogram_bin_edges`."@535..590
+      }
+    }
+    NEWLINE: "\n"@590..591
+    BLANK_LINE: "\n"@591..592
+    ENTRY@592..1079 {
+      NAME: "range"@592..597
+      WHITESPACE: " "@597..598
+      COLON: ":"@598..599
+      WHITESPACE: " "@599..600
+      TYPE: "(float, float)"@600..614
+      COMMA: ","@614..615
+      WHITESPACE: " "@615..616
+      OPTIONAL: "optional"@616..624
+      NEWLINE: "\n"@624..625
+      WHITESPACE: "    "@625..629
+      DESCRIPTION@629..1079 {
+        TEXT_LINE: "The lower and upper range of the bins.  If not provided, range"@629..691
+        NEWLINE: "\n"@691..692
+        WHITESPACE: "    "@692..696
+        TEXT_LINE: "is simply ``(a.min(), a.max())``.  Values outside the range are"@696..759
+        NEWLINE: "\n"@759..760
+        WHITESPACE: "    "@760..764
+        TEXT_LINE: "ignored. The first element of the range must be less than or"@764..824
+        NEWLINE: "\n"@824..825
+        WHITESPACE: "    "@825..829
+        TEXT_LINE: "equal to the second. `range` affects the automatic bin"@829..883
+        NEWLINE: "\n"@883..884
+        WHITESPACE: "    "@884..888
+        TEXT_LINE: "computation as well. While bin width is computed to be optimal"@888..950
+        NEWLINE: "\n"@950..951
+        WHITESPACE: "    "@951..955
+        TEXT_LINE: "based on the actual data within `range`, the bin count will fill"@955..1019
+        NEWLINE: "\n"@1019..1020
+        WHITESPACE: "    "@1020..1024
+        TEXT_LINE: "the entire range including portions containing no data."@1024..1079
+      }
+    }
+    NEWLINE: "\n"@1079..1080
+    ENTRY@1080..1573 {
+      NAME: "weights"@1080..1087
+      WHITESPACE: " "@1087..1088
+      COLON: ":"@1088..1089
+      WHITESPACE: " "@1089..1090
+      TYPE: "array_like"@1090..1100
+      COMMA: ","@1100..1101
+      WHITESPACE: " "@1101..1102
+      OPTIONAL: "optional"@1102..1110
+      NEWLINE: "\n"@1110..1111
+      WHITESPACE: "    "@1111..1115
+      DESCRIPTION@1115..1573 {
+        TEXT_LINE: "An array of weights, of the same shape as `a`.  Each value in"@1115..1176
+        NEWLINE: "\n"@1176..1177
+        WHITESPACE: "    "@1177..1181
+        TEXT_LINE: "`a` only contributes its associated weight towards the bin count"@1181..1245
+        NEWLINE: "\n"@1245..1246
+        WHITESPACE: "    "@1246..1250
+        TEXT_LINE: "(instead of 1). If `density` is True, the weights are"@1250..1303
+        NEWLINE: "\n"@1303..1304
+        WHITESPACE: "    "@1304..1308
+        TEXT_LINE: "normalized, so that the integral of the density over the range"@1308..1370
+        NEWLINE: "\n"@1370..1371
+        WHITESPACE: "    "@1371..1375
+        TEXT_LINE: "remains 1."@1375..1385
+        NEWLINE: "\n"@1385..1386
+        WHITESPACE: "    "@1386..1390
+        TEXT_LINE: "Please note that the ``dtype`` of `weights` will also become the"@1390..1454
+        NEWLINE: "\n"@1454..1455
+        WHITESPACE: "    "@1455..1459
+        TEXT_LINE: "``dtype`` of the returned accumulator (`hist`), so it must be"@1459..1520
+        NEWLINE: "\n"@1520..1521
+        WHITESPACE: "    "@1521..1525
+        TEXT_LINE: "large enough to hold accumulated values as well."@1525..1573
+      }
+    }
+    NEWLINE: "\n"@1573..1574
+    ENTRY@1574..1984 {
+      NAME: "density"@1574..1581
+      WHITESPACE: " "@1581..1582
+      COLON: ":"@1582..1583
+      WHITESPACE: " "@1583..1584
+      TYPE: "bool"@1584..1588
+      COMMA: ","@1588..1589
+      WHITESPACE: " "@1589..1590
+      OPTIONAL: "optional"@1590..1598
+      NEWLINE: "\n"@1598..1599
+      WHITESPACE: "    "@1599..1603
+      DESCRIPTION@1603..1984 {
+        TEXT_LINE: "If ``False``, the result will contain the number of samples in"@1603..1665
+        NEWLINE: "\n"@1665..1666
+        WHITESPACE: "    "@1666..1670
+        TEXT_LINE: "each bin. If ``True``, the result is the value of the"@1670..1723
+        NEWLINE: "\n"@1723..1724
+        WHITESPACE: "    "@1724..1728
+        TEXT_LINE: "probability *density* function at the bin, normalized such that"@1728..1791
+        NEWLINE: "\n"@1791..1792
+        WHITESPACE: "    "@1792..1796
+        TEXT_LINE: "the *integral* over the range is 1. Note that the sum of the"@1796..1856
+        NEWLINE: "\n"@1856..1857
+        WHITESPACE: "    "@1857..1861
+        TEXT_LINE: "histogram values will not be equal to 1 unless bins of unity"@1861..1921
+        NEWLINE: "\n"@1921..1922
+        WHITESPACE: "    "@1922..1926
+        TEXT_LINE: "width are chosen; it is not a probability *mass* function."@1926..1984
+      }
+    }
+  }
+  NEWLINE: "\n"@1984..1985
+  BLANK_LINE: "\n"@1985..1986
+  SECTION@1986..2278 {
+    SECTION_HEADER@1986..2001 {
+      NAME: "Returns"@1986..1993
+      NEWLINE: "\n"@1993..1994
+      UNDERLINE: "-------"@1994..2001
+    }
+    NEWLINE: "\n"@2001..2002
+    ENTRY@2002..2198 {
+      NAME: "hist"@2002..2006
+      WHITESPACE: " "@2006..2007
+      COLON: ":"@2007..2008
+      WHITESPACE: " "@2008..2009
+      TYPE: "array"@2009..2014
+      NEWLINE: "\n"@2014..2015
+      WHITESPACE: "    "@2015..2019
+      DESCRIPTION@2019..2198 {
+        TEXT_LINE: "The values of the histogram. See `density` and `weights` for a"@2019..2081
+        NEWLINE: "\n"@2081..2082
+        WHITESPACE: "    "@2082..2086
+        TEXT_LINE: "description of the possible semantics.  If `weights` are given,"@2086..2149
+        NEWLINE: "\n"@2149..2150
+        WHITESPACE: "    "@2150..2154
+        TEXT_LINE: "``hist.dtype`` will be taken from `weights`."@2154..2198
+      }
+    }
+    NEWLINE: "\n"@2198..2199
+    ENTRY@2199..2278 {
+      NAME: "bin_edges"@2199..2208
+      WHITESPACE: " "@2208..2209
+      COLON: ":"@2209..2210
+      WHITESPACE: " "@2210..2211
+      TYPE: "array of dtype float"@2211..2231
+      NEWLINE: "\n"@2231..2232
+      WHITESPACE: "    "@2232..2236
+      DESCRIPTION@2236..2278 {
+        TEXT_LINE: "Return the bin edges ``(length(hist)+1)``."@2236..2278
+      }
+    }
+  }
+  NEWLINE: "\n"@2278..2279
+  BLANK_LINE: "\n"@2279..2280
+  BLANK_LINE: "\n"@2280..2281
+  SECTION@2281..2365 {
+    SECTION_HEADER@2281..2298 {
+      NAME: "See Also"@2281..2289
+      NEWLINE: "\n"@2289..2290
+      UNDERLINE: "--------"@2290..2298
+    }
+    NEWLINE: "\n"@2298..2299
+    ENTRY@2299..2365 {
+      NAME: "histogramdd"@2299..2310
+      COMMA: ","@2310..2311
+      WHITESPACE: " "@2311..2312
+      NAME: "bincount"@2312..2320
+      COMMA: ","@2320..2321
+      WHITESPACE: " "@2321..2322
+      NAME: "searchsorted"@2322..2334
+      COMMA: ","@2334..2335
+      WHITESPACE: " "@2335..2336
+      NAME: "digitize"@2336..2344
+      COMMA: ","@2344..2345
+      WHITESPACE: " "@2345..2346
+      NAME: "histogram_bin_edges"@2346..2365
+    }
+  }
+  NEWLINE: "\n"@2365..2366
+  BLANK_LINE: "\n"@2366..2367
+  SECTION@2367..2629 {
+    SECTION_HEADER@2367..2378 {
+      NAME: "Notes"@2367..2372
+      NEWLINE: "\n"@2372..2373
+      UNDERLINE: "-----"@2373..2378
+    }
+    NEWLINE: "\n"@2378..2379
+    DESCRIPTION@2379..2629 {
+      TEXT_LINE: "All but the last (righthand-most) bin is half-open.  In other words,"@2379..2447
+      NEWLINE: "\n"@2447..2448
+      TEXT_LINE: "if `bins` is::"@2448..2462
+      NEWLINE: "\n"@2462..2463
+      BLANK_LINE: "\n"@2463..2464
+      WHITESPACE: "  "@2464..2466
+      TEXT_LINE: "[1, 2, 3, 4]"@2466..2478
+      NEWLINE: "\n"@2478..2479
+      BLANK_LINE: "\n"@2479..2480
+      TEXT_LINE: "then the first bin is ``[1, 2)`` (including 1, but excluding 2) and"@2480..2547
+      NEWLINE: "\n"@2547..2548
+      TEXT_LINE: "the second ``[2, 3)``.  The last bin, however, is ``[3, 4]``, which"@2548..2615
+      NEWLINE: "\n"@2615..2616
+      TEXT_LINE: "*includes* 4."@2616..2629
+    }
+  }
+  NEWLINE: "\n"@2629..2630
+  BLANK_LINE: "\n"@2630..2631
+  BLANK_LINE: "\n"@2631..2632
+  SECTION@2632..3667 {
+    SECTION_HEADER@2632..2649 {
+      NAME: "Examples"@2632..2640
+      NEWLINE: "\n"@2640..2641
+      UNDERLINE: "--------"@2641..2649
+    }
+    NEWLINE: "\n"@2649..2650
+    DESCRIPTION@2650..3667 {
+      TEXT_LINE: ">>> import numpy as np"@2650..2672
+      NEWLINE: "\n"@2672..2673
+      TEXT_LINE: ">>> np.histogram([1, 2, 1], bins=[0, 1, 2, 3])"@2673..2719
+      NEWLINE: "\n"@2719..2720
+      TEXT_LINE: "(array([0, 2, 1]), array([0, 1, 2, 3]))"@2720..2759
+      NEWLINE: "\n"@2759..2760
+      TEXT_LINE: ">>> np.histogram(np.arange(4), bins=np.arange(5), density=True)"@2760..2823
+      NEWLINE: "\n"@2823..2824
+      TEXT_LINE: "(array([0.25, 0.25, 0.25, 0.25]), array([0, 1, 2, 3, 4]))"@2824..2881
+      NEWLINE: "\n"@2881..2882
+      TEXT_LINE: ">>> np.histogram([[1, 2, 1], [1, 0, 1]], bins=[0,1,2,3])"@2882..2938
+      NEWLINE: "\n"@2938..2939
+      TEXT_LINE: "(array([1, 4, 1]), array([0, 1, 2, 3]))"@2939..2978
+      NEWLINE: "\n"@2978..2979
+      BLANK_LINE: "\n"@2979..2980
+      TEXT_LINE: ">>> a = np.arange(5)"@2980..3000
+      NEWLINE: "\n"@3000..3001
+      TEXT_LINE: ">>> hist, bin_edges = np.histogram(a, density=True)"@3001..3052
+      NEWLINE: "\n"@3052..3053
+      TEXT_LINE: ">>> hist"@3053..3061
+      NEWLINE: "\n"@3061..3062
+      TEXT_LINE: "array([0.5, 0. , 0.5, 0. , 0. , 0.5, 0. , 0.5, 0. , 0.5])"@3062..3119
+      NEWLINE: "\n"@3119..3120
+      TEXT_LINE: ">>> hist.sum()"@3120..3134
+      NEWLINE: "\n"@3134..3135
+      TEXT_LINE: "2.4999999999999996"@3135..3153
+      NEWLINE: "\n"@3153..3154
+      TEXT_LINE: ">>> np.sum(hist * np.diff(bin_edges))"@3154..3191
+      NEWLINE: "\n"@3191..3192
+      TEXT_LINE: "1.0"@3192..3195
+      NEWLINE: "\n"@3195..3196
+      BLANK_LINE: "\n"@3196..3197
+      TEXT_LINE: "Automated Bin Selection Methods example, using 2 peak random data"@3197..3262
+      NEWLINE: "\n"@3262..3263
+      TEXT_LINE: "with 2000 points."@3263..3280
+      NEWLINE: "\n"@3280..3281
+      BLANK_LINE: "\n"@3281..3282
+      TEXT_LINE: ".. plot::"@3282..3291
+      NEWLINE: "\n"@3291..3292
+      WHITESPACE: "    "@3292..3296
+      TEXT_LINE: ":include-source:"@3296..3312
+      NEWLINE: "\n"@3312..3313
+      BLANK_LINE: "\n"@3313..3314
+      WHITESPACE: "    "@3314..3318
+      TEXT_LINE: "import matplotlib.pyplot as plt"@3318..3349
+      NEWLINE: "\n"@3349..3350
+      WHITESPACE: "    "@3350..3354
+      TEXT_LINE: "import numpy as np"@3354..3372
+      NEWLINE: "\n"@3372..3373
+      BLANK_LINE: "\n"@3373..3374
+      WHITESPACE: "    "@3374..3378
+      TEXT_LINE: "rng = np.random.RandomState(10)  # deterministic random data"@3378..3438
+      NEWLINE: "\n"@3438..3439
+      WHITESPACE: "    "@3439..3443
+      TEXT_LINE: "a = np.hstack((rng.normal(size=1000),"@3443..3480
+      NEWLINE: "\n"@3480..3481
+      WHITESPACE: "                   "@3481..3500
+      TEXT_LINE: "rng.normal(loc=5, scale=2, size=1000)))"@3500..3539
+      NEWLINE: "\n"@3539..3540
+      WHITESPACE: "    "@3540..3544
+      TEXT_LINE: "plt.hist(a, bins='auto')  # arguments are passed to np.histogram"@3544..3608
+      NEWLINE: "\n"@3608..3609
+      WHITESPACE: "    "@3609..3613
+      TEXT_LINE: "plt.title(\"Histogram with 'auto' bins\")"@3613..3652
+      NEWLINE: "\n"@3652..3653
+      WHITESPACE: "    "@3653..3657
+      TEXT_LINE: "plt.show()"@3657..3667
+    }
+  }
+}
+=== EMIT ===
+Compute the histogram of a dataset.
+
+Parameters
+----------
+a : array_like
+    Input data. The histogram is computed over the flattened array.
+bins : int or sequence of scalars or str, optional
+    If `bins` is an int, it defines the number of equal-width
+    bins in the given range (10, by default). If `bins` is a
+    sequence, it defines a monotonically increasing array of bin edges,
+    including the rightmost edge, allowing for non-uniform bin widths.
+
+    If `bins` is a string, it defines the method used to calculate the
+    optimal bin width, as defined by `histogram_bin_edges`.
+range : (float, float), optional
+    The lower and upper range of the bins.  If not provided, range
+    is simply ``(a.min(), a.max())``.  Values outside the range are
+    ignored. The first element of the range must be less than or
+    equal to the second. `range` affects the automatic bin
+    computation as well. While bin width is computed to be optimal
+    based on the actual data within `range`, the bin count will fill
+    the entire range including portions containing no data.
+weights : array_like, optional
+    An array of weights, of the same shape as `a`.  Each value in
+    `a` only contributes its associated weight towards the bin count
+    (instead of 1). If `density` is True, the weights are
+    normalized, so that the integral of the density over the range
+    remains 1.
+    Please note that the ``dtype`` of `weights` will also become the
+    ``dtype`` of the returned accumulator (`hist`), so it must be
+    large enough to hold accumulated values as well.
+density : bool, optional
+    If ``False``, the result will contain the number of samples in
+    each bin. If ``True``, the result is the value of the
+    probability *density* function at the bin, normalized such that
+    the *integral* over the range is 1. Note that the sum of the
+    histogram values will not be equal to 1 unless bins of unity
+    width are chosen; it is not a probability *mass* function.
+
+Returns
+-------
+hist : array
+    The values of the histogram. See `density` and `weights` for a
+    description of the possible semantics.  If `weights` are given,
+    ``hist.dtype`` will be taken from `weights`.
+bin_edges : array of dtype float
+    Return the bin edges ``(length(hist)+1)``.
+
+See Also
+--------
+histogramdd, bincount, searchsorted, digitize, histogram_bin_edges
+
+Notes
+-----
+All but the last (righthand-most) bin is half-open.  In other words,
+if `bins` is::
+
+  [1, 2, 3, 4]
+
+then the first bin is ``[1, 2)`` (including 1, but excluding 2) and
+the second ``[2, 3)``.  The last bin, however, is ``[3, 4]``, which
+*includes* 4.
+
+Examples
+--------
+>>> import numpy as np
+>>> np.histogram([1, 2, 1], bins=[0, 1, 2, 3])
+(array([0, 2, 1]), array([0, 1, 2, 3]))
+>>> np.histogram(np.arange(4), bins=np.arange(5), density=True)
+(array([0.25, 0.25, 0.25, 0.25]), array([0, 1, 2, 3, 4]))
+>>> np.histogram([[1, 2, 1], [1, 0, 1]], bins=[0,1,2,3])
+(array([1, 4, 1]), array([0, 1, 2, 3]))
+
+>>> a = np.arange(5)
+>>> hist, bin_edges = np.histogram(a, density=True)
+>>> hist
+array([0.5, 0. , 0.5, 0. , 0. , 0.5, 0. , 0.5, 0. , 0.5])
+>>> hist.sum()
+2.4999999999999996
+>>> np.sum(hist * np.diff(bin_edges))
+1.0
+
+Automated Bin Selection Methods example, using 2 peak random data
+with 2000 points.
+
+.. plot::
+    :include-source:
+
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    rng = np.random.RandomState(10)  # deterministic random data
+    a = np.hstack((rng.normal(size=1000),
+                   rng.normal(loc=5, scale=2, size=1000)))
+    plt.hist(a, bins='auto')  # arguments are passed to np.histogram
+    plt.title("Histogram with 'auto' bins")
+    plt.show()

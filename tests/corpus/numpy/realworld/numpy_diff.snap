@@ -1,0 +1,333 @@
+=== CST ===
+DOCUMENT@0..2336 {
+  SUMMARY@0..60 {
+    TEXT_LINE: "Calculate the n-th discrete difference along the given axis."@0..60
+  }
+  NEWLINE: "\n"@60..61
+  BLANK_LINE: "\n"@61..62
+  EXTENDED_SUMMARY@62..206 {
+    TEXT_LINE: "The first difference is given by ``out[i] = a[i+1] - a[i]`` along"@62..127
+    NEWLINE: "\n"@127..128
+    TEXT_LINE: "the given axis, higher differences are calculated by using `diff`"@128..193
+    NEWLINE: "\n"@193..194
+    TEXT_LINE: "recursively."@194..206
+  }
+  NEWLINE: "\n"@206..207
+  BLANK_LINE: "\n"@207..208
+  SECTION@208..814 {
+    SECTION_HEADER@208..229 {
+      NAME: "Parameters"@208..218
+      NEWLINE: "\n"@218..219
+      UNDERLINE: "----------"@219..229
+    }
+    NEWLINE: "\n"@229..230
+    ENTRY@230..260 {
+      NAME: "a"@230..231
+      WHITESPACE: " "@231..232
+      COLON: ":"@232..233
+      WHITESPACE: " "@233..234
+      TYPE: "array_like"@234..244
+      NEWLINE: "\n"@244..245
+      WHITESPACE: "    "@245..249
+      DESCRIPTION@249..260 {
+        TEXT_LINE: "Input array"@249..260
+      }
+    }
+    NEWLINE: "\n"@260..261
+    ENTRY@261..368 {
+      NAME: "n"@261..262
+      WHITESPACE: " "@262..263
+      COLON: ":"@263..264
+      WHITESPACE: " "@264..265
+      TYPE: "int"@265..268
+      COMMA: ","@268..269
+      WHITESPACE: " "@269..270
+      OPTIONAL: "optional"@270..278
+      NEWLINE: "\n"@278..279
+      WHITESPACE: "    "@279..283
+      DESCRIPTION@283..368 {
+        TEXT_LINE: "The number of times values are differenced. If zero, the input"@283..345
+        NEWLINE: "\n"@345..346
+        WHITESPACE: "    "@346..350
+        TEXT_LINE: "is returned as-is."@350..368
+      }
+    }
+    NEWLINE: "\n"@368..369
+    ENTRY@369..469 {
+      NAME: "axis"@369..373
+      WHITESPACE: " "@373..374
+      COLON: ":"@374..375
+      WHITESPACE: " "@375..376
+      TYPE: "int"@376..379
+      COMMA: ","@379..380
+      WHITESPACE: " "@380..381
+      OPTIONAL: "optional"@381..389
+      NEWLINE: "\n"@389..390
+      WHITESPACE: "    "@390..394
+      DESCRIPTION@394..469 {
+        TEXT_LINE: "The axis along which the difference is taken, default is the"@394..454
+        NEWLINE: "\n"@454..455
+        WHITESPACE: "    "@455..459
+        TEXT_LINE: "last axis."@459..469
+      }
+    }
+    NEWLINE: "\n"@469..470
+    ENTRY@470..814 {
+      NAME: "prepend"@470..477
+      COMMA: ","@477..478
+      WHITESPACE: " "@478..479
+      NAME: "append"@479..485
+      WHITESPACE: " "@485..486
+      COLON: ":"@486..487
+      WHITESPACE: " "@487..488
+      TYPE: "array_like"@488..498
+      COMMA: ","@498..499
+      WHITESPACE: " "@499..500
+      OPTIONAL: "optional"@500..508
+      NEWLINE: "\n"@508..509
+      WHITESPACE: "    "@509..513
+      DESCRIPTION@513..814 {
+        TEXT_LINE: "Values to prepend or append to `a` along axis prior to"@513..567
+        NEWLINE: "\n"@567..568
+        WHITESPACE: "    "@568..572
+        TEXT_LINE: "performing the difference.  Scalar values are expanded to"@572..629
+        NEWLINE: "\n"@629..630
+        WHITESPACE: "    "@630..634
+        TEXT_LINE: "arrays with length 1 in the direction of axis and the shape"@634..693
+        NEWLINE: "\n"@693..694
+        WHITESPACE: "    "@694..698
+        TEXT_LINE: "of the input array in along all other axes.  Otherwise the"@698..756
+        NEWLINE: "\n"@756..757
+        WHITESPACE: "    "@757..761
+        TEXT_LINE: "dimension and shape must match `a` except along axis."@761..814
+      }
+    }
+  }
+  NEWLINE: "\n"@814..815
+  BLANK_LINE: "\n"@815..816
+  SECTION@816..1227 {
+    SECTION_HEADER@816..831 {
+      NAME: "Returns"@816..823
+      NEWLINE: "\n"@823..824
+      UNDERLINE: "-------"@824..831
+    }
+    NEWLINE: "\n"@831..832
+    ENTRY@832..1227 {
+      NAME: "diff"@832..836
+      WHITESPACE: " "@836..837
+      COLON: ":"@837..838
+      WHITESPACE: " "@838..839
+      TYPE: "ndarray"@839..846
+      NEWLINE: "\n"@846..847
+      WHITESPACE: "    "@847..851
+      DESCRIPTION@851..1227 {
+        TEXT_LINE: "The n-th differences. The shape of the output is the same as `a`"@851..915
+        NEWLINE: "\n"@915..916
+        WHITESPACE: "    "@916..920
+        TEXT_LINE: "except along `axis` where the dimension is smaller by `n`. The"@920..982
+        NEWLINE: "\n"@982..983
+        WHITESPACE: "    "@983..987
+        TEXT_LINE: "type of the output is the same as the type of the difference"@987..1047
+        NEWLINE: "\n"@1047..1048
+        WHITESPACE: "    "@1048..1052
+        TEXT_LINE: "between any two elements of `a`. This is the same as the type of"@1052..1116
+        NEWLINE: "\n"@1116..1117
+        WHITESPACE: "    "@1117..1121
+        TEXT_LINE: "`a` in most cases. A notable exception is `datetime64`, which"@1121..1182
+        NEWLINE: "\n"@1182..1183
+        WHITESPACE: "    "@1183..1187
+        TEXT_LINE: "results in a `timedelta64` output array."@1187..1227
+      }
+    }
+  }
+  NEWLINE: "\n"@1227..1228
+  BLANK_LINE: "\n"@1228..1229
+  SECTION@1229..1272 {
+    SECTION_HEADER@1229..1246 {
+      NAME: "See Also"@1229..1237
+      NEWLINE: "\n"@1237..1238
+      UNDERLINE: "--------"@1238..1246
+    }
+    NEWLINE: "\n"@1246..1247
+    ENTRY@1247..1272 {
+      NAME: "gradient"@1247..1255
+      COMMA: ","@1255..1256
+      WHITESPACE: " "@1256..1257
+      NAME: "ediff1d"@1257..1264
+      COMMA: ","@1264..1265
+      WHITESPACE: " "@1265..1266
+      NAME: "cumsum"@1266..1272
+    }
+  }
+  NEWLINE: "\n"@1272..1273
+  BLANK_LINE: "\n"@1273..1274
+  SECTION@1274..1907 {
+    SECTION_HEADER@1274..1285 {
+      NAME: "Notes"@1274..1279
+      NEWLINE: "\n"@1279..1280
+      UNDERLINE: "-----"@1280..1285
+    }
+    NEWLINE: "\n"@1285..1286
+    DESCRIPTION@1286..1907 {
+      TEXT_LINE: "Type is preserved for boolean arrays, so the result will contain"@1286..1350
+      NEWLINE: "\n"@1350..1351
+      TEXT_LINE: "`False` when consecutive elements are the same and `True` when they"@1351..1418
+      NEWLINE: "\n"@1418..1419
+      TEXT_LINE: "differ."@1419..1426
+      NEWLINE: "\n"@1426..1427
+      BLANK_LINE: "\n"@1427..1428
+      TEXT_LINE: "For unsigned integer arrays, the results will also be unsigned. This"@1428..1496
+      NEWLINE: "\n"@1496..1497
+      TEXT_LINE: "should not be surprising, as the result is consistent with"@1497..1555
+      NEWLINE: "\n"@1555..1556
+      TEXT_LINE: "calculating the difference directly:"@1556..1592
+      NEWLINE: "\n"@1592..1593
+      BLANK_LINE: "\n"@1593..1594
+      TEXT_LINE: ">>> u8_arr = np.array([1, 0], dtype=np.uint8)"@1594..1639
+      NEWLINE: "\n"@1639..1640
+      TEXT_LINE: ">>> np.diff(u8_arr)"@1640..1659
+      NEWLINE: "\n"@1659..1660
+      TEXT_LINE: "array([255], dtype=uint8)"@1660..1685
+      NEWLINE: "\n"@1685..1686
+      TEXT_LINE: ">>> u8_arr[1,...] - u8_arr[0,...]"@1686..1719
+      NEWLINE: "\n"@1719..1720
+      TEXT_LINE: "np.uint8(255)"@1720..1733
+      NEWLINE: "\n"@1733..1734
+      BLANK_LINE: "\n"@1734..1735
+      TEXT_LINE: "If this is not desirable, then the array should be cast to a larger"@1735..1802
+      NEWLINE: "\n"@1802..1803
+      TEXT_LINE: "integer type first:"@1803..1822
+      NEWLINE: "\n"@1822..1823
+      BLANK_LINE: "\n"@1823..1824
+      TEXT_LINE: ">>> i16_arr = u8_arr.astype(np.int16)"@1824..1861
+      NEWLINE: "\n"@1861..1862
+      TEXT_LINE: ">>> np.diff(i16_arr)"@1862..1882
+      NEWLINE: "\n"@1882..1883
+      TEXT_LINE: "array([-1], dtype=int16)"@1883..1907
+    }
+  }
+  NEWLINE: "\n"@1907..1908
+  BLANK_LINE: "\n"@1908..1909
+  SECTION@1909..2336 {
+    SECTION_HEADER@1909..1926 {
+      NAME: "Examples"@1909..1917
+      NEWLINE: "\n"@1917..1918
+      UNDERLINE: "--------"@1918..1926
+    }
+    NEWLINE: "\n"@1926..1927
+    DESCRIPTION@1927..2336 {
+      TEXT_LINE: ">>> import numpy as np"@1927..1949
+      NEWLINE: "\n"@1949..1950
+      TEXT_LINE: ">>> x = np.array([1, 2, 4, 7, 0])"@1950..1983
+      NEWLINE: "\n"@1983..1984
+      TEXT_LINE: ">>> np.diff(x)"@1984..1998
+      NEWLINE: "\n"@1998..1999
+      TEXT_LINE: "array([ 1,  2,  3, -7])"@1999..2022
+      NEWLINE: "\n"@2022..2023
+      TEXT_LINE: ">>> np.diff(x, n=2)"@2023..2042
+      NEWLINE: "\n"@2042..2043
+      TEXT_LINE: "array([  1,   1, -10])"@2043..2065
+      NEWLINE: "\n"@2065..2066
+      BLANK_LINE: "\n"@2066..2067
+      TEXT_LINE: ">>> x = np.array([[1, 3, 6, 10], [0, 5, 6, 8]])"@2067..2114
+      NEWLINE: "\n"@2114..2115
+      TEXT_LINE: ">>> np.diff(x)"@2115..2129
+      NEWLINE: "\n"@2129..2130
+      TEXT_LINE: "array([[2, 3, 4],"@2130..2147
+      NEWLINE: "\n"@2147..2148
+      WHITESPACE: "       "@2148..2155
+      TEXT_LINE: "[5, 1, 2]])"@2155..2166
+      NEWLINE: "\n"@2166..2167
+      TEXT_LINE: ">>> np.diff(x, axis=0)"@2167..2189
+      NEWLINE: "\n"@2189..2190
+      TEXT_LINE: "array([[-1,  2,  0, -2]])"@2190..2215
+      NEWLINE: "\n"@2215..2216
+      BLANK_LINE: "\n"@2216..2217
+      TEXT_LINE: ">>> x = np.arange('1066-10-13', '1066-10-16', dtype=np.datetime64)"@2217..2283
+      NEWLINE: "\n"@2283..2284
+      TEXT_LINE: ">>> np.diff(x)"@2284..2298
+      NEWLINE: "\n"@2298..2299
+      TEXT_LINE: "array([1, 1], dtype='timedelta64[D]')"@2299..2336
+    }
+  }
+}
+=== EMIT ===
+Calculate the n-th discrete difference along the given axis.
+
+The first difference is given by ``out[i] = a[i+1] - a[i]`` along
+the given axis, higher differences are calculated by using `diff`
+recursively.
+
+Parameters
+----------
+a : array_like
+    Input array
+n : int, optional
+    The number of times values are differenced. If zero, the input
+    is returned as-is.
+axis : int, optional
+    The axis along which the difference is taken, default is the
+    last axis.
+prepend, append : array_like, optional
+    Values to prepend or append to `a` along axis prior to
+    performing the difference.  Scalar values are expanded to
+    arrays with length 1 in the direction of axis and the shape
+    of the input array in along all other axes.  Otherwise the
+    dimension and shape must match `a` except along axis.
+
+Returns
+-------
+diff : ndarray
+    The n-th differences. The shape of the output is the same as `a`
+    except along `axis` where the dimension is smaller by `n`. The
+    type of the output is the same as the type of the difference
+    between any two elements of `a`. This is the same as the type of
+    `a` in most cases. A notable exception is `datetime64`, which
+    results in a `timedelta64` output array.
+
+See Also
+--------
+gradient, ediff1d, cumsum
+
+Notes
+-----
+Type is preserved for boolean arrays, so the result will contain
+`False` when consecutive elements are the same and `True` when they
+differ.
+
+For unsigned integer arrays, the results will also be unsigned. This
+should not be surprising, as the result is consistent with
+calculating the difference directly:
+
+>>> u8_arr = np.array([1, 0], dtype=np.uint8)
+>>> np.diff(u8_arr)
+array([255], dtype=uint8)
+>>> u8_arr[1,...] - u8_arr[0,...]
+np.uint8(255)
+
+If this is not desirable, then the array should be cast to a larger
+integer type first:
+
+>>> i16_arr = u8_arr.astype(np.int16)
+>>> np.diff(i16_arr)
+array([-1], dtype=int16)
+
+Examples
+--------
+>>> import numpy as np
+>>> x = np.array([1, 2, 4, 7, 0])
+>>> np.diff(x)
+array([ 1,  2,  3, -7])
+>>> np.diff(x, n=2)
+array([  1,   1, -10])
+
+>>> x = np.array([[1, 3, 6, 10], [0, 5, 6, 8]])
+>>> np.diff(x)
+array([[2, 3, 4],
+       [5, 1, 2]])
+>>> np.diff(x, axis=0)
+array([[-1,  2,  0, -2]])
+
+>>> x = np.arange('1066-10-13', '1066-10-16', dtype=np.datetime64)
+>>> np.diff(x)
+array([1, 1], dtype='timedelta64[D]')

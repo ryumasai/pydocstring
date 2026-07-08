@@ -1,0 +1,115 @@
+=== CST ===
+DOCUMENT@0..543 {
+  SUMMARY@0..59 {
+    TEXT_LINE: "Wraps a given text to a maximum line length and returns it."@0..59
+  }
+  NEWLINE: "\n"@59..60
+  BLANK_LINE: "\n"@60..61
+  EXTENDED_SUMMARY@61..172 {
+    TEXT_LINE: "It turns lines that only contain whitespace into empty lines, keeps new lines,"@61..139
+    NEWLINE: "\n"@139..140
+    TEXT_LINE: "and expands tabs using 4 spaces."@140..172
+  }
+  NEWLINE: "\n"@172..173
+  BLANK_LINE: "\n"@173..174
+  SECTION@174..428 {
+    SECTION_HEADER@174..179 {
+      NAME: "Args"@174..178
+      COLON: ":"@178..179
+    }
+    NEWLINE: "\n"@179..180
+    WHITESPACE: "  "@180..182
+    ENTRY@182..201 {
+      NAME: "text"@182..186
+      COLON: ":"@186..187
+      WHITESPACE: " "@187..188
+      DESCRIPTION@188..201 {
+        TEXT_LINE: "Text to wrap."@188..201
+      }
+    }
+    NEWLINE: "\n"@201..202
+    WHITESPACE: "  "@202..204
+    ENTRY@204..310 {
+      NAME: "length"@204..210
+      COLON: ":"@210..211
+      WHITESPACE: " "@211..212
+      DESCRIPTION@212..310 {
+        TEXT_LINE: "Maximum length of a line, includes indentation. If this is `None`"@212..277
+        NEWLINE: "\n"@277..278
+        WHITESPACE: "    "@278..282
+        TEXT_LINE: "then use `get_help_width()`."@282..310
+      }
+    }
+    NEWLINE: "\n"@310..311
+    WHITESPACE: "  "@311..313
+    ENTRY@313..351 {
+      NAME: "indent"@313..319
+      COLON: ":"@319..320
+      WHITESPACE: " "@320..321
+      DESCRIPTION@321..351 {
+        TEXT_LINE: "Indent for all but first line."@321..351
+      }
+    }
+    NEWLINE: "\n"@351..352
+    WHITESPACE: "  "@352..354
+    ENTRY@354..428 {
+      NAME: "firstline_indent"@354..370
+      COLON: ":"@370..371
+      WHITESPACE: " "@371..372
+      DESCRIPTION@372..428 {
+        TEXT_LINE: "Indent for first line. If `None`, fall back to `indent`."@372..428
+      }
+    }
+  }
+  NEWLINE: "\n"@428..429
+  BLANK_LINE: "\n"@429..430
+  SECTION@430..458 {
+    SECTION_HEADER@430..438 {
+      NAME: "Returns"@430..437
+      COLON: ":"@437..438
+    }
+    NEWLINE: "\n"@438..439
+    WHITESPACE: "  "@439..441
+    ENTRY@441..458 {
+      DESCRIPTION@441..458 {
+        TEXT_LINE: "The wrapped text."@441..458
+      }
+    }
+  }
+  NEWLINE: "\n"@458..459
+  BLANK_LINE: "\n"@459..460
+  SECTION@460..543 {
+    SECTION_HEADER@460..467 {
+      NAME: "Raises"@460..466
+      COLON: ":"@466..467
+    }
+    NEWLINE: "\n"@467..468
+    WHITESPACE: "  "@468..470
+    ENTRY@470..543 {
+      TYPE: "ValueError"@470..480
+      COLON: ":"@480..481
+      WHITESPACE: " "@481..482
+      DESCRIPTION@482..543 {
+        TEXT_LINE: "Raised if indent or firstline_indent not shorter than length."@482..543
+      }
+    }
+  }
+}
+=== EMIT ===
+Wraps a given text to a maximum line length and returns it.
+
+It turns lines that only contain whitespace into empty lines, keeps new lines,
+and expands tabs using 4 spaces.
+
+Args:
+    text: Text to wrap.
+    length: Maximum length of a line, includes indentation. If this is `None`
+        then use `get_help_width()`.
+    indent: Indent for all but first line.
+    firstline_indent: Indent for first line. If `None`, fall back to `indent`.
+
+Returns:
+    The wrapped text.
+
+Raises:
+    ValueError: Raised if indent or firstline_indent not shorter than length.

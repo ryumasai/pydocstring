@@ -1,0 +1,123 @@
+=== CST ===
+DOCUMENT@0..947 {
+  SUMMARY@0..55 {
+    TEXT_LINE: "Ensures that flag is not None during program execution."@0..55
+  }
+  NEWLINE: "\n"@55..56
+  BLANK_LINE: "\n"@56..57
+  EXTENDED_SUMMARY@57..511 {
+    TEXT_LINE: "Registers a flag validator, which will follow usual validator rules."@57..125
+    NEWLINE: "\n"@125..126
+    TEXT_LINE: "Important note: validator will pass for any non-``None`` value, such as"@126..197
+    NEWLINE: "\n"@197..198
+    TEXT_LINE: "``False``, ``0`` (zero), ``''`` (empty string) and so on."@198..255
+    NEWLINE: "\n"@255..256
+    BLANK_LINE: "\n"@256..257
+    TEXT_LINE: "If your module might be imported by others, and you only wish to make the flag"@257..335
+    NEWLINE: "\n"@335..336
+    TEXT_LINE: "required when the module is directly executed, call this method like this::"@336..411
+    NEWLINE: "\n"@411..412
+    BLANK_LINE: "\n"@412..413
+    WHITESPACE: "    "@413..417
+    TEXT_LINE: "if __name__ == '__main__':"@417..443
+    NEWLINE: "\n"@443..444
+    WHITESPACE: "      "@444..450
+    TEXT_LINE: "flags.mark_flag_as_required('your_flag_name')"@450..495
+    NEWLINE: "\n"@495..496
+    WHITESPACE: "      "@496..502
+    TEXT_LINE: "app.run()"@502..511
+  }
+  NEWLINE: "\n"@511..512
+  BLANK_LINE: "\n"@512..513
+  SECTION@513..722 {
+    SECTION_HEADER@513..518 {
+      NAME: "Args"@513..517
+      COLON: ":"@517..518
+    }
+    NEWLINE: "\n"@518..519
+    WHITESPACE: "  "@519..521
+    ENTRY@521..608 {
+      NAME: "flag_name"@521..530
+      COLON: ":"@530..531
+      WHITESPACE: " "@531..532
+      DESCRIPTION@532..608 {
+        TEXT_LINE: "str | FlagHolder, name or holder of the flag. Positional-only"@532..593
+        NEWLINE: "\n"@593..594
+        WHITESPACE: "    "@594..598
+        TEXT_LINE: "parameter."@598..608
+      }
+    }
+    NEWLINE: "\n"@608..609
+    WHITESPACE: "  "@609..611
+    ENTRY@611..722 {
+      NAME: "flag_values"@611..622
+      COLON: ":"@622..623
+      WHITESPACE: " "@623..624
+      DESCRIPTION@624..722 {
+        TEXT_LINE: "flags.FlagValues, optional :class:`~absl.flags.FlagValues`"@624..682
+        NEWLINE: "\n"@682..683
+        WHITESPACE: "    "@683..687
+        TEXT_LINE: "instance where the flag is defined."@687..722
+      }
+    }
+  }
+  NEWLINE: "\n"@722..723
+  BLANK_LINE: "\n"@723..724
+  SECTION@724..947 {
+    SECTION_HEADER@724..731 {
+      NAME: "Raises"@724..730
+      COLON: ":"@730..731
+    }
+    NEWLINE: "\n"@731..732
+    WHITESPACE: "  "@732..734
+    ENTRY@734..817 {
+      TYPE: "AttributeError"@734..748
+      COLON: ":"@748..749
+      WHITESPACE: " "@749..750
+      DESCRIPTION@750..817 {
+        TEXT_LINE: "Raised when flag_name is not registered as a valid flag"@750..805
+        NEWLINE: "\n"@805..806
+        WHITESPACE: "      "@806..812
+        TEXT_LINE: "name."@812..817
+      }
+    }
+    NEWLINE: "\n"@817..818
+    WHITESPACE: "  "@818..820
+    ENTRY@820..947 {
+      TYPE: "ValueError"@820..830
+      COLON: ":"@830..831
+      WHITESPACE: " "@831..832
+      DESCRIPTION@832..947 {
+        TEXT_LINE: "Raised when flag_values is non-default and does not match the"@832..893
+        NEWLINE: "\n"@893..894
+        WHITESPACE: "      "@894..900
+        TEXT_LINE: "FlagValues of the provided FlagHolder instance."@900..947
+      }
+    }
+  }
+}
+=== EMIT ===
+Ensures that flag is not None during program execution.
+
+Registers a flag validator, which will follow usual validator rules.
+Important note: validator will pass for any non-``None`` value, such as
+``False``, ``0`` (zero), ``''`` (empty string) and so on.
+
+If your module might be imported by others, and you only wish to make the flag
+required when the module is directly executed, call this method like this::
+
+    if __name__ == '__main__':
+      flags.mark_flag_as_required('your_flag_name')
+      app.run()
+
+Args:
+    flag_name: str | FlagHolder, name or holder of the flag. Positional-only
+        parameter.
+    flag_values: flags.FlagValues, optional :class:`~absl.flags.FlagValues`
+        instance where the flag is defined.
+
+Raises:
+    AttributeError: Raised when flag_name is not registered as a valid flag
+        name.
+    ValueError: Raised when flag_values is non-default and does not match the
+        FlagValues of the provided FlagHolder instance.

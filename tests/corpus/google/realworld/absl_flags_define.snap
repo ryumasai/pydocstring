@@ -1,0 +1,165 @@
+=== CST ===
+DOCUMENT@0..992 {
+  SUMMARY@0..32 {
+    TEXT_LINE: "Registers a generic Flag object."@0..32
+  }
+  NEWLINE: "\n"@32..33
+  BLANK_LINE: "\n"@33..34
+  EXTENDED_SUMMARY@34..239 {
+    TEXT_LINE: "NOTE: in the docstrings of all DEFINE* functions, \"registers\" is short"@34..104
+    NEWLINE: "\n"@104..105
+    TEXT_LINE: "for \"creates a new flag and registers it\"."@105..147
+    NEWLINE: "\n"@147..148
+    BLANK_LINE: "\n"@148..149
+    TEXT_LINE: "Auxiliary function: clients should use the specialized ``DEFINE_<type>``"@149..221
+    NEWLINE: "\n"@221..222
+    TEXT_LINE: "function instead."@222..239
+  }
+  NEWLINE: "\n"@239..240
+  BLANK_LINE: "\n"@240..241
+  SECTION@241..954 {
+    SECTION_HEADER@241..246 {
+      NAME: "Args"@241..245
+      COLON: ":"@245..246
+    }
+    NEWLINE: "\n"@246..247
+    WHITESPACE: "  "@247..249
+    ENTRY@249..315 {
+      NAME: "parser"@249..255
+      COLON: ":"@255..256
+      WHITESPACE: " "@256..257
+      DESCRIPTION@257..315 {
+        TEXT_LINE: ":class:`ArgumentParser`, used to parse the flag arguments."@257..315
+      }
+    }
+    NEWLINE: "\n"@315..316
+    WHITESPACE: "  "@316..318
+    ENTRY@318..343 {
+      NAME: "name"@318..322
+      COLON: ":"@322..323
+      WHITESPACE: " "@323..324
+      DESCRIPTION@324..343 {
+        TEXT_LINE: "str, the flag name."@324..343
+      }
+    }
+    NEWLINE: "\n"@343..344
+    WHITESPACE: "  "@344..346
+    ENTRY@346..385 {
+      NAME: "default"@346..353
+      COLON: ":"@353..354
+      WHITESPACE: " "@354..355
+      DESCRIPTION@355..385 {
+        TEXT_LINE: "The default value of the flag."@355..385
+      }
+    }
+    NEWLINE: "\n"@385..386
+    WHITESPACE: "  "@386..388
+    ENTRY@388..416 {
+      NAME: "help"@388..392
+      COLON: ":"@392..393
+      WHITESPACE: " "@393..394
+      DESCRIPTION@394..416 {
+        TEXT_LINE: "str, the help message."@394..416
+      }
+    }
+    NEWLINE: "\n"@416..417
+    WHITESPACE: "  "@417..419
+    ENTRY@419..568 {
+      NAME: "flag_values"@419..430
+      COLON: ":"@430..431
+      WHITESPACE: " "@431..432
+      DESCRIPTION@432..568 {
+        TEXT_LINE: ":class:`FlagValues`, the FlagValues instance with which the"@432..491
+        NEWLINE: "\n"@491..492
+        WHITESPACE: "    "@492..496
+        TEXT_LINE: "flag will be registered. This should almost never need to be overridden."@496..568
+      }
+    }
+    NEWLINE: "\n"@568..569
+    WHITESPACE: "  "@569..571
+    ENTRY@571..641 {
+      NAME: "serializer"@571..581
+      COLON: ":"@581..582
+      WHITESPACE: " "@582..583
+      DESCRIPTION@583..641 {
+        TEXT_LINE: ":class:`ArgumentSerializer`, the flag serializer instance."@583..641
+      }
+    }
+    NEWLINE: "\n"@641..642
+    WHITESPACE: "  "@642..644
+    ENTRY@644..789 {
+      NAME: "module_name"@644..655
+      COLON: ":"@655..656
+      WHITESPACE: " "@656..657
+      DESCRIPTION@657..789 {
+        TEXT_LINE: "str, the name of the Python module declaring this flag. If not"@657..719
+        NEWLINE: "\n"@719..720
+        WHITESPACE: "    "@720..724
+        TEXT_LINE: "provided, it will be computed using the stack trace of this call."@724..789
+      }
+    }
+    NEWLINE: "\n"@789..790
+    WHITESPACE: "  "@790..792
+    ENTRY@792..877 {
+      NAME: "required"@792..800
+      COLON: ":"@800..801
+      WHITESPACE: " "@801..802
+      DESCRIPTION@802..877 {
+        TEXT_LINE: "bool, is this a required flag. This must be used as a keyword"@802..863
+        NEWLINE: "\n"@863..864
+        WHITESPACE: "    "@864..868
+        TEXT_LINE: "argument."@868..877
+      }
+    }
+    NEWLINE: "\n"@877..878
+    WHITESPACE: "  "@878..880
+    ENTRY@880..954 {
+      NAME: "**args"@880..886
+      COLON: ":"@886..887
+      WHITESPACE: " "@887..888
+      DESCRIPTION@888..954 {
+        TEXT_LINE: "dict, the extra keyword args that are passed to ``Flag.__init__``."@888..954
+      }
+    }
+  }
+  NEWLINE: "\n"@954..955
+  BLANK_LINE: "\n"@955..956
+  SECTION@956..992 {
+    SECTION_HEADER@956..964 {
+      NAME: "Returns"@956..963
+      COLON: ":"@963..964
+    }
+    NEWLINE: "\n"@964..965
+    WHITESPACE: "  "@965..967
+    ENTRY@967..992 {
+      DESCRIPTION@967..992 {
+        TEXT_LINE: "a handle to defined flag."@967..992
+      }
+    }
+  }
+}
+=== EMIT ===
+Registers a generic Flag object.
+
+NOTE: in the docstrings of all DEFINE* functions, "registers" is short
+for "creates a new flag and registers it".
+
+Auxiliary function: clients should use the specialized ``DEFINE_<type>``
+function instead.
+
+Args:
+    parser: :class:`ArgumentParser`, used to parse the flag arguments.
+    name: str, the flag name.
+    default: The default value of the flag.
+    help: str, the help message.
+    flag_values: :class:`FlagValues`, the FlagValues instance with which the
+        flag will be registered. This should almost never need to be overridden.
+    serializer: :class:`ArgumentSerializer`, the flag serializer instance.
+    module_name: str, the name of the Python module declaring this flag. If not
+        provided, it will be computed using the stack trace of this call.
+    required: bool, is this a required flag. This must be used as a keyword
+        argument.
+    **args: dict, the extra keyword args that are passed to ``Flag.__init__``.
+
+Returns:
+    a handle to defined flag.

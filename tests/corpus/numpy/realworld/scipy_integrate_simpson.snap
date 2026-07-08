@@ -1,0 +1,379 @@
+=== CST ===
+DOCUMENT@0..2736 {
+  SUMMARY@0..123 {
+    TEXT_LINE: "Integrate y(x) using samples along the given axis and the composite"@0..67
+    NEWLINE: "\n"@67..68
+    TEXT_LINE: "Simpson's rule. If x is None, spacing of dx is assumed."@68..123
+  }
+  NEWLINE: "\n"@123..124
+  BLANK_LINE: "\n"@124..125
+  SECTION@125..466 {
+    SECTION_HEADER@125..146 {
+      NAME: "Parameters"@125..135
+      NEWLINE: "\n"@135..136
+      UNDERLINE: "----------"@136..146
+    }
+    NEWLINE: "\n"@146..147
+    ENTRY@147..189 {
+      NAME: "y"@147..148
+      WHITESPACE: " "@148..149
+      COLON: ":"@149..150
+      WHITESPACE: " "@150..151
+      TYPE: "array_like"@151..161
+      NEWLINE: "\n"@161..162
+      WHITESPACE: "    "@162..166
+      DESCRIPTION@166..189 {
+        TEXT_LINE: "Array to be integrated."@166..189
+      }
+    }
+    NEWLINE: "\n"@189..190
+    ENTRY@190..264 {
+      NAME: "x"@190..191
+      WHITESPACE: " "@191..192
+      COLON: ":"@192..193
+      WHITESPACE: " "@193..194
+      TYPE: "array_like"@194..204
+      COMMA: ","@204..205
+      WHITESPACE: " "@205..206
+      OPTIONAL: "optional"@206..214
+      NEWLINE: "\n"@214..215
+      WHITESPACE: "    "@215..219
+      DESCRIPTION@219..264 {
+        TEXT_LINE: "If given, the points at which `y` is sampled."@219..264
+      }
+    }
+    NEWLINE: "\n"@264..265
+    ENTRY@265..384 {
+      NAME: "dx"@265..267
+      WHITESPACE: " "@267..268
+      COLON: ":"@268..269
+      WHITESPACE: " "@269..270
+      TYPE: "float"@270..275
+      COMMA: ","@275..276
+      WHITESPACE: " "@276..277
+      OPTIONAL: "optional"@277..285
+      NEWLINE: "\n"@285..286
+      WHITESPACE: "    "@286..290
+      DESCRIPTION@290..384 {
+        TEXT_LINE: "Spacing of integration points along axis of `x`. Only used when"@290..353
+        NEWLINE: "\n"@353..354
+        WHITESPACE: "    "@354..358
+        TEXT_LINE: "`x` is None. Default is 1."@358..384
+      }
+    }
+    NEWLINE: "\n"@384..385
+    ENTRY@385..466 {
+      NAME: "axis"@385..389
+      WHITESPACE: " "@389..390
+      COLON: ":"@390..391
+      WHITESPACE: " "@391..392
+      TYPE: "int"@392..395
+      COMMA: ","@395..396
+      WHITESPACE: " "@396..397
+      OPTIONAL: "optional"@397..405
+      NEWLINE: "\n"@405..406
+      WHITESPACE: "    "@406..410
+      DESCRIPTION@410..466 {
+        TEXT_LINE: "Axis along which to integrate. Default is the last axis."@410..466
+      }
+    }
+  }
+  NEWLINE: "\n"@466..467
+  BLANK_LINE: "\n"@467..468
+  SECTION@468..560 {
+    SECTION_HEADER@468..483 {
+      NAME: "Returns"@468..475
+      NEWLINE: "\n"@475..476
+      UNDERLINE: "-------"@476..483
+    }
+    NEWLINE: "\n"@483..484
+    ENTRY@484..560 {
+      TYPE: "float"@484..489
+      NEWLINE: "\n"@489..490
+      WHITESPACE: "    "@490..494
+      DESCRIPTION@494..560 {
+        TEXT_LINE: "The estimated integral computed with the composite Simpson's rule."@494..560
+      }
+    }
+  }
+  NEWLINE: "\n"@560..561
+  BLANK_LINE: "\n"@561..562
+  SECTION@562..959 {
+    SECTION_HEADER@562..579 {
+      NAME: "See Also"@562..570
+      NEWLINE: "\n"@570..571
+      UNDERLINE: "--------"@571..579
+    }
+    NEWLINE: "\n"@579..580
+    BLANK_LINE: "\n"@580..581
+    ENTRY@581..632 {
+      NAME: ":func:`quad`"@581..593
+      NEWLINE: "\n"@593..594
+      WHITESPACE: "    "@594..598
+      DESCRIPTION@598..632 {
+        TEXT_LINE: "adaptive quadrature using QUADPACK"@598..632
+      }
+    }
+    NEWLINE: "\n"@632..633
+    ENTRY@633..687 {
+      NAME: ":func:`fixed_quad`"@633..651
+      NEWLINE: "\n"@651..652
+      WHITESPACE: "    "@652..656
+      DESCRIPTION@656..687 {
+        TEXT_LINE: "fixed-order Gaussian quadrature"@656..687
+      }
+    }
+    NEWLINE: "\n"@687..688
+    ENTRY@688..724 {
+      NAME: ":func:`dblquad`"@688..703
+      NEWLINE: "\n"@703..704
+      WHITESPACE: "    "@704..708
+      DESCRIPTION@708..724 {
+        TEXT_LINE: "double integrals"@708..724
+      }
+    }
+    NEWLINE: "\n"@724..725
+    ENTRY@725..761 {
+      NAME: ":func:`tplquad`"@725..740
+      NEWLINE: "\n"@740..741
+      WHITESPACE: "    "@741..745
+      DESCRIPTION@745..761 {
+        TEXT_LINE: "triple integrals"@745..761
+      }
+    }
+    NEWLINE: "\n"@761..762
+    ENTRY@762..807 {
+      NAME: ":func:`romb`"@762..774
+      NEWLINE: "\n"@774..775
+      WHITESPACE: "    "@775..779
+      DESCRIPTION@779..807 {
+        TEXT_LINE: "integrators for sampled data"@779..807
+      }
+    }
+    NEWLINE: "\n"@807..808
+    ENTRY@808..880 {
+      NAME: ":func:`cumulative_trapezoid`"@808..836
+      NEWLINE: "\n"@836..837
+      WHITESPACE: "    "@837..841
+      DESCRIPTION@841..880 {
+        TEXT_LINE: "cumulative integration for sampled data"@841..880
+      }
+    }
+    NEWLINE: "\n"@880..881
+    ENTRY@881..959 {
+      NAME: ":func:`cumulative_simpson`"@881..907
+      NEWLINE: "\n"@907..908
+      WHITESPACE: "    "@908..912
+      DESCRIPTION@912..959 {
+        TEXT_LINE: "cumulative integration using Simpson's 1/3 rule"@912..959
+      }
+    }
+  }
+  NEWLINE: "\n"@959..960
+  BLANK_LINE: "\n"@960..961
+  BLANK_LINE: "\n"@961..962
+  SECTION@962..2242 {
+    SECTION_HEADER@962..973 {
+      NAME: "Notes"@962..967
+      NEWLINE: "\n"@967..968
+      UNDERLINE: "-----"@968..973
+    }
+    NEWLINE: "\n"@973..974
+    DESCRIPTION@974..2242 {
+      TEXT_LINE: "For an odd number of samples that are equally spaced the result is"@974..1040
+      NEWLINE: "\n"@1040..1041
+      TEXT_LINE: "exact if the function is a polynomial of order 3 or less. If"@1041..1101
+      NEWLINE: "\n"@1101..1102
+      TEXT_LINE: "the samples are not equally spaced, then the result is exact only"@1102..1167
+      NEWLINE: "\n"@1167..1168
+      TEXT_LINE: "if the function is a polynomial of order 2 or less."@1168..1219
+      NEWLINE: "\n"@1219..1220
+      BLANK_LINE: "\n"@1220..1221
+      TEXT_LINE: "**Array API Standard Support**"@1221..1251
+      NEWLINE: "\n"@1251..1252
+      BLANK_LINE: "\n"@1252..1253
+      TEXT_LINE: "`simpson` has experimental support for Python Array API Standard compatible"@1253..1328
+      NEWLINE: "\n"@1328..1329
+      TEXT_LINE: "backends in addition to NumPy. Please consider testing these features"@1329..1398
+      NEWLINE: "\n"@1398..1399
+      TEXT_LINE: "by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing"@1399..1469
+      NEWLINE: "\n"@1469..1470
+      TEXT_LINE: "CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following"@1470..1538
+      NEWLINE: "\n"@1538..1539
+      TEXT_LINE: "combinations of backend and device (or other capability) are supported."@1539..1610
+      NEWLINE: "\n"@1610..1611
+      BLANK_LINE: "\n"@1611..1612
+      TEXT_LINE: "====================  ====================  ===================="@1612..1676
+      NEWLINE: "\n"@1676..1677
+      TEXT_LINE: "Library               CPU                   GPU"@1677..1724
+      NEWLINE: "\n"@1724..1725
+      TEXT_LINE: "====================  ====================  ===================="@1725..1789
+      NEWLINE: "\n"@1789..1790
+      TEXT_LINE: "NumPy                 ✅                     n/a"@1790..1839
+      WHITESPACE: "                 "@1839..1856
+      NEWLINE: "\n"@1856..1857
+      TEXT_LINE: "CuPy                  n/a                   ✅"@1857..1904
+      WHITESPACE: "                   "@1904..1923
+      NEWLINE: "\n"@1923..1924
+      TEXT_LINE: "PyTorch               ✅                     ✅"@1924..1973
+      WHITESPACE: "                   "@1973..1992
+      NEWLINE: "\n"@1992..1993
+      TEXT_LINE: "JAX                   ✅                     ✅"@1993..2042
+      WHITESPACE: "                   "@2042..2061
+      NEWLINE: "\n"@2061..2062
+      TEXT_LINE: "Dask                  ✅                     n/a"@2062..2111
+      WHITESPACE: "                 "@2111..2128
+      NEWLINE: "\n"@2128..2129
+      TEXT_LINE: "====================  ====================  ===================="@2129..2193
+      NEWLINE: "\n"@2193..2194
+      BLANK_LINE: "\n"@2194..2195
+      BLANK_LINE: "\n"@2195..2196
+      BLANK_LINE: "\n"@2196..2197
+      TEXT_LINE: "See :ref:`dev-arrayapi` for more information."@2197..2242
+    }
+  }
+  NEWLINE: "\n"@2242..2243
+  BLANK_LINE: "\n"@2243..2244
+  BLANK_LINE: "\n"@2244..2245
+  SECTION@2245..2463 {
+    SECTION_HEADER@2245..2266 {
+      NAME: "References"@2245..2255
+      NEWLINE: "\n"@2255..2256
+      UNDERLINE: "----------"@2256..2266
+    }
+    NEWLINE: "\n"@2266..2267
+    CITATION@2267..2463 {
+      DIRECTIVE_MARKER: ".."@2267..2269
+      WHITESPACE: " "@2269..2270
+      OPEN_BRACKET: "["@2270..2271
+      LABEL: "1"@2271..2272
+      CLOSE_BRACKET: "]"@2272..2273
+      WHITESPACE: " "@2273..2274
+      DESCRIPTION@2274..2463 {
+        TEXT_LINE: "Cartwright, Kenneth V. Simpson's Rule Cumulative Integration with"@2274..2339
+        NEWLINE: "\n"@2339..2340
+        WHITESPACE: "       "@2340..2347
+        TEXT_LINE: "MS Excel and Irregularly-spaced Data. Journal of Mathematical"@2347..2408
+        NEWLINE: "\n"@2408..2409
+        WHITESPACE: "       "@2409..2416
+        TEXT_LINE: "Sciences and Mathematics Education. 12 (2): 1-9"@2416..2463
+      }
+    }
+  }
+  NEWLINE: "\n"@2463..2464
+  BLANK_LINE: "\n"@2464..2465
+  SECTION@2465..2736 {
+    SECTION_HEADER@2465..2482 {
+      NAME: "Examples"@2465..2473
+      NEWLINE: "\n"@2473..2474
+      UNDERLINE: "--------"@2474..2482
+    }
+    NEWLINE: "\n"@2482..2483
+    DESCRIPTION@2483..2736 {
+      TEXT_LINE: ">>> from scipy import integrate"@2483..2514
+      NEWLINE: "\n"@2514..2515
+      TEXT_LINE: ">>> import numpy as np"@2515..2537
+      NEWLINE: "\n"@2537..2538
+      TEXT_LINE: ">>> x = np.arange(0, 10)"@2538..2562
+      NEWLINE: "\n"@2562..2563
+      TEXT_LINE: ">>> y = np.arange(0, 10)"@2563..2587
+      NEWLINE: "\n"@2587..2588
+      BLANK_LINE: "\n"@2588..2589
+      TEXT_LINE: ">>> integrate.simpson(y, x=x)"@2589..2618
+      NEWLINE: "\n"@2618..2619
+      TEXT_LINE: "40.5"@2619..2623
+      NEWLINE: "\n"@2623..2624
+      BLANK_LINE: "\n"@2624..2625
+      TEXT_LINE: ">>> y = np.power(x, 3)"@2625..2647
+      NEWLINE: "\n"@2647..2648
+      TEXT_LINE: ">>> integrate.simpson(y, x=x)"@2648..2677
+      NEWLINE: "\n"@2677..2678
+      TEXT_LINE: "1640.5"@2678..2684
+      NEWLINE: "\n"@2684..2685
+      TEXT_LINE: ">>> integrate.quad(lambda x: x**3, 0, 9)[0]"@2685..2728
+      NEWLINE: "\n"@2728..2729
+      TEXT_LINE: "1640.25"@2729..2736
+    }
+  }
+}
+=== EMIT ===
+Integrate y(x) using samples along the given axis and the composite
+Simpson's rule. If x is None, spacing of dx is assumed.
+
+Parameters
+----------
+y : array_like
+    Array to be integrated.
+x : array_like, optional
+    If given, the points at which `y` is sampled.
+dx : float, optional
+    Spacing of integration points along axis of `x`. Only used when
+    `x` is None. Default is 1.
+axis : int, optional
+    Axis along which to integrate. Default is the last axis.
+
+Returns
+-------
+float
+    The estimated integral computed with the composite Simpson's rule.
+
+See Also
+--------
+:func:`quad` : adaptive quadrature using QUADPACK
+:func:`fixed_quad` : fixed-order Gaussian quadrature
+:func:`dblquad` : double integrals
+:func:`tplquad` : triple integrals
+:func:`romb` : integrators for sampled data
+:func:`cumulative_trapezoid` : cumulative integration for sampled data
+:func:`cumulative_simpson` : cumulative integration using Simpson's 1/3 rule
+
+Notes
+-----
+For an odd number of samples that are equally spaced the result is
+exact if the function is a polynomial of order 3 or less. If
+the samples are not equally spaced, then the result is exact only
+if the function is a polynomial of order 2 or less.
+
+**Array API Standard Support**
+
+`simpson` has experimental support for Python Array API Standard compatible
+backends in addition to NumPy. Please consider testing these features
+by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing
+CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following
+combinations of backend and device (or other capability) are supported.
+
+====================  ====================  ====================
+Library               CPU                   GPU
+====================  ====================  ====================
+NumPy                 ✅                     n/a                 
+CuPy                  n/a                   ✅                   
+PyTorch               ✅                     ✅                   
+JAX                   ✅                     ✅                   
+Dask                  ✅                     n/a                 
+====================  ====================  ====================
+
+
+
+See :ref:`dev-arrayapi` for more information.
+
+References
+----------
+.. [1] Cartwright, Kenneth V. Simpson's Rule Cumulative Integration with
+    MS Excel and Irregularly-spaced Data. Journal of Mathematical
+    Sciences and Mathematics Education. 12 (2): 1-9
+
+Examples
+--------
+>>> from scipy import integrate
+>>> import numpy as np
+>>> x = np.arange(0, 10)
+>>> y = np.arange(0, 10)
+
+>>> integrate.simpson(y, x=x)
+40.5
+
+>>> y = np.power(x, 3)
+>>> integrate.simpson(y, x=x)
+1640.5
+>>> integrate.quad(lambda x: x**3, 0, 9)[0]
+1640.25

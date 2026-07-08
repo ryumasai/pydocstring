@@ -1,0 +1,279 @@
+=== CST ===
+DOCUMENT@0..1784 {
+  SUMMARY@0..27 {
+    TEXT_LINE: "where(condition, [x, y], /)"@0..27
+  }
+  NEWLINE: "\n"@27..28
+  BLANK_LINE: "\n"@28..29
+  EXTENDED_SUMMARY@29..407 {
+    TEXT_LINE: "Return elements chosen from `x` or `y` depending on `condition`."@29..93
+    NEWLINE: "\n"@93..94
+    BLANK_LINE: "\n"@94..95
+    TEXT_LINE: ".. note::"@95..104
+    NEWLINE: "\n"@104..105
+    WHITESPACE: "    "@105..109
+    TEXT_LINE: "When only `condition` is provided, this function is a shorthand for"@109..176
+    NEWLINE: "\n"@176..177
+    WHITESPACE: "    "@177..181
+    TEXT_LINE: "``np.asarray(condition).nonzero()``. Using `nonzero` directly should be"@181..252
+    NEWLINE: "\n"@252..253
+    WHITESPACE: "    "@253..257
+    TEXT_LINE: "preferred, as it behaves correctly for subclasses. The rest of this"@257..324
+    NEWLINE: "\n"@324..325
+    WHITESPACE: "    "@325..329
+    TEXT_LINE: "documentation covers only the case where all three arguments are"@329..393
+    NEWLINE: "\n"@393..394
+    WHITESPACE: "    "@394..398
+    TEXT_LINE: "provided."@398..407
+  }
+  NEWLINE: "\n"@407..408
+  BLANK_LINE: "\n"@408..409
+  SECTION@409..627 {
+    SECTION_HEADER@409..430 {
+      NAME: "Parameters"@409..419
+      NEWLINE: "\n"@419..420
+      UNDERLINE: "----------"@420..430
+    }
+    NEWLINE: "\n"@430..431
+    ENTRY@431..507 {
+      NAME: "condition"@431..440
+      WHITESPACE: " "@440..441
+      COLON: ":"@441..442
+      WHITESPACE: " "@442..443
+      TYPE: "array_like, bool"@443..459
+      NEWLINE: "\n"@459..460
+      WHITESPACE: "    "@460..464
+      DESCRIPTION@464..507 {
+        TEXT_LINE: "Where True, yield `x`, otherwise yield `y`."@464..507
+      }
+    }
+    NEWLINE: "\n"@507..508
+    ENTRY@508..627 {
+      NAME: "x"@508..509
+      COMMA: ","@509..510
+      WHITESPACE: " "@510..511
+      NAME: "y"@511..512
+      WHITESPACE: " "@512..513
+      COLON: ":"@513..514
+      WHITESPACE: " "@514..515
+      TYPE: "array_like"@515..525
+      NEWLINE: "\n"@525..526
+      WHITESPACE: "    "@526..530
+      DESCRIPTION@530..627 {
+        TEXT_LINE: "Values from which to choose. `x`, `y` and `condition` need to be"@530..594
+        NEWLINE: "\n"@594..595
+        WHITESPACE: "    "@595..599
+        TEXT_LINE: "broadcastable to some shape."@599..627
+      }
+    }
+  }
+  NEWLINE: "\n"@627..628
+  BLANK_LINE: "\n"@628..629
+  SECTION@629..758 {
+    SECTION_HEADER@629..644 {
+      NAME: "Returns"@629..636
+      NEWLINE: "\n"@636..637
+      UNDERLINE: "-------"@637..644
+    }
+    NEWLINE: "\n"@644..645
+    ENTRY@645..758 {
+      NAME: "out"@645..648
+      WHITESPACE: " "@648..649
+      COLON: ":"@649..650
+      WHITESPACE: " "@650..651
+      TYPE: "ndarray"@651..658
+      NEWLINE: "\n"@658..659
+      WHITESPACE: "    "@659..663
+      DESCRIPTION@663..758 {
+        TEXT_LINE: "An array with elements from `x` where `condition` is True, and elements"@663..734
+        NEWLINE: "\n"@734..735
+        WHITESPACE: "    "@735..739
+        TEXT_LINE: "from `y` elsewhere."@739..758
+      }
+    }
+  }
+  NEWLINE: "\n"@758..759
+  BLANK_LINE: "\n"@759..760
+  SECTION@760..847 {
+    SECTION_HEADER@760..777 {
+      NAME: "See Also"@760..768
+      NEWLINE: "\n"@768..769
+      UNDERLINE: "--------"@769..777
+    }
+    NEWLINE: "\n"@777..778
+    ENTRY@778..784 {
+      NAME: "choose"@778..784
+    }
+    NEWLINE: "\n"@784..785
+    ENTRY@785..847 {
+      NAME: "nonzero"@785..792
+      WHITESPACE: " "@792..793
+      COLON: ":"@793..794
+      WHITESPACE: " "@794..795
+      DESCRIPTION@795..847 {
+        TEXT_LINE: "The function that is called when x and y are omitted"@795..847
+      }
+    }
+  }
+  NEWLINE: "\n"@847..848
+  BLANK_LINE: "\n"@848..849
+  SECTION@849..980 {
+    SECTION_HEADER@849..860 {
+      NAME: "Notes"@849..854
+      NEWLINE: "\n"@854..855
+      UNDERLINE: "-----"@855..860
+    }
+    NEWLINE: "\n"@860..861
+    DESCRIPTION@861..980 {
+      TEXT_LINE: "If all the arrays are 1-D, `where` is equivalent to::"@861..914
+      NEWLINE: "\n"@914..915
+      BLANK_LINE: "\n"@915..916
+      WHITESPACE: "    "@916..920
+      TEXT_LINE: "[xv if c else yv"@920..936
+      NEWLINE: "\n"@936..937
+      WHITESPACE: "     "@937..942
+      TEXT_LINE: "for c, xv, yv in zip(condition, x, y)]"@942..980
+    }
+  }
+  NEWLINE: "\n"@980..981
+  BLANK_LINE: "\n"@981..982
+  SECTION@982..1784 {
+    SECTION_HEADER@982..999 {
+      NAME: "Examples"@982..990
+      NEWLINE: "\n"@990..991
+      UNDERLINE: "--------"@991..999
+    }
+    NEWLINE: "\n"@999..1000
+    DESCRIPTION@1000..1784 {
+      TEXT_LINE: ">>> import numpy as np"@1000..1022
+      NEWLINE: "\n"@1022..1023
+      TEXT_LINE: ">>> a = np.arange(10)"@1023..1044
+      NEWLINE: "\n"@1044..1045
+      TEXT_LINE: ">>> a"@1045..1050
+      NEWLINE: "\n"@1050..1051
+      TEXT_LINE: "array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])"@1051..1088
+      NEWLINE: "\n"@1088..1089
+      TEXT_LINE: ">>> np.where(a < 5, a, 10*a)"@1089..1117
+      NEWLINE: "\n"@1117..1118
+      TEXT_LINE: "array([ 0,  1,  2,  3,  4, 50, 60, 70, 80, 90])"@1118..1165
+      NEWLINE: "\n"@1165..1166
+      BLANK_LINE: "\n"@1166..1167
+      TEXT_LINE: "This can be used on multidimensional arrays too:"@1167..1215
+      NEWLINE: "\n"@1215..1216
+      BLANK_LINE: "\n"@1216..1217
+      TEXT_LINE: ">>> np.where([[True, False], [True, True]],"@1217..1260
+      NEWLINE: "\n"@1260..1261
+      TEXT_LINE: "...          [[1, 2], [3, 4]],"@1261..1291
+      NEWLINE: "\n"@1291..1292
+      TEXT_LINE: "...          [[9, 8], [7, 6]])"@1292..1322
+      NEWLINE: "\n"@1322..1323
+      TEXT_LINE: "array([[1, 8],"@1323..1337
+      NEWLINE: "\n"@1337..1338
+      WHITESPACE: "       "@1338..1345
+      TEXT_LINE: "[3, 4]])"@1345..1353
+      NEWLINE: "\n"@1353..1354
+      BLANK_LINE: "\n"@1354..1355
+      TEXT_LINE: "The shapes of x, y, and the condition are broadcast together:"@1355..1416
+      NEWLINE: "\n"@1416..1417
+      BLANK_LINE: "\n"@1417..1418
+      TEXT_LINE: ">>> x, y = np.ogrid[:3, :4]"@1418..1445
+      NEWLINE: "\n"@1445..1446
+      TEXT_LINE: ">>> np.where(x < y, x, 10 + y)  # both x and 10+y are broadcast"@1446..1509
+      NEWLINE: "\n"@1509..1510
+      TEXT_LINE: "array([[10,  0,  0,  0],"@1510..1534
+      NEWLINE: "\n"@1534..1535
+      WHITESPACE: "       "@1535..1542
+      TEXT_LINE: "[10, 11,  1,  1],"@1542..1559
+      NEWLINE: "\n"@1559..1560
+      WHITESPACE: "       "@1560..1567
+      TEXT_LINE: "[10, 11, 12,  2]])"@1567..1585
+      NEWLINE: "\n"@1585..1586
+      BLANK_LINE: "\n"@1586..1587
+      TEXT_LINE: ">>> a = np.array([[0, 1, 2],"@1587..1615
+      NEWLINE: "\n"@1615..1616
+      TEXT_LINE: "...               [0, 2, 4],"@1616..1644
+      NEWLINE: "\n"@1644..1645
+      TEXT_LINE: "...               [0, 3, 6]])"@1645..1674
+      NEWLINE: "\n"@1674..1675
+      TEXT_LINE: ">>> np.where(a < 4, a, -1)  # -1 is broadcast"@1675..1720
+      NEWLINE: "\n"@1720..1721
+      TEXT_LINE: "array([[ 0,  1,  2],"@1721..1741
+      NEWLINE: "\n"@1741..1742
+      WHITESPACE: "       "@1742..1749
+      TEXT_LINE: "[ 0,  2, -1],"@1749..1762
+      NEWLINE: "\n"@1762..1763
+      WHITESPACE: "       "@1763..1770
+      TEXT_LINE: "[ 0,  3, -1]])"@1770..1784
+    }
+  }
+}
+=== EMIT ===
+where(condition, [x, y], /)
+
+Return elements chosen from `x` or `y` depending on `condition`.
+
+.. note::
+    When only `condition` is provided, this function is a shorthand for
+    ``np.asarray(condition).nonzero()``. Using `nonzero` directly should be
+    preferred, as it behaves correctly for subclasses. The rest of this
+    documentation covers only the case where all three arguments are
+    provided.
+
+Parameters
+----------
+condition : array_like, bool
+    Where True, yield `x`, otherwise yield `y`.
+x, y : array_like
+    Values from which to choose. `x`, `y` and `condition` need to be
+    broadcastable to some shape.
+
+Returns
+-------
+out : ndarray
+    An array with elements from `x` where `condition` is True, and elements
+    from `y` elsewhere.
+
+See Also
+--------
+choose
+nonzero : The function that is called when x and y are omitted
+
+Notes
+-----
+If all the arrays are 1-D, `where` is equivalent to::
+
+    [xv if c else yv
+     for c, xv, yv in zip(condition, x, y)]
+
+Examples
+--------
+>>> import numpy as np
+>>> a = np.arange(10)
+>>> a
+array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+>>> np.where(a < 5, a, 10*a)
+array([ 0,  1,  2,  3,  4, 50, 60, 70, 80, 90])
+
+This can be used on multidimensional arrays too:
+
+>>> np.where([[True, False], [True, True]],
+...          [[1, 2], [3, 4]],
+...          [[9, 8], [7, 6]])
+array([[1, 8],
+       [3, 4]])
+
+The shapes of x, y, and the condition are broadcast together:
+
+>>> x, y = np.ogrid[:3, :4]
+>>> np.where(x < y, x, 10 + y)  # both x and 10+y are broadcast
+array([[10,  0,  0,  0],
+       [10, 11,  1,  1],
+       [10, 11, 12,  2]])
+
+>>> a = np.array([[0, 1, 2],
+...               [0, 2, 4],
+...               [0, 3, 6]])
+>>> np.where(a < 4, a, -1)  # -1 is broadcast
+array([[ 0,  1,  2],
+       [ 0,  2, -1],
+       [ 0,  3, -1]])

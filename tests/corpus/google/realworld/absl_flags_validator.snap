@@ -1,0 +1,135 @@
+=== CST ===
+DOCUMENT@0..809 {
+  SUMMARY@0..51 {
+    TEXT_LINE: "A function decorator for defining a flag validator."@0..51
+  }
+  NEWLINE: "\n"@51..52
+  BLANK_LINE: "\n"@52..53
+  EXTENDED_SUMMARY@53..260 {
+    TEXT_LINE: "Registers the decorated function as a validator for flag_name, e.g.::"@53..122
+    NEWLINE: "\n"@122..123
+    BLANK_LINE: "\n"@123..124
+    WHITESPACE: "    "@124..128
+    TEXT_LINE: "@flags.validator('foo')"@128..151
+    NEWLINE: "\n"@151..152
+    WHITESPACE: "    "@152..156
+    TEXT_LINE: "def _CheckFoo(foo):"@156..175
+    NEWLINE: "\n"@175..176
+    WHITESPACE: "      "@176..182
+    TEXT_LINE: "..."@182..185
+    NEWLINE: "\n"@185..186
+    BLANK_LINE: "\n"@186..187
+    TEXT_LINE: "See :func:`register_validator` for the specification of checker function."@187..260
+  }
+  NEWLINE: "\n"@260..261
+  BLANK_LINE: "\n"@261..262
+  SECTION@262..629 {
+    SECTION_HEADER@262..267 {
+      NAME: "Args"@262..266
+      COLON: ":"@266..267
+    }
+    NEWLINE: "\n"@267..268
+    WHITESPACE: "  "@268..270
+    ENTRY@270..371 {
+      NAME: "flag_name"@270..279
+      COLON: ":"@279..280
+      WHITESPACE: " "@280..281
+      DESCRIPTION@281..371 {
+        TEXT_LINE: "str | FlagHolder, name or holder of the flag to be checked."@281..340
+        NEWLINE: "\n"@340..341
+        WHITESPACE: "    "@341..345
+        TEXT_LINE: "Positional-only parameter."@345..371
+      }
+    }
+    NEWLINE: "\n"@371..372
+    WHITESPACE: "  "@372..374
+    ENTRY@374..542 {
+      NAME: "message"@374..381
+      COLON: ":"@381..382
+      WHITESPACE: " "@382..383
+      DESCRIPTION@383..542 {
+        TEXT_LINE: "str, error text to be shown to the user if checker returns False."@383..448
+        NEWLINE: "\n"@448..449
+        WHITESPACE: "    "@449..453
+        TEXT_LINE: "If checker raises flags.ValidationError, message from the raised error"@453..523
+        NEWLINE: "\n"@523..524
+        WHITESPACE: "    "@524..528
+        TEXT_LINE: "will be shown."@528..542
+      }
+    }
+    NEWLINE: "\n"@542..543
+    WHITESPACE: "  "@543..545
+    ENTRY@545..629 {
+      NAME: "flag_values"@545..556
+      COLON: ":"@556..557
+      WHITESPACE: " "@557..558
+      DESCRIPTION@558..629 {
+        TEXT_LINE: "flags.FlagValues, optional FlagValues instance to validate"@558..616
+        NEWLINE: "\n"@616..617
+        WHITESPACE: "    "@617..621
+        TEXT_LINE: "against."@621..629
+      }
+    }
+  }
+  NEWLINE: "\n"@629..630
+  BLANK_LINE: "\n"@630..631
+  SECTION@631..715 {
+    SECTION_HEADER@631..639 {
+      NAME: "Returns"@631..638
+      COLON: ":"@638..639
+    }
+    NEWLINE: "\n"@639..640
+    WHITESPACE: "  "@640..642
+    ENTRY@642..715 {
+      DESCRIPTION@642..715 {
+        TEXT_LINE: "A function decorator that registers its function argument as a validator."@642..715
+      }
+    }
+  }
+  NEWLINE: "\n"@715..716
+  SECTION@716..809 {
+    SECTION_HEADER@716..723 {
+      NAME: "Raises"@716..722
+      COLON: ":"@722..723
+    }
+    NEWLINE: "\n"@723..724
+    WHITESPACE: "  "@724..726
+    ENTRY@726..809 {
+      TYPE: "AttributeError"@726..740
+      COLON: ":"@740..741
+      WHITESPACE: " "@741..742
+      DESCRIPTION@742..809 {
+        TEXT_LINE: "Raised when flag_name is not registered as a valid flag"@742..797
+        NEWLINE: "\n"@797..798
+        WHITESPACE: "      "@798..804
+        TEXT_LINE: "name."@804..809
+      }
+    }
+  }
+}
+=== EMIT ===
+A function decorator for defining a flag validator.
+
+Registers the decorated function as a validator for flag_name, e.g.::
+
+    @flags.validator('foo')
+    def _CheckFoo(foo):
+      ...
+
+See :func:`register_validator` for the specification of checker function.
+
+Args:
+    flag_name: str | FlagHolder, name or holder of the flag to be checked.
+        Positional-only parameter.
+    message: str, error text to be shown to the user if checker returns False.
+        If checker raises flags.ValidationError, message from the raised error
+        will be shown.
+    flag_values: flags.FlagValues, optional FlagValues instance to validate
+        against.
+
+Returns:
+    A function decorator that registers its function argument as a validator.
+
+Raises:
+    AttributeError: Raised when flag_name is not registered as a valid flag
+        name.
