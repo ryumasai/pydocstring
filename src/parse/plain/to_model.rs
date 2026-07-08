@@ -12,13 +12,12 @@ pub fn to_model(parsed: &Parsed) -> Option<Docstring> {
     if parsed.style() != crate::parse::Style::Plain {
         return None;
     }
-    let source = parsed.source();
-    let root = PlainDocstring::cast(parsed.root())?;
+    let root = PlainDocstring::cast(parsed, parsed.root())?;
 
     Some(Docstring {
-        summary: root.summary().map(|t| t.text(source).to_owned()),
-        extended_summary: root.extended_summary().map(|t| t.text(source).to_owned()),
-        deprecation: None,
+        summary: root.summary().map(|t| t.text().to_owned()),
+        extended_summary: root.extended_summary().map(|t| t.text().to_owned()),
+        directives: Vec::new(),
         sections: Vec::new(),
     })
 }

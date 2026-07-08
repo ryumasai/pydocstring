@@ -11,12 +11,14 @@ pub mod google;
 pub mod numpy;
 pub mod plain;
 pub mod text_block;
+pub mod token_ref;
 pub(crate) mod trivia;
 pub mod unified;
 pub(crate) mod utils;
 pub mod visitor;
 
 pub use text_block::TextBlock;
+pub use token_ref::TokenRef;
 pub use unified::Citation;
 pub use unified::DefaultMarker;
 pub use unified::Directive;
@@ -29,7 +31,12 @@ pub use unified::Section;
 // =============================================================================
 
 /// Docstring style identifier.
+///
+/// This enum is `#[non_exhaustive]`: new styles may be added in minor
+/// releases (see [`detect_style`]), so downstream `match`es need a wildcard
+/// arm.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[non_exhaustive]
 pub enum Style {
     /// NumPy style (section headers with underlines).
     NumPy,
@@ -97,6 +104,11 @@ pub(crate) enum EntryRole {
 /// 3. Falls back to [`Style::Plain`] if no style-specific patterns are found.
 ///    This includes summary-only docstrings and unrecognised styles such as
 ///    Sphinx.
+///
+/// The set of recognised styles may grow in minor releases (e.g. Sphinx
+/// field lists): input that detects as [`Style::Plain`] today may detect as
+/// a new, more specific [`Style`] variant later. `Style` is
+/// `#[non_exhaustive]` for exactly this reason.
 ///
 /// # Example
 ///

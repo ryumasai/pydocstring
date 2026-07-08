@@ -82,7 +82,7 @@ fn spec_parsed_style_reports_the_parser_style() {
 #[test]
 fn spec_google_docstring_casts_on_document_root() {
     let parsed = pydocstring::parse::google::parse_google("Summary.\n\nArgs:\n    x: Desc.");
-    let doc = pydocstring::parse::google::GoogleDocstring::cast(parsed.root()).expect("cast must succeed");
-    assert_eq!(doc.summary().unwrap().text(parsed.source()), "Summary.");
+    let doc = pydocstring::parse::google::GoogleDocstring::cast(&parsed, parsed.root()).expect("cast must succeed");
+    assert_eq!(doc.summary().unwrap().text(), "Summary.");
     assert_eq!(doc.sections().count(), 1);
 }

@@ -778,12 +778,11 @@ impl SectionBody {
 ///
 /// let input = "Summary.\n\nArgs:\n    x (int): The value.\n\nReturns:\n    int: The result.";
 /// let parsed = parse_google(input);
-/// let source = parsed.source();
 /// let root = parsed.root();
 ///
 /// // Access summary (a text block node wrapping per-line TEXT_LINE tokens)
-/// let summary = pydocstring::parse::TextBlock::cast(root.find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
-/// assert_eq!(summary.text(source), "Summary.");
+/// let summary = pydocstring::parse::TextBlock::cast(&parsed, root.find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
+/// assert_eq!(summary.text(), "Summary.");
 ///
 /// // Access sections
 /// let sections: Vec<_> = root.nodes(SyntaxKind::SECTION).collect();

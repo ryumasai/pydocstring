@@ -30,14 +30,15 @@ fn render_snapshot(style: &str, input: &str) -> String {
     let (parsed, emitted): (Parsed, Option<String>) = match style {
         "google" => {
             let parsed = pydocstring::parse::google::parse_google(input);
-            let emitted = pydocstring::parse::google::to_model::to_model(&parsed)
-                .map(|model| pydocstring::emit::google::emit_google(&model, 0));
+            let emitted = pydocstring::parse::google::to_model::to_model(&parsed).map(|model| {
+                pydocstring::emit::google::emit_google(&model, &pydocstring::emit::EmitOptions::default())
+            });
             (parsed, emitted)
         }
         "numpy" => {
             let parsed = pydocstring::parse::numpy::parse_numpy(input);
             let emitted = pydocstring::parse::numpy::to_model::to_model(&parsed)
-                .map(|model| pydocstring::emit::numpy::emit_numpy(&model, 0));
+                .map(|model| pydocstring::emit::numpy::emit_numpy(&model, &pydocstring::emit::EmitOptions::default()));
             (parsed, emitted)
         }
         "plain" => (pydocstring::parse::plain::parse_plain(input), None),

@@ -14,10 +14,7 @@ use super::*;
 fn test_parse_simple_span() {
     let docstring = "Brief description.";
     let result = parse_numpy(docstring);
-    assert_eq!(
-        doc(&result).summary().unwrap().text(result.source()),
-        "Brief description."
-    );
+    assert_eq!(doc(&result).summary().unwrap().text(), "Brief description.");
     assert_eq!(doc(&result).summary().unwrap().range().start(), TextSize::new(0));
     assert_eq!(doc(&result).summary().unwrap().range().end(), TextSize::new(18));
 }
@@ -29,11 +26,11 @@ fn test_multiline_summary() {
     let docstring = "This is a long summary\nthat spans two lines.\n\nExtended description.";
     let result = parse_numpy(docstring);
     assert_eq!(
-        doc(&result).summary().unwrap().text(result.source()),
+        doc(&result).summary().unwrap().text(),
         "This is a long summary\nthat spans two lines."
     );
     let desc = doc(&result).extended_summary().unwrap();
-    assert_eq!(desc.text(result.source()), "Extended description.");
+    assert_eq!(desc.text(), "Extended description.");
 }
 
 // =============================================================================
@@ -83,6 +80,6 @@ b : int
     Second number.
 "#;
     let result = parse_numpy(docstring);
-    assert_eq!(doc(&result).summary().unwrap().text(result.source()), "add(a, b)");
+    assert_eq!(doc(&result).summary().unwrap().text(), "add(a, b)");
     assert_eq!(parameters(&result).len(), 2);
 }

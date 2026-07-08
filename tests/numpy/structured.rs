@@ -15,12 +15,12 @@ fn test_attributes_basic() {
     let result = parse_numpy(docstring);
     let a = attributes(&result);
     assert_eq!(a.len(), 2);
-    assert_eq!(a[0].name().text(result.source()), "name");
-    assert_eq!(a[0].r#type().unwrap().text(result.source()), "str");
+    assert_eq!(a[0].name().text(), "name");
+    assert_eq!(a[0].type_annotation().unwrap().text(), "str");
     assert!(a[0].colon().is_some());
-    assert_eq!(a[0].description().unwrap().text(result.source()), "The name.");
-    assert_eq!(a[1].name().text(result.source()), "age");
-    assert_eq!(a[1].r#type().unwrap().text(result.source()), "int");
+    assert_eq!(a[0].description().unwrap().text(), "The name.");
+    assert_eq!(a[1].name().text(), "age");
+    assert_eq!(a[1].type_annotation().unwrap().text(), "int");
 }
 
 // =============================================================================
@@ -36,13 +36,10 @@ fn test_methods_basic() {
     let result = parse_numpy(docstring);
     let m = methods(&result);
     assert_eq!(m.len(), 2);
-    assert_eq!(m[0].name().text(result.source()), "reset()");
-    assert_eq!(m[0].description().unwrap().text(result.source()), "Reset the state.");
-    assert_eq!(m[1].name().text(result.source()), "update(data)");
-    assert_eq!(
-        m[1].description().unwrap().text(result.source()),
-        "Update with new data."
-    );
+    assert_eq!(m[0].name().text(), "reset()");
+    assert_eq!(m[0].description().unwrap().text(), "Reset the state.");
+    assert_eq!(m[1].name().text(), "update(data)");
+    assert_eq!(m[1].description().unwrap().text(), "Update with new data.");
 }
 
 /// SPEC (issues #26/#31): `reset() : desc` colon split also applies in Methods.
@@ -54,9 +51,9 @@ fn test_methods_with_colon() {
     let result = parse_numpy(docstring);
     let m = methods(&result);
     assert_eq!(m.len(), 1);
-    assert_eq!(m[0].name().text(result.source()), "reset()");
+    assert_eq!(m[0].name().text(), "reset()");
     assert!(m[0].colon().is_some());
-    assert_eq!(m[0].description().unwrap().text(result.source()), "Reset the state.");
+    assert_eq!(m[0].description().unwrap().text(), "Reset the state.");
 }
 
 // =============================================================================
@@ -71,9 +68,9 @@ fn test_unknown_section() {
     let result = parse_numpy(docstring);
     let s = all_sections(&result);
     assert_eq!(s.len(), 1);
-    assert_eq!(s[0].section_kind(result.source()), NumPySectionKind::Unknown);
-    assert_eq!(s[0].header().name().text(result.source()), "CustomSection");
+    assert_eq!(s[0].section_kind(), NumPySectionKind::Unknown);
+    assert_eq!(s[0].header().name().text(), "CustomSection");
     let text = s[0].body_text();
     assert!(text.is_some());
-    assert!(text.unwrap().text(result.source()).contains("Some custom content."));
+    assert!(text.unwrap().text().contains("Some custom content."));
 }

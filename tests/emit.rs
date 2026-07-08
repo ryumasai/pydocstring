@@ -1,5 +1,6 @@
 //! Integration tests for emit (Model → docstring text).
 
+use pydocstring::emit::EmitOptions;
 use pydocstring::emit::google::emit_google;
 use pydocstring::emit::numpy::emit_numpy;
 use pydocstring::emit::sphinx::emit_sphinx;
@@ -15,7 +16,7 @@ fn google_emit_summary_only() {
         summary: Some("Brief summary.".into()),
         ..Default::default()
     };
-    assert_eq!(emit_google(&doc, 0), "Brief summary.\n");
+    assert_eq!(emit_google(&doc, &EmitOptions::default()), "Brief summary.\n");
 }
 
 #[test]
@@ -25,7 +26,7 @@ fn google_emit_summary_and_extended() {
         extended_summary: Some("Extended description\nspanning lines.".into()),
         ..Default::default()
     };
-    let text = emit_google(&doc, 0);
+    let text = emit_google(&doc, &EmitOptions::default());
     assert_eq!(text, "Summary.\n\nExtended description\nspanning lines.\n");
 }
 
@@ -51,7 +52,7 @@ fn google_emit_args() {
         ])],
         ..Default::default()
     };
-    let text = emit_google(&doc, 0);
+    let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("Args:\n"));
     assert!(text.contains(
         "    x (int): The value.\n        More description.\n\n            blockquote\n\n        last line."
@@ -72,7 +73,7 @@ fn google_emit_args_optional() {
         }])],
         ..Default::default()
     };
-    let text = emit_google(&doc, 0);
+    let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("    x (int, optional): The value.\n"));
 }
 
@@ -89,7 +90,7 @@ fn google_emit_args_no_type() {
         }])],
         ..Default::default()
     };
-    let text = emit_google(&doc, 0);
+    let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("    x: The value.\n"));
 }
 
@@ -104,7 +105,7 @@ fn google_emit_returns() {
         }])],
         ..Default::default()
     };
-    let text = emit_google(&doc, 0);
+    let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("Returns:\n"));
     assert!(text.contains("    int: The result.\n"));
 }
@@ -120,7 +121,7 @@ fn google_emit_returns_no_type() {
         }])],
         ..Default::default()
     };
-    let text = emit_google(&doc, 0);
+    let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("    The computed result.\n"));
 }
 
@@ -140,7 +141,7 @@ fn google_emit_raises() {
         ])],
         ..Default::default()
     };
-    let text = emit_google(&doc, 0);
+    let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("Raises:\n"));
     assert!(text.contains("    ValueError: If the input is invalid.\n"));
     assert!(text.contains("    TypeError: If wrong type.\n"));
@@ -156,7 +157,7 @@ fn google_emit_notes() {
         }],
         ..Default::default()
     };
-    let text = emit_google(&doc, 0);
+    let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("Notes:\n"));
     assert!(text.contains("    Some notes here.\n"));
 }
@@ -185,7 +186,7 @@ fn google_emit_multiple_sections() {
         ],
         ..Default::default()
     };
-    let text = emit_google(&doc, 0);
+    let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("Args:\n"));
     assert!(text.contains("Returns:\n"));
     assert!(text.contains("Raises:\n"));
@@ -202,7 +203,7 @@ fn google_emit_attributes() {
         }])],
         ..Default::default()
     };
-    let text = emit_google(&doc, 0);
+    let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("Attributes:\n"));
     assert!(text.contains("    name (str): The name.\n"));
 }
@@ -217,7 +218,7 @@ fn google_emit_see_also() {
         }])],
         ..Default::default()
     };
-    let text = emit_google(&doc, 0);
+    let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("See Also:\n"));
     assert!(text.contains("    func1, func2: Related functions.\n"));
 }
@@ -232,7 +233,7 @@ fn numpy_emit_summary_only() {
         summary: Some("Brief summary.".into()),
         ..Default::default()
     };
-    assert_eq!(emit_numpy(&doc, 0), "Brief summary.\n");
+    assert_eq!(emit_numpy(&doc, &EmitOptions::default()), "Brief summary.\n");
 }
 
 #[test]
@@ -242,7 +243,7 @@ fn numpy_emit_summary_and_extended() {
         extended_summary: Some("Extended description.".into()),
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert_eq!(text, "Summary.\n\nExtended description.\n");
 }
 
@@ -268,7 +269,7 @@ fn numpy_emit_parameters() {
         ])],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("Parameters\n----------\n"));
     assert!(
         text.contains("x : int\n    The first number.\n    More description\n\n        blockquote\n\n    last line.")
@@ -289,7 +290,7 @@ fn numpy_emit_parameters_optional() {
         }])],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("x : int, optional\n"));
 }
 
@@ -306,7 +307,7 @@ fn numpy_emit_parameters_multiple_names() {
         }])],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("x, y : float\n"));
 }
 
@@ -323,7 +324,7 @@ fn numpy_emit_parameters_default() {
         }])],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("x : int, default: 0\n"));
 }
 
@@ -338,7 +339,7 @@ fn numpy_emit_returns_named() {
         }])],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("Returns\n-------\n"));
     assert!(text.contains("result : int\n    The result.\n"));
 }
@@ -354,7 +355,7 @@ fn numpy_emit_returns_type_only() {
         }])],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("int\n    The result.\n"));
 }
 
@@ -374,7 +375,7 @@ fn numpy_emit_raises() {
         ])],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("Raises\n------\n"));
     assert!(text.contains("ValueError\n    If the input is invalid.\n"));
     assert!(text.contains("TypeError\n    If the type is wrong.\n"));
@@ -384,13 +385,14 @@ fn numpy_emit_raises() {
 fn numpy_emit_deprecation() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        deprecation: Some(Deprecation {
-            version: "1.6.0".into(),
+        directives: vec![Directive {
+            name: "deprecated".into(),
+            argument: Some("1.6.0".into()),
             description: Some("Use `other` instead.".into()),
-        }),
+        }],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains(".. deprecated:: 1.6.0\n"));
     assert!(text.contains("    Use `other` instead.\n"));
 }
@@ -405,7 +407,7 @@ fn numpy_emit_notes() {
         }],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("Notes\n-----\n"));
     assert!(text.contains("Some notes here.\n"));
 }
@@ -416,17 +418,17 @@ fn numpy_emit_references() {
         summary: Some("Summary.".into()),
         sections: vec![Section::References(vec![
             Reference {
-                number: Some("1".into()),
+                label: Some("1".into()),
                 content: Some("Author, Title, Journal.".into()),
             },
             Reference {
-                number: Some("2".into()),
+                label: Some("2".into()),
                 content: Some("Another reference.".into()),
             },
         ])],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("References\n----------\n"));
     assert!(text.contains(".. [1] Author, Title, Journal.\n"));
     assert!(text.contains(".. [2] Another reference.\n"));
@@ -443,7 +445,7 @@ fn numpy_emit_attributes() {
         }])],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("Attributes\n----------\n"));
     assert!(text.contains("name : str\n    The name.\n"));
 }
@@ -458,7 +460,7 @@ fn numpy_emit_see_also() {
         }])],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("See Also\n--------\n"));
     assert!(text.contains("func1, func2 : Related.\n"));
 }
@@ -483,7 +485,7 @@ fn numpy_emit_multiple_sections() {
         ],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 0);
+    let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("Parameters\n----------\n"));
     assert!(text.contains("Returns\n-------\n"));
 }
@@ -498,7 +500,7 @@ fn sphinx_emit_summary_only() {
         summary: Some("Brief summary.".into()),
         ..Default::default()
     };
-    assert_eq!(emit_sphinx(&doc, 0), "Brief summary.\n");
+    assert_eq!(emit_sphinx(&doc, &EmitOptions::default()), "Brief summary.\n");
 }
 
 #[test]
@@ -508,7 +510,7 @@ fn sphinx_emit_summary_and_extended() {
         extended_summary: Some("Extended description.".into()),
         ..Default::default()
     };
-    let text = emit_sphinx(&doc, 0);
+    let text = emit_sphinx(&doc, &EmitOptions::default());
     assert_eq!(text, "Summary.\n\nExtended description.\n");
 }
 
@@ -534,7 +536,7 @@ fn sphinx_emit_params() {
         ])],
         ..Default::default()
     };
-    let text = emit_sphinx(&doc, 0);
+    let text = emit_sphinx(&doc, &EmitOptions::default());
     assert!(text.contains(":param x: The first number.\n    More description.\n"));
     assert!(text.contains(":type x: int\n"));
     assert!(text.contains(":param y: The name.\n"));
@@ -554,7 +556,7 @@ fn sphinx_emit_params_optional_and_default() {
         }])],
         ..Default::default()
     };
-    let text = emit_sphinx(&doc, 0);
+    let text = emit_sphinx(&doc, &EmitOptions::default());
     assert!(text.contains(":param x: The value., defaults to 0\n"));
     assert!(text.contains(":type x: int, optional\n"));
 }
@@ -572,7 +574,7 @@ fn sphinx_emit_params_default_no_description() {
         }])],
         ..Default::default()
     };
-    let text = emit_sphinx(&doc, 0);
+    let text = emit_sphinx(&doc, &EmitOptions::default());
     assert!(text.contains(":param x: defaults to 0\n"));
 }
 
@@ -589,7 +591,7 @@ fn sphinx_emit_params_multiple_names_duplicated() {
         }])],
         ..Default::default()
     };
-    let text = emit_sphinx(&doc, 0);
+    let text = emit_sphinx(&doc, &EmitOptions::default());
     assert!(text.contains(":param x: Values.\n"));
     assert!(text.contains(":type x: float\n"));
     assert!(text.contains(":param y: Values.\n"));
@@ -607,7 +609,7 @@ fn sphinx_emit_returns() {
         }])],
         ..Default::default()
     };
-    let text = emit_sphinx(&doc, 0);
+    let text = emit_sphinx(&doc, &EmitOptions::default());
     assert!(text.contains(":return: The result.\n"));
     assert!(text.contains(":rtype: int\n"));
 }
@@ -622,7 +624,7 @@ fn sphinx_emit_raises() {
         }])],
         ..Default::default()
     };
-    let text = emit_sphinx(&doc, 0);
+    let text = emit_sphinx(&doc, &EmitOptions::default());
     assert!(text.contains(":raises ValueError: If the input is invalid.\n"));
 }
 
@@ -637,7 +639,7 @@ fn sphinx_emit_attributes() {
         }])],
         ..Default::default()
     };
-    let text = emit_sphinx(&doc, 0);
+    let text = emit_sphinx(&doc, &EmitOptions::default());
     assert!(text.contains(":var name: The name.\n"));
     assert!(text.contains(":vartype name: str\n"));
 }
@@ -652,7 +654,7 @@ fn sphinx_emit_notes_admonition() {
         }],
         ..Default::default()
     };
-    let text = emit_sphinx(&doc, 0);
+    let text = emit_sphinx(&doc, &EmitOptions::default());
     assert!(text.contains(".. note::\n\n    Some notes here.\n"));
 }
 
@@ -666,7 +668,7 @@ fn sphinx_emit_see_also() {
         }])],
         ..Default::default()
     };
-    let text = emit_sphinx(&doc, 0);
+    let text = emit_sphinx(&doc, &EmitOptions::default());
     assert!(text.contains(".. seealso::\n\n    func1, func2: Related.\n"));
 }
 
@@ -674,13 +676,14 @@ fn sphinx_emit_see_also() {
 fn sphinx_emit_deprecation() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        deprecation: Some(Deprecation {
-            version: "1.6.0".into(),
+        directives: vec![Directive {
+            name: "deprecated".into(),
+            argument: Some("1.6.0".into()),
             description: Some("Use `other` instead.".into()),
-        }),
+        }],
         ..Default::default()
     };
-    let text = emit_sphinx(&doc, 0);
+    let text = emit_sphinx(&doc, &EmitOptions::default());
     assert!(text.contains(".. deprecated:: 1.6.0\n"));
     assert!(text.contains("    Use `other` instead.\n"));
 }
@@ -698,7 +701,7 @@ fn sphinx_emit_with_base_indent() {
         }])],
         ..Default::default()
     };
-    let text = emit_sphinx(&doc, 4);
+    let text = emit_sphinx(&doc, &EmitOptions::default().with_base_indent(4));
     assert!(text.contains("    Summary.\n"));
     assert!(text.contains("    :param x: The value.\n"));
     assert!(text.contains("    :type x: int\n"));
@@ -711,7 +714,7 @@ fn google_to_sphinx_conversion() {
 
     let google_input = "Summary.\n\nArgs:\n    x (int): The value.\n\nReturns:\n    str: The result.";
     let doc = to_model(&parse_google(google_input)).unwrap();
-    let sphinx_output = emit_sphinx(&doc, 0);
+    let sphinx_output = emit_sphinx(&doc, &EmitOptions::default());
     assert!(sphinx_output.contains(":param x: The value.\n"));
     assert!(sphinx_output.contains(":type x: int\n"));
     assert!(sphinx_output.contains(":return: The result.\n"));
@@ -725,7 +728,7 @@ fn numpy_to_sphinx_conversion() {
 
     let numpy_input = "Summary.\n\nParameters\n----------\nx : int\n    The value.\n";
     let doc = to_model(&parse_numpy(numpy_input)).unwrap();
-    let sphinx_output = emit_sphinx(&doc, 0);
+    let sphinx_output = emit_sphinx(&doc, &EmitOptions::default());
     assert!(sphinx_output.contains(":param x: The value.\n"));
     assert!(sphinx_output.contains(":type x: int\n"));
 }
@@ -741,7 +744,7 @@ fn google_roundtrip_summary() {
 
     let input = "Summary line.";
     let doc = to_model(&parse_google(input)).unwrap();
-    let output = emit_google(&doc, 0);
+    let output = emit_google(&doc, &EmitOptions::default());
     assert_eq!(output.trim(), input);
 }
 
@@ -752,7 +755,7 @@ fn numpy_roundtrip_summary() {
 
     let input = "Summary line.";
     let doc = to_model(&parse_numpy(input)).unwrap();
-    let output = emit_numpy(&doc, 0);
+    let output = emit_numpy(&doc, &EmitOptions::default());
     assert_eq!(output.trim(), input);
 }
 
@@ -769,7 +772,7 @@ fn numpy_roundtrip_rst_role_colons() {
     use pydocstring::parse::numpy::to_model::to_model;
 
     let input = "Returns\n-------\nDescription with attributes:\n:attr:`~module.ClassName.attr1`\n    First attribute\n:attr:`~module.ClassName.attr2`\n    Second attribute\n";
-    let output = emit_numpy(&to_model(&parse_numpy(input)).unwrap(), 0);
+    let output = emit_numpy(&to_model(&parse_numpy(input)).unwrap(), &EmitOptions::default());
     assert!(
         output.contains("Description with attributes:"),
         "trailing colon eaten:\n{output}"
@@ -791,7 +794,7 @@ fn google_roundtrip_rst_role_colons() {
     use pydocstring::parse::google::to_model::to_model;
 
     let input = "Summary.\n\nReturns:\n    :attr:`~module.ClassName.attr1`\n        First attribute\n";
-    let output = emit_google(&to_model(&parse_google(input)).unwrap(), 0);
+    let output = emit_google(&to_model(&parse_google(input)).unwrap(), &EmitOptions::default());
     assert!(
         output.contains(":attr:`~module.ClassName.attr1`"),
         "leading colon eaten:\n{output}"
@@ -809,7 +812,7 @@ fn google_to_numpy_conversion() {
 
     let google_input = "Summary.\n\nArgs:\n    x (int): The value.";
     let doc = to_model(&parse_google(google_input)).unwrap();
-    let numpy_output = emit_numpy(&doc, 0);
+    let numpy_output = emit_numpy(&doc, &EmitOptions::default());
     assert!(numpy_output.contains("Parameters\n----------\n"));
     assert!(numpy_output.contains("x : int\n    The value.\n"));
 }
@@ -821,7 +824,7 @@ fn numpy_to_google_conversion() {
 
     let numpy_input = "Summary.\n\nParameters\n----------\nx : int\n    The value.\n";
     let doc = to_model(&parse_numpy(numpy_input)).unwrap();
-    let google_output = emit_google(&doc, 0);
+    let google_output = emit_google(&doc, &EmitOptions::default());
     assert!(google_output.contains("Args:\n"));
     assert!(google_output.contains("    x (int): The value.\n"));
 }
@@ -843,7 +846,7 @@ fn google_emit_with_base_indent() {
         }])],
         ..Default::default()
     };
-    let text = emit_google(&doc, 4);
+    let text = emit_google(&doc, &EmitOptions::default().with_base_indent(4));
     assert!(text.contains("    Summary.\n"));
     assert!(text.contains("    Args:\n"));
     assert!(text.contains("        x (int): The value.\n"));
@@ -862,7 +865,7 @@ fn numpy_emit_with_base_indent() {
         }])],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 4);
+    let text = emit_numpy(&doc, &EmitOptions::default().with_base_indent(4));
     assert!(text.contains("    Summary.\n"));
     assert!(text.contains("    Parameters\n    ----------\n"));
     assert!(text.contains("    x : int\n        The value.\n"));
@@ -882,7 +885,7 @@ fn google_emit_base_indent_preserves_blank_lines() {
         }])],
         ..Default::default()
     };
-    let text = emit_google(&doc, 2);
+    let text = emit_google(&doc, &EmitOptions::default().with_base_indent(2));
     // Blank lines between sections should stay empty (no trailing whitespace).
     assert!(text.contains("  Summary.\n\n  Extended.\n\n  Args:\n"));
 }
@@ -901,7 +904,7 @@ fn numpy_emit_base_indent_preserves_blank_lines() {
         }])],
         ..Default::default()
     };
-    let text = emit_numpy(&doc, 2);
+    let text = emit_numpy(&doc, &EmitOptions::default().with_base_indent(2));
     // Blank lines between sections should stay empty (no trailing whitespace).
     assert!(text.contains("  Summary.\n\n  Extended.\n\n  Parameters\n"));
 }

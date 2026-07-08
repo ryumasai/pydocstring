@@ -11,9 +11,9 @@ fn test_attributes() {
     let result = parse_google(docstring);
     let a = attributes(&result);
     assert_eq!(a.len(), 2);
-    assert_eq!(a[0].name().text(result.source()), "name");
-    assert_eq!(a[0].r#type().unwrap().text(result.source()), "str");
-    assert_eq!(a[1].name().text(result.source()), "age");
+    assert_eq!(a[0].name().text(), "name");
+    assert_eq!(a[0].type_annotation().unwrap().text(), "str");
+    assert_eq!(a[1].name().text(), "age");
 }
 
 /// GoogleMethod accessor contract; method names keep their parenthesised
@@ -24,9 +24,9 @@ fn test_methods_basic() {
     let result = parse_google(docstring);
     let m = methods(&result);
     assert_eq!(m.len(), 2);
-    assert_eq!(m[0].name().text(result.source()), "reset()");
-    assert_eq!(m[0].description().unwrap().text(result.source()), "Reset the state.");
-    assert_eq!(m[1].name().text(result.source()), "update(data)");
+    assert_eq!(m[0].name().text(), "reset()");
+    assert_eq!(m[0].description().unwrap().text(), "Reset the state.");
+    assert_eq!(m[1].name().text(), "update(data)");
 }
 
 /// GoogleSeeAlsoItem accessor contract.
@@ -38,11 +38,8 @@ fn test_see_also_basic() {
     assert_eq!(sa.len(), 1);
     let names: Vec<_> = sa[0].names().collect();
     assert_eq!(names.len(), 1);
-    assert_eq!(names[0].text(result.source()), "other_func");
-    assert_eq!(
-        sa[0].description().unwrap().text(result.source()),
-        "Does something else."
-    );
+    assert_eq!(names[0].text(), "other_func");
+    assert_eq!(sa[0].description().unwrap().text(), "Does something else.");
 }
 
 /// Comma-separated names on one See Also line split into multiple NAME tokens
@@ -55,8 +52,8 @@ fn test_see_also_multiple_names() {
     assert_eq!(sa.len(), 1);
     let names: Vec<_> = sa[0].names().collect();
     assert_eq!(names.len(), 3);
-    assert_eq!(names[0].text(result.source()), "func_a");
-    assert_eq!(names[1].text(result.source()), "func_b");
-    assert_eq!(names[2].text(result.source()), "func_c");
+    assert_eq!(names[0].text(), "func_a");
+    assert_eq!(names[1].text(), "func_b");
+    assert_eq!(names[2].text(), "func_c");
     assert!(sa[0].description().is_none());
 }

@@ -13,7 +13,7 @@ Python bindings are also available as [`pydocstring-rs`](https://pypi.org/projec
 
 ## Features
 
-- **Full syntax tree** — builds a complete AST, not just extracted fields; traverse it with the built-in `Visitor` + `walk`
+- **Full syntax tree** — builds a complete AST, not just extracted fields; traverse it with the built-in `Visitor` + `walk_tree`
 - **Typed nodes per style** — style-specific accessors like `GoogleArg`, `NumPyParameter` with full type safety
 - **Byte-precise source locations** — every token carries its exact byte range for pinpoint diagnostics
 - **Zero dependencies** — pure Rust, no external crates, no regex
@@ -31,21 +31,46 @@ pydocstring = "0.2.0"
 
 ### Parsing
 
+Parse with auto-detection and traverse the style-independent views — one code
+path for every docstring style:
+
+```rust
+use pydocstring::model::SectionKind;
+use pydocstring::parse::{parse, Document};
+
+let input = "Summary.\n\nArgs:\n    x (int): The value.\n    y (int): Another value.";
+let parsed = parse(input);
+let doc = Document::new(&parsed);
+
+println!("{}", doc.summary().unwrap().text());
+
+for section in doc.sections() {
+    if section.kind() == SectionKind::Parameters {
+        for entry in section.entries() {
+            println!("{}: {}",
+                entry.name().map(|n| n.text()).unwrap_or(""),
+                entry.type_annotation().map(|t| t.text()).unwrap_or(""));
+        }
+    }
+}
+```
+
+When you know the style (or want to force it), the per-style parsers expose
+style-specific typed wrappers:
+
 ```rust
 use pydocstring::parse::google::{parse_google, GoogleDocstring, GoogleSectionKind};
 
 let input = "Summary.\n\nArgs:\n    x (int): The value.\n    y (int): Another value.";
 let result = parse_google(input);
-let doc = GoogleDocstring::cast(result.root()).unwrap();
-
-println!("{}", doc.summary().unwrap().text(result.source()));
+let doc = GoogleDocstring::cast(&result, result.root()).unwrap();
 
 for section in doc.sections() {
-    if section.section_kind(result.source()) == GoogleSectionKind::Args {
-        for arg in section.args(result.source()) {
+    if section.section_kind() == GoogleSectionKind::Args {
+        for arg in section.args() {
             println!("{}: {}",
-                arg.name().text(result.source()),
-                arg.r#type().map(|t| t.text(result.source())).unwrap_or(""));
+                arg.name().text(),
+                arg.type_annotation().map(|t| t.text()).unwrap_or(""));
         }
     }
 }
@@ -90,14 +115,14 @@ Every token carries byte offsets for precise diagnostics:
 use pydocstring::parse::google::{parse_google, GoogleDocstring, GoogleSectionKind};
 
 let result = parse_google("Summary.\n\nArgs:\n    x (int): The value.");
-let doc = GoogleDocstring::cast(result.root()).unwrap();
+let doc = GoogleDocstring::cast(&result, result.root()).unwrap();
 
 for section in doc.sections() {
-    if section.section_kind(result.source()) == GoogleSectionKind::Args {
-        for arg in section.args(result.source()) {
+    if section.section_kind() == GoogleSectionKind::Args {
+        for arg in section.args() {
             let name = arg.name();
             println!("'{}' at byte {}..{}",
-                name.text(result.source()), name.range().start(), name.range().end());
+                name.text(), name.range().start(), name.range().end());
         }
     }
 }
@@ -139,7 +164,7 @@ DOCUMENT@0..42 {
 Walk the tree with the `Visitor` trait for style-agnostic analysis:
 
 ```rust
-use pydocstring::syntax::{Visitor, walk, SyntaxToken, SyntaxKind};
+use pydocstring::syntax::{Visitor, walk_tree, SyntaxToken, SyntaxKind};
 use pydocstring::parse::google::parse_google;
 
 struct NameCollector<'a> {
@@ -157,7 +182,7 @@ impl Visitor for NameCollector<'_> {
 
 let result = parse_google("Summary.\n\nArgs:\n    x: Desc.\n    y: Desc.");
 let mut collector = NameCollector { source: result.source(), names: vec![] };
-walk(result.root(), &mut collector);
+walk_tree(result.root(), &mut collector);
 assert_eq!(collector.names, vec!["Args", "x", "y"]);
 ```
 
@@ -187,6 +212,7 @@ Google, NumPy, and Sphinx (reStructuredText) output are supported:
 
 ```rust
 use pydocstring::model::{Docstring, Section, Parameter};
+use pydocstring::emit::EmitOptions;
 use pydocstring::emit::google::emit_google;
 use pydocstring::emit::numpy::emit_numpy;
 use pydocstring::emit::sphinx::emit_sphinx;
@@ -203,15 +229,20 @@ let doc = Docstring {
     ..Default::default()
 };
 
-let google = emit_google(&doc);
+let options = EmitOptions::default();
+let google = emit_google(&doc, &options);
 assert!(google.contains("Args:"));
 
-let numpy = emit_numpy(&doc);
+let numpy = emit_numpy(&doc, &options);
 assert!(numpy.contains("Parameters\n----------"));
 
-let sphinx = emit_sphinx(&doc);
+let sphinx = emit_sphinx(&doc, &options);
 assert!(sphinx.contains(":param x:"));
 assert!(sphinx.contains(":type x: int"));
+
+// Indent the output for embedding in a Python file:
+let indented = emit_google(&doc, &EmitOptions::default().with_base_indent(4));
+assert!(indented.starts_with("    Brief summary."));
 ```
 
 > **Note:** Sphinx support is emit-only. `detect_style` reports Sphinx docstrings
@@ -221,11 +252,12 @@ Combine parsing and emitting to convert between styles:
 
 ```rust
 use pydocstring::parse::google::{parse_google, to_model::to_model};
+use pydocstring::emit::EmitOptions;
 use pydocstring::emit::numpy::emit_numpy;
 
 let parsed = parse_google("Summary.\n\nArgs:\n    x (int): The value.\n");
 let doc = to_model(&parsed).unwrap();
-let numpy_text = emit_numpy(&doc);
+let numpy_text = emit_numpy(&doc, &EmitOptions::default());
 assert!(numpy_text.contains("Parameters\n----------"));
 ```
 
@@ -245,7 +277,7 @@ Both styles support the following section categories. Typed accessor methods are
 | Methods                           | `methods()` → `GoogleMethod`             | `methods()` → `NumPyMethod`             |
 | Free text (Notes, Examples, etc.) | `body_text()`                            | `body_text()`                           |
 
-Root-level accessors: `summary()`, `extended_summary()` (NumPy also has `deprecation()`). `PlainDocstring` exposes only `summary()` and `extended_summary()`.
+Root-level accessors: `summary()`, `extended_summary()`, and `deprecation()` (Google and NumPy). `PlainDocstring` exposes only `summary()` and `extended_summary()`.
 
 ## Development
 

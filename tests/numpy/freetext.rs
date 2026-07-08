@@ -21,7 +21,7 @@ This is an important note about the function.
     let result = parse_numpy(docstring);
 
     assert!(notes(&result).is_some());
-    assert!(notes(&result).unwrap().text(result.source()).contains("important note"));
+    assert!(notes(&result).unwrap().text().contains("important note"));
 }
 
 // =============================================================================
@@ -43,15 +43,12 @@ func_b, func_c
     let items = see_also(&result);
     assert_eq!(items.len(), 2);
     let names0: Vec<_> = items[0].names().collect();
-    assert_eq!(names0[0].text(result.source()), "func_a");
-    assert_eq!(
-        items[0].description().map(|d| d.text(result.source())),
-        Some("Does something.")
-    );
+    assert_eq!(names0[0].text(), "func_a");
+    assert_eq!(items[0].description().map(|d| d.text()), Some("Does something."));
     assert_eq!(items[1].names().count(), 2);
     let names1: Vec<_> = items[1].names().collect();
-    assert_eq!(names1[0].text(result.source()), "func_b");
-    assert_eq!(names1[1].text(result.source()), "func_c");
+    assert_eq!(names1[0].text(), "func_b");
+    assert_eq!(names1[1].text(), "func_c");
 }
 
 /// SPEC (issues #26/#31): `func_a: desc` with no space before the colon still
@@ -63,14 +60,8 @@ fn test_see_also_no_space_before_colon() {
     let sa = see_also(&result);
     assert_eq!(sa.len(), 1);
     let names: Vec<_> = sa[0].names().collect();
-    assert_eq!(names[0].text(result.source()), "func_a");
-    assert!(
-        sa[0]
-            .description()
-            .unwrap()
-            .text(result.source())
-            .contains("Description")
-    );
+    assert_eq!(names[0].text(), "func_a");
+    assert!(sa[0].description().unwrap().text().contains("Description"));
 }
 
 // =============================================================================
@@ -91,11 +82,11 @@ References
     let result = parse_numpy(docstring);
     let refs = references(&result);
     assert_eq!(refs.len(), 2);
-    assert_eq!(refs[0].number().unwrap().text(result.source()), "1");
-    assert!(refs[0].content().unwrap().text(result.source()).contains("Author A"));
-    assert_eq!(refs[0].directive_marker().unwrap().text(result.source()), "..");
+    assert_eq!(refs[0].label().unwrap().text(), "1");
+    assert!(refs[0].content().unwrap().text().contains("Author A"));
+    assert_eq!(refs[0].directive_marker().unwrap().text(), "..");
     assert!(refs[0].open_bracket().is_some());
     assert!(refs[0].close_bracket().is_some());
-    assert_eq!(refs[1].number().unwrap().text(result.source()), "2");
-    assert!(refs[1].content().unwrap().text(result.source()).contains("Author B"));
+    assert_eq!(refs[1].label().unwrap().text(), "2");
+    assert!(refs[1].content().unwrap().text().contains("Author B"));
 }

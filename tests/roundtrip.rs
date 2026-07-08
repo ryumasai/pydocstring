@@ -63,8 +63,8 @@ fn model_for(style: &str, input: &str) -> Option<Docstring> {
 
 fn emit_in(style: &str, model: &Docstring) -> String {
     match style {
-        "google" => pydocstring::emit::google::emit_google(model, 0),
-        "numpy" => pydocstring::emit::numpy::emit_numpy(model, 0),
+        "google" => pydocstring::emit::google::emit_google(model, &pydocstring::emit::EmitOptions::default()),
+        "numpy" => pydocstring::emit::numpy::emit_numpy(model, &pydocstring::emit::EmitOptions::default()),
         other => panic!("no emitter for style: {other}"),
     }
 }

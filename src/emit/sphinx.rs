@@ -1,7 +1,8 @@
 //! Emit a [`Docstring`] as a Sphinx-style (reStructuredText) docstring.
 
+use super::EmitOptions;
 use crate::model::Attribute;
-use crate::model::Deprecation;
+use crate::model::Directive;
 use crate::model::Docstring;
 use crate::model::ExceptionEntry;
 use crate::model::FreeSectionKind;
@@ -14,9 +15,9 @@ use crate::model::SeeAlsoEntry;
 
 /// Emit a [`Docstring`] as a Sphinx-style (reStructuredText field list) string.
 ///
-/// `base_indent` is the number of spaces prepended to every non-empty line
-/// of output, so the result can be embedded at the correct indentation level
-/// in a Python file.
+/// See [`EmitOptions`] for the knobs; `options.base_indent` indents every
+/// non-empty output line so the result can be embedded at the correct
+/// indentation level in a Python file.
 ///
 /// Sphinx has no field role for every section that NumPy / Google support, so
 /// some sections are rendered on a best-effort basis:
@@ -37,6 +38,7 @@ use crate::model::SeeAlsoEntry;
 ///
 /// ```rust
 /// use pydocstring::model::{Docstring, Section, Parameter};
+/// use pydocstring::emit::EmitOptions;
 /// use pydocstring::emit::sphinx::emit_sphinx;
 ///
 /// let doc = Docstring {
@@ -50,11 +52,11 @@ use crate::model::SeeAlsoEntry;
 ///     }])],
 ///     ..Default::default()
 /// };
-/// let text = emit_sphinx(&doc, 0);
+/// let text = emit_sphinx(&doc, &EmitOptions::default());
 /// assert!(text.contains(":param x: The value.\n"));
 /// assert!(text.contains(":type x: int\n"));
 /// ```
-pub fn emit_sphinx(doc: &Docstring, base_indent: usize) -> String {
+pub fn emit_sphinx(doc: &Docstring, options: &EmitOptions) -> String {
     let mut out = String::new();
 
     // Summary
@@ -70,10 +72,10 @@ pub fn emit_sphinx(doc: &Docstring, base_indent: usize) -> String {
         out.push('\n');
     }
 
-    // Deprecation
-    if let Some(ref dep) = doc.deprecation {
+    // Directives (e.g. deprecation)
+    for directive in &doc.directives {
         out.push('\n');
-        emit_deprecation(&mut out, dep);
+        emit_directive(&mut out, directive);
     }
 
     // Sections
@@ -82,10 +84,10 @@ pub fn emit_sphinx(doc: &Docstring, base_indent: usize) -> String {
         emit_section(&mut out, section);
     }
 
-    if base_indent == 0 {
+    if options.base_indent == 0 {
         return out;
     }
-    super::indent_lines(&out, base_indent)
+    super::indent_lines(&out, options.base_indent)
 }
 
 fn emit_section(out: &mut String, section: &Section) {
@@ -268,9 +270,9 @@ fn emit_see_also(out: &mut String, items: &[SeeAlsoEntry]) {
 
 /// Sphinx: `.. [1] content` (reStructuredText citation syntax).
 fn emit_reference(out: &mut String, r: &Reference) {
-    if let Some(ref num) = r.number {
+    if let Some(ref label) = r.label {
         out.push_str(".. [");
-        out.push_str(num);
+        out.push_str(label);
         out.push(']');
         if let Some(ref content) = r.content {
             out.push(' ');
@@ -282,12 +284,17 @@ fn emit_reference(out: &mut String, r: &Reference) {
     out.push('\n');
 }
 
-/// Sphinx: `.. deprecated:: version` directive.
-fn emit_deprecation(out: &mut String, dep: &Deprecation) {
-    out.push_str(".. deprecated:: ");
-    out.push_str(&dep.version);
+/// Sphinx: `.. name:: argument` directive (e.g. `.. deprecated:: 1.6.0`).
+fn emit_directive(out: &mut String, directive: &Directive) {
+    out.push_str(".. ");
+    out.push_str(&directive.name);
+    out.push_str("::");
+    if let Some(ref argument) = directive.argument {
+        out.push(' ');
+        out.push_str(argument);
+    }
     out.push('\n');
-    if let Some(ref desc) = dep.description {
+    if let Some(ref desc) = directive.description {
         emit_indented_body(out, desc, 4);
     }
 }

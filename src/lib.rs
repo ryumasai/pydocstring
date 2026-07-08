@@ -7,21 +7,47 @@
 //!
 //! ## Quick Start
 //!
-//! ```rust
-//! use pydocstring::parse::numpy::{parse_numpy, NumPyDocstring};
+//! Parse with auto-detection and traverse the style-independent typed views
+//! ([`Document`](parse::Document) → [`Section`](parse::Section) →
+//! [`Entry`](parse::Entry)) — one code path for every docstring style:
 //!
-//! let docstring = r#"
+//! ```rust
+//! use pydocstring::model::SectionKind;
+//! use pydocstring::parse::{parse, Document, Style};
+//!
+//! let docstring = "\
 //! Brief description.
 //!
 //! Parameters
 //! ----------
 //! x : int
 //!     The first parameter.
-//! "#;
+//! ";
 //!
-//! let result = parse_numpy(docstring);
-//! let doc = NumPyDocstring::cast(result.root()).unwrap();
-//! assert_eq!(doc.summary().unwrap().text(result.source()), "Brief description.");
+//! let parsed = parse(docstring);
+//! assert_eq!(parsed.style(), Style::NumPy);
+//!
+//! let doc = Document::new(&parsed);
+//! assert_eq!(doc.summary().unwrap().text(), "Brief description.");
+//!
+//! let section = doc.sections().next().unwrap();
+//! assert_eq!(section.kind(), SectionKind::Parameters);
+//! let entry = section.entries().next().unwrap();
+//! assert_eq!(entry.name().unwrap().text(), "x");
+//! assert_eq!(entry.type_annotation().unwrap().text(), "int");
+//! ```
+//!
+//! ## Per-Style Typed Views
+//!
+//! When you know (or want to force) the style, the per-style parsers expose
+//! style-specific wrappers with the same source-free accessors:
+//!
+//! ```rust
+//! use pydocstring::parse::numpy::{parse_numpy, NumPyDocstring};
+//!
+//! let result = parse_numpy("Brief description.\n\nParameters\n----------\nx : int\n    Desc.\n");
+//! let doc = NumPyDocstring::cast(&result, result.root()).unwrap();
+//! assert_eq!(doc.summary().unwrap().text(), "Brief description.");
 //! ```
 //!
 //! ## Style Auto-Detection

@@ -11,11 +11,8 @@ fn test_raises_single() {
     let result = parse_google(docstring);
     let r = raises(&result);
     assert_eq!(r.len(), 1);
-    assert_eq!(r[0].r#type().text(result.source()), "ValueError");
-    assert_eq!(
-        r[0].description().unwrap().text(result.source()),
-        "If the input is invalid."
-    );
+    assert_eq!(r[0].type_annotation().text(), "ValueError");
+    assert_eq!(r[0].description().unwrap().text(), "If the input is invalid.");
 }
 
 /// GoogleWarning accessor contract.
@@ -25,6 +22,6 @@ fn test_warns_basic() {
     let result = parse_google(docstring);
     let w = warns(&result);
     assert_eq!(w.len(), 1);
-    assert_eq!(w[0].warning_type().text(result.source()), "DeprecationWarning");
-    assert_eq!(w[0].description().unwrap().text(result.source()), "If using old API.");
+    assert_eq!(w[0].type_annotation().text(), "DeprecationWarning");
+    assert_eq!(w[0].description().unwrap().text(), "If using old API.");
 }

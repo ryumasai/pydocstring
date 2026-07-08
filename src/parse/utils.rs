@@ -3,11 +3,40 @@
 use crate::cursor::LineCursor;
 use crate::cursor::indent_columns;
 use crate::cursor::indent_len;
+use crate::syntax::Parsed;
 use crate::syntax::SyntaxElement;
 use crate::syntax::SyntaxKind;
 use crate::syntax::SyntaxNode;
 use crate::syntax::SyntaxToken;
 use crate::text::TextRange;
+
+/// Convert every document-level `DIRECTIVE` node of `parsed` into a model
+/// [`Directive`](crate::model::Directive), in source order.
+///
+/// Generic over the directive name — although the only directive the parsers
+/// produce today is `.. deprecated::`.
+pub(crate) fn convert_directives(parsed: &Parsed) -> Vec<crate::model::Directive> {
+    parsed
+        .root()
+        .nodes(SyntaxKind::DIRECTIVE)
+        .filter_map(|node| crate::parse::unified::Directive::cast(parsed, node))
+        .map(|d| crate::model::Directive {
+            name: d.name().text().to_owned(),
+            argument: d.argument().map(|t| t.text().to_owned()),
+            description: d.description().map(|t| t.text().to_owned()),
+        })
+        .collect()
+}
+
+/// Whether a `DIRECTIVE` node's name token reads `deprecated`.
+///
+/// The typed deprecation accessors and the visitor's directive routing only
+/// recognize `deprecated`-named directives; other directive names are
+/// silently skipped for now.
+pub(crate) fn directive_is_deprecated(parsed: &Parsed, node: &SyntaxNode) -> bool {
+    node.find_token(SyntaxKind::DIRECTIVE_NAME)
+        .is_some_and(|t| t.text(parsed.source()) == "deprecated")
+}
 
 // =============================================================================
 // Text block builders (shared by all parsers)

@@ -59,13 +59,9 @@ fn test_section_header_alias_kind_table() {
         let result = parse_google(&input);
         let sections = all_sections(&result);
         assert_eq!(sections.len(), 1, "header {header:?} should produce one section");
+        assert_eq!(sections[0].section_kind(), *expected, "header {header:?}");
         assert_eq!(
-            sections[0].section_kind(result.source()),
-            *expected,
-            "header {header:?}"
-        );
-        assert_eq!(
-            sections[0].header().name().text(result.source()),
+            sections[0].header().name().text(),
             *header,
             "header name must preserve source spelling for {header:?}"
         );
@@ -90,8 +86,8 @@ fn test_section_order() {
     let result = parse_google(docstring);
     let sections = all_sections(&result);
     assert_eq!(sections.len(), 2);
-    assert_eq!(sections[0].header().name().text(result.source()), "Returns");
-    assert_eq!(sections[1].header().name().text(result.source()), "Args");
+    assert_eq!(sections[0].header().name().text(), "Returns");
+    assert_eq!(sections[1].header().name().text(), "Args");
 }
 
 // =============================================================================
@@ -103,7 +99,7 @@ fn test_section_header_span() {
     let docstring = "Summary.\n\nArgs:\n    x: Value.";
     let result = parse_google(docstring);
     let header = all_sections(&result)[0].header();
-    assert_eq!(header.name().text(result.source()), "Args");
+    assert_eq!(header.name().text(), "Args");
     assert_eq!(header.syntax().range().source_text(result.source()), "Args:");
 }
 
@@ -128,12 +124,9 @@ fn test_unknown_section_preserved() {
     let result = parse_google(docstring);
     let sections = all_sections(&result);
     assert_eq!(sections.len(), 1);
-    assert_eq!(sections[0].header().name().text(result.source()), "Custom");
-    assert_eq!(sections[0].section_kind(result.source()), GoogleSectionKind::Unknown);
-    assert_eq!(
-        sections[0].body_text().unwrap().text(result.source()),
-        "Some custom content."
-    );
+    assert_eq!(sections[0].header().name().text(), "Custom");
+    assert_eq!(sections[0].section_kind(), GoogleSectionKind::Unknown);
+    assert_eq!(sections[0].body_text().unwrap().text(), "Some custom content.");
 }
 
 /// Multi-word unknown names followed by a colon are still section headers.
@@ -143,8 +136,8 @@ fn test_multiple_unknown_sections() {
     let result = parse_google(docstring);
     let sections = all_sections(&result);
     assert_eq!(sections.len(), 2);
-    assert_eq!(sections[0].header().name().text(result.source()), "Custom One");
-    assert_eq!(sections[1].header().name().text(result.source()), "Custom Two");
+    assert_eq!(sections[0].header().name().text(), "Custom One");
+    assert_eq!(sections[1].header().name().text(), "Custom Two");
 }
 
 // =============================================================================
@@ -183,10 +176,7 @@ Example:
     1"#;
 
     let result = parse_google(docstring);
-    assert_eq!(
-        doc(&result).summary().unwrap().text(result.source()),
-        "Calculate something."
-    );
+    assert_eq!(doc(&result).summary().unwrap().text(), "Calculate something.");
     assert!(doc(&result).extended_summary().is_some());
     assert_eq!(args(&result).len(), 1);
     assert_eq!(keyword_args(&result).len(), 1);
@@ -210,31 +200,29 @@ Example:
 fn spec_mismatched_entry_accessor_returns_empty() {
     let docstring = "Summary.\n\nRaises:\n    ValueError: If the value is bad.";
     let result = parse_google(docstring);
-    let source = result.source();
     let sections = all_sections(&result);
     let section = &sections[0];
-    assert_eq!(section.section_kind(source), GoogleSectionKind::Raises);
+    assert_eq!(section.section_kind(), GoogleSectionKind::Raises);
 
     // The matching accessor sees the entry…
-    assert_eq!(section.exceptions(source).count(), 1);
+    assert_eq!(section.exceptions().count(), 1);
 
     // …every mismatched accessor returns empty (collecting token accessors
     // would panic in required_token if a foreign entry leaked through).
-    assert_eq!(section.args(source).count(), 0);
-    assert!(section.returns(source).is_none());
-    assert!(section.yields(source).is_none());
-    assert_eq!(section.warnings(source).count(), 0);
-    assert_eq!(section.see_also_items(source).count(), 0);
-    assert_eq!(section.attributes(source).count(), 0);
-    assert_eq!(section.methods(source).count(), 0);
+    assert_eq!(section.args().count(), 0);
+    assert!(section.returns().is_none());
+    assert!(section.yields().is_none());
+    assert_eq!(section.warnings().count(), 0);
+    assert_eq!(section.see_also_items().count(), 0);
+    assert_eq!(section.attributes().count(), 0);
+    assert_eq!(section.methods().count(), 0);
     assert_eq!(section.references().count(), 0);
 
     // And the guard also separates the NAME-carrying roles from each other:
     // attributes() on an Args section is empty.
     let result = parse_google("Summary.\n\nArgs:\n    x (int): The value.");
-    let source = result.source();
     let sections = all_sections(&result);
-    assert_eq!(sections[0].args(source).count(), 1);
-    assert_eq!(sections[0].attributes(source).count(), 0);
-    assert_eq!(sections[0].methods(source).count(), 0);
+    assert_eq!(sections[0].args().count(), 1);
+    assert_eq!(sections[0].attributes().count(), 0);
+    assert_eq!(sections[0].methods().count(), 0);
 }

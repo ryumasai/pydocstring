@@ -30,34 +30,25 @@ int
     let result = parse_numpy(docstring);
 
     assert_eq!(
-        doc(&result).summary().unwrap().text(result.source()),
+        doc(&result).summary().unwrap().text(),
         "Calculate the sum of two numbers."
     );
     assert_eq!(parameters(&result).len(), 2);
 
     let names0: Vec<_> = parameters(&result)[0].names().collect();
-    assert_eq!(names0[0].text(result.source()), "x");
+    assert_eq!(names0[0].text(), "x");
+    assert_eq!(parameters(&result)[0].type_annotation().map(|t| t.text()), Some("int"));
     assert_eq!(
-        parameters(&result)[0].r#type().map(|t| t.text(result.source())),
-        Some("int")
-    );
-    assert_eq!(
-        parameters(&result)[0].description().unwrap().text(result.source()),
+        parameters(&result)[0].description().unwrap().text(),
         "The first number."
     );
 
     let names1: Vec<_> = parameters(&result)[1].names().collect();
-    assert_eq!(names1[0].text(result.source()), "y");
-    assert_eq!(
-        parameters(&result)[1].r#type().map(|t| t.text(result.source())),
-        Some("int")
-    );
+    assert_eq!(names1[0].text(), "y");
+    assert_eq!(parameters(&result)[1].type_annotation().map(|t| t.text()), Some("int"));
 
     assert!(!returns(&result).is_empty());
-    assert_eq!(
-        returns(&result)[0].return_type().map(|t| t.text(result.source())),
-        Some("int")
-    );
+    assert_eq!(returns(&result)[0].type_annotation().map(|t| t.text()), Some("int"));
 }
 
 // =============================================================================
@@ -79,12 +70,9 @@ optional : int, optional
     let result = parse_numpy(docstring);
 
     assert_eq!(parameters(&result).len(), 2);
-    assert!(parameters(&result)[0].optional().is_none());
-    assert!(parameters(&result)[1].optional().is_some());
-    assert_eq!(
-        parameters(&result)[1].r#type().map(|t| t.text(result.source())),
-        Some("int")
-    );
+    assert!(parameters(&result)[0].optional_marker().is_none());
+    assert!(parameters(&result)[1].optional_marker().is_some());
+    assert_eq!(parameters(&result)[1].type_annotation().map(|t| t.text()), Some("int"));
 }
 
 /// SPEC (issues #26/#31): no space before colon: `x: int` still splits name/type.
@@ -95,9 +83,9 @@ fn test_parameters_no_space_before_colon() {
     let p = parameters(&result);
     assert_eq!(p.len(), 1);
     let names: Vec<_> = p[0].names().collect();
-    assert_eq!(names[0].text(result.source()), "x");
-    assert_eq!(p[0].r#type().unwrap().text(result.source()), "int");
-    assert_eq!(p[0].description().unwrap().text(result.source()), "The value.");
+    assert_eq!(names[0].text(), "x");
+    assert_eq!(p[0].type_annotation().unwrap().text(), "int");
+    assert_eq!(p[0].description().unwrap().text(), "The value.");
 }
 
 /// SPEC (issues #26/#31): no space after colon: `x :int` still splits name/type.
@@ -108,8 +96,8 @@ fn test_parameters_no_space_after_colon() {
     let p = parameters(&result);
     assert_eq!(p.len(), 1);
     let names: Vec<_> = p[0].names().collect();
-    assert_eq!(names[0].text(result.source()), "x");
-    assert_eq!(p[0].r#type().unwrap().text(result.source()), "int");
+    assert_eq!(names[0].text(), "x");
+    assert_eq!(p[0].type_annotation().unwrap().text(), "int");
 }
 
 /// SPEC (issues #26/#31): no spaces around colon: `x:int` still splits name/type.
@@ -120,8 +108,8 @@ fn test_parameters_no_spaces_around_colon() {
     let p = parameters(&result);
     assert_eq!(p.len(), 1);
     let names: Vec<_> = p[0].names().collect();
-    assert_eq!(names[0].text(result.source()), "x");
-    assert_eq!(p[0].r#type().unwrap().text(result.source()), "int");
+    assert_eq!(names[0].text(), "x");
+    assert_eq!(p[0].type_annotation().unwrap().text(), "int");
 }
 
 /// SPEC: `x1, x2 : array_like` splits into multiple parameter names.
@@ -138,8 +126,8 @@ x1, x2 : array_like
     let p = &parameters(&result)[0];
     let names: Vec<_> = p.names().collect();
     assert_eq!(names.len(), 2);
-    assert_eq!(names[0].text(result.source()), "x1");
-    assert_eq!(names[1].text(result.source()), "x2");
+    assert_eq!(names[0].text(), "x1");
+    assert_eq!(names[1].text(), "x2");
 }
 
 /// SPEC: a blank line between parameter entries does not end the section.
@@ -149,8 +137,8 @@ fn test_multiple_parameters_with_blank_line_between() {
     let result = parse_numpy(docstring);
     let p = parameters(&result);
     assert_eq!(p.len(), 2, "both parameters should be in the same section");
-    assert_eq!(p[0].names().next().unwrap().text(result.source()), "x");
-    assert_eq!(p[1].names().next().unwrap().text(result.source()), "y");
+    assert_eq!(p[0].names().next().unwrap().text(), "x");
+    assert_eq!(p[1].names().next().unwrap().text(), "y");
 }
 
 /// SPEC: a colon inside an indented description line does not start a new entry.
@@ -166,12 +154,12 @@ x : int
     let result = parse_numpy(docstring);
     assert_eq!(parameters(&result).len(), 1);
     let names: Vec<_> = parameters(&result)[0].names().collect();
-    assert_eq!(names[0].text(result.source()), "x");
+    assert_eq!(names[0].text(), "x");
     assert!(
         parameters(&result)[0]
             .description()
             .unwrap()
-            .text(result.source())
+            .text()
             .contains("key: value")
     );
 }
@@ -190,9 +178,9 @@ fn test_enum_type_as_string() {
 
     let p = &params[0];
     let names: Vec<_> = p.names().collect();
-    assert_eq!(names[0].text(result.source()), "order");
-    assert_eq!(p.r#type().unwrap().text(result.source()), "{'C', 'F', 'A'}");
-    assert_eq!(p.description().unwrap().text(result.source()), "Memory layout.");
+    assert_eq!(names[0].text(), "order");
+    assert_eq!(p.type_annotation().unwrap().text(), "{'C', 'F', 'A'}");
+    assert_eq!(p.description().unwrap().text(), "Memory layout.");
 }
 
 /// SPEC: `, optional` after a brace-enclosed enum type is still recognized.
@@ -203,8 +191,8 @@ fn test_enum_type_with_optional() {
     let params = parameters(&result);
     let p = &params[0];
 
-    assert!(p.optional().is_some());
-    assert_eq!(p.r#type().unwrap().text(result.source()), "{'C', 'F'}");
+    assert!(p.optional_marker().is_some());
+    assert_eq!(p.type_annotation().unwrap().text(), "{'C', 'F'}");
 }
 
 /// SPEC: `default 'C'` marker splits into keyword/value (no separator token).
@@ -215,10 +203,10 @@ fn test_enum_type_with_default() {
     let params = parameters(&result);
     let p = &params[0];
 
-    assert_eq!(p.r#type().unwrap().text(result.source()), "{'C', 'F', 'A'}");
-    assert_eq!(p.default_keyword().unwrap().text(result.source()), "default");
+    assert_eq!(p.type_annotation().unwrap().text(), "{'C', 'F', 'A'}");
+    assert_eq!(p.default_keyword().unwrap().text(), "default");
     assert!(p.default_separator().is_none());
-    assert_eq!(p.default_value().unwrap().text(result.source()), "'C'");
+    assert_eq!(p.default_value().unwrap().text(), "'C'");
 }
 
 // =============================================================================
@@ -231,8 +219,8 @@ fn test_other_parameters_section_body_variant() {
     let docstring = "Summary.\n\nOther Parameters\n----------------\nx : int\n    Extra.\n";
     let result = parse_numpy(docstring);
     let s = &all_sections(&result)[0];
-    assert_eq!(s.section_kind(result.source()), NumPySectionKind::OtherParameters);
-    let params: Vec<_> = s.parameters(result.source()).collect();
+    assert_eq!(s.section_kind(), NumPySectionKind::OtherParameters);
+    let params: Vec<_> = s.parameters().collect();
     assert_eq!(params.len(), 1);
 }
 
@@ -244,9 +232,9 @@ fn test_receives_basic() {
     let r = receives(&result);
     assert_eq!(r.len(), 1);
     let names: Vec<_> = r[0].names().collect();
-    assert_eq!(names[0].text(result.source()), "data");
-    assert_eq!(r[0].r#type().unwrap().text(result.source()), "bytes");
-    assert_eq!(r[0].description().unwrap().text(result.source()), "The received data.");
+    assert_eq!(names[0].text(), "data");
+    assert_eq!(r[0].type_annotation().unwrap().text(), "bytes");
+    assert_eq!(r[0].description().unwrap().text(), "The received data.");
 }
 
 // =============================================================================
@@ -263,12 +251,9 @@ fn test_google_style_entry_in_numpy_section() {
     assert_eq!(params.len(), 1);
 
     let names: Vec<_> = params[0].names().collect();
-    assert_eq!(names[0].text(result.source()), "name");
-    assert_eq!(params[0].r#type().map(|t| t.text(result.source())), Some("str"));
-    assert_eq!(
-        params[0].description().map(|t| t.text(result.source())),
-        Some("The name.")
-    );
+    assert_eq!(names[0].text(), "name");
+    assert_eq!(params[0].type_annotation().map(|t| t.text()), Some("str"));
+    assert_eq!(params[0].description().map(|t| t.text()), Some("The name."));
 }
 
 /// SPEC (compat): google-style and NumPy-style entries may coexist in one section.
@@ -280,17 +265,14 @@ fn test_google_style_mixed_with_numpy_style() {
     assert_eq!(params.len(), 2);
 
     // Google-style entry
-    assert_eq!(params[0].names().next().unwrap().text(result.source()), "x");
-    assert_eq!(params[0].r#type().map(|t| t.text(result.source())), Some("int"));
-    assert_eq!(params[0].description().map(|t| t.text(result.source())), Some("First."));
+    assert_eq!(params[0].names().next().unwrap().text(), "x");
+    assert_eq!(params[0].type_annotation().map(|t| t.text()), Some("int"));
+    assert_eq!(params[0].description().map(|t| t.text()), Some("First."));
 
     // NumPy-style entry
-    assert_eq!(params[1].names().next().unwrap().text(result.source()), "y");
-    assert_eq!(params[1].r#type().map(|t| t.text(result.source())), Some("str"));
-    assert_eq!(
-        params[1].description().map(|t| t.text(result.source())),
-        Some("Second.")
-    );
+    assert_eq!(params[1].names().next().unwrap().text(), "y");
+    assert_eq!(params[1].type_annotation().map(|t| t.text()), Some("str"));
+    assert_eq!(params[1].description().map(|t| t.text()), Some("Second."));
 }
 
 /// SPEC (compat): `name (int)` without a trailing colon is still a google-style entry.
@@ -301,9 +283,9 @@ fn test_google_style_entry_no_colon_after_bracket() {
     let params = parameters(&result);
     assert_eq!(params.len(), 1);
 
-    assert_eq!(params[0].names().next().unwrap().text(result.source()), "name");
-    assert_eq!(params[0].r#type().map(|t| t.text(result.source())), Some("int"));
-    assert_eq!(params[0].description().map(|t| t.text(result.source())), Some("Desc."));
+    assert_eq!(params[0].names().next().unwrap().text(), "name");
+    assert_eq!(params[0].type_annotation().map(|t| t.text()), Some("int"));
+    assert_eq!(params[0].description().map(|t| t.text()), Some("Desc."));
 }
 
 /// SPEC: a type whose name merely starts with `default` (e.g. `defaultdict`)
@@ -314,7 +296,7 @@ fn test_defaultdict_type_not_default_marker() {
     let result = parse_numpy(docstring);
     let params = parameters(&result);
     assert_eq!(params.len(), 1);
-    assert_eq!(params[0].r#type().unwrap().text(result.source()), "defaultdict");
+    assert_eq!(params[0].type_annotation().unwrap().text(), "defaultdict");
     assert!(params[0].default_value().is_none());
     assert!(params[0].default_keyword().is_none());
 }

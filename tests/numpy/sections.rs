@@ -86,12 +86,8 @@ fn test_section_header_alias_table() {
         let result = parse_numpy(&docstring);
         let sections = all_sections(&result);
         assert_eq!(sections.len(), 1, "header {header:?} should start a section");
-        assert_eq!(sections[0].header().name().text(result.source()), *header);
-        assert_eq!(
-            sections[0].section_kind(result.source()),
-            *expected,
-            "header {header:?}"
-        );
+        assert_eq!(sections[0].header().name().text(), *header);
+        assert_eq!(sections[0].section_kind(), *expected, "header {header:?}");
     }
 }
 
@@ -122,14 +118,11 @@ Some notes here.
     let result = parse_numpy(docstring);
     assert_eq!(parameters(&result).len(), 1);
     let names: Vec<_> = parameters(&result)[0].names().collect();
-    assert_eq!(names[0].text(result.source()), "x");
+    assert_eq!(names[0].text(), "x");
     assert_eq!(returns(&result).len(), 1);
     assert!(notes(&result).is_some());
-    assert_eq!(
-        all_sections(&result)[0].header().name().text(result.source()),
-        "parameters"
-    );
-    assert_eq!(all_sections(&result)[2].header().name().text(result.source()), "NOTES");
+    assert_eq!(all_sections(&result)[0].header().name().text(), "parameters");
+    assert_eq!(all_sections(&result)[2].header().name().text(), "NOTES");
 }
 
 // =============================================================================
@@ -148,18 +141,17 @@ x : int
     Description of x.
 "#;
     let result = parse_numpy(docstring);
-    let src = result.source();
 
-    assert_eq!(doc(&result).summary().unwrap().text(src), "Summary line.");
-    assert_eq!(all_sections(&result)[0].header().name().text(src), "Parameters");
-    let underline = all_sections(&result)[0].header().underline().text(result.source());
+    assert_eq!(doc(&result).summary().unwrap().text(), "Summary line.");
+    assert_eq!(all_sections(&result)[0].header().name().text(), "Parameters");
+    let underline = all_sections(&result)[0].header().underline().text();
     assert!(underline.chars().all(|c| c == '-'));
 
     let p = &parameters(&result)[0];
     let names: Vec<_> = p.names().collect();
-    assert_eq!(names[0].text(src), "x");
-    assert_eq!(p.r#type().unwrap().text(src), "int");
-    assert_eq!(p.description().unwrap().text(src), "Description of x.");
+    assert_eq!(names[0].text(), "x");
+    assert_eq!(p.type_annotation().unwrap().text(), "int");
+    assert_eq!(p.description().unwrap().text(), "Description of x.");
 }
 
 // =============================================================================
@@ -182,11 +174,8 @@ x : int
 "#;
     let result = parse_numpy(docstring);
     let dep = doc(&result).deprecation().expect("deprecation should be parsed");
-    assert_eq!(dep.version().text(result.source()), "1.6.0");
-    assert_eq!(
-        dep.description().unwrap().text(result.source()),
-        "Use `new_func` instead."
-    );
+    assert_eq!(dep.version().text(), "1.6.0");
+    assert_eq!(dep.description().unwrap().text(), "Use `new_func` instead.");
 }
 
 // =============================================================================
@@ -220,10 +209,10 @@ Some notes.
     let result = parse_numpy(docstring);
     let s = all_sections(&result);
     assert_eq!(s.len(), 4);
-    assert_eq!(s[0].section_kind(result.source()), NumPySectionKind::Parameters);
-    assert_eq!(s[1].section_kind(result.source()), NumPySectionKind::Returns);
-    assert_eq!(s[2].section_kind(result.source()), NumPySectionKind::Raises);
-    assert_eq!(s[3].section_kind(result.source()), NumPySectionKind::Notes);
+    assert_eq!(s[0].section_kind(), NumPySectionKind::Parameters);
+    assert_eq!(s[1].section_kind(), NumPySectionKind::Returns);
+    assert_eq!(s[2].section_kind(), NumPySectionKind::Raises);
+    assert_eq!(s[3].section_kind(), NumPySectionKind::Notes);
 }
 
 // =============================================================================
@@ -275,8 +264,8 @@ fn test_stray_line_between_sections() {
     // Stray lines are absorbed, never dropped into new sections.
     let s = all_sections(&result);
     assert_eq!(s.len(), 2, "stray lines must not start new sections");
-    assert_eq!(s[0].section_kind(result.source()), NumPySectionKind::Parameters);
-    assert_eq!(s[1].section_kind(result.source()), NumPySectionKind::Returns);
+    assert_eq!(s[0].section_kind(), NumPySectionKind::Parameters);
+    assert_eq!(s[1].section_kind(), NumPySectionKind::Returns);
 }
 
 // =============================================================================
@@ -315,31 +304,29 @@ fn test_section_kind_display() {
 fn spec_mismatched_entry_accessor_returns_empty() {
     let docstring = "Summary.\n\nRaises\n------\nValueError\n    If the value is bad.\n";
     let result = parse_numpy(docstring);
-    let source = result.source();
     let sections = all_sections(&result);
     let section = &sections[0];
-    assert_eq!(section.section_kind(source), NumPySectionKind::Raises);
+    assert_eq!(section.section_kind(), NumPySectionKind::Raises);
 
     // The matching accessor sees the entry…
-    assert_eq!(section.exceptions(source).count(), 1);
+    assert_eq!(section.exceptions().count(), 1);
 
     // …every mismatched accessor returns empty (collecting token accessors
     // would panic in required_token if a foreign entry leaked through).
-    assert_eq!(section.parameters(source).count(), 0);
-    assert_eq!(section.returns(source).count(), 0);
-    assert_eq!(section.yields(source).count(), 0);
-    assert_eq!(section.warnings(source).count(), 0);
-    assert_eq!(section.see_also_items(source).count(), 0);
-    assert_eq!(section.attributes(source).count(), 0);
-    assert_eq!(section.methods(source).count(), 0);
+    assert_eq!(section.parameters().count(), 0);
+    assert_eq!(section.returns().count(), 0);
+    assert_eq!(section.yields().count(), 0);
+    assert_eq!(section.warnings().count(), 0);
+    assert_eq!(section.see_also_items().count(), 0);
+    assert_eq!(section.attributes().count(), 0);
+    assert_eq!(section.methods().count(), 0);
     assert_eq!(section.references().count(), 0);
 
     // And the guard also separates the NAME-carrying roles from each other:
     // attributes() on a Parameters section is empty.
     let result = parse_numpy("Summary.\n\nParameters\n----------\nx : int\n    The value.\n");
-    let source = result.source();
     let sections = all_sections(&result);
-    assert_eq!(sections[0].parameters(source).count(), 1);
-    assert_eq!(sections[0].attributes(source).count(), 0);
-    assert_eq!(sections[0].methods(source).count(), 0);
+    assert_eq!(sections[0].parameters().count(), 1);
+    assert_eq!(sections[0].attributes().count(), 0);
+    assert_eq!(sections[0].methods().count(), 0);
 }
