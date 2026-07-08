@@ -333,7 +333,7 @@ print(numpy_text)  # Contains "Parameters\n----------"
 | `NumPyException`     | `type`, `description`, `colon`                                                                                   |
 | `NumPyWarning`       | `type`, `description`, `colon`                                                                                   |
 | `NumPySeeAlsoItem`   | `name`, `description`, `colon`                                                                                   |
-| `NumPyReference`     | `number`, `content`, `directive_marker`, `open_bracket`, `close_bracket`                                        |
+| `NumPyReference`     | `label`, `content`, `directive_marker`, `open_bracket`, `close_bracket`                                        |
 | `NumPyAttribute`     | `name`, `type`, `description`, `colon`                                                                           |
 | `NumPyMethod`        | `name`, `type`, `description`, `colon`                                                                           |
 | `NumPyDeprecation`   | `version`, `description`, `directive_marker`, `keyword`, `double_colon`                                         |
@@ -350,7 +350,7 @@ print(numpy_text)  # Contains "Parameters\n----------"
 | `Attribute`          | `name`, `type_annotation`, `description`                                                                         |
 | `Method`             | `name`, `type_annotation`, `description`                                                                         |
 | `SeeAlsoEntry`       | `names`, `description`                                                                                           |
-| `Reference`          | `number`, `content`                                                                                              |
+| `Reference`          | `label`, `content`                                                                                              |
 | `Directive`          | `name`, `argument`, `description`                                                                                |
 
 ## Development

@@ -212,10 +212,10 @@ class TestParseGoogle:
         refs = pydocstring.walk(doc, Collector()).refs
         assert len(refs) == 2
         assert refs[0].directive_marker.text == ".."
-        assert refs[0].number.text == "1"
+        assert refs[0].label.text == "1"
         assert refs[0].content.text == 'Author A, "Title A", 2020.'
         assert refs[1].directive_marker is None
-        assert refs[1].number is None
+        assert refs[1].label is None
         assert refs[1].content.text == "Plain reference line."
 
     def test_pretty_print(self):
@@ -619,8 +619,8 @@ class TestModelTypes:
         assert s.names == ["foo"]
 
     def test_reference_construction(self):
-        r = pydocstring.Reference(number="1", content="Doe et al. 2020")
-        assert r.number == "1"
+        r = pydocstring.Reference(label="1", content="Doe et al. 2020")
+        assert r.label == "1"
         assert r.content == "Doe et al. 2020"
 
 

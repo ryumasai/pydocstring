@@ -951,7 +951,7 @@ impl PyGoogleReference {
         self.nr.token_opt(py, self.view().open_bracket())
     }
     #[getter]
-    fn number(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+    fn label(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
         self.nr.token_opt(py, self.view().label())
     }
     #[getter]
@@ -1440,7 +1440,7 @@ impl PyNumPyReference {
         self.nr.token_opt(py, self.view().open_bracket())
     }
     #[getter]
-    fn number(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+    fn label(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
         self.nr.token_opt(py, self.view().label())
     }
     #[getter]
@@ -2057,7 +2057,7 @@ impl TryInto<model::SeeAlsoEntry> for &PyModelSeeAlsoEntry {
 #[pyclass(name = "Reference")]
 struct PyModelReference {
     #[pyo3(get, set)]
-    number: Option<Py<PyString>>,
+    label: Option<Py<PyString>>,
     #[pyo3(get, set)]
     content: Option<Py<PyString>>,
 }
@@ -2065,12 +2065,12 @@ struct PyModelReference {
 #[pymethods]
 impl PyModelReference {
     #[new]
-    #[pyo3(signature = (*, number=None, content=None))]
-    fn new(number: Option<Py<PyString>>, content: Option<Py<PyString>>) -> Self {
-        Self { number, content }
+    #[pyo3(signature = (*, label=None, content=None))]
+    fn new(label: Option<Py<PyString>>, content: Option<Py<PyString>>) -> Self {
+        Self { label, content }
     }
     fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        self.number.as_ref().map_or_else(
+        self.label.as_ref().map_or_else(
             || Ok("Reference(...)".into_pyobject(py)?.into_any()),
             |n| "Reference({})".into_pyobject(py)?.call_method("format", (n,), None),
         )
@@ -2083,7 +2083,7 @@ impl TryFrom<&model::Reference> for PyModelReference {
     fn try_from(reference: &model::Reference) -> Result<Self, Self::Error> {
         Python::attach(|py| {
             Ok(Self {
-                number: reference
+                label: reference
                     .label
                     .as_ref()
                     .map(|d| -> PyResult<_> { Ok(d.into_pyobject(py)?.unbind()) })
@@ -2105,7 +2105,7 @@ impl TryInto<model::Reference> for &PyModelReference {
         Python::attach(|py| {
             Ok(model::Reference {
                 label: self
-                    .number
+                    .label
                     .as_ref()
                     .map(|d| -> PyResult<_> { d.extract(py) })
                     .transpose()?,
