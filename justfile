@@ -33,6 +33,11 @@ test:
 coverage:
     cargo llvm-cov --all-targets --summary-only
 
+# Export lcov from the profile data of the last `just coverage` run
+# (cargo llvm-cov report reuses profdata; no second test run).
+coverage-lcov:
+    cargo llvm-cov report --lcov --output-path lcov.info
+
 # Rust coverage as a browsable HTML report (written to target/llvm-cov/html)
 coverage-html:
     cargo llvm-cov --all-targets --html
