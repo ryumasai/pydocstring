@@ -352,7 +352,9 @@ pub(crate) struct TypeMarkers<'a> {
 }
 
 /// Split a type annotation into the type itself and trailing `optional` /
-/// `default X` marker segments (comma-separated, bracket-aware).
+/// `default X` marker segments (comma-separated, bracket-aware). Markers
+/// count only in the trailing suffix: a marker-like segment followed by a
+/// non-marker segment is part of the type.
 ///
 /// Shared by all three entry-parsing paths (the Google header parser, the
 /// NumPy segment scanner, and [`try_parse_bracket_entry`]) so the boundary
@@ -397,6 +399,13 @@ pub(crate) fn scan_type_markers(type_content: &str) -> TypeMarkers<'_> {
                 value,
             });
         } else {
+            // A non-marker segment after marker-like segments means those
+            // were part of the type, not markers (`int, optional, str` is a
+            // type, not an optional `int`): markers only count in the
+            // TRAILING suffix, per the numpydoc convention. Discard any
+            // collected so far so their bytes stay inside the TYPE token —
+            // otherwise the OPTIONAL/DEFAULT tokens would overlap it.
+            markers.clear();
             type_end = seg_offset + seg_raw.trim_end().len();
         }
     }

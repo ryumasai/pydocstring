@@ -686,3 +686,20 @@ fn repeated_optional_markers_first_occurrence_wins_google() {
         other => panic!("expected Parameters, got {:?}", other),
     }
 }
+
+/// SPEC: marker-like segments count only in the trailing suffix — a
+/// non-marker segment after them makes the whole thing the type
+/// (`int, optional, str` is a type, not an optional `int`).
+#[test]
+fn marker_like_segment_mid_type_is_part_of_the_type() {
+    let parsed = parse_numpy("Summary.\n\nParameters\n----------\nx : int, optional, str\n    Desc.\n");
+    let doc = numpy_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::Parameters(params) => {
+            assert_eq!(params[0].type_annotation.as_deref(), Some("int, optional, str"));
+            assert!(!params[0].is_optional);
+            assert!(params[0].default_value.is_none());
+        }
+        other => panic!("expected Parameters, got {:?}", other),
+    }
+}
