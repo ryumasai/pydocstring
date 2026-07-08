@@ -314,7 +314,7 @@ print(numpy_text)  # Contains "Parameters\n----------"
 | `Style`              | `GOOGLE`, `NUMPY`, `PLAIN` (enum)                                                                                |
 | `GoogleSectionKind`  | `ARGS`, `RETURNS`, `YIELDS`, `RAISES`, `NOTES`, `EXAMPLES`, … (enum)                                            |
 | `NumPySectionKind`   | `PARAMETERS`, `RETURNS`, `YIELDS`, `RAISES`, `NOTES`, `EXAMPLES`, … (enum)                                      |
-| `GoogleDocstring`    | `style`, `summary`, `extended_summary`, `sections`, `source`, `pretty_print()`, `to_model()`                    |
+| `GoogleDocstring`    | `style`, `summary`, `extended_summary`, `paragraphs`, `sections`, `deprecation`, `source`, `pretty_print()`, `to_model()` |
 | `GoogleSection`      | `section_kind`, `header_name`, `range`                                                                           |
 | `GoogleArg`          | `name`, `type`, `description`, `optional`, `open_bracket`, `close_bracket`, `colon`                             |
 | `GoogleReturn`       | `return_type`, `description`, `colon`                                                                            |
@@ -325,9 +325,9 @@ print(numpy_text)  # Contains "Parameters\n----------"
 | `GoogleAttribute`    | `name`, `type`, `description`, `open_bracket`, `close_bracket`, `colon`                                         |
 | `GoogleMethod`       | `name`, `type`, `description`, `open_bracket`, `close_bracket`, `colon`                                         |
 | `PlainDocstring`     | `style`, `summary`, `extended_summary`, `source`, `pretty_print()`, `to_model()`                                |
-| `NumPyDocstring`     | `style`, `summary`, `extended_summary`, `sections`, `deprecation`, `source`, `pretty_print()`, `to_model()`     |
+| `NumPyDocstring`     | `style`, `summary`, `extended_summary`, `paragraphs`, `sections`, `deprecation`, `source`, `pretty_print()`, `to_model()` |
 | `NumPySection`       | `section_kind`, `header_name`, `range`                                                                           |
-| `NumPyParameter`     | `names`, `type`, `description`, `optional`, `default_value`, `colon`, `default_keyword`, `default_separator`    |
+| `NumPyParameter`     | `name`, `names`, `type`, `description`, `optional`, `default_value`, `colon`, `default_keyword`, `default_separator` |
 | `NumPyReturns`       | `name`, `return_type`, `description`, `colon`                                                                    |
 | `NumPyYields`        | `name`, `return_type`, `description`, `colon`                                                                    |
 | `NumPyException`     | `type`, `description`, `colon`                                                                                   |
@@ -342,7 +342,7 @@ print(numpy_text)  # Contains "Parameters\n----------"
 | `Visitor`            | Base class; subclass and override `enter_*` / `exit_*` methods                                                   |
 | `WalkContext`        | `line_col(offset)` — passed as second arg to every `enter_*` / `exit_*` hook                                    |
 | `SectionKind`        | `PARAMETERS`, `RETURNS`, `RAISES`, `NOTES`, … (enum, 24 variants — model IR)                                    |
-| `Docstring`          | `summary`, `extended_summary`, `deprecation`, `sections`                                                         |
+| `Docstring`          | `summary`, `extended_summary`, `directives`, `deprecation` (computed), `sections`                                |
 | `Section` (model)    | `kind`, `parameters`, `returns`, `exceptions`, `attributes`, `methods`, `see_also_entries`, `references`, `body` |
 | `Parameter`          | `names`, `type_annotation`, `description`, `is_optional`, `default_value`                                        |
 | `Return`             | `name`, `type_annotation`, `description`                                                                         |
@@ -351,7 +351,7 @@ print(numpy_text)  # Contains "Parameters\n----------"
 | `Method`             | `name`, `type_annotation`, `description`                                                                         |
 | `SeeAlsoEntry`       | `names`, `description`                                                                                           |
 | `Reference`          | `number`, `content`                                                                                              |
-| `Deprecation`        | `version`, `description`                                                                                         |
+| `Directive`          | `name`, `argument`, `description`                                                                                |
 
 ## Development
 

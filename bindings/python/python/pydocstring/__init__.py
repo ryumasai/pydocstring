@@ -1,5 +1,5 @@
 from ._pydocstring import Attribute
-from ._pydocstring import Deprecation
+from ._pydocstring import Directive
 from ._pydocstring import Docstring
 from ._pydocstring import ExceptionEntry
 from ._pydocstring import GoogleArg
@@ -103,7 +103,7 @@ __all__ = [
     "Reference",
     "Attribute",
     "Method",
-    "Deprecation",
+    "Directive",
     # ── Visitor ───────────────────────────────────────────────────────────
     "Visitor",
     # ── Functions ─────────────────────────────────────────────────────────
