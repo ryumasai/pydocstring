@@ -30,6 +30,9 @@ plain/   (flat — only a handful of inputs)
   packages via `inspect.getdoc` (which dedents, matching corpus
   expectations), named `<pkg>_<qualname>.txt`. Do not edit these inputs;
   they pin parser behavior on real-world shapes, not hand-minimized ones.
+  - **License**: the realworld fixtures are verbatim third-party text —
+    full copyright notices and license texts in
+    [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md).
   - `numpy/realworld/` — NumPy 2.5.1 and SciPy 1.18.0 (both BSD-3-Clause;
     docstring text is included verbatim for testing purposes only, and
     remains © the NumPy/SciPy developers under their licenses).
