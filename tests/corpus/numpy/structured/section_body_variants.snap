@@ -173,7 +173,7 @@ DOCUMENT@0..387 {
     }
     NEWLINE: "\n"@371..372
     ENTRY@372..386 {
-      RETURN_TYPE: "int"@372..375
+      TYPE: "int"@372..375
       NEWLINE: "\n"@375..376
       WHITESPACE: "    "@376..380
       DESCRIPTION@380..386 {

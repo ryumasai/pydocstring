@@ -330,7 +330,7 @@ impl<'a> NumPyReturns<'a> {
 
     /// Return type annotation token, if present.
     pub fn return_type(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::RETURN_TYPE)
+        self.0.find_token(SyntaxKind::TYPE)
     }
 
     /// Description text block, if present.
@@ -358,7 +358,7 @@ impl<'a> NumPyYields<'a> {
 
     /// Yield type annotation token, if present.
     pub fn return_type(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::RETURN_TYPE)
+        self.0.find_token(SyntaxKind::TYPE)
     }
 
     /// Description text block, if present.

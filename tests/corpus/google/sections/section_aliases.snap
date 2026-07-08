@@ -192,7 +192,7 @@ DOCUMENT@0..466 {
     NEWLINE: "\n"@343..344
     WHITESPACE: "    "@344..348
     ENTRY@348..363 {
-      RETURN_TYPE: "int"@348..351
+      TYPE: "int"@348..351
       COLON: ":"@351..352
       WHITESPACE: " "@352..353
       DESCRIPTION@353..363 {
@@ -210,7 +210,7 @@ DOCUMENT@0..466 {
     NEWLINE: "\n"@370..371
     WHITESPACE: "    "@371..375
     ENTRY@375..402 {
-      WARNING_TYPE: "FutureWarning"@375..388
+      TYPE: "FutureWarning"@375..388
       COLON: ":"@388..389
       WHITESPACE: " "@389..390
       DESCRIPTION@390..402 {
@@ -241,7 +241,7 @@ DOCUMENT@0..466 {
     NEWLINE: "\n"@444..445
     WHITESPACE: "    "@445..449
     ENTRY@449..466 {
-      RETURN_TYPE: "str"@449..452
+      TYPE: "str"@449..452
       COLON: ":"@452..453
       WHITESPACE: " "@453..454
       DESCRIPTION@454..466 {

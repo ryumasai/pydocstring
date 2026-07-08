@@ -17,7 +17,7 @@ DOCUMENT@0..94 {
       WHITESPACE: " "@34..35
       COLON: ":"@35..36
       WHITESPACE: " "@36..37
-      RETURN_TYPE: "int"@37..40
+      TYPE: "int"@37..40
       NEWLINE: "\n"@40..41
       WHITESPACE: "    "@41..45
       DESCRIPTION@45..61 {
@@ -30,7 +30,7 @@ DOCUMENT@0..94 {
       WHITESPACE: " "@63..64
       COLON: ":"@64..65
       WHITESPACE: " "@65..66
-      RETURN_TYPE: "float"@66..71
+      TYPE: "float"@66..71
       NEWLINE: "\n"@71..72
       WHITESPACE: "    "@72..76
       DESCRIPTION@76..93 {

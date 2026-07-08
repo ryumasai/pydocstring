@@ -93,7 +93,7 @@ DOCUMENT@0..171 {
     NEWLINE: "\n"@148..149
     WHITESPACE: "    "@149..153
     ENTRY@153..171 {
-      WARNING_TYPE: "UserWarning"@153..164
+      TYPE: "UserWarning"@153..164
       COLON: ":"@164..165
       WHITESPACE: " "@165..166
       DESCRIPTION@166..171 {

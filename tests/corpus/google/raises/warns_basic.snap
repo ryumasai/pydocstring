@@ -13,7 +13,7 @@ DOCUMENT@0..58 {
     NEWLINE: "\n"@16..17
     WHITESPACE: "    "@17..21
     ENTRY@21..58 {
-      WARNING_TYPE: "DeprecationWarning"@21..39
+      TYPE: "DeprecationWarning"@21..39
       COLON: ":"@39..40
       WHITESPACE: " "@40..41
       DESCRIPTION@41..58 {

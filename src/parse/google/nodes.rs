@@ -342,7 +342,7 @@ define_node!(GoogleReturn, ENTRY);
 impl<'a> GoogleReturn<'a> {
     /// Return type annotation token, if present.
     pub fn return_type(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::RETURN_TYPE)
+        self.0.find_token(SyntaxKind::TYPE)
     }
 
     /// Colon separator token, if present.
@@ -365,7 +365,7 @@ define_node!(GoogleYield, ENTRY);
 impl<'a> GoogleYield<'a> {
     /// Yield type annotation token, if present.
     pub fn return_type(&self) -> Option<&'a SyntaxToken> {
-        self.0.find_token(SyntaxKind::RETURN_TYPE)
+        self.0.find_token(SyntaxKind::TYPE)
     }
 
     /// Colon separator token, if present.
@@ -411,7 +411,7 @@ define_node!(GoogleWarning, ENTRY);
 impl<'a> GoogleWarning<'a> {
     /// Warning type name token (e.g. `UserWarning`).
     pub fn warning_type(&self) -> &'a SyntaxToken {
-        self.0.required_token(SyntaxKind::WARNING_TYPE)
+        self.0.required_token(SyntaxKind::TYPE)
     }
 
     /// Colon separator token, if present.

@@ -13,7 +13,7 @@ DOCUMENT@0..66 {
     NEWLINE: "\n"@16..17
     WHITESPACE: "    "@17..21
     ENTRY@21..66 {
-      WARNING_TYPE: "UserWarning"@21..32
+      TYPE: "UserWarning"@21..32
       COLON: ":"@32..33
       WHITESPACE: " "@33..34
       DESCRIPTION@34..66 {

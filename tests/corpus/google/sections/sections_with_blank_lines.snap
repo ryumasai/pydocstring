@@ -50,7 +50,7 @@ DOCUMENT@0..84 {
     NEWLINE: "\n"@65..66
     WHITESPACE: "    "@66..70
     ENTRY@70..84 {
-      RETURN_TYPE: "bool"@70..74
+      TYPE: "bool"@70..74
       COLON: ":"@74..75
       WHITESPACE: " "@75..76
       DESCRIPTION@76..84 {

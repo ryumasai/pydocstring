@@ -47,9 +47,12 @@ use crate::text::TextRange;
 #[non_exhaustive]
 pub enum SyntaxKind {
     // ── Common tokens ──────────────────────────────────────────────────
-    /// Section name, parameter name, exception type name, etc.
+    /// Section name, parameter/attribute name, or a return/yield name
+    /// (exception and warning entries carry a [`SyntaxKind::TYPE`]
+    /// instead of a name).
     NAME,
-    /// Type annotation.
+    /// Type annotation: a parameter/attribute type, a return/yield type,
+    /// or the exception/warning type name of a raises/warns entry.
     TYPE,
     /// `:` separator.
     COLON,
@@ -93,10 +96,6 @@ pub enum SyntaxKind {
     /// token per line.
     BLANK_LINE,
 
-    // ── Google-specific tokens ─────────────────────────────────────────
-    /// Warning type (e.g. `UserWarning`).
-    WARNING_TYPE,
-
     // ── reST-flavoured tokens ──────────────────────────────────────────
     /// Section header underline (`----------`, NumPy-style headers).
     UNDERLINE,
@@ -108,8 +107,6 @@ pub enum SyntaxKind {
     DOUBLE_COLON,
     /// Directive argument (e.g. the version of a `.. deprecated::`).
     ARGUMENT,
-    /// Return type (Returns/Yields entries).
-    RETURN_TYPE,
     /// `default` keyword.
     DEFAULT_KEYWORD,
     /// Default value separator (`=` or `:`).
@@ -204,15 +201,12 @@ impl SyntaxKind {
             Self::WHITESPACE => "WHITESPACE",
             Self::NEWLINE => "NEWLINE",
             Self::BLANK_LINE => "BLANK_LINE",
-            // Google tokens
-            Self::WARNING_TYPE => "WARNING_TYPE",
             // reST-flavoured tokens
             Self::UNDERLINE => "UNDERLINE",
             Self::DIRECTIVE_MARKER => "DIRECTIVE_MARKER",
             Self::DIRECTIVE_NAME => "DIRECTIVE_NAME",
             Self::DOUBLE_COLON => "DOUBLE_COLON",
             Self::ARGUMENT => "ARGUMENT",
-            Self::RETURN_TYPE => "RETURN_TYPE",
             Self::DEFAULT_KEYWORD => "DEFAULT_KEYWORD",
             Self::DEFAULT_SEPARATOR => "DEFAULT_SEPARATOR",
             Self::DEFAULT_VALUE => "DEFAULT_VALUE",

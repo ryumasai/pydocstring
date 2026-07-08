@@ -17,7 +17,7 @@ DOCUMENT@0..62 {
       WHITESPACE: " "@29..30
       COLON: ":"@30..31
       WHITESPACE: " "@31..32
-      RETURN_TYPE: "str"@32..35
+      TYPE: "str"@32..35
       NEWLINE: "\n"@35..36
       WHITESPACE: "    "@36..40
       DESCRIPTION@40..61 {
