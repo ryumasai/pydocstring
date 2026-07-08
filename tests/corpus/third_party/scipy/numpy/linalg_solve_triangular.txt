@@ -1,0 +1,71 @@
+Solve the equation ``a @ x = b`` for ``x``, where `a` is a triangular matrix.
+
+
+The documentation is written assuming array arguments are of specified
+"core" shapes. However, array argument(s) of this function may have additional
+"batch" dimensions prepended to the core shape. In this case, the array is treated
+as a batch of lower-dimensional slices; see :ref:`linalg_batch` for details.
+Note that calls with zero-size batches are unsupported and will raise a ``ValueError``.
+
+Parameters
+----------
+a : (M, M) array_like
+    A triangular matrix
+b : (M,) or (M, N) array_like
+    Right-hand side matrix in ``a x = b``
+trans : {0, 1, 2, 'N', 'T', 'C'}, optional
+    Type of system to solve:
+    
+    ========  =========
+    trans     system
+    ========  =========
+    0 or 'N'  a x  = b
+    1 or 'T'  a^T x = b
+    2 or 'C'  a^H x = b
+    ========  =========
+lower : bool, optional
+    Use only data contained in the lower triangle of `a`.
+    Default is to use upper triangle.
+unit_diagonal : bool, optional
+    If True, diagonal elements of `a` are assumed to be 1 and
+    will not be referenced.
+overwrite_b : bool, optional
+    Allow overwriting data in `b` (may enhance performance)
+    See :ref:`tutorial_linalg_overwrite` for details.
+check_finite : bool, optional
+    Whether to check that the input matrices contain only finite numbers.
+    Disabling may give a performance gain, but may result in problems
+    (crashes, non-termination) if the inputs do contain infinities or NaNs.
+
+Returns
+-------
+x : (M,) or (M, N) ndarray
+    Solution to the system ``a x = b``.  Shape of return matches `b`.
+
+Raises
+------
+LinAlgError
+    If `a` is singular
+
+Notes
+-----
+.. versionadded:: 0.9.0
+
+Examples
+--------
+Solve the lower triangular system a x = b, where::
+
+         [3  0  0  0]       [4]
+    a =  [2  1  0  0]   b = [2]
+         [1  0  1  0]       [4]
+         [1  1  1  1]       [2]
+
+>>> import numpy as np
+>>> from scipy.linalg import solve_triangular
+>>> a = np.array([[3, 0, 0, 0], [2, 1, 0, 0], [1, 0, 1, 0], [1, 1, 1, 1]])
+>>> b = np.array([4, 2, 4, 2])
+>>> x = solve_triangular(a, b, lower=True)
+>>> x
+array([ 1.33333333, -0.66666667,  2.66666667, -1.33333333])
+>>> a.dot(x)  # Check the result
+array([ 4.,  2.,  4.,  2.])

@@ -1,0 +1,340 @@
+=== CST ===
+DOCUMENT@0..2022 {
+  SUMMARY@0..60 {
+    TEXT_LINE: "Split an array into multiple sub-arrays as views into `ary`."@0..60
+  }
+  NEWLINE: "\n"@60..61
+  BLANK_LINE: "\n"@61..62
+  SECTION@62..769 {
+    SECTION_HEADER@62..83 {
+      NAME: "Parameters"@62..72
+      NEWLINE: "\n"@72..73
+      UNDERLINE: "----------"@73..83
+    }
+    NEWLINE: "\n"@83..84
+    ENTRY@84..138 {
+      NAME: "ary"@84..87
+      WHITESPACE: " "@87..88
+      COLON: ":"@88..89
+      WHITESPACE: " "@89..90
+      TYPE: "ndarray"@90..97
+      NEWLINE: "\n"@97..98
+      WHITESPACE: "    "@98..102
+      DESCRIPTION@102..138 {
+        TEXT_LINE: "Array to be divided into sub-arrays."@102..138
+      }
+    }
+    NEWLINE: "\n"@138..139
+    ENTRY@139..699 {
+      NAME: "indices_or_sections"@139..158
+      WHITESPACE: " "@158..159
+      COLON: ":"@159..160
+      WHITESPACE: " "@160..161
+      TYPE: "int or 1-D array"@161..177
+      NEWLINE: "\n"@177..178
+      WHITESPACE: "    "@178..182
+      DESCRIPTION@182..699 {
+        TEXT_LINE: "If `indices_or_sections` is an integer, N, the array will be divided"@182..250
+        NEWLINE: "\n"@250..251
+        WHITESPACE: "    "@251..255
+        TEXT_LINE: "into N equal arrays along `axis`.  If such a split is not possible,"@255..322
+        NEWLINE: "\n"@322..323
+        WHITESPACE: "    "@323..327
+        TEXT_LINE: "an error is raised."@327..346
+        NEWLINE: "\n"@346..347
+        BLANK_LINE: "\n"@347..348
+        WHITESPACE: "    "@348..352
+        TEXT_LINE: "If `indices_or_sections` is a 1-D array of sorted integers, the entries"@352..423
+        NEWLINE: "\n"@423..424
+        WHITESPACE: "    "@424..428
+        TEXT_LINE: "indicate where along `axis` the array is split.  For example,"@428..489
+        NEWLINE: "\n"@489..490
+        WHITESPACE: "    "@490..494
+        TEXT_LINE: "``[2, 3]`` would, for ``axis=0``, result in"@494..537
+        NEWLINE: "\n"@537..538
+        BLANK_LINE: "\n"@538..539
+        WHITESPACE: "    "@539..543
+        TEXT_LINE: "- ary[:2]"@543..552
+        NEWLINE: "\n"@552..553
+        WHITESPACE: "    "@553..557
+        TEXT_LINE: "- ary[2:3]"@557..567
+        NEWLINE: "\n"@567..568
+        WHITESPACE: "    "@568..572
+        TEXT_LINE: "- ary[3:]"@572..581
+        NEWLINE: "\n"@581..582
+        BLANK_LINE: "\n"@582..583
+        WHITESPACE: "    "@583..587
+        TEXT_LINE: "If an index exceeds the dimension of the array along `axis`,"@587..647
+        NEWLINE: "\n"@647..648
+        WHITESPACE: "    "@648..652
+        TEXT_LINE: "an empty sub-array is returned correspondingly."@652..699
+      }
+    }
+    NEWLINE: "\n"@699..700
+    ENTRY@700..769 {
+      NAME: "axis"@700..704
+      WHITESPACE: " "@704..705
+      COLON: ":"@705..706
+      WHITESPACE: " "@706..707
+      TYPE: "int"@707..710
+      COMMA: ","@710..711
+      WHITESPACE: " "@711..712
+      OPTIONAL: "optional"@712..720
+      NEWLINE: "\n"@720..721
+      WHITESPACE: "    "@721..725
+      DESCRIPTION@725..769 {
+        TEXT_LINE: "The axis along which to split, default is 0."@725..769
+      }
+    }
+  }
+  NEWLINE: "\n"@769..770
+  BLANK_LINE: "\n"@770..771
+  SECTION@771..862 {
+    SECTION_HEADER@771..786 {
+      NAME: "Returns"@771..778
+      NEWLINE: "\n"@778..779
+      UNDERLINE: "-------"@779..786
+    }
+    NEWLINE: "\n"@786..787
+    ENTRY@787..862 {
+      NAME: "sub-arrays"@787..797
+      WHITESPACE: " "@797..798
+      COLON: ":"@798..799
+      WHITESPACE: " "@799..800
+      TYPE: "list of ndarrays"@800..816
+      NEWLINE: "\n"@816..817
+      WHITESPACE: "    "@817..821
+      DESCRIPTION@821..862 {
+        TEXT_LINE: "A list of sub-arrays as views into `ary`."@821..862
+      }
+    }
+  }
+  NEWLINE: "\n"@862..863
+  BLANK_LINE: "\n"@863..864
+  SECTION@864..992 {
+    SECTION_HEADER@864..877 {
+      NAME: "Raises"@864..870
+      NEWLINE: "\n"@870..871
+      UNDERLINE: "------"@871..877
+    }
+    NEWLINE: "\n"@877..878
+    ENTRY@878..992 {
+      TYPE: "ValueError"@878..888
+      NEWLINE: "\n"@888..889
+      WHITESPACE: "    "@889..893
+      DESCRIPTION@893..992 {
+        TEXT_LINE: "If `indices_or_sections` is given as an integer, but"@893..945
+        NEWLINE: "\n"@945..946
+        WHITESPACE: "    "@946..950
+        TEXT_LINE: "a split does not result in equal division."@950..992
+      }
+    }
+  }
+  NEWLINE: "\n"@992..993
+  BLANK_LINE: "\n"@993..994
+  SECTION@994..1710 {
+    SECTION_HEADER@994..1011 {
+      NAME: "See Also"@994..1002
+      NEWLINE: "\n"@1002..1003
+      UNDERLINE: "--------"@1003..1011
+    }
+    NEWLINE: "\n"@1011..1012
+    ENTRY@1012..1188 {
+      NAME: "array_split"@1012..1023
+      WHITESPACE: " "@1023..1024
+      COLON: ":"@1024..1025
+      WHITESPACE: " "@1025..1026
+      DESCRIPTION@1026..1188 {
+        TEXT_LINE: "Split an array into multiple sub-arrays of equal or"@1026..1077
+        NEWLINE: "\n"@1077..1078
+        WHITESPACE: "              "@1078..1092
+        TEXT_LINE: "near-equal size.  Does not raise an exception if"@1092..1140
+        NEWLINE: "\n"@1140..1141
+        WHITESPACE: "              "@1141..1155
+        TEXT_LINE: "an equal division cannot be made."@1155..1188
+      }
+    }
+    NEWLINE: "\n"@1188..1189
+    ENTRY@1189..1262 {
+      NAME: "hsplit"@1189..1195
+      WHITESPACE: " "@1195..1196
+      COLON: ":"@1196..1197
+      WHITESPACE: " "@1197..1198
+      DESCRIPTION@1198..1262 {
+        TEXT_LINE: "Split array into multiple sub-arrays horizontally (column-wise)."@1198..1262
+      }
+    }
+    NEWLINE: "\n"@1262..1263
+    ENTRY@1263..1331 {
+      NAME: "vsplit"@1263..1269
+      WHITESPACE: " "@1269..1270
+      COLON: ":"@1270..1271
+      WHITESPACE: " "@1271..1272
+      DESCRIPTION@1272..1331 {
+        TEXT_LINE: "Split array into multiple sub-arrays vertically (row wise)."@1272..1331
+      }
+    }
+    NEWLINE: "\n"@1331..1332
+    ENTRY@1332..1405 {
+      NAME: "dsplit"@1332..1338
+      WHITESPACE: " "@1338..1339
+      COLON: ":"@1339..1340
+      WHITESPACE: " "@1340..1341
+      DESCRIPTION@1341..1405 {
+        TEXT_LINE: "Split array into multiple sub-arrays along the 3rd axis (depth)."@1341..1405
+      }
+    }
+    NEWLINE: "\n"@1405..1406
+    ENTRY@1406..1469 {
+      NAME: "concatenate"@1406..1417
+      WHITESPACE: " "@1417..1418
+      COLON: ":"@1418..1419
+      WHITESPACE: " "@1419..1420
+      DESCRIPTION@1420..1469 {
+        TEXT_LINE: "Join a sequence of arrays along an existing axis."@1420..1469
+      }
+    }
+    NEWLINE: "\n"@1469..1470
+    ENTRY@1470..1521 {
+      NAME: "stack"@1470..1475
+      WHITESPACE: " "@1475..1476
+      COLON: ":"@1476..1477
+      WHITESPACE: " "@1477..1478
+      DESCRIPTION@1478..1521 {
+        TEXT_LINE: "Join a sequence of arrays along a new axis."@1478..1521
+      }
+    }
+    NEWLINE: "\n"@1521..1522
+    ENTRY@1522..1583 {
+      NAME: "hstack"@1522..1528
+      WHITESPACE: " "@1528..1529
+      COLON: ":"@1529..1530
+      WHITESPACE: " "@1530..1531
+      DESCRIPTION@1531..1583 {
+        TEXT_LINE: "Stack arrays in sequence horizontally (column wise)."@1531..1583
+      }
+    }
+    NEWLINE: "\n"@1583..1584
+    ENTRY@1584..1640 {
+      NAME: "vstack"@1584..1590
+      WHITESPACE: " "@1590..1591
+      COLON: ":"@1591..1592
+      WHITESPACE: " "@1592..1593
+      DESCRIPTION@1593..1640 {
+        TEXT_LINE: "Stack arrays in sequence vertically (row wise)."@1593..1640
+      }
+    }
+    NEWLINE: "\n"@1640..1641
+    ENTRY@1641..1710 {
+      NAME: "dstack"@1641..1647
+      WHITESPACE: " "@1647..1648
+      COLON: ":"@1648..1649
+      WHITESPACE: " "@1649..1650
+      DESCRIPTION@1650..1710 {
+        TEXT_LINE: "Stack arrays in sequence depth wise (along third dimension)."@1650..1710
+      }
+    }
+  }
+  NEWLINE: "\n"@1710..1711
+  BLANK_LINE: "\n"@1711..1712
+  SECTION@1712..2022 {
+    SECTION_HEADER@1712..1729 {
+      NAME: "Examples"@1712..1720
+      NEWLINE: "\n"@1720..1721
+      UNDERLINE: "--------"@1721..1729
+    }
+    NEWLINE: "\n"@1729..1730
+    DESCRIPTION@1730..2022 {
+      TEXT_LINE: ">>> import numpy as np"@1730..1752
+      NEWLINE: "\n"@1752..1753
+      TEXT_LINE: ">>> x = np.arange(9.0)"@1753..1775
+      NEWLINE: "\n"@1775..1776
+      TEXT_LINE: ">>> np.split(x, 3)"@1776..1794
+      NEWLINE: "\n"@1794..1795
+      TEXT_LINE: "[array([0.,  1.,  2.]), array([3.,  4.,  5.]), array([6.,  7.,  8.])]"@1795..1864
+      NEWLINE: "\n"@1864..1865
+      BLANK_LINE: "\n"@1865..1866
+      TEXT_LINE: ">>> x = np.arange(8.0)"@1866..1888
+      NEWLINE: "\n"@1888..1889
+      TEXT_LINE: ">>> np.split(x, [3, 5, 6, 10])"@1889..1919
+      NEWLINE: "\n"@1919..1920
+      TEXT_LINE: "[array([0.,  1.,  2.]),"@1920..1943
+      NEWLINE: "\n"@1943..1944
+      WHITESPACE: " "@1944..1945
+      TEXT_LINE: "array([3.,  4.]),"@1945..1962
+      NEWLINE: "\n"@1962..1963
+      WHITESPACE: " "@1963..1964
+      TEXT_LINE: "array([5.]),"@1964..1976
+      NEWLINE: "\n"@1976..1977
+      WHITESPACE: " "@1977..1978
+      TEXT_LINE: "array([6.,  7.]),"@1978..1995
+      NEWLINE: "\n"@1995..1996
+      WHITESPACE: " "@1996..1997
+      TEXT_LINE: "array([], dtype=float64)]"@1997..2022
+    }
+  }
+}
+=== EMIT ===
+Split an array into multiple sub-arrays as views into `ary`.
+
+Parameters
+----------
+ary : ndarray
+    Array to be divided into sub-arrays.
+indices_or_sections : int or 1-D array
+    If `indices_or_sections` is an integer, N, the array will be divided
+    into N equal arrays along `axis`.  If such a split is not possible,
+    an error is raised.
+
+    If `indices_or_sections` is a 1-D array of sorted integers, the entries
+    indicate where along `axis` the array is split.  For example,
+    ``[2, 3]`` would, for ``axis=0``, result in
+
+    - ary[:2]
+    - ary[2:3]
+    - ary[3:]
+
+    If an index exceeds the dimension of the array along `axis`,
+    an empty sub-array is returned correspondingly.
+axis : int, optional
+    The axis along which to split, default is 0.
+
+Returns
+-------
+sub-arrays : list of ndarrays
+    A list of sub-arrays as views into `ary`.
+
+Raises
+------
+ValueError
+    If `indices_or_sections` is given as an integer, but
+    a split does not result in equal division.
+
+See Also
+--------
+array_split : Split an array into multiple sub-arrays of equal or
+near-equal size.  Does not raise an exception if
+an equal division cannot be made.
+hsplit : Split array into multiple sub-arrays horizontally (column-wise).
+vsplit : Split array into multiple sub-arrays vertically (row wise).
+dsplit : Split array into multiple sub-arrays along the 3rd axis (depth).
+concatenate : Join a sequence of arrays along an existing axis.
+stack : Join a sequence of arrays along a new axis.
+hstack : Stack arrays in sequence horizontally (column wise).
+vstack : Stack arrays in sequence vertically (row wise).
+dstack : Stack arrays in sequence depth wise (along third dimension).
+
+Examples
+--------
+>>> import numpy as np
+>>> x = np.arange(9.0)
+>>> np.split(x, 3)
+[array([0.,  1.,  2.]), array([3.,  4.,  5.]), array([6.,  7.,  8.])]
+
+>>> x = np.arange(8.0)
+>>> np.split(x, [3, 5, 6, 10])
+[array([0.,  1.,  2.]),
+ array([3.,  4.]),
+ array([5.]),
+ array([6.,  7.]),
+ array([], dtype=float64)]

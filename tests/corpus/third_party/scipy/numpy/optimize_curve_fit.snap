@@ -1,0 +1,1250 @@
+=== CST ===
+DOCUMENT@0..12446 {
+  SUMMARY@0..59 {
+    TEXT_LINE: "Use non-linear least squares to fit a function, f, to data."@0..59
+  }
+  NEWLINE: "\n"@59..60
+  BLANK_LINE: "\n"@60..61
+  EXTENDED_SUMMARY@61..105 {
+    TEXT_LINE: "Assumes ``ydata = f(xdata, *params) + eps``."@61..105
+  }
+  NEWLINE: "\n"@105..106
+  BLANK_LINE: "\n"@106..107
+  SECTION@107..4862 {
+    SECTION_HEADER@107..128 {
+      NAME: "Parameters"@107..117
+      NEWLINE: "\n"@117..118
+      UNDERLINE: "----------"@118..128
+    }
+    NEWLINE: "\n"@128..129
+    ENTRY@129..303 {
+      NAME: "f"@129..130
+      WHITESPACE: " "@130..131
+      COLON: ":"@131..132
+      WHITESPACE: " "@132..133
+      TYPE: "callable"@133..141
+      NEWLINE: "\n"@141..142
+      WHITESPACE: "    "@142..146
+      DESCRIPTION@146..303 {
+        TEXT_LINE: "The model function, f(x, ...). It must take the independent"@146..205
+        NEWLINE: "\n"@205..206
+        WHITESPACE: "    "@206..210
+        TEXT_LINE: "variable as the first argument and the parameters to fit as"@210..269
+        NEWLINE: "\n"@269..270
+        WHITESPACE: "    "@270..274
+        TEXT_LINE: "separate remaining arguments."@274..303
+      }
+    }
+    NEWLINE: "\n"@303..304
+    ENTRY@304..564 {
+      NAME: "xdata"@304..309
+      WHITESPACE: " "@309..310
+      COLON: ":"@310..311
+      WHITESPACE: " "@311..312
+      TYPE: "array_like"@312..322
+      NEWLINE: "\n"@322..323
+      WHITESPACE: "    "@323..327
+      DESCRIPTION@327..564 {
+        TEXT_LINE: "The independent variable where the data is measured."@327..379
+        NEWLINE: "\n"@379..380
+        WHITESPACE: "    "@380..384
+        TEXT_LINE: "Should usually be an M-length sequence or an (k,M)-shaped array for"@384..451
+        NEWLINE: "\n"@451..452
+        WHITESPACE: "    "@452..456
+        TEXT_LINE: "functions with k predictors, and each element should be float"@456..517
+        NEWLINE: "\n"@517..518
+        WHITESPACE: "    "@518..522
+        TEXT_LINE: "convertible if it is an array like object."@522..564
+      }
+    }
+    NEWLINE: "\n"@564..565
+    ENTRY@565..655 {
+      NAME: "ydata"@565..570
+      WHITESPACE: " "@570..571
+      COLON: ":"@571..572
+      WHITESPACE: " "@572..573
+      TYPE: "array_like"@573..583
+      NEWLINE: "\n"@583..584
+      WHITESPACE: "    "@584..588
+      DESCRIPTION@588..655 {
+        TEXT_LINE: "The dependent data, a length M array - nominally ``f(xdata, ...)``."@588..655
+      }
+    }
+    NEWLINE: "\n"@655..656
+    ENTRY@656..909 {
+      NAME: "p0"@656..658
+      WHITESPACE: " "@658..659
+      COLON: ":"@659..660
+      WHITESPACE: " "@660..661
+      TYPE: "array_like"@661..671
+      COMMA: ","@671..672
+      WHITESPACE: " "@672..673
+      OPTIONAL: "optional"@673..681
+      NEWLINE: "\n"@681..682
+      WHITESPACE: "    "@682..686
+      DESCRIPTION@686..909 {
+        TEXT_LINE: "Initial guess for the parameters (length N). If None, then the"@686..748
+        NEWLINE: "\n"@748..749
+        WHITESPACE: "    "@749..753
+        TEXT_LINE: "initial values will all be 1 (if the number of parameters for the"@753..818
+        NEWLINE: "\n"@818..819
+        WHITESPACE: "    "@819..823
+        TEXT_LINE: "function can be determined using introspection, otherwise a"@823..882
+        NEWLINE: "\n"@882..883
+        WHITESPACE: "    "@883..887
+        TEXT_LINE: "ValueError is raised)."@887..909
+      }
+    }
+    NEWLINE: "\n"@909..910
+    ENTRY@910..1606 {
+      NAME: "sigma"@910..915
+      WHITESPACE: " "@915..916
+      COLON: ":"@916..917
+      WHITESPACE: " "@917..918
+      TYPE: "None or scalar or M-length sequence or MxM array"@918..966
+      COMMA: ","@966..967
+      WHITESPACE: " "@967..968
+      OPTIONAL: "optional"@968..976
+      NEWLINE: "\n"@976..977
+      WHITESPACE: "    "@977..981
+      DESCRIPTION@981..1606 {
+        TEXT_LINE: "Determines the uncertainty in `ydata`. If we define residuals as"@981..1045
+        NEWLINE: "\n"@1045..1046
+        WHITESPACE: "    "@1046..1050
+        TEXT_LINE: "``r = ydata - f(xdata, *popt)``, then the interpretation of `sigma`"@1050..1117
+        NEWLINE: "\n"@1117..1118
+        WHITESPACE: "    "@1118..1122
+        TEXT_LINE: "depends on its number of dimensions:"@1122..1158
+        NEWLINE: "\n"@1158..1159
+        BLANK_LINE: "\n"@1159..1160
+        WHITESPACE: "    "@1160..1164
+        TEXT_LINE: "- A scalar or 1-D `sigma` should contain values of standard deviations of"@1164..1237
+        NEWLINE: "\n"@1237..1238
+        WHITESPACE: "      "@1238..1244
+        TEXT_LINE: "errors in `ydata`. In this case, the optimized function is"@1244..1302
+        NEWLINE: "\n"@1302..1303
+        WHITESPACE: "      "@1303..1309
+        TEXT_LINE: "``chisq = sum((r / sigma) ** 2)``."@1309..1343
+        NEWLINE: "\n"@1343..1344
+        BLANK_LINE: "\n"@1344..1345
+        WHITESPACE: "    "@1345..1349
+        TEXT_LINE: "- A 2-D `sigma` should contain the covariance matrix of"@1349..1404
+        NEWLINE: "\n"@1404..1405
+        WHITESPACE: "      "@1405..1411
+        TEXT_LINE: "errors in `ydata`. In this case, the optimized function is"@1411..1469
+        NEWLINE: "\n"@1469..1470
+        WHITESPACE: "      "@1470..1476
+        TEXT_LINE: "``chisq = r.T @ inv(sigma) @ r``."@1476..1509
+        NEWLINE: "\n"@1509..1510
+        BLANK_LINE: "\n"@1510..1511
+        WHITESPACE: "      "@1511..1517
+        TEXT_LINE: ".. versionadded:: 0.19"@1517..1539
+        NEWLINE: "\n"@1539..1540
+        BLANK_LINE: "\n"@1540..1541
+        WHITESPACE: "    "@1541..1545
+        TEXT_LINE: "None (default) is equivalent of 1-D `sigma` filled with ones."@1545..1606
+      }
+    }
+    NEWLINE: "\n"@1606..1607
+    ENTRY@1607..2327 {
+      NAME: "absolute_sigma"@1607..1621
+      WHITESPACE: " "@1621..1622
+      COLON: ":"@1622..1623
+      WHITESPACE: " "@1623..1624
+      TYPE: "bool"@1624..1628
+      COMMA: ","@1628..1629
+      WHITESPACE: " "@1629..1630
+      OPTIONAL: "optional"@1630..1638
+      NEWLINE: "\n"@1638..1639
+      WHITESPACE: "    "@1639..1643
+      DESCRIPTION@1643..2327 {
+        TEXT_LINE: "If True, `sigma` is used in an absolute sense and the estimated parameter"@1643..1716
+        NEWLINE: "\n"@1716..1717
+        WHITESPACE: "    "@1717..1721
+        TEXT_LINE: "covariance `pcov` reflects these absolute values."@1721..1770
+        NEWLINE: "\n"@1770..1771
+        BLANK_LINE: "\n"@1771..1772
+        WHITESPACE: "    "@1772..1776
+        TEXT_LINE: "If False (default), only the relative magnitudes of the `sigma` values matter."@1776..1854
+        NEWLINE: "\n"@1854..1855
+        WHITESPACE: "    "@1855..1859
+        TEXT_LINE: "The returned parameter covariance matrix `pcov` is based on scaling"@1859..1926
+        NEWLINE: "\n"@1926..1927
+        WHITESPACE: "    "@1927..1931
+        TEXT_LINE: "`sigma` by a constant factor. This constant is set by demanding that the"@1931..2003
+        NEWLINE: "\n"@2003..2004
+        WHITESPACE: "    "@2004..2008
+        TEXT_LINE: "reduced `chisq` for the optimal parameters `popt` when using the"@2008..2072
+        NEWLINE: "\n"@2072..2073
+        WHITESPACE: "    "@2073..2077
+        TEXT_LINE: "*scaled* `sigma` equals unity. In other words, `sigma` is scaled to"@2077..2144
+        NEWLINE: "\n"@2144..2145
+        WHITESPACE: "    "@2145..2149
+        TEXT_LINE: "match the sample variance of the residuals after the fit. Default is False."@2149..2224
+        NEWLINE: "\n"@2224..2225
+        WHITESPACE: "    "@2225..2229
+        TEXT_LINE: "Mathematically,"@2229..2244
+        NEWLINE: "\n"@2244..2245
+        WHITESPACE: "    "@2245..2249
+        TEXT_LINE: "``pcov(absolute_sigma=False) = pcov(absolute_sigma=True) * chisq(popt)/(M-N)``"@2249..2327
+      }
+    }
+    NEWLINE: "\n"@2327..2328
+    ENTRY@2328..2669 {
+      NAME: "check_finite"@2328..2340
+      WHITESPACE: " "@2340..2341
+      COLON: ":"@2341..2342
+      WHITESPACE: " "@2342..2343
+      TYPE: "bool"@2343..2347
+      COMMA: ","@2347..2348
+      WHITESPACE: " "@2348..2349
+      OPTIONAL: "optional"@2349..2357
+      NEWLINE: "\n"@2357..2358
+      WHITESPACE: "    "@2358..2362
+      DESCRIPTION@2362..2669 {
+        TEXT_LINE: "If True, check that the input arrays do not contain nans of infs,"@2362..2427
+        NEWLINE: "\n"@2427..2428
+        WHITESPACE: "    "@2428..2432
+        TEXT_LINE: "and raise a ValueError if they do. Setting this parameter to"@2432..2492
+        NEWLINE: "\n"@2492..2493
+        WHITESPACE: "    "@2493..2497
+        TEXT_LINE: "False may silently produce nonsensical results if the input arrays"@2497..2563
+        NEWLINE: "\n"@2563..2564
+        WHITESPACE: "    "@2564..2568
+        TEXT_LINE: "do contain nans. Default is True if `nan_policy` is not specified"@2568..2633
+        NEWLINE: "\n"@2633..2634
+        WHITESPACE: "    "@2634..2638
+        TEXT_LINE: "explicitly and False otherwise."@2638..2669
+      }
+    }
+    NEWLINE: "\n"@2669..2670
+    ENTRY@2670..3190 {
+      NAME: "bounds"@2670..2676
+      WHITESPACE: " "@2676..2677
+      COLON: ":"@2677..2678
+      WHITESPACE: " "@2678..2679
+      TYPE: "2-tuple of array_like or `Bounds`"@2679..2712
+      COMMA: ","@2712..2713
+      WHITESPACE: " "@2713..2714
+      OPTIONAL: "optional"@2714..2722
+      NEWLINE: "\n"@2722..2723
+      WHITESPACE: "    "@2723..2727
+      DESCRIPTION@2727..3190 {
+        TEXT_LINE: "Lower and upper bounds on parameters. Defaults to no bounds."@2727..2787
+        NEWLINE: "\n"@2787..2788
+        WHITESPACE: "    "@2788..2792
+        TEXT_LINE: "There are two ways to specify the bounds:"@2792..2833
+        NEWLINE: "\n"@2833..2834
+        BLANK_LINE: "\n"@2834..2835
+        WHITESPACE: "    "@2835..2839
+        TEXT_LINE: "- Instance of `Bounds` class."@2839..2868
+        NEWLINE: "\n"@2868..2869
+        BLANK_LINE: "\n"@2869..2870
+        WHITESPACE: "    "@2870..2874
+        TEXT_LINE: "- 2-tuple of array_like: Each element of the tuple must be either"@2874..2939
+        NEWLINE: "\n"@2939..2940
+        WHITESPACE: "      "@2940..2946
+        TEXT_LINE: "an array with the length equal to the number of parameters, or a"@2946..3010
+        NEWLINE: "\n"@3010..3011
+        WHITESPACE: "      "@3011..3017
+        TEXT_LINE: "scalar (in which case the bound is taken to be the same for all"@3017..3080
+        NEWLINE: "\n"@3080..3081
+        WHITESPACE: "      "@3081..3087
+        TEXT_LINE: "parameters). Use ``np.inf`` with an appropriate sign to disable"@3087..3150
+        NEWLINE: "\n"@3150..3151
+        WHITESPACE: "      "@3151..3157
+        TEXT_LINE: "bounds on all or some parameters."@3157..3190
+      }
+    }
+    NEWLINE: "\n"@3190..3191
+    BLANK_LINE: "\n"@3191..3192
+    ENTRY@3192..3564 {
+      NAME: "method"@3192..3198
+      WHITESPACE: " "@3198..3199
+      COLON: ":"@3199..3200
+      WHITESPACE: " "@3200..3201
+      TYPE: "{'lm', 'trf', 'dogbox'}"@3201..3224
+      COMMA: ","@3224..3225
+      WHITESPACE: " "@3225..3226
+      OPTIONAL: "optional"@3226..3234
+      NEWLINE: "\n"@3234..3235
+      WHITESPACE: "    "@3235..3239
+      DESCRIPTION@3239..3564 {
+        TEXT_LINE: "Method to use for optimization. See `least_squares` for more details."@3239..3308
+        NEWLINE: "\n"@3308..3309
+        WHITESPACE: "    "@3309..3313
+        TEXT_LINE: "Default is 'lm' for unconstrained problems and 'trf' if `bounds` are"@3313..3381
+        NEWLINE: "\n"@3381..3382
+        WHITESPACE: "    "@3382..3386
+        TEXT_LINE: "provided. The method 'lm' won't work when the number of observations"@3386..3454
+        NEWLINE: "\n"@3454..3455
+        WHITESPACE: "    "@3455..3459
+        TEXT_LINE: "is less than the number of variables, use 'trf' or 'dogbox' in this"@3459..3526
+        NEWLINE: "\n"@3526..3527
+        WHITESPACE: "    "@3527..3531
+        TEXT_LINE: "case."@3531..3536
+        NEWLINE: "\n"@3536..3537
+        BLANK_LINE: "\n"@3537..3538
+        WHITESPACE: "    "@3538..3542
+        TEXT_LINE: ".. versionadded:: 0.17"@3542..3564
+      }
+    }
+    NEWLINE: "\n"@3564..3565
+    ENTRY@3565..4041 {
+      NAME: "jac"@3565..3568
+      WHITESPACE: " "@3568..3569
+      COLON: ":"@3569..3570
+      WHITESPACE: " "@3570..3571
+      TYPE: "callable, str or None"@3571..3592
+      COMMA: ","@3592..3593
+      WHITESPACE: " "@3593..3594
+      OPTIONAL: "optional"@3594..3602
+      NEWLINE: "\n"@3602..3603
+      WHITESPACE: "    "@3603..3607
+      DESCRIPTION@3607..4041 {
+        TEXT_LINE: "Function with signature ``jac(x, ...)`` which computes the Jacobian"@3607..3674
+        NEWLINE: "\n"@3674..3675
+        WHITESPACE: "    "@3675..3679
+        TEXT_LINE: "matrix of the model function with respect to parameters as a dense"@3679..3745
+        NEWLINE: "\n"@3745..3746
+        WHITESPACE: "    "@3746..3750
+        TEXT_LINE: "array_like structure. It will be scaled according to provided `sigma`."@3750..3820
+        NEWLINE: "\n"@3820..3821
+        WHITESPACE: "    "@3821..3825
+        TEXT_LINE: "If None (default), the Jacobian will be estimated numerically."@3825..3887
+        NEWLINE: "\n"@3887..3888
+        WHITESPACE: "    "@3888..3892
+        TEXT_LINE: "String keywords for 'trf' and 'dogbox' methods can be used to select"@3892..3960
+        NEWLINE: "\n"@3960..3961
+        WHITESPACE: "    "@3961..3965
+        TEXT_LINE: "a finite difference scheme, see `least_squares`."@3965..4013
+        NEWLINE: "\n"@4013..4014
+        BLANK_LINE: "\n"@4014..4015
+        WHITESPACE: "    "@4015..4019
+        TEXT_LINE: ".. versionadded:: 0.18"@4019..4041
+      }
+    }
+    NEWLINE: "\n"@4041..4042
+    ENTRY@4042..4191 {
+      NAME: "full_output"@4042..4053
+      WHITESPACE: " "@4053..4054
+      COLON: ":"@4054..4055
+      WHITESPACE: " "@4055..4056
+      TYPE: "bool"@4056..4060
+      COMMA: ","@4060..4061
+      WHITESPACE: " "@4061..4062
+      OPTIONAL: "optional"@4062..4070
+      NEWLINE: "\n"@4070..4071
+      WHITESPACE: "    "@4071..4075
+      DESCRIPTION@4075..4191 {
+        TEXT_LINE: "If True, this function returns additional information: `infodict`,"@4075..4141
+        NEWLINE: "\n"@4141..4142
+        WHITESPACE: "    "@4142..4146
+        TEXT_LINE: "`mesg`, and `ier`."@4146..4164
+        NEWLINE: "\n"@4164..4165
+        BLANK_LINE: "\n"@4165..4166
+        WHITESPACE: "    "@4166..4170
+        TEXT_LINE: ".. versionadded:: 1.9"@4170..4191
+      }
+    }
+    NEWLINE: "\n"@4191..4192
+    ENTRY@4192..4757 {
+      NAME: "nan_policy"@4192..4202
+      WHITESPACE: " "@4202..4203
+      COLON: ":"@4203..4204
+      WHITESPACE: " "@4204..4205
+      TYPE: "{'raise', 'omit', None}"@4205..4228
+      COMMA: ","@4228..4229
+      WHITESPACE: " "@4229..4230
+      OPTIONAL: "optional"@4230..4238
+      NEWLINE: "\n"@4238..4239
+      WHITESPACE: "    "@4239..4243
+      DESCRIPTION@4243..4757 {
+        TEXT_LINE: "Defines how to handle when input contains nan."@4243..4289
+        NEWLINE: "\n"@4289..4290
+        WHITESPACE: "    "@4290..4294
+        TEXT_LINE: "The following options are available (default is None):"@4294..4348
+        NEWLINE: "\n"@4348..4349
+        BLANK_LINE: "\n"@4349..4350
+        WHITESPACE: "    "@4350..4354
+        TEXT_LINE: "* 'raise': throws an error"@4354..4380
+        NEWLINE: "\n"@4380..4381
+        WHITESPACE: "    "@4381..4385
+        TEXT_LINE: "* 'omit': performs the calculations ignoring nan values"@4385..4440
+        NEWLINE: "\n"@4440..4441
+        WHITESPACE: "    "@4441..4445
+        TEXT_LINE: "* None: no special handling of NaNs is performed"@4445..4493
+        NEWLINE: "\n"@4493..4494
+        WHITESPACE: "      "@4494..4500
+        TEXT_LINE: "(except what is done by check_finite); the behavior when NaNs"@4500..4561
+        NEWLINE: "\n"@4561..4562
+        WHITESPACE: "      "@4562..4568
+        TEXT_LINE: "are present is implementation-dependent and may change."@4568..4623
+        NEWLINE: "\n"@4623..4624
+        BLANK_LINE: "\n"@4624..4625
+        WHITESPACE: "    "@4625..4629
+        TEXT_LINE: "Note that if this value is specified explicitly (not None),"@4629..4688
+        NEWLINE: "\n"@4688..4689
+        WHITESPACE: "    "@4689..4693
+        TEXT_LINE: "`check_finite` will be set as False."@4693..4729
+        NEWLINE: "\n"@4729..4730
+        BLANK_LINE: "\n"@4730..4731
+        WHITESPACE: "    "@4731..4735
+        TEXT_LINE: ".. versionadded:: 1.11"@4735..4757
+      }
+    }
+    NEWLINE: "\n"@4757..4758
+    ENTRY@4758..4862 {
+      NAME: "**kwargs"@4758..4766
+      NEWLINE: "\n"@4766..4767
+      WHITESPACE: "    "@4767..4771
+      DESCRIPTION@4771..4862 {
+        TEXT_LINE: "Keyword arguments passed to `leastsq` for ``method='lm'`` or"@4771..4831
+        NEWLINE: "\n"@4831..4832
+        WHITESPACE: "    "@4832..4836
+        TEXT_LINE: "`least_squares` otherwise."@4836..4862
+      }
+    }
+  }
+  NEWLINE: "\n"@4862..4863
+  BLANK_LINE: "\n"@4863..4864
+  SECTION@4864..7670 {
+    SECTION_HEADER@4864..4879 {
+      NAME: "Returns"@4864..4871
+      NEWLINE: "\n"@4871..4872
+      UNDERLINE: "-------"@4872..4879
+    }
+    NEWLINE: "\n"@4879..4880
+    ENTRY@4880..5020 {
+      NAME: "popt"@4880..4884
+      WHITESPACE: " "@4884..4885
+      COLON: ":"@4885..4886
+      WHITESPACE: " "@4886..4887
+      TYPE: "array"@4887..4892
+      NEWLINE: "\n"@4892..4893
+      WHITESPACE: "    "@4893..4897
+      DESCRIPTION@4897..5020 {
+        TEXT_LINE: "Optimal values for the parameters so that the sum of the squared"@4897..4961
+        NEWLINE: "\n"@4961..4962
+        WHITESPACE: "    "@4962..4966
+        TEXT_LINE: "residuals of ``f(xdata, *popt) - ydata`` is minimized."@4966..5020
+      }
+    }
+    NEWLINE: "\n"@5020..5021
+    ENTRY@5021..6057 {
+      NAME: "pcov"@5021..5025
+      WHITESPACE: " "@5025..5026
+      COLON: ":"@5026..5027
+      WHITESPACE: " "@5027..5028
+      TYPE: "2-D array"@5028..5037
+      NEWLINE: "\n"@5037..5038
+      WHITESPACE: "    "@5038..5042
+      DESCRIPTION@5042..6057 {
+        TEXT_LINE: "The estimated approximate covariance of popt. The diagonals provide"@5042..5109
+        NEWLINE: "\n"@5109..5110
+        WHITESPACE: "    "@5110..5114
+        TEXT_LINE: "the variance of the parameter estimate. To compute one standard"@5114..5177
+        NEWLINE: "\n"@5177..5178
+        WHITESPACE: "    "@5178..5182
+        TEXT_LINE: "deviation errors on the parameters, use"@5182..5221
+        NEWLINE: "\n"@5221..5222
+        WHITESPACE: "    "@5222..5226
+        TEXT_LINE: "``perr = np.sqrt(np.diag(pcov))``. Note that the relationship between"@5226..5295
+        NEWLINE: "\n"@5295..5296
+        WHITESPACE: "    "@5296..5300
+        TEXT_LINE: "`cov` and parameter error estimates is derived based on a linear"@5300..5364
+        NEWLINE: "\n"@5364..5365
+        WHITESPACE: "    "@5365..5369
+        TEXT_LINE: "approximation to the model function around the optimum [1]_."@5369..5429
+        NEWLINE: "\n"@5429..5430
+        WHITESPACE: "    "@5430..5434
+        TEXT_LINE: "When this approximation becomes inaccurate, `cov` may not provide an"@5434..5502
+        NEWLINE: "\n"@5502..5503
+        WHITESPACE: "    "@5503..5507
+        TEXT_LINE: "accurate measure of uncertainty."@5507..5539
+        NEWLINE: "\n"@5539..5540
+        BLANK_LINE: "\n"@5540..5541
+        WHITESPACE: "    "@5541..5545
+        TEXT_LINE: "How the `sigma` parameter affects the estimated covariance"@5545..5603
+        NEWLINE: "\n"@5603..5604
+        WHITESPACE: "    "@5604..5608
+        TEXT_LINE: "depends on `absolute_sigma` argument, as described above."@5608..5665
+        NEWLINE: "\n"@5665..5666
+        BLANK_LINE: "\n"@5666..5667
+        WHITESPACE: "    "@5667..5671
+        TEXT_LINE: "If the Jacobian matrix at the solution doesn't have a full rank, then"@5671..5740
+        NEWLINE: "\n"@5740..5741
+        WHITESPACE: "    "@5741..5745
+        TEXT_LINE: "'lm' method returns a matrix filled with ``np.inf``, on the other hand"@5745..5815
+        NEWLINE: "\n"@5815..5816
+        WHITESPACE: "    "@5816..5820
+        TEXT_LINE: "'trf'  and 'dogbox' methods use Moore-Penrose pseudoinverse to compute"@5820..5890
+        NEWLINE: "\n"@5890..5891
+        WHITESPACE: "    "@5891..5895
+        TEXT_LINE: "the covariance matrix. Covariance matrices with large condition numbers"@5895..5966
+        NEWLINE: "\n"@5966..5967
+        WHITESPACE: "    "@5967..5971
+        TEXT_LINE: "(e.g. computed with `numpy.linalg.cond`) may indicate that results are"@5971..6041
+        NEWLINE: "\n"@6041..6042
+        WHITESPACE: "    "@6042..6046
+        TEXT_LINE: "unreliable."@6046..6057
+      }
+    }
+    NEWLINE: "\n"@6057..6058
+    ENTRY@6058..7253 {
+      NAME: "infodict"@6058..6066
+      WHITESPACE: " "@6066..6067
+      COLON: ":"@6067..6068
+      WHITESPACE: " "@6068..6069
+      TYPE: "dict (returned only if `full_output` is True)"@6069..6114
+      NEWLINE: "\n"@6114..6115
+      WHITESPACE: "    "@6115..6119
+      DESCRIPTION@6119..7253 {
+        TEXT_LINE: "a dictionary of optional outputs with the keys:"@6119..6166
+        NEWLINE: "\n"@6166..6167
+        BLANK_LINE: "\n"@6167..6168
+        WHITESPACE: "    "@6168..6172
+        TEXT_LINE: "``nfev``"@6172..6180
+        NEWLINE: "\n"@6180..6181
+        WHITESPACE: "        "@6181..6189
+        TEXT_LINE: "The number of function calls. Methods 'trf' and 'dogbox' do not"@6189..6252
+        NEWLINE: "\n"@6252..6253
+        WHITESPACE: "        "@6253..6261
+        TEXT_LINE: "count function calls for numerical Jacobian approximation,"@6261..6319
+        NEWLINE: "\n"@6319..6320
+        WHITESPACE: "        "@6320..6328
+        TEXT_LINE: "as opposed to 'lm' method."@6328..6354
+        NEWLINE: "\n"@6354..6355
+        WHITESPACE: "    "@6355..6359
+        TEXT_LINE: "``fvec``"@6359..6367
+        NEWLINE: "\n"@6367..6368
+        WHITESPACE: "        "@6368..6376
+        TEXT_LINE: "The residual values evaluated at the solution, for a 1-D `sigma`"@6376..6440
+        NEWLINE: "\n"@6440..6441
+        WHITESPACE: "        "@6441..6449
+        TEXT_LINE: "this is ``(f(x, *popt) - ydata)/sigma``."@6449..6489
+        NEWLINE: "\n"@6489..6490
+        WHITESPACE: "    "@6490..6494
+        TEXT_LINE: "``fjac``"@6494..6502
+        NEWLINE: "\n"@6502..6503
+        WHITESPACE: "        "@6503..6511
+        TEXT_LINE: "A permutation of the R matrix of a QR"@6511..6548
+        NEWLINE: "\n"@6548..6549
+        WHITESPACE: "        "@6549..6557
+        TEXT_LINE: "factorization of the final approximate"@6557..6595
+        NEWLINE: "\n"@6595..6596
+        WHITESPACE: "        "@6596..6604
+        TEXT_LINE: "Jacobian matrix, stored column wise."@6604..6640
+        NEWLINE: "\n"@6640..6641
+        WHITESPACE: "        "@6641..6649
+        TEXT_LINE: "Together with ipvt, the covariance of the"@6649..6690
+        NEWLINE: "\n"@6690..6691
+        WHITESPACE: "        "@6691..6699
+        TEXT_LINE: "estimate can be approximated."@6699..6728
+        NEWLINE: "\n"@6728..6729
+        WHITESPACE: "        "@6729..6737
+        TEXT_LINE: "Method 'lm' only provides this information."@6737..6780
+        NEWLINE: "\n"@6780..6781
+        WHITESPACE: "    "@6781..6785
+        TEXT_LINE: "``ipvt``"@6785..6793
+        NEWLINE: "\n"@6793..6794
+        WHITESPACE: "        "@6794..6802
+        TEXT_LINE: "An integer array of length N which defines"@6802..6844
+        NEWLINE: "\n"@6844..6845
+        WHITESPACE: "        "@6845..6853
+        TEXT_LINE: "a permutation matrix, p, such that"@6853..6887
+        NEWLINE: "\n"@6887..6888
+        WHITESPACE: "        "@6888..6896
+        TEXT_LINE: "fjac*p = q*r, where r is upper triangular"@6896..6937
+        NEWLINE: "\n"@6937..6938
+        WHITESPACE: "        "@6938..6946
+        TEXT_LINE: "with diagonal elements of nonincreasing"@6946..6985
+        NEWLINE: "\n"@6985..6986
+        WHITESPACE: "        "@6986..6994
+        TEXT_LINE: "magnitude. Column j of p is column ipvt(j)"@6994..7036
+        NEWLINE: "\n"@7036..7037
+        WHITESPACE: "        "@7037..7045
+        TEXT_LINE: "of the identity matrix."@7045..7068
+        NEWLINE: "\n"@7068..7069
+        WHITESPACE: "        "@7069..7077
+        TEXT_LINE: "Method 'lm' only provides this information."@7077..7120
+        NEWLINE: "\n"@7120..7121
+        WHITESPACE: "    "@7121..7125
+        TEXT_LINE: "``qtf``"@7125..7132
+        NEWLINE: "\n"@7132..7133
+        WHITESPACE: "        "@7133..7141
+        TEXT_LINE: "The vector (transpose(q) * fvec)."@7141..7174
+        NEWLINE: "\n"@7174..7175
+        WHITESPACE: "        "@7175..7183
+        TEXT_LINE: "Method 'lm' only provides this information."@7183..7226
+        NEWLINE: "\n"@7226..7227
+        BLANK_LINE: "\n"@7227..7228
+        WHITESPACE: "    "@7228..7232
+        TEXT_LINE: ".. versionadded:: 1.9"@7232..7253
+      }
+    }
+    NEWLINE: "\n"@7253..7254
+    ENTRY@7254..7392 {
+      NAME: "mesg"@7254..7258
+      WHITESPACE: " "@7258..7259
+      COLON: ":"@7259..7260
+      WHITESPACE: " "@7260..7261
+      TYPE: "str (returned only if `full_output` is True)"@7261..7305
+      NEWLINE: "\n"@7305..7306
+      WHITESPACE: "    "@7306..7310
+      DESCRIPTION@7310..7392 {
+        TEXT_LINE: "A string message giving information about the solution."@7310..7365
+        NEWLINE: "\n"@7365..7366
+        BLANK_LINE: "\n"@7366..7367
+        WHITESPACE: "    "@7367..7371
+        TEXT_LINE: ".. versionadded:: 1.9"@7371..7392
+      }
+    }
+    NEWLINE: "\n"@7392..7393
+    ENTRY@7393..7670 {
+      NAME: "ier"@7393..7396
+      WHITESPACE: " "@7396..7397
+      COLON: ":"@7397..7398
+      WHITESPACE: " "@7398..7399
+      TYPE: "int (returned only if `full_output` is True)"@7399..7443
+      NEWLINE: "\n"@7443..7444
+      WHITESPACE: "    "@7444..7448
+      DESCRIPTION@7448..7670 {
+        TEXT_LINE: "An integer flag. If it is equal to 1, 2, 3 or 4, the solution was"@7448..7513
+        NEWLINE: "\n"@7513..7514
+        WHITESPACE: "    "@7514..7518
+        TEXT_LINE: "found. Otherwise, the solution was not found. In either case, the"@7518..7583
+        NEWLINE: "\n"@7583..7584
+        WHITESPACE: "    "@7584..7588
+        TEXT_LINE: "optional output variable `mesg` gives more information."@7588..7643
+        NEWLINE: "\n"@7643..7644
+        BLANK_LINE: "\n"@7644..7645
+        WHITESPACE: "    "@7645..7649
+        TEXT_LINE: ".. versionadded:: 1.9"@7649..7670
+      }
+    }
+  }
+  NEWLINE: "\n"@7670..7671
+  BLANK_LINE: "\n"@7671..7672
+  SECTION@7672..8001 {
+    SECTION_HEADER@7672..7685 {
+      NAME: "Raises"@7672..7678
+      NEWLINE: "\n"@7678..7679
+      UNDERLINE: "------"@7679..7685
+    }
+    NEWLINE: "\n"@7685..7686
+    ENTRY@7686..7784 {
+      TYPE: "ValueError"@7686..7696
+      NEWLINE: "\n"@7696..7697
+      WHITESPACE: "    "@7697..7701
+      DESCRIPTION@7701..7784 {
+        TEXT_LINE: "if either `ydata` or `xdata` contain NaNs, or if incompatible options"@7701..7770
+        NEWLINE: "\n"@7770..7771
+        WHITESPACE: "    "@7771..7775
+        TEXT_LINE: "are used."@7775..7784
+      }
+    }
+    NEWLINE: "\n"@7784..7785
+    BLANK_LINE: "\n"@7785..7786
+    ENTRY@7786..7843 {
+      TYPE: "RuntimeError"@7786..7798
+      NEWLINE: "\n"@7798..7799
+      WHITESPACE: "    "@7799..7803
+      DESCRIPTION@7803..7843 {
+        TEXT_LINE: "if the least-squares minimization fails."@7803..7843
+      }
+    }
+    NEWLINE: "\n"@7843..7844
+    BLANK_LINE: "\n"@7844..7845
+    ENTRY@7845..7926 {
+      TYPE: "TypeError"@7845..7854
+      NEWLINE: "\n"@7854..7855
+      WHITESPACE: "    "@7855..7859
+      DESCRIPTION@7859..7926 {
+        TEXT_LINE: "if the number of data points is fewer than the number of parameters"@7859..7926
+      }
+    }
+    NEWLINE: "\n"@7926..7927
+    BLANK_LINE: "\n"@7927..7928
+    ENTRY@7928..8001 {
+      TYPE: "OptimizeWarning"@7928..7943
+      NEWLINE: "\n"@7943..7944
+      WHITESPACE: "    "@7944..7948
+      DESCRIPTION@7948..8001 {
+        TEXT_LINE: "if covariance of the parameters can not be estimated."@7948..8001
+      }
+    }
+  }
+  NEWLINE: "\n"@8001..8002
+  BLANK_LINE: "\n"@8002..8003
+  SECTION@8003..8212 {
+    SECTION_HEADER@8003..8020 {
+      NAME: "See Also"@8003..8011
+      NEWLINE: "\n"@8011..8012
+      UNDERLINE: "--------"@8012..8020
+    }
+    NEWLINE: "\n"@8020..8021
+    ENTRY@8021..8088 {
+      NAME: "least_squares"@8021..8034
+      WHITESPACE: " "@8034..8035
+      COLON: ":"@8035..8036
+      WHITESPACE: " "@8036..8037
+      DESCRIPTION@8037..8088 {
+        TEXT_LINE: "Minimize the sum of squares of nonlinear functions."@8037..8088
+      }
+    }
+    NEWLINE: "\n"@8088..8089
+    ENTRY@8089..8212 {
+      NAME: "scipy.stats.linregress"@8089..8111
+      WHITESPACE: " "@8111..8112
+      COLON: ":"@8112..8113
+      WHITESPACE: " "@8113..8114
+      DESCRIPTION@8114..8212 {
+        TEXT_LINE: "Calculate a linear least squares regression for"@8114..8161
+        NEWLINE: "\n"@8161..8162
+        WHITESPACE: "                         "@8162..8187
+        TEXT_LINE: "two sets of measurements."@8187..8212
+      }
+    }
+  }
+  NEWLINE: "\n"@8212..8213
+  BLANK_LINE: "\n"@8213..8214
+  SECTION@8214..9209 {
+    SECTION_HEADER@8214..8225 {
+      NAME: "Notes"@8214..8219
+      NEWLINE: "\n"@8219..8220
+      UNDERLINE: "-----"@8220..8225
+    }
+    NEWLINE: "\n"@8225..8226
+    DESCRIPTION@8226..9209 {
+      TEXT_LINE: "Users should ensure that inputs `xdata`, `ydata`, and the output of `f`"@8226..8297
+      NEWLINE: "\n"@8297..8298
+      TEXT_LINE: "are ``float64``, or else the optimization may return incorrect results."@8298..8369
+      NEWLINE: "\n"@8369..8370
+      BLANK_LINE: "\n"@8370..8371
+      TEXT_LINE: "With ``method='lm'``, the algorithm uses the Levenberg-Marquardt algorithm"@8371..8445
+      NEWLINE: "\n"@8445..8446
+      TEXT_LINE: "through `leastsq`. Note that this algorithm can only deal with"@8446..8508
+      NEWLINE: "\n"@8508..8509
+      TEXT_LINE: "unconstrained problems."@8509..8532
+      NEWLINE: "\n"@8532..8533
+      BLANK_LINE: "\n"@8533..8534
+      TEXT_LINE: "Box constraints can be handled by methods 'trf' and 'dogbox'. Refer to"@8534..8604
+      NEWLINE: "\n"@8604..8605
+      TEXT_LINE: "the docstring of `least_squares` for more information."@8605..8659
+      NEWLINE: "\n"@8659..8660
+      BLANK_LINE: "\n"@8660..8661
+      TEXT_LINE: "Parameters to be fitted must have similar scale. Differences of multiple"@8661..8733
+      NEWLINE: "\n"@8733..8734
+      TEXT_LINE: "orders of magnitude can lead to incorrect results. For the 'trf' and"@8734..8802
+      NEWLINE: "\n"@8802..8803
+      TEXT_LINE: "'dogbox' methods, the `x_scale` keyword argument can be used to scale"@8803..8872
+      NEWLINE: "\n"@8872..8873
+      TEXT_LINE: "the parameters."@8873..8888
+      NEWLINE: "\n"@8888..8889
+      BLANK_LINE: "\n"@8889..8890
+      TEXT_LINE: "`curve_fit` is for local optimization of parameters to minimize the sum of squares"@8890..8972
+      NEWLINE: "\n"@8972..8973
+      TEXT_LINE: "of residuals. For global optimization, other choices of objective function, and"@8973..9052
+      NEWLINE: "\n"@9052..9053
+      TEXT_LINE: "other advanced features, consider using SciPy's :ref:`tutorial_optimize_global`"@9053..9132
+      NEWLINE: "\n"@9132..9133
+      TEXT_LINE: "tools or the `LMFIT <https://lmfit.github.io/lmfit-py/index.html>`_ package."@9133..9209
+    }
+  }
+  NEWLINE: "\n"@9209..9210
+  BLANK_LINE: "\n"@9210..9211
+  SECTION@9211..9447 {
+    SECTION_HEADER@9211..9232 {
+      NAME: "References"@9211..9221
+      NEWLINE: "\n"@9221..9222
+      UNDERLINE: "----------"@9222..9232
+    }
+    NEWLINE: "\n"@9232..9233
+    CITATION@9233..9447 {
+      DIRECTIVE_MARKER: ".."@9233..9235
+      WHITESPACE: " "@9235..9236
+      OPEN_BRACKET: "["@9236..9237
+      LABEL: "1"@9237..9238
+      CLOSE_BRACKET: "]"@9238..9239
+      WHITESPACE: " "@9239..9240
+      DESCRIPTION@9240..9447 {
+        TEXT_LINE: "K. Vugrin et al. Confidence region estimation techniques for nonlinear"@9240..9310
+        NEWLINE: "\n"@9310..9311
+        WHITESPACE: "       "@9311..9318
+        TEXT_LINE: "regression in groundwater flow: Three case studies. Water Resources"@9318..9385
+        NEWLINE: "\n"@9385..9386
+        WHITESPACE: "       "@9386..9393
+        TEXT_LINE: "Research, Vol. 43, W03423, :doi:`10.1029/2005WR004804`"@9393..9447
+      }
+    }
+  }
+  NEWLINE: "\n"@9447..9448
+  BLANK_LINE: "\n"@9448..9449
+  SECTION@9449..12446 {
+    SECTION_HEADER@9449..9466 {
+      NAME: "Examples"@9449..9457
+      NEWLINE: "\n"@9457..9458
+      UNDERLINE: "--------"@9458..9466
+    }
+    NEWLINE: "\n"@9466..9467
+    DESCRIPTION@9467..12446 {
+      TEXT_LINE: ">>> import numpy as np"@9467..9489
+      NEWLINE: "\n"@9489..9490
+      TEXT_LINE: ">>> import matplotlib.pyplot as plt"@9490..9525
+      NEWLINE: "\n"@9525..9526
+      TEXT_LINE: ">>> from scipy.optimize import curve_fit"@9526..9566
+      NEWLINE: "\n"@9566..9567
+      BLANK_LINE: "\n"@9567..9568
+      TEXT_LINE: ">>> def func(x, a, b, c):"@9568..9593
+      NEWLINE: "\n"@9593..9594
+      TEXT_LINE: "...     return a * np.exp(-b * x) + c"@9594..9631
+      NEWLINE: "\n"@9631..9632
+      BLANK_LINE: "\n"@9632..9633
+      TEXT_LINE: "Define the data to be fit with some noise:"@9633..9675
+      NEWLINE: "\n"@9675..9676
+      BLANK_LINE: "\n"@9676..9677
+      TEXT_LINE: ">>> xdata = np.linspace(0, 4, 50)"@9677..9710
+      NEWLINE: "\n"@9710..9711
+      TEXT_LINE: ">>> y = func(xdata, 2.5, 1.3, 0.5)"@9711..9745
+      NEWLINE: "\n"@9745..9746
+      TEXT_LINE: ">>> rng = np.random.default_rng()"@9746..9779
+      NEWLINE: "\n"@9779..9780
+      TEXT_LINE: ">>> y_noise = 0.2 * rng.normal(size=xdata.size)"@9780..9827
+      NEWLINE: "\n"@9827..9828
+      TEXT_LINE: ">>> ydata = y + y_noise"@9828..9851
+      NEWLINE: "\n"@9851..9852
+      TEXT_LINE: ">>> plt.plot(xdata, ydata, 'b-', label='data')"@9852..9898
+      NEWLINE: "\n"@9898..9899
+      BLANK_LINE: "\n"@9899..9900
+      TEXT_LINE: "Fit for the parameters a, b, c of the function `func`:"@9900..9954
+      NEWLINE: "\n"@9954..9955
+      BLANK_LINE: "\n"@9955..9956
+      TEXT_LINE: ">>> popt, pcov = curve_fit(func, xdata, ydata)"@9956..10002
+      NEWLINE: "\n"@10002..10003
+      TEXT_LINE: ">>> popt"@10003..10011
+      NEWLINE: "\n"@10011..10012
+      TEXT_LINE: "array([2.56274217, 1.37268521, 0.47427475])"@10012..10055
+      NEWLINE: "\n"@10055..10056
+      TEXT_LINE: ">>> plt.plot(xdata, func(xdata, *popt), 'r-',"@10056..10101
+      NEWLINE: "\n"@10101..10102
+      TEXT_LINE: "...          label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt))"@10102..10168
+      NEWLINE: "\n"@10168..10169
+      BLANK_LINE: "\n"@10169..10170
+      TEXT_LINE: "Constrain the optimization to the region of ``0 <= a <= 3``,"@10170..10230
+      NEWLINE: "\n"@10230..10231
+      TEXT_LINE: "``0 <= b <= 1`` and ``0 <= c <= 0.5``:"@10231..10269
+      NEWLINE: "\n"@10269..10270
+      BLANK_LINE: "\n"@10270..10271
+      TEXT_LINE: ">>> popt, pcov = curve_fit(func, xdata, ydata, bounds=(0, [3., 1., 0.5]))"@10271..10344
+      NEWLINE: "\n"@10344..10345
+      TEXT_LINE: ">>> popt"@10345..10353
+      NEWLINE: "\n"@10353..10354
+      TEXT_LINE: "array([2.43736712, 1.        , 0.34463856])"@10354..10397
+      NEWLINE: "\n"@10397..10398
+      TEXT_LINE: ">>> plt.plot(xdata, func(xdata, *popt), 'g--',"@10398..10444
+      NEWLINE: "\n"@10444..10445
+      TEXT_LINE: "...          label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt))"@10445..10511
+      NEWLINE: "\n"@10511..10512
+      BLANK_LINE: "\n"@10512..10513
+      TEXT_LINE: ">>> plt.xlabel('x')"@10513..10532
+      NEWLINE: "\n"@10532..10533
+      TEXT_LINE: ">>> plt.ylabel('y')"@10533..10552
+      NEWLINE: "\n"@10552..10553
+      TEXT_LINE: ">>> plt.legend()"@10553..10569
+      NEWLINE: "\n"@10569..10570
+      TEXT_LINE: ">>> plt.show()"@10570..10584
+      NEWLINE: "\n"@10584..10585
+      BLANK_LINE: "\n"@10585..10586
+      TEXT_LINE: "For reliable results, the model `func` should not be overparametrized;"@10586..10656
+      NEWLINE: "\n"@10656..10657
+      TEXT_LINE: "redundant parameters can cause unreliable covariance matrices and, in some"@10657..10731
+      NEWLINE: "\n"@10731..10732
+      TEXT_LINE: "cases, poorer quality fits. As a quick check of whether the model may be"@10732..10804
+      NEWLINE: "\n"@10804..10805
+      TEXT_LINE: "overparameterized, calculate the condition number of the covariance matrix:"@10805..10880
+      NEWLINE: "\n"@10880..10881
+      BLANK_LINE: "\n"@10881..10882
+      TEXT_LINE: ">>> np.linalg.cond(pcov)"@10882..10906
+      NEWLINE: "\n"@10906..10907
+      TEXT_LINE: "34.571092161547405  # may vary"@10907..10937
+      NEWLINE: "\n"@10937..10938
+      BLANK_LINE: "\n"@10938..10939
+      TEXT_LINE: "The value is small, so it does not raise much concern. If, however, we were"@10939..11014
+      NEWLINE: "\n"@11014..11015
+      TEXT_LINE: "to add a fourth parameter ``d`` to `func` with the same effect as ``a``:"@11015..11087
+      NEWLINE: "\n"@11087..11088
+      BLANK_LINE: "\n"@11088..11089
+      TEXT_LINE: ">>> def func2(x, a, b, c, d):"@11089..11118
+      NEWLINE: "\n"@11118..11119
+      TEXT_LINE: "...     return a * d * np.exp(-b * x) + c  # a and d are redundant"@11119..11185
+      NEWLINE: "\n"@11185..11186
+      TEXT_LINE: ">>> popt, pcov = curve_fit(func2, xdata, ydata)"@11186..11233
+      NEWLINE: "\n"@11233..11234
+      TEXT_LINE: ">>> np.linalg.cond(pcov)"@11234..11258
+      NEWLINE: "\n"@11258..11259
+      TEXT_LINE: "1.13250718925596e+32  # may vary"@11259..11291
+      NEWLINE: "\n"@11291..11292
+      BLANK_LINE: "\n"@11292..11293
+      TEXT_LINE: "Such a large value is cause for concern. The diagonal elements of the"@11293..11362
+      NEWLINE: "\n"@11362..11363
+      TEXT_LINE: "covariance matrix, which is related to uncertainty of the fit, gives more"@11363..11436
+      NEWLINE: "\n"@11436..11437
+      TEXT_LINE: "information:"@11437..11449
+      NEWLINE: "\n"@11449..11450
+      BLANK_LINE: "\n"@11450..11451
+      TEXT_LINE: ">>> np.diag(pcov)"@11451..11468
+      NEWLINE: "\n"@11468..11469
+      TEXT_LINE: "array([1.48814742e+29, 3.78596560e-02, 5.39253738e-03, 2.76417220e+28])  # may vary"@11469..11552
+      NEWLINE: "\n"@11552..11553
+      BLANK_LINE: "\n"@11553..11554
+      TEXT_LINE: "Note that the first and last terms are much larger than the other elements,"@11554..11629
+      NEWLINE: "\n"@11629..11630
+      TEXT_LINE: "suggesting that the optimal values of these parameters are ambiguous and"@11630..11702
+      NEWLINE: "\n"@11702..11703
+      TEXT_LINE: "that only one of these parameters is needed in the model."@11703..11760
+      NEWLINE: "\n"@11760..11761
+      BLANK_LINE: "\n"@11761..11762
+      TEXT_LINE: "If the optimal parameters of `f` differ by multiple orders of magnitude, the"@11762..11838
+      NEWLINE: "\n"@11838..11839
+      TEXT_LINE: "resulting fit can be inaccurate. Sometimes, `curve_fit` can fail to find any"@11839..11915
+      NEWLINE: "\n"@11915..11916
+      TEXT_LINE: "results:"@11916..11924
+      NEWLINE: "\n"@11924..11925
+      BLANK_LINE: "\n"@11925..11926
+      TEXT_LINE: ">>> ydata = func(xdata, 500000, 0.01, 15)"@11926..11967
+      NEWLINE: "\n"@11967..11968
+      TEXT_LINE: ">>> try:"@11968..11976
+      NEWLINE: "\n"@11976..11977
+      TEXT_LINE: "...     popt, pcov = curve_fit(func, xdata, ydata, method = 'trf')"@11977..12043
+      NEWLINE: "\n"@12043..12044
+      TEXT_LINE: "... except RuntimeError as e:"@12044..12073
+      NEWLINE: "\n"@12073..12074
+      TEXT_LINE: "...     print(e)"@12074..12090
+      NEWLINE: "\n"@12090..12091
+      TEXT_LINE: "Optimal parameters not found: The maximum number of function evaluations is"@12091..12166
+      NEWLINE: "\n"@12166..12167
+      TEXT_LINE: "exceeded."@12167..12176
+      NEWLINE: "\n"@12176..12177
+      BLANK_LINE: "\n"@12177..12178
+      TEXT_LINE: "If parameter scale is roughly known beforehand, it can be defined in"@12178..12246
+      NEWLINE: "\n"@12246..12247
+      TEXT_LINE: "`x_scale` argument:"@12247..12266
+      NEWLINE: "\n"@12266..12267
+      BLANK_LINE: "\n"@12267..12268
+      TEXT_LINE: ">>> popt, pcov = curve_fit(func, xdata, ydata, method = 'trf',"@12268..12330
+      NEWLINE: "\n"@12330..12331
+      TEXT_LINE: "...                        x_scale = [1000, 1, 1])"@12331..12381
+      NEWLINE: "\n"@12381..12382
+      TEXT_LINE: ">>> popt"@12382..12390
+      NEWLINE: "\n"@12390..12391
+      TEXT_LINE: "array([5.00000000e+05, 1.00000000e-02, 1.49999999e+01])"@12391..12446
+    }
+  }
+}
+=== EMIT ===
+Use non-linear least squares to fit a function, f, to data.
+
+Assumes ``ydata = f(xdata, *params) + eps``.
+
+Parameters
+----------
+f : callable
+    The model function, f(x, ...). It must take the independent
+    variable as the first argument and the parameters to fit as
+    separate remaining arguments.
+xdata : array_like
+    The independent variable where the data is measured.
+    Should usually be an M-length sequence or an (k,M)-shaped array for
+    functions with k predictors, and each element should be float
+    convertible if it is an array like object.
+ydata : array_like
+    The dependent data, a length M array - nominally ``f(xdata, ...)``.
+p0 : array_like, optional
+    Initial guess for the parameters (length N). If None, then the
+    initial values will all be 1 (if the number of parameters for the
+    function can be determined using introspection, otherwise a
+    ValueError is raised).
+sigma : None or scalar or M-length sequence or MxM array, optional
+    Determines the uncertainty in `ydata`. If we define residuals as
+    ``r = ydata - f(xdata, *popt)``, then the interpretation of `sigma`
+    depends on its number of dimensions:
+
+    - A scalar or 1-D `sigma` should contain values of standard deviations of
+      errors in `ydata`. In this case, the optimized function is
+      ``chisq = sum((r / sigma) ** 2)``.
+
+    - A 2-D `sigma` should contain the covariance matrix of
+      errors in `ydata`. In this case, the optimized function is
+      ``chisq = r.T @ inv(sigma) @ r``.
+
+      .. versionadded:: 0.19
+
+    None (default) is equivalent of 1-D `sigma` filled with ones.
+absolute_sigma : bool, optional
+    If True, `sigma` is used in an absolute sense and the estimated parameter
+    covariance `pcov` reflects these absolute values.
+
+    If False (default), only the relative magnitudes of the `sigma` values matter.
+    The returned parameter covariance matrix `pcov` is based on scaling
+    `sigma` by a constant factor. This constant is set by demanding that the
+    reduced `chisq` for the optimal parameters `popt` when using the
+    *scaled* `sigma` equals unity. In other words, `sigma` is scaled to
+    match the sample variance of the residuals after the fit. Default is False.
+    Mathematically,
+    ``pcov(absolute_sigma=False) = pcov(absolute_sigma=True) * chisq(popt)/(M-N)``
+check_finite : bool, optional
+    If True, check that the input arrays do not contain nans of infs,
+    and raise a ValueError if they do. Setting this parameter to
+    False may silently produce nonsensical results if the input arrays
+    do contain nans. Default is True if `nan_policy` is not specified
+    explicitly and False otherwise.
+bounds : 2-tuple of array_like or `Bounds`, optional
+    Lower and upper bounds on parameters. Defaults to no bounds.
+    There are two ways to specify the bounds:
+
+    - Instance of `Bounds` class.
+
+    - 2-tuple of array_like: Each element of the tuple must be either
+      an array with the length equal to the number of parameters, or a
+      scalar (in which case the bound is taken to be the same for all
+      parameters). Use ``np.inf`` with an appropriate sign to disable
+      bounds on all or some parameters.
+method : {'lm', 'trf', 'dogbox'}, optional
+    Method to use for optimization. See `least_squares` for more details.
+    Default is 'lm' for unconstrained problems and 'trf' if `bounds` are
+    provided. The method 'lm' won't work when the number of observations
+    is less than the number of variables, use 'trf' or 'dogbox' in this
+    case.
+
+    .. versionadded:: 0.17
+jac : callable, str or None, optional
+    Function with signature ``jac(x, ...)`` which computes the Jacobian
+    matrix of the model function with respect to parameters as a dense
+    array_like structure. It will be scaled according to provided `sigma`.
+    If None (default), the Jacobian will be estimated numerically.
+    String keywords for 'trf' and 'dogbox' methods can be used to select
+    a finite difference scheme, see `least_squares`.
+
+    .. versionadded:: 0.18
+full_output : bool, optional
+    If True, this function returns additional information: `infodict`,
+    `mesg`, and `ier`.
+
+    .. versionadded:: 1.9
+nan_policy : {'raise', 'omit', None}, optional
+    Defines how to handle when input contains nan.
+    The following options are available (default is None):
+
+    * 'raise': throws an error
+    * 'omit': performs the calculations ignoring nan values
+    * None: no special handling of NaNs is performed
+      (except what is done by check_finite); the behavior when NaNs
+      are present is implementation-dependent and may change.
+
+    Note that if this value is specified explicitly (not None),
+    `check_finite` will be set as False.
+
+    .. versionadded:: 1.11
+**kwargs
+    Keyword arguments passed to `leastsq` for ``method='lm'`` or
+    `least_squares` otherwise.
+
+Returns
+-------
+popt : array
+    Optimal values for the parameters so that the sum of the squared
+    residuals of ``f(xdata, *popt) - ydata`` is minimized.
+pcov : 2-D array
+    The estimated approximate covariance of popt. The diagonals provide
+    the variance of the parameter estimate. To compute one standard
+    deviation errors on the parameters, use
+    ``perr = np.sqrt(np.diag(pcov))``. Note that the relationship between
+    `cov` and parameter error estimates is derived based on a linear
+    approximation to the model function around the optimum [1]_.
+    When this approximation becomes inaccurate, `cov` may not provide an
+    accurate measure of uncertainty.
+
+    How the `sigma` parameter affects the estimated covariance
+    depends on `absolute_sigma` argument, as described above.
+
+    If the Jacobian matrix at the solution doesn't have a full rank, then
+    'lm' method returns a matrix filled with ``np.inf``, on the other hand
+    'trf'  and 'dogbox' methods use Moore-Penrose pseudoinverse to compute
+    the covariance matrix. Covariance matrices with large condition numbers
+    (e.g. computed with `numpy.linalg.cond`) may indicate that results are
+    unreliable.
+infodict : dict (returned only if `full_output` is True)
+    a dictionary of optional outputs with the keys:
+
+    ``nfev``
+        The number of function calls. Methods 'trf' and 'dogbox' do not
+        count function calls for numerical Jacobian approximation,
+        as opposed to 'lm' method.
+    ``fvec``
+        The residual values evaluated at the solution, for a 1-D `sigma`
+        this is ``(f(x, *popt) - ydata)/sigma``.
+    ``fjac``
+        A permutation of the R matrix of a QR
+        factorization of the final approximate
+        Jacobian matrix, stored column wise.
+        Together with ipvt, the covariance of the
+        estimate can be approximated.
+        Method 'lm' only provides this information.
+    ``ipvt``
+        An integer array of length N which defines
+        a permutation matrix, p, such that
+        fjac*p = q*r, where r is upper triangular
+        with diagonal elements of nonincreasing
+        magnitude. Column j of p is column ipvt(j)
+        of the identity matrix.
+        Method 'lm' only provides this information.
+    ``qtf``
+        The vector (transpose(q) * fvec).
+        Method 'lm' only provides this information.
+
+    .. versionadded:: 1.9
+mesg : str (returned only if `full_output` is True)
+    A string message giving information about the solution.
+
+    .. versionadded:: 1.9
+ier : int (returned only if `full_output` is True)
+    An integer flag. If it is equal to 1, 2, 3 or 4, the solution was
+    found. Otherwise, the solution was not found. In either case, the
+    optional output variable `mesg` gives more information.
+
+    .. versionadded:: 1.9
+
+Raises
+------
+ValueError
+    if either `ydata` or `xdata` contain NaNs, or if incompatible options
+    are used.
+RuntimeError
+    if the least-squares minimization fails.
+TypeError
+    if the number of data points is fewer than the number of parameters
+OptimizeWarning
+    if covariance of the parameters can not be estimated.
+
+See Also
+--------
+least_squares : Minimize the sum of squares of nonlinear functions.
+scipy.stats.linregress : Calculate a linear least squares regression for
+two sets of measurements.
+
+Notes
+-----
+Users should ensure that inputs `xdata`, `ydata`, and the output of `f`
+are ``float64``, or else the optimization may return incorrect results.
+
+With ``method='lm'``, the algorithm uses the Levenberg-Marquardt algorithm
+through `leastsq`. Note that this algorithm can only deal with
+unconstrained problems.
+
+Box constraints can be handled by methods 'trf' and 'dogbox'. Refer to
+the docstring of `least_squares` for more information.
+
+Parameters to be fitted must have similar scale. Differences of multiple
+orders of magnitude can lead to incorrect results. For the 'trf' and
+'dogbox' methods, the `x_scale` keyword argument can be used to scale
+the parameters.
+
+`curve_fit` is for local optimization of parameters to minimize the sum of squares
+of residuals. For global optimization, other choices of objective function, and
+other advanced features, consider using SciPy's :ref:`tutorial_optimize_global`
+tools or the `LMFIT <https://lmfit.github.io/lmfit-py/index.html>`_ package.
+
+References
+----------
+.. [1] K. Vugrin et al. Confidence region estimation techniques for nonlinear
+    regression in groundwater flow: Three case studies. Water Resources
+    Research, Vol. 43, W03423, :doi:`10.1029/2005WR004804`
+
+Examples
+--------
+>>> import numpy as np
+>>> import matplotlib.pyplot as plt
+>>> from scipy.optimize import curve_fit
+
+>>> def func(x, a, b, c):
+...     return a * np.exp(-b * x) + c
+
+Define the data to be fit with some noise:
+
+>>> xdata = np.linspace(0, 4, 50)
+>>> y = func(xdata, 2.5, 1.3, 0.5)
+>>> rng = np.random.default_rng()
+>>> y_noise = 0.2 * rng.normal(size=xdata.size)
+>>> ydata = y + y_noise
+>>> plt.plot(xdata, ydata, 'b-', label='data')
+
+Fit for the parameters a, b, c of the function `func`:
+
+>>> popt, pcov = curve_fit(func, xdata, ydata)
+>>> popt
+array([2.56274217, 1.37268521, 0.47427475])
+>>> plt.plot(xdata, func(xdata, *popt), 'r-',
+...          label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt))
+
+Constrain the optimization to the region of ``0 <= a <= 3``,
+``0 <= b <= 1`` and ``0 <= c <= 0.5``:
+
+>>> popt, pcov = curve_fit(func, xdata, ydata, bounds=(0, [3., 1., 0.5]))
+>>> popt
+array([2.43736712, 1.        , 0.34463856])
+>>> plt.plot(xdata, func(xdata, *popt), 'g--',
+...          label='fit: a=%5.3f, b=%5.3f, c=%5.3f' % tuple(popt))
+
+>>> plt.xlabel('x')
+>>> plt.ylabel('y')
+>>> plt.legend()
+>>> plt.show()
+
+For reliable results, the model `func` should not be overparametrized;
+redundant parameters can cause unreliable covariance matrices and, in some
+cases, poorer quality fits. As a quick check of whether the model may be
+overparameterized, calculate the condition number of the covariance matrix:
+
+>>> np.linalg.cond(pcov)
+34.571092161547405  # may vary
+
+The value is small, so it does not raise much concern. If, however, we were
+to add a fourth parameter ``d`` to `func` with the same effect as ``a``:
+
+>>> def func2(x, a, b, c, d):
+...     return a * d * np.exp(-b * x) + c  # a and d are redundant
+>>> popt, pcov = curve_fit(func2, xdata, ydata)
+>>> np.linalg.cond(pcov)
+1.13250718925596e+32  # may vary
+
+Such a large value is cause for concern. The diagonal elements of the
+covariance matrix, which is related to uncertainty of the fit, gives more
+information:
+
+>>> np.diag(pcov)
+array([1.48814742e+29, 3.78596560e-02, 5.39253738e-03, 2.76417220e+28])  # may vary
+
+Note that the first and last terms are much larger than the other elements,
+suggesting that the optimal values of these parameters are ambiguous and
+that only one of these parameters is needed in the model.
+
+If the optimal parameters of `f` differ by multiple orders of magnitude, the
+resulting fit can be inaccurate. Sometimes, `curve_fit` can fail to find any
+results:
+
+>>> ydata = func(xdata, 500000, 0.01, 15)
+>>> try:
+...     popt, pcov = curve_fit(func, xdata, ydata, method = 'trf')
+... except RuntimeError as e:
+...     print(e)
+Optimal parameters not found: The maximum number of function evaluations is
+exceeded.
+
+If parameter scale is roughly known beforehand, it can be defined in
+`x_scale` argument:
+
+>>> popt, pcov = curve_fit(func, xdata, ydata, method = 'trf',
+...                        x_scale = [1000, 1, 1])
+>>> popt
+array([5.00000000e+05, 1.00000000e-02, 1.49999999e+01])

@@ -1,0 +1,16 @@
+Convenience function for returning a 1 dimensional ndarray of values from :attr:`X`, :attr:`layers`\ `[k]`, or :attr:`obs`.
+
+Made for convenience, not performance.
+Intentionally permissive about arguments, for easy iterative use.
+
+Params
+------
+k
+    Key to use. Should be in :attr:`var_names` or :attr:`obs`\ `.columns`.
+layer
+    What layer values should be returned from. If `None`, :attr:`X` is used.
+
+Returns
+-------
+A one dimensional ndarray, with values for each obs in the same order
+as :attr:`obs_names`.

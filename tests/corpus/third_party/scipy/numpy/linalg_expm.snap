@@ -1,0 +1,271 @@
+=== CST ===
+DOCUMENT@0..2199 {
+  SUMMARY@0..43 {
+    TEXT_LINE: "Compute the matrix exponential of an array."@0..43
+  }
+  NEWLINE: "\n"@43..44
+  BLANK_LINE: "\n"@44..45
+  EXTENDED_SUMMARY@45..259 {
+    TEXT_LINE: "Array argument(s) of this function may have additional"@45..99
+    NEWLINE: "\n"@99..100
+    TEXT_LINE: "\"batch\" dimensions prepended to the core shape. In this case, the array is treated"@100..182
+    NEWLINE: "\n"@182..183
+    TEXT_LINE: "as a batch of lower-dimensional slices; see :ref:`linalg_batch` for details."@183..259
+  }
+  NEWLINE: "\n"@259..260
+  BLANK_LINE: "\n"@260..261
+  SECTION@261..357 {
+    SECTION_HEADER@261..282 {
+      NAME: "Parameters"@261..271
+      NEWLINE: "\n"@271..272
+      UNDERLINE: "----------"@272..282
+    }
+    NEWLINE: "\n"@282..283
+    ENTRY@283..357 {
+      NAME: "A"@283..284
+      WHITESPACE: " "@284..285
+      COLON: ":"@285..286
+      WHITESPACE: " "@286..287
+      TYPE: "ndarray"@287..294
+      NEWLINE: "\n"@294..295
+      WHITESPACE: "    "@295..299
+      DESCRIPTION@299..357 {
+        TEXT_LINE: "Input with last two dimensions are square ``(..., n, n)``."@299..357
+      }
+    }
+  }
+  NEWLINE: "\n"@357..358
+  BLANK_LINE: "\n"@358..359
+  SECTION@359..453 {
+    SECTION_HEADER@359..374 {
+      NAME: "Returns"@359..366
+      NEWLINE: "\n"@366..367
+      UNDERLINE: "-------"@367..374
+    }
+    NEWLINE: "\n"@374..375
+    ENTRY@375..453 {
+      NAME: "eA"@375..377
+      WHITESPACE: " "@377..378
+      COLON: ":"@378..379
+      WHITESPACE: " "@379..380
+      TYPE: "ndarray"@380..387
+      NEWLINE: "\n"@387..388
+      WHITESPACE: "    "@388..392
+      DESCRIPTION@392..453 {
+        TEXT_LINE: "The resulting matrix exponential with the same shape of ``A``"@392..453
+      }
+    }
+  }
+  NEWLINE: "\n"@453..454
+  BLANK_LINE: "\n"@454..455
+  SECTION@455..1020 {
+    SECTION_HEADER@455..466 {
+      NAME: "Notes"@455..460
+      NEWLINE: "\n"@460..461
+      UNDERLINE: "-----"@461..466
+    }
+    NEWLINE: "\n"@466..467
+    DESCRIPTION@467..1020 {
+      TEXT_LINE: "Implements the algorithm given in [1]_, which is essentially a Pade"@467..534
+      NEWLINE: "\n"@534..535
+      TEXT_LINE: "approximation with a variable order that is decided based on the array"@535..605
+      NEWLINE: "\n"@605..606
+      TEXT_LINE: "data."@606..611
+      NEWLINE: "\n"@611..612
+      BLANK_LINE: "\n"@612..613
+      TEXT_LINE: "For input with size ``n``, the memory usage is in the worst case in the"@613..684
+      NEWLINE: "\n"@684..685
+      TEXT_LINE: "order of ``8*(n**2)``. If the input data is not of single and double"@685..753
+      NEWLINE: "\n"@753..754
+      TEXT_LINE: "precision of real and complex dtypes, it is copied to a new array."@754..820
+      NEWLINE: "\n"@820..821
+      BLANK_LINE: "\n"@821..822
+      TEXT_LINE: "For cases ``n >= 400``, the exact 1-norm computation cost, breaks even with"@822..897
+      NEWLINE: "\n"@897..898
+      TEXT_LINE: "1-norm estimation and from that point on the estimation scheme given in"@898..969
+      NEWLINE: "\n"@969..970
+      TEXT_LINE: "[2]_ is used to decide on the approximation order."@970..1020
+    }
+  }
+  NEWLINE: "\n"@1020..1021
+  BLANK_LINE: "\n"@1021..1022
+  SECTION@1022..1496 {
+    SECTION_HEADER@1022..1043 {
+      NAME: "References"@1022..1032
+      NEWLINE: "\n"@1032..1033
+      UNDERLINE: "----------"@1033..1043
+    }
+    NEWLINE: "\n"@1043..1044
+    CITATION@1044..1246 {
+      DIRECTIVE_MARKER: ".."@1044..1046
+      WHITESPACE: " "@1046..1047
+      OPEN_BRACKET: "["@1047..1048
+      LABEL: "1"@1048..1049
+      CLOSE_BRACKET: "]"@1049..1050
+      WHITESPACE: " "@1050..1051
+      DESCRIPTION@1051..1246 {
+        TEXT_LINE: "Awad H. Al-Mohy and Nicholas J. Higham, (2009), \"A New Scaling"@1051..1113
+        NEWLINE: "\n"@1113..1114
+        WHITESPACE: "       "@1114..1121
+        TEXT_LINE: "and Squaring Algorithm for the Matrix Exponential\", SIAM J. Matrix"@1121..1187
+        NEWLINE: "\n"@1187..1188
+        WHITESPACE: "       "@1188..1195
+        TEXT_LINE: "Anal. Appl. 31(3):970-989, :doi:`10.1137/09074721X`"@1195..1246
+      }
+    }
+    NEWLINE: "\n"@1246..1247
+    BLANK_LINE: "\n"@1247..1248
+    CITATION@1248..1496 {
+      DIRECTIVE_MARKER: ".."@1248..1250
+      WHITESPACE: " "@1250..1251
+      OPEN_BRACKET: "["@1251..1252
+      LABEL: "2"@1252..1253
+      CLOSE_BRACKET: "]"@1253..1254
+      WHITESPACE: " "@1254..1255
+      DESCRIPTION@1255..1496 {
+        TEXT_LINE: "Nicholas J. Higham and Francoise Tisseur (2000), \"A Block Algorithm"@1255..1322
+        NEWLINE: "\n"@1322..1323
+        WHITESPACE: "       "@1323..1330
+        TEXT_LINE: "for Matrix 1-Norm Estimation, with an Application to 1-Norm"@1330..1389
+        NEWLINE: "\n"@1389..1390
+        WHITESPACE: "       "@1390..1397
+        TEXT_LINE: "Pseudospectra.\" SIAM J. Matrix Anal. Appl. 21(4):1185-1201,"@1397..1456
+        NEWLINE: "\n"@1456..1457
+        WHITESPACE: "       "@1457..1464
+        TEXT_LINE: ":doi:`10.1137/S0895479899356080`"@1464..1496
+      }
+    }
+  }
+  NEWLINE: "\n"@1496..1497
+  BLANK_LINE: "\n"@1497..1498
+  SECTION@1498..2199 {
+    SECTION_HEADER@1498..1515 {
+      NAME: "Examples"@1498..1506
+      NEWLINE: "\n"@1506..1507
+      UNDERLINE: "--------"@1507..1515
+    }
+    NEWLINE: "\n"@1515..1516
+    DESCRIPTION@1516..2199 {
+      TEXT_LINE: ">>> import numpy as np"@1516..1538
+      NEWLINE: "\n"@1538..1539
+      TEXT_LINE: ">>> from scipy.linalg import expm, sinm, cosm"@1539..1584
+      NEWLINE: "\n"@1584..1585
+      BLANK_LINE: "\n"@1585..1586
+      TEXT_LINE: "Matrix version of the formula exp(0) = 1:"@1586..1627
+      NEWLINE: "\n"@1627..1628
+      BLANK_LINE: "\n"@1628..1629
+      TEXT_LINE: ">>> expm(np.zeros((3, 2, 2)))"@1629..1658
+      NEWLINE: "\n"@1658..1659
+      TEXT_LINE: "array([[[1., 0.],"@1659..1676
+      NEWLINE: "\n"@1676..1677
+      WHITESPACE: "        "@1677..1685
+      TEXT_LINE: "[0., 1.]],"@1685..1695
+      NEWLINE: "\n"@1695..1696
+      TEXT_LINE: "<BLANKLINE>"@1696..1707
+      NEWLINE: "\n"@1707..1708
+      WHITESPACE: "       "@1708..1715
+      TEXT_LINE: "[[1., 0.],"@1715..1725
+      NEWLINE: "\n"@1725..1726
+      WHITESPACE: "        "@1726..1734
+      TEXT_LINE: "[0., 1.]],"@1734..1744
+      NEWLINE: "\n"@1744..1745
+      TEXT_LINE: "<BLANKLINE>"@1745..1756
+      NEWLINE: "\n"@1756..1757
+      WHITESPACE: "       "@1757..1764
+      TEXT_LINE: "[[1., 0.],"@1764..1774
+      NEWLINE: "\n"@1774..1775
+      WHITESPACE: "        "@1775..1783
+      TEXT_LINE: "[0., 1.]]])"@1783..1794
+      NEWLINE: "\n"@1794..1795
+      BLANK_LINE: "\n"@1795..1796
+      TEXT_LINE: "Euler's identity (exp(i*theta) = cos(theta) + i*sin(theta))"@1796..1855
+      NEWLINE: "\n"@1855..1856
+      TEXT_LINE: "applied to a matrix:"@1856..1876
+      NEWLINE: "\n"@1876..1877
+      BLANK_LINE: "\n"@1877..1878
+      TEXT_LINE: ">>> a = np.array([[1.0, 2.0], [-1.0, 3.0]])"@1878..1921
+      NEWLINE: "\n"@1921..1922
+      TEXT_LINE: ">>> expm(1j*a)"@1922..1936
+      NEWLINE: "\n"@1936..1937
+      TEXT_LINE: "array([[ 0.42645930+1.89217551j, -2.13721484-0.97811252j],"@1937..1995
+      NEWLINE: "\n"@1995..1996
+      WHITESPACE: "       "@1996..2003
+      TEXT_LINE: "[ 1.06860742+0.48905626j, -1.71075555+0.91406299j]])"@2003..2055
+      NEWLINE: "\n"@2055..2056
+      TEXT_LINE: ">>> cosm(a) + 1j*sinm(a)"@2056..2080
+      NEWLINE: "\n"@2080..2081
+      TEXT_LINE: "array([[ 0.42645930+1.89217551j, -2.13721484-0.97811252j],"@2081..2139
+      NEWLINE: "\n"@2139..2140
+      WHITESPACE: "       "@2140..2147
+      TEXT_LINE: "[ 1.06860742+0.48905626j, -1.71075555+0.91406299j]])"@2147..2199
+    }
+  }
+}
+=== EMIT ===
+Compute the matrix exponential of an array.
+
+Array argument(s) of this function may have additional
+"batch" dimensions prepended to the core shape. In this case, the array is treated
+as a batch of lower-dimensional slices; see :ref:`linalg_batch` for details.
+
+Parameters
+----------
+A : ndarray
+    Input with last two dimensions are square ``(..., n, n)``.
+
+Returns
+-------
+eA : ndarray
+    The resulting matrix exponential with the same shape of ``A``
+
+Notes
+-----
+Implements the algorithm given in [1]_, which is essentially a Pade
+approximation with a variable order that is decided based on the array
+data.
+
+For input with size ``n``, the memory usage is in the worst case in the
+order of ``8*(n**2)``. If the input data is not of single and double
+precision of real and complex dtypes, it is copied to a new array.
+
+For cases ``n >= 400``, the exact 1-norm computation cost, breaks even with
+1-norm estimation and from that point on the estimation scheme given in
+[2]_ is used to decide on the approximation order.
+
+References
+----------
+.. [1] Awad H. Al-Mohy and Nicholas J. Higham, (2009), "A New Scaling
+    and Squaring Algorithm for the Matrix Exponential", SIAM J. Matrix
+    Anal. Appl. 31(3):970-989, :doi:`10.1137/09074721X`
+.. [2] Nicholas J. Higham and Francoise Tisseur (2000), "A Block Algorithm
+    for Matrix 1-Norm Estimation, with an Application to 1-Norm
+    Pseudospectra." SIAM J. Matrix Anal. Appl. 21(4):1185-1201,
+    :doi:`10.1137/S0895479899356080`
+
+Examples
+--------
+>>> import numpy as np
+>>> from scipy.linalg import expm, sinm, cosm
+
+Matrix version of the formula exp(0) = 1:
+
+>>> expm(np.zeros((3, 2, 2)))
+array([[[1., 0.],
+        [0., 1.]],
+<BLANKLINE>
+       [[1., 0.],
+        [0., 1.]],
+<BLANKLINE>
+       [[1., 0.],
+        [0., 1.]]])
+
+Euler's identity (exp(i*theta) = cos(theta) + i*sin(theta))
+applied to a matrix:
+
+>>> a = np.array([[1.0, 2.0], [-1.0, 3.0]])
+>>> expm(1j*a)
+array([[ 0.42645930+1.89217551j, -2.13721484-0.97811252j],
+       [ 1.06860742+0.48905626j, -1.71075555+0.91406299j]])
+>>> cosm(a) + 1j*sinm(a)
+array([[ 0.42645930+1.89217551j, -2.13721484-0.97811252j],
+       [ 1.06860742+0.48905626j, -1.71075555+0.91406299j]])

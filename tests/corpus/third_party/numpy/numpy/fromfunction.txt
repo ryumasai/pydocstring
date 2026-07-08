@@ -1,0 +1,64 @@
+Construct an array by executing a function over each coordinate.
+
+The resulting array therefore has a value ``fn(x, y, z)`` at
+coordinate ``(x, y, z)``.
+
+Parameters
+----------
+function : callable
+    The function is called with N parameters, where N is the rank of
+    `shape`.  Each parameter represents the coordinates of the array
+    varying along a specific axis.  For example, if `shape`
+    were ``(2, 2)``, then the parameters would be
+    ``array([[0, 0], [1, 1]])`` and ``array([[0, 1], [0, 1]])``
+shape : (N,) tuple of ints
+    Shape of the output array, which also determines the shape of
+    the coordinate arrays passed to `function`.
+dtype : data-type, optional
+    Data-type of the coordinate arrays passed to `function`.
+    By default, `dtype` is float.
+like : array_like, optional
+        Reference object to allow the creation of arrays which are not
+        NumPy arrays. If an array-like passed in as ``like`` supports
+        the ``__array_function__`` protocol, the result will be defined
+        by it. In this case, it ensures the creation of an array object
+        compatible with that passed in via this argument.
+
+    .. versionadded:: 1.20.0
+
+Returns
+-------
+fromfunction : any
+    The result of the call to `function` is passed back directly.
+    Therefore the shape of `fromfunction` is completely determined by
+    `function`.  If `function` returns a scalar value, the shape of
+    `fromfunction` would not match the `shape` parameter.
+
+See Also
+--------
+indices, meshgrid
+
+Notes
+-----
+Keywords other than `dtype` and `like` are passed to `function`.
+
+Examples
+--------
+>>> import numpy as np
+>>> np.fromfunction(lambda i, j: i, (2, 2), dtype=np.float64)
+array([[0., 0.],
+       [1., 1.]])
+
+>>> np.fromfunction(lambda i, j: j, (2, 2), dtype=np.float64)
+array([[0., 1.],
+       [0., 1.]])
+
+>>> np.fromfunction(lambda i, j: i == j, (3, 3), dtype=np.int_)
+array([[ True, False, False],
+       [False,  True, False],
+       [False, False,  True]])
+
+>>> np.fromfunction(lambda i, j: i + j, (3, 3), dtype=np.int_)
+array([[0, 1, 2],
+       [1, 2, 3],
+       [2, 3, 4]])

@@ -1,0 +1,439 @@
+=== CST ===
+DOCUMENT@0..4130 {
+  SUMMARY@0..62 {
+    TEXT_LINE: "Embed the neighborhood graph using UMAP :cite:p:`McInnes2018`."@0..62
+  }
+  NEWLINE: "\n"@62..63
+  BLANK_LINE: "\n"@63..64
+  EXTENDED_SUMMARY@64..771 {
+    TEXT_LINE: "UMAP (Uniform Manifold Approximation and Projection) is a manifold learning"@64..139
+    NEWLINE: "\n"@139..140
+    TEXT_LINE: "technique suitable for visualizing high-dimensional data. Besides tending to"@140..216
+    NEWLINE: "\n"@216..217
+    TEXT_LINE: "be faster than tSNE, it optimizes the embedding such that it best reflects"@217..291
+    NEWLINE: "\n"@291..292
+    TEXT_LINE: "the topology of the data, which we represent throughout Scanpy using a"@292..362
+    NEWLINE: "\n"@362..363
+    TEXT_LINE: "neighborhood graph. tSNE, by contrast, optimizes the distribution of"@363..431
+    NEWLINE: "\n"@431..432
+    TEXT_LINE: "nearest-neighbor distances in the embedding such that these best match the"@432..506
+    NEWLINE: "\n"@506..507
+    TEXT_LINE: "distribution of distances in the high-dimensional space."@507..563
+    NEWLINE: "\n"@563..564
+    TEXT_LINE: "We use the implementation of umap-learn_ :cite:p:`McInnes2018`."@564..627
+    NEWLINE: "\n"@627..628
+    TEXT_LINE: "For a few comparisons of UMAP with tSNE, see :cite:t:`Becht2018`."@628..693
+    NEWLINE: "\n"@693..694
+    BLANK_LINE: "\n"@694..695
+    TEXT_LINE: ".. _umap-learn: https://github.com/lmcinnes/umap"@695..743
+    NEWLINE: "\n"@743..744
+    BLANK_LINE: "\n"@744..745
+    TEXT_LINE: ".. array-support:: tl.umap"@745..771
+  }
+  NEWLINE: "\n"@771..772
+  BLANK_LINE: "\n"@772..773
+  SECTION@773..3844 {
+    SECTION_HEADER@773..794 {
+      NAME: "Parameters"@773..783
+      NEWLINE: "\n"@783..784
+      UNDERLINE: "----------"@784..794
+    }
+    NEWLINE: "\n"@794..795
+    ENTRY@795..827 {
+      NAME: "adata"@795..800
+      NEWLINE: "\n"@800..801
+      WHITESPACE: "    "@801..805
+      DESCRIPTION@805..827 {
+        TEXT_LINE: "Annotated data matrix."@805..827
+      }
+    }
+    NEWLINE: "\n"@827..828
+    ENTRY@828..1297 {
+      NAME: "min_dist"@828..836
+      NEWLINE: "\n"@836..837
+      WHITESPACE: "    "@837..841
+      DESCRIPTION@841..1297 {
+        TEXT_LINE: "The effective minimum distance between embedded points. Smaller values"@841..911
+        NEWLINE: "\n"@911..912
+        WHITESPACE: "    "@912..916
+        TEXT_LINE: "will result in a more clustered/clumped embedding where nearby points on"@916..988
+        NEWLINE: "\n"@988..989
+        WHITESPACE: "    "@989..993
+        TEXT_LINE: "the manifold are drawn closer together, while larger values will result"@993..1064
+        NEWLINE: "\n"@1064..1065
+        WHITESPACE: "    "@1065..1069
+        TEXT_LINE: "on a more even dispersal of points. The value should be set relative to"@1069..1140
+        NEWLINE: "\n"@1140..1141
+        WHITESPACE: "    "@1141..1145
+        TEXT_LINE: "the ``spread`` value, which determines the scale at which embedded"@1145..1211
+        NEWLINE: "\n"@1211..1212
+        WHITESPACE: "    "@1212..1216
+        TEXT_LINE: "points will be spread out. The default of in the `umap-learn` package is"@1216..1288
+        NEWLINE: "\n"@1288..1289
+        WHITESPACE: "    "@1289..1293
+        TEXT_LINE: "0.1."@1293..1297
+      }
+    }
+    NEWLINE: "\n"@1297..1298
+    ENTRY@1298..1446 {
+      NAME: "spread"@1298..1304
+      NEWLINE: "\n"@1304..1305
+      WHITESPACE: "    "@1305..1309
+      DESCRIPTION@1309..1446 {
+        TEXT_LINE: "The effective scale of embedded points. In combination with `min_dist`"@1309..1379
+        NEWLINE: "\n"@1379..1380
+        WHITESPACE: "    "@1380..1384
+        TEXT_LINE: "this determines how clustered/clumped the embedded points are."@1384..1446
+      }
+    }
+    NEWLINE: "\n"@1446..1447
+    ENTRY@1447..1506 {
+      NAME: "n_components"@1447..1459
+      NEWLINE: "\n"@1459..1460
+      WHITESPACE: "    "@1460..1464
+      DESCRIPTION@1464..1506 {
+        TEXT_LINE: "The number of dimensions of the embedding."@1464..1506
+      }
+    }
+    NEWLINE: "\n"@1506..1507
+    ENTRY@1507..1617 {
+      NAME: "maxiter"@1507..1514
+      NEWLINE: "\n"@1514..1515
+      WHITESPACE: "    "@1515..1519
+      DESCRIPTION@1519..1617 {
+        TEXT_LINE: "The number of iterations (epochs) of the optimization. Called `n_epochs`"@1519..1591
+        NEWLINE: "\n"@1591..1592
+        WHITESPACE: "    "@1592..1596
+        TEXT_LINE: "in the original UMAP."@1596..1617
+      }
+    }
+    NEWLINE: "\n"@1617..1618
+    ENTRY@1618..1685 {
+      NAME: "alpha"@1618..1623
+      NEWLINE: "\n"@1623..1624
+      WHITESPACE: "    "@1624..1628
+      DESCRIPTION@1628..1685 {
+        TEXT_LINE: "The initial learning rate for the embedding optimization."@1628..1685
+      }
+    }
+    NEWLINE: "\n"@1685..1686
+    ENTRY@1686..1870 {
+      NAME: "gamma"@1686..1691
+      NEWLINE: "\n"@1691..1692
+      WHITESPACE: "    "@1692..1696
+      DESCRIPTION@1696..1870 {
+        TEXT_LINE: "Weighting applied to negative samples in low dimensional embedding"@1696..1762
+        NEWLINE: "\n"@1762..1763
+        WHITESPACE: "    "@1763..1767
+        TEXT_LINE: "optimization. Values higher than one will result in greater weight"@1767..1833
+        NEWLINE: "\n"@1833..1834
+        WHITESPACE: "    "@1834..1838
+        TEXT_LINE: "being given to negative samples."@1838..1870
+      }
+    }
+    NEWLINE: "\n"@1870..1871
+    ENTRY@1871..2032 {
+      NAME: "negative_sample_rate"@1871..1891
+      NEWLINE: "\n"@1891..1892
+      WHITESPACE: "    "@1892..1896
+      DESCRIPTION@1896..2032 {
+        TEXT_LINE: "The number of negative edge/1-simplex samples to use per positive"@1896..1961
+        NEWLINE: "\n"@1961..1962
+        WHITESPACE: "    "@1962..1966
+        TEXT_LINE: "edge/1-simplex sample in optimizing the low dimensional embedding."@1966..2032
+      }
+    }
+    NEWLINE: "\n"@2032..2033
+    ENTRY@2033..2405 {
+      NAME: "init_pos"@2033..2041
+      NEWLINE: "\n"@2041..2042
+      WHITESPACE: "    "@2042..2046
+      DESCRIPTION@2046..2405 {
+        TEXT_LINE: "How to initialize the low dimensional embedding. Called `init` in the"@2046..2115
+        NEWLINE: "\n"@2115..2116
+        WHITESPACE: "    "@2116..2120
+        TEXT_LINE: "original UMAP. Options are:"@2120..2147
+        NEWLINE: "\n"@2147..2148
+        BLANK_LINE: "\n"@2148..2149
+        WHITESPACE: "    "@2149..2153
+        TEXT_LINE: "* Any key for `adata.obsm`."@2153..2180
+        NEWLINE: "\n"@2180..2181
+        WHITESPACE: "    "@2181..2185
+        TEXT_LINE: "* 'paga': positions from :func:`~scanpy.pl.paga`."@2185..2234
+        NEWLINE: "\n"@2234..2235
+        WHITESPACE: "    "@2235..2239
+        TEXT_LINE: "* 'spectral': use a spectral embedding of the graph."@2239..2291
+        NEWLINE: "\n"@2291..2292
+        WHITESPACE: "    "@2292..2296
+        TEXT_LINE: "* 'random': assign initial embedding positions at random."@2296..2353
+        NEWLINE: "\n"@2353..2354
+        WHITESPACE: "    "@2354..2358
+        TEXT_LINE: "* A numpy array of initial embedding positions."@2358..2405
+      }
+    }
+    NEWLINE: "\n"@2405..2406
+    ENTRY@2406..2678 {
+      NAME: "random_state"@2406..2418
+      NEWLINE: "\n"@2418..2419
+      WHITESPACE: "    "@2419..2423
+      DESCRIPTION@2423..2678 {
+        TEXT_LINE: "If `int`, `random_state` is the seed used by the random number generator;"@2423..2496
+        NEWLINE: "\n"@2496..2497
+        WHITESPACE: "    "@2497..2501
+        TEXT_LINE: "If `RandomState` or `Generator`, `random_state` is the random number generator;"@2501..2580
+        NEWLINE: "\n"@2580..2581
+        WHITESPACE: "    "@2581..2585
+        TEXT_LINE: "If `None`, the random number generator is the `RandomState` instance used"@2585..2658
+        NEWLINE: "\n"@2658..2659
+        WHITESPACE: "    "@2659..2663
+        TEXT_LINE: "by `np.random`."@2663..2678
+      }
+    }
+    NEWLINE: "\n"@2678..2679
+    ENTRY@2679..2831 {
+      NAME: "a"@2679..2680
+      NEWLINE: "\n"@2680..2681
+      WHITESPACE: "    "@2681..2685
+      DESCRIPTION@2685..2831 {
+        TEXT_LINE: "More specific parameters controlling the embedding. If `None` these"@2685..2752
+        NEWLINE: "\n"@2752..2753
+        WHITESPACE: "    "@2753..2757
+        TEXT_LINE: "values are set automatically as determined by `min_dist` and"@2757..2817
+        NEWLINE: "\n"@2817..2818
+        WHITESPACE: "    "@2818..2822
+        TEXT_LINE: "`spread`."@2822..2831
+      }
+    }
+    NEWLINE: "\n"@2831..2832
+    ENTRY@2832..2984 {
+      NAME: "b"@2832..2833
+      NEWLINE: "\n"@2833..2834
+      WHITESPACE: "    "@2834..2838
+      DESCRIPTION@2838..2984 {
+        TEXT_LINE: "More specific parameters controlling the embedding. If `None` these"@2838..2905
+        NEWLINE: "\n"@2905..2906
+        WHITESPACE: "    "@2906..2910
+        TEXT_LINE: "values are set automatically as determined by `min_dist` and"@2910..2970
+        NEWLINE: "\n"@2970..2971
+        WHITESPACE: "    "@2971..2975
+        TEXT_LINE: "`spread`."@2975..2984
+      }
+    }
+    NEWLINE: "\n"@2984..2985
+    ENTRY@2985..3224 {
+      NAME: "method"@2985..2991
+      NEWLINE: "\n"@2991..2992
+      WHITESPACE: "    "@2992..2996
+      DESCRIPTION@2996..3224 {
+        TEXT_LINE: "Chosen implementation."@2996..3018
+        NEWLINE: "\n"@3018..3019
+        BLANK_LINE: "\n"@3019..3020
+        WHITESPACE: "    "@3020..3024
+        TEXT_LINE: "``'umap'``"@3024..3034
+        NEWLINE: "\n"@3034..3035
+        WHITESPACE: "        "@3035..3043
+        TEXT_LINE: "Umap’s simplical set embedding."@3043..3076
+        NEWLINE: "\n"@3076..3077
+        WHITESPACE: "    "@3077..3081
+        TEXT_LINE: "``'rapids'``"@3081..3093
+        NEWLINE: "\n"@3093..3094
+        WHITESPACE: "        "@3094..3102
+        TEXT_LINE: "GPU accelerated implementation."@3102..3133
+        NEWLINE: "\n"@3133..3134
+        BLANK_LINE: "\n"@3134..3135
+        WHITESPACE: "        "@3135..3143
+        TEXT_LINE: ".. deprecated:: 1.10.0"@3143..3165
+        NEWLINE: "\n"@3165..3166
+        WHITESPACE: "            "@3166..3178
+        TEXT_LINE: "Use :func:`rapids_singlecell.tl.umap` instead."@3178..3224
+      }
+    }
+    NEWLINE: "\n"@3224..3225
+    ENTRY@3225..3576 {
+      NAME: "key_added"@3225..3234
+      NEWLINE: "\n"@3234..3235
+      WHITESPACE: "    "@3235..3239
+      DESCRIPTION@3239..3576 {
+        TEXT_LINE: "If not specified, the embedding is stored as"@3239..3283
+        NEWLINE: "\n"@3283..3284
+        WHITESPACE: "    "@3284..3288
+        TEXT_LINE: ":attr:`~anndata.AnnData.obsm`\\ `['X_umap']` and the the parameters in"@3288..3357
+        NEWLINE: "\n"@3357..3358
+        WHITESPACE: "    "@3358..3362
+        TEXT_LINE: ":attr:`~anndata.AnnData.uns`\\ `['umap']`."@3362..3403
+        NEWLINE: "\n"@3403..3404
+        WHITESPACE: "    "@3404..3408
+        TEXT_LINE: "If specified, the embedding is stored as"@3408..3448
+        NEWLINE: "\n"@3448..3449
+        WHITESPACE: "    "@3449..3453
+        TEXT_LINE: ":attr:`~anndata.AnnData.obsm`\\ ``[key_added]`` and the the parameters in"@3453..3525
+        NEWLINE: "\n"@3525..3526
+        WHITESPACE: "    "@3526..3530
+        TEXT_LINE: ":attr:`~anndata.AnnData.uns`\\ ``[key_added]``."@3530..3576
+      }
+    }
+    NEWLINE: "\n"@3576..3577
+    ENTRY@3577..3792 {
+      NAME: "neighbors_key"@3577..3590
+      NEWLINE: "\n"@3590..3591
+      WHITESPACE: "    "@3591..3595
+      DESCRIPTION@3595..3792 {
+        TEXT_LINE: "Umap looks in"@3595..3608
+        NEWLINE: "\n"@3608..3609
+        WHITESPACE: "    "@3609..3613
+        TEXT_LINE: ":attr:`~anndata.AnnData.uns`\\ ``[neighbors_key]`` for neighbors settings and"@3613..3689
+        NEWLINE: "\n"@3689..3690
+        WHITESPACE: "    "@3690..3694
+        TEXT_LINE: ":attr:`~anndata.AnnData.obsp`\\ ``[.uns[neighbors_key]['connectivities_key']]`` for connectivities."@3694..3792
+      }
+    }
+    NEWLINE: "\n"@3792..3793
+    ENTRY@3793..3844 {
+      NAME: "copy"@3793..3797
+      NEWLINE: "\n"@3797..3798
+      WHITESPACE: "    "@3798..3802
+      DESCRIPTION@3802..3844 {
+        TEXT_LINE: "Return a copy instead of writing to adata."@3802..3844
+      }
+    }
+  }
+  NEWLINE: "\n"@3844..3845
+  BLANK_LINE: "\n"@3845..3846
+  SECTION@3846..4130 {
+    SECTION_HEADER@3846..3861 {
+      NAME: "Returns"@3846..3853
+      NEWLINE: "\n"@3853..3854
+      UNDERLINE: "-------"@3854..3861
+    }
+    NEWLINE: "\n"@3861..3862
+    ENTRY@3862..3954 {
+      TYPE: "Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:"@3862..3954
+    }
+    NEWLINE: "\n"@3954..3955
+    BLANK_LINE: "\n"@3955..3956
+    ENTRY@3956..4061 {
+      NAME: "`adata.obsm['X_umap' | key_added]`"@3956..3990
+      WHITESPACE: " "@3990..3991
+      COLON: ":"@3991..3992
+      WHITESPACE: " "@3992..3993
+      TYPE: ":class:`numpy.ndarray` (dtype `float`)"@3993..4031
+      NEWLINE: "\n"@4031..4032
+      WHITESPACE: "    "@4032..4036
+      DESCRIPTION@4036..4061 {
+        TEXT_LINE: "UMAP coordinates of data."@4036..4061
+      }
+    }
+    NEWLINE: "\n"@4061..4062
+    ENTRY@4062..4130 {
+      NAME: "`adata.uns['umap' | key_added]`"@4062..4093
+      WHITESPACE: " "@4093..4094
+      COLON: ":"@4094..4095
+      WHITESPACE: " "@4095..4096
+      TYPE: ":class:`dict`"@4096..4109
+      NEWLINE: "\n"@4109..4110
+      WHITESPACE: "    "@4110..4114
+      DESCRIPTION@4114..4130 {
+        TEXT_LINE: "UMAP parameters."@4114..4130
+      }
+    }
+  }
+}
+=== EMIT ===
+Embed the neighborhood graph using UMAP :cite:p:`McInnes2018`.
+
+UMAP (Uniform Manifold Approximation and Projection) is a manifold learning
+technique suitable for visualizing high-dimensional data. Besides tending to
+be faster than tSNE, it optimizes the embedding such that it best reflects
+the topology of the data, which we represent throughout Scanpy using a
+neighborhood graph. tSNE, by contrast, optimizes the distribution of
+nearest-neighbor distances in the embedding such that these best match the
+distribution of distances in the high-dimensional space.
+We use the implementation of umap-learn_ :cite:p:`McInnes2018`.
+For a few comparisons of UMAP with tSNE, see :cite:t:`Becht2018`.
+
+.. _umap-learn: https://github.com/lmcinnes/umap
+
+.. array-support:: tl.umap
+
+Parameters
+----------
+adata
+    Annotated data matrix.
+min_dist
+    The effective minimum distance between embedded points. Smaller values
+    will result in a more clustered/clumped embedding where nearby points on
+    the manifold are drawn closer together, while larger values will result
+    on a more even dispersal of points. The value should be set relative to
+    the ``spread`` value, which determines the scale at which embedded
+    points will be spread out. The default of in the `umap-learn` package is
+    0.1.
+spread
+    The effective scale of embedded points. In combination with `min_dist`
+    this determines how clustered/clumped the embedded points are.
+n_components
+    The number of dimensions of the embedding.
+maxiter
+    The number of iterations (epochs) of the optimization. Called `n_epochs`
+    in the original UMAP.
+alpha
+    The initial learning rate for the embedding optimization.
+gamma
+    Weighting applied to negative samples in low dimensional embedding
+    optimization. Values higher than one will result in greater weight
+    being given to negative samples.
+negative_sample_rate
+    The number of negative edge/1-simplex samples to use per positive
+    edge/1-simplex sample in optimizing the low dimensional embedding.
+init_pos
+    How to initialize the low dimensional embedding. Called `init` in the
+    original UMAP. Options are:
+
+    * Any key for `adata.obsm`.
+    * 'paga': positions from :func:`~scanpy.pl.paga`.
+    * 'spectral': use a spectral embedding of the graph.
+    * 'random': assign initial embedding positions at random.
+    * A numpy array of initial embedding positions.
+random_state
+    If `int`, `random_state` is the seed used by the random number generator;
+    If `RandomState` or `Generator`, `random_state` is the random number generator;
+    If `None`, the random number generator is the `RandomState` instance used
+    by `np.random`.
+a
+    More specific parameters controlling the embedding. If `None` these
+    values are set automatically as determined by `min_dist` and
+    `spread`.
+b
+    More specific parameters controlling the embedding. If `None` these
+    values are set automatically as determined by `min_dist` and
+    `spread`.
+method
+    Chosen implementation.
+
+    ``'umap'``
+        Umap’s simplical set embedding.
+    ``'rapids'``
+        GPU accelerated implementation.
+
+        .. deprecated:: 1.10.0
+            Use :func:`rapids_singlecell.tl.umap` instead.
+key_added
+    If not specified, the embedding is stored as
+    :attr:`~anndata.AnnData.obsm`\ `['X_umap']` and the the parameters in
+    :attr:`~anndata.AnnData.uns`\ `['umap']`.
+    If specified, the embedding is stored as
+    :attr:`~anndata.AnnData.obsm`\ ``[key_added]`` and the the parameters in
+    :attr:`~anndata.AnnData.uns`\ ``[key_added]``.
+neighbors_key
+    Umap looks in
+    :attr:`~anndata.AnnData.uns`\ ``[neighbors_key]`` for neighbors settings and
+    :attr:`~anndata.AnnData.obsp`\ ``[.uns[neighbors_key]['connectivities_key']]`` for connectivities.
+copy
+    Return a copy instead of writing to adata.
+
+Returns
+-------
+Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:
+`adata.obsm['X_umap' | key_added]` : :class:`numpy.ndarray` (dtype `float`)
+    UMAP coordinates of data.
+`adata.uns['umap' | key_added]` : :class:`dict`
+    UMAP parameters.

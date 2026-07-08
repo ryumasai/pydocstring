@@ -1,0 +1,226 @@
+=== CST ===
+DOCUMENT@0..1448 {
+  SUMMARY@0..41 {
+    TEXT_LINE: "packbits(a, /, axis=None, bitorder='big')"@0..41
+  }
+  NEWLINE: "\n"@41..42
+  BLANK_LINE: "\n"@42..43
+  EXTENDED_SUMMARY@43..185 {
+    TEXT_LINE: "Packs the elements of a binary-valued array into bits in a uint8 array."@43..114
+    NEWLINE: "\n"@114..115
+    BLANK_LINE: "\n"@115..116
+    TEXT_LINE: "The result is padded to full bytes by inserting zero bits at the end."@116..185
+  }
+  NEWLINE: "\n"@185..186
+  BLANK_LINE: "\n"@186..187
+  SECTION@187..674 {
+    SECTION_HEADER@187..208 {
+      NAME: "Parameters"@187..197
+      NEWLINE: "\n"@197..198
+      UNDERLINE: "----------"@198..208
+    }
+    NEWLINE: "\n"@208..209
+    ENTRY@209..305 {
+      NAME: "a"@209..210
+      WHITESPACE: " "@210..211
+      COLON: ":"@211..212
+      WHITESPACE: " "@212..213
+      TYPE: "array_like"@213..223
+      NEWLINE: "\n"@223..224
+      WHITESPACE: "    "@224..228
+      DESCRIPTION@228..305 {
+        TEXT_LINE: "An array of integers or booleans whose elements should be packed to"@228..295
+        NEWLINE: "\n"@295..296
+        WHITESPACE: "    "@296..300
+        TEXT_LINE: "bits."@300..305
+      }
+    }
+    NEWLINE: "\n"@305..306
+    ENTRY@306..426 {
+      NAME: "axis"@306..310
+      WHITESPACE: " "@310..311
+      COLON: ":"@311..312
+      WHITESPACE: " "@312..313
+      TYPE: "int"@313..316
+      COMMA: ","@316..317
+      WHITESPACE: " "@317..318
+      OPTIONAL: "optional"@318..326
+      NEWLINE: "\n"@326..327
+      WHITESPACE: "    "@327..331
+      DESCRIPTION@331..426 {
+        TEXT_LINE: "The dimension over which bit-packing is done."@331..376
+        NEWLINE: "\n"@376..377
+        WHITESPACE: "    "@377..381
+        TEXT_LINE: "``None`` implies packing the flattened array."@381..426
+      }
+    }
+    NEWLINE: "\n"@426..427
+    ENTRY@427..674 {
+      NAME: "bitorder"@427..435
+      WHITESPACE: " "@435..436
+      COLON: ":"@436..437
+      WHITESPACE: " "@437..438
+      TYPE: "{'big', 'little'}"@438..455
+      COMMA: ","@455..456
+      WHITESPACE: " "@456..457
+      OPTIONAL: "optional"@457..465
+      NEWLINE: "\n"@465..466
+      WHITESPACE: "    "@466..470
+      DESCRIPTION@470..674 {
+        TEXT_LINE: "The order of the input bits. 'big' will mimic bin(val),"@470..525
+        NEWLINE: "\n"@525..526
+        WHITESPACE: "    "@526..530
+        TEXT_LINE: "``[0, 0, 0, 0, 0, 0, 1, 1] => 3 = 0b00000011``, 'little' will"@530..591
+        NEWLINE: "\n"@591..592
+        WHITESPACE: "    "@592..596
+        TEXT_LINE: "reverse the order so ``[1, 1, 0, 0, 0, 0, 0, 0] => 3``."@596..651
+        NEWLINE: "\n"@651..652
+        WHITESPACE: "    "@652..656
+        TEXT_LINE: "Defaults to 'big'."@656..674
+      }
+    }
+  }
+  NEWLINE: "\n"@674..675
+  BLANK_LINE: "\n"@675..676
+  SECTION@676..974 {
+    SECTION_HEADER@676..691 {
+      NAME: "Returns"@676..683
+      NEWLINE: "\n"@683..684
+      UNDERLINE: "-------"@684..691
+    }
+    NEWLINE: "\n"@691..692
+    ENTRY@692..974 {
+      NAME: "packed"@692..698
+      WHITESPACE: " "@698..699
+      COLON: ":"@699..700
+      WHITESPACE: " "@700..701
+      TYPE: "ndarray"@701..708
+      NEWLINE: "\n"@708..709
+      WHITESPACE: "    "@709..713
+      DESCRIPTION@713..974 {
+        TEXT_LINE: "Array of type uint8 whose elements represent bits corresponding to the"@713..783
+        NEWLINE: "\n"@783..784
+        WHITESPACE: "    "@784..788
+        TEXT_LINE: "logical (0 or nonzero) value of the input elements. The shape of"@788..852
+        NEWLINE: "\n"@852..853
+        WHITESPACE: "    "@853..857
+        TEXT_LINE: "`packed` has the same number of dimensions as the input (unless `axis`"@857..927
+        NEWLINE: "\n"@927..928
+        WHITESPACE: "    "@928..932
+        TEXT_LINE: "is None, in which case the output is 1-D)."@932..974
+      }
+    }
+  }
+  NEWLINE: "\n"@974..975
+  BLANK_LINE: "\n"@975..976
+  SECTION@976..1086 {
+    SECTION_HEADER@976..993 {
+      NAME: "See Also"@976..984
+      NEWLINE: "\n"@984..985
+      UNDERLINE: "--------"@985..993
+    }
+    NEWLINE: "\n"@993..994
+    ENTRY@994..1086 {
+      NAME: "unpackbits"@994..1004
+      COLON: ":"@1004..1005
+      WHITESPACE: " "@1005..1006
+      DESCRIPTION@1006..1086 {
+        TEXT_LINE: "Unpacks elements of a uint8 array into a binary-valued output"@1006..1067
+        NEWLINE: "\n"@1067..1068
+        WHITESPACE: "            "@1068..1080
+        TEXT_LINE: "array."@1080..1086
+      }
+    }
+  }
+  NEWLINE: "\n"@1086..1087
+  BLANK_LINE: "\n"@1087..1088
+  SECTION@1088..1448 {
+    SECTION_HEADER@1088..1105 {
+      NAME: "Examples"@1088..1096
+      NEWLINE: "\n"@1096..1097
+      UNDERLINE: "--------"@1097..1105
+    }
+    NEWLINE: "\n"@1105..1106
+    DESCRIPTION@1106..1448 {
+      TEXT_LINE: ">>> import numpy as np"@1106..1128
+      NEWLINE: "\n"@1128..1129
+      TEXT_LINE: ">>> a = np.array([[[1,0,1],"@1129..1156
+      NEWLINE: "\n"@1156..1157
+      TEXT_LINE: "...                [0,1,0]],"@1157..1185
+      NEWLINE: "\n"@1185..1186
+      TEXT_LINE: "...               [[1,1,0],"@1186..1213
+      NEWLINE: "\n"@1213..1214
+      TEXT_LINE: "...                [0,0,1]]])"@1214..1243
+      NEWLINE: "\n"@1243..1244
+      TEXT_LINE: ">>> b = np.packbits(a, axis=-1)"@1244..1275
+      NEWLINE: "\n"@1275..1276
+      TEXT_LINE: ">>> b"@1276..1281
+      NEWLINE: "\n"@1281..1282
+      TEXT_LINE: "array([[[160],"@1282..1296
+      NEWLINE: "\n"@1296..1297
+      WHITESPACE: "        "@1297..1305
+      TEXT_LINE: "[ 64]],"@1305..1312
+      NEWLINE: "\n"@1312..1313
+      WHITESPACE: "       "@1313..1320
+      TEXT_LINE: "[[192],"@1320..1327
+      NEWLINE: "\n"@1327..1328
+      WHITESPACE: "        "@1328..1336
+      TEXT_LINE: "[ 32]]], dtype=uint8)"@1336..1357
+      NEWLINE: "\n"@1357..1358
+      BLANK_LINE: "\n"@1358..1359
+      TEXT_LINE: "Note that in binary 160 = 1010 0000, 64 = 0100 0000, 192 = 1100 0000,"@1359..1428
+      NEWLINE: "\n"@1428..1429
+      TEXT_LINE: "and 32 = 0010 0000."@1429..1448
+    }
+  }
+}
+=== EMIT ===
+packbits(a, /, axis=None, bitorder='big')
+
+Packs the elements of a binary-valued array into bits in a uint8 array.
+
+The result is padded to full bytes by inserting zero bits at the end.
+
+Parameters
+----------
+a : array_like
+    An array of integers or booleans whose elements should be packed to
+    bits.
+axis : int, optional
+    The dimension over which bit-packing is done.
+    ``None`` implies packing the flattened array.
+bitorder : {'big', 'little'}, optional
+    The order of the input bits. 'big' will mimic bin(val),
+    ``[0, 0, 0, 0, 0, 0, 1, 1] => 3 = 0b00000011``, 'little' will
+    reverse the order so ``[1, 1, 0, 0, 0, 0, 0, 0] => 3``.
+    Defaults to 'big'.
+
+Returns
+-------
+packed : ndarray
+    Array of type uint8 whose elements represent bits corresponding to the
+    logical (0 or nonzero) value of the input elements. The shape of
+    `packed` has the same number of dimensions as the input (unless `axis`
+    is None, in which case the output is 1-D).
+
+See Also
+--------
+unpackbits : Unpacks elements of a uint8 array into a binary-valued output
+array.
+
+Examples
+--------
+>>> import numpy as np
+>>> a = np.array([[[1,0,1],
+...                [0,1,0]],
+...               [[1,1,0],
+...                [0,0,1]]])
+>>> b = np.packbits(a, axis=-1)
+>>> b
+array([[[160],
+        [ 64]],
+       [[192],
+        [ 32]]], dtype=uint8)
+
+Note that in binary 160 = 1010 0000, 64 = 0100 0000, 192 = 1100 0000,
+and 32 = 0010 0000.

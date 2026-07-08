@@ -1,0 +1,437 @@
+=== CST ===
+DOCUMENT@0..2729 {
+  SUMMARY@0..39 {
+    TEXT_LINE: "Mask an array where a condition is met."@0..39
+  }
+  NEWLINE: "\n"@39..40
+  BLANK_LINE: "\n"@40..41
+  EXTENDED_SUMMARY@41..168 {
+    TEXT_LINE: "Return `a` as an array masked where `condition` is True."@41..97
+    NEWLINE: "\n"@97..98
+    TEXT_LINE: "Any masked values of `a` or `condition` are also masked in the output."@98..168
+  }
+  NEWLINE: "\n"@168..169
+  BLANK_LINE: "\n"@169..170
+  SECTION@170..498 {
+    SECTION_HEADER@170..191 {
+      NAME: "Parameters"@170..180
+      NEWLINE: "\n"@180..181
+      UNDERLINE: "----------"@181..191
+    }
+    NEWLINE: "\n"@191..192
+    ENTRY@192..343 {
+      NAME: "condition"@192..201
+      WHITESPACE: " "@201..202
+      COLON: ":"@202..203
+      WHITESPACE: " "@203..204
+      TYPE: "array_like"@204..214
+      NEWLINE: "\n"@214..215
+      WHITESPACE: "    "@215..219
+      DESCRIPTION@219..343 {
+        TEXT_LINE: "Masking condition.  When `condition` tests floating point values for"@219..287
+        NEWLINE: "\n"@287..288
+        WHITESPACE: "    "@288..292
+        TEXT_LINE: "equality, consider using ``masked_values`` instead."@292..343
+      }
+    }
+    NEWLINE: "\n"@343..344
+    ENTRY@344..377 {
+      NAME: "a"@344..345
+      WHITESPACE: " "@345..346
+      COLON: ":"@346..347
+      WHITESPACE: " "@347..348
+      TYPE: "array_like"@348..358
+      NEWLINE: "\n"@358..359
+      WHITESPACE: "    "@359..363
+      DESCRIPTION@363..377 {
+        TEXT_LINE: "Array to mask."@363..377
+      }
+    }
+    NEWLINE: "\n"@377..378
+    ENTRY@378..498 {
+      NAME: "copy"@378..382
+      WHITESPACE: " "@382..383
+      COLON: ":"@383..384
+      WHITESPACE: " "@384..385
+      TYPE: "bool"@385..389
+      NEWLINE: "\n"@389..390
+      WHITESPACE: "    "@390..394
+      DESCRIPTION@394..498 {
+        TEXT_LINE: "If True (default) make a copy of `a` in the result.  If False modify"@394..462
+        NEWLINE: "\n"@462..463
+        WHITESPACE: "    "@463..467
+        TEXT_LINE: "`a` in place and return a view."@467..498
+      }
+    }
+  }
+  NEWLINE: "\n"@498..499
+  BLANK_LINE: "\n"@499..500
+  SECTION@500..593 {
+    SECTION_HEADER@500..515 {
+      NAME: "Returns"@500..507
+      NEWLINE: "\n"@507..508
+      UNDERLINE: "-------"@508..515
+    }
+    NEWLINE: "\n"@515..516
+    ENTRY@516..593 {
+      NAME: "result"@516..522
+      WHITESPACE: " "@522..523
+      COLON: ":"@523..524
+      WHITESPACE: " "@524..525
+      TYPE: "MaskedArray"@525..536
+      NEWLINE: "\n"@536..537
+      WHITESPACE: "    "@537..541
+      DESCRIPTION@541..593 {
+        TEXT_LINE: "The result of masking `a` where `condition` is True."@541..593
+      }
+    }
+  }
+  NEWLINE: "\n"@593..594
+  BLANK_LINE: "\n"@594..595
+  SECTION@595..1169 {
+    SECTION_HEADER@595..612 {
+      NAME: "See Also"@595..603
+      NEWLINE: "\n"@603..604
+      UNDERLINE: "--------"@604..612
+    }
+    NEWLINE: "\n"@612..613
+    ENTRY@613..664 {
+      NAME: "masked_values"@613..626
+      WHITESPACE: " "@626..627
+      COLON: ":"@627..628
+      WHITESPACE: " "@628..629
+      DESCRIPTION@629..664 {
+        TEXT_LINE: "Mask using floating point equality."@629..664
+      }
+    }
+    NEWLINE: "\n"@664..665
+    ENTRY@665..714 {
+      NAME: "masked_equal"@665..677
+      WHITESPACE: " "@677..678
+      COLON: ":"@678..679
+      WHITESPACE: " "@679..680
+      DESCRIPTION@680..714 {
+        TEXT_LINE: "Mask where equal to a given value."@680..714
+      }
+    }
+    NEWLINE: "\n"@714..715
+    ENTRY@715..774 {
+      NAME: "masked_not_equal"@715..731
+      WHITESPACE: " "@731..732
+      COLON: ":"@732..733
+      WHITESPACE: " "@733..734
+      DESCRIPTION@734..774 {
+        TEXT_LINE: "Mask where *not* equal to a given value."@734..774
+      }
+    }
+    NEWLINE: "\n"@774..775
+    ENTRY@775..842 {
+      NAME: "masked_less_equal"@775..792
+      WHITESPACE: " "@792..793
+      COLON: ":"@793..794
+      WHITESPACE: " "@794..795
+      DESCRIPTION@795..842 {
+        TEXT_LINE: "Mask where less than or equal to a given value."@795..842
+      }
+    }
+    NEWLINE: "\n"@842..843
+    ENTRY@843..916 {
+      NAME: "masked_greater_equal"@843..863
+      WHITESPACE: " "@863..864
+      COLON: ":"@864..865
+      WHITESPACE: " "@865..866
+      DESCRIPTION@866..916 {
+        TEXT_LINE: "Mask where greater than or equal to a given value."@866..916
+      }
+    }
+    NEWLINE: "\n"@916..917
+    ENTRY@917..966 {
+      NAME: "masked_less"@917..928
+      WHITESPACE: " "@928..929
+      COLON: ":"@929..930
+      WHITESPACE: " "@930..931
+      DESCRIPTION@931..966 {
+        TEXT_LINE: "Mask where less than a given value."@931..966
+      }
+    }
+    NEWLINE: "\n"@966..967
+    ENTRY@967..1022 {
+      NAME: "masked_greater"@967..981
+      WHITESPACE: " "@981..982
+      COLON: ":"@982..983
+      WHITESPACE: " "@983..984
+      DESCRIPTION@984..1022 {
+        TEXT_LINE: "Mask where greater than a given value."@984..1022
+      }
+    }
+    NEWLINE: "\n"@1022..1023
+    ENTRY@1023..1068 {
+      NAME: "masked_inside"@1023..1036
+      WHITESPACE: " "@1036..1037
+      COLON: ":"@1037..1038
+      WHITESPACE: " "@1038..1039
+      DESCRIPTION@1039..1068 {
+        TEXT_LINE: "Mask inside a given interval."@1039..1068
+      }
+    }
+    NEWLINE: "\n"@1068..1069
+    ENTRY@1069..1116 {
+      NAME: "masked_outside"@1069..1083
+      WHITESPACE: " "@1083..1084
+      COLON: ":"@1084..1085
+      WHITESPACE: " "@1085..1086
+      DESCRIPTION@1086..1116 {
+        TEXT_LINE: "Mask outside a given interval."@1086..1116
+      }
+    }
+    NEWLINE: "\n"@1116..1117
+    ENTRY@1117..1169 {
+      NAME: "masked_invalid"@1117..1131
+      WHITESPACE: " "@1131..1132
+      COLON: ":"@1132..1133
+      WHITESPACE: " "@1133..1134
+      DESCRIPTION@1134..1169 {
+        TEXT_LINE: "Mask invalid values (NaNs or infs)."@1134..1169
+      }
+    }
+  }
+  NEWLINE: "\n"@1169..1170
+  BLANK_LINE: "\n"@1170..1171
+  SECTION@1171..2729 {
+    SECTION_HEADER@1171..1188 {
+      NAME: "Examples"@1171..1179
+      NEWLINE: "\n"@1179..1180
+      UNDERLINE: "--------"@1180..1188
+    }
+    NEWLINE: "\n"@1188..1189
+    DESCRIPTION@1189..2729 {
+      TEXT_LINE: ">>> import numpy as np"@1189..1211
+      NEWLINE: "\n"@1211..1212
+      TEXT_LINE: ">>> import numpy.ma as ma"@1212..1237
+      NEWLINE: "\n"@1237..1238
+      TEXT_LINE: ">>> a = np.arange(4)"@1238..1258
+      NEWLINE: "\n"@1258..1259
+      TEXT_LINE: ">>> a"@1259..1264
+      NEWLINE: "\n"@1264..1265
+      TEXT_LINE: "array([0, 1, 2, 3])"@1265..1284
+      NEWLINE: "\n"@1284..1285
+      TEXT_LINE: ">>> ma.masked_where(a <= 2, a)"@1285..1315
+      NEWLINE: "\n"@1315..1316
+      TEXT_LINE: "masked_array(data=[--, --, --, 3],"@1316..1350
+      NEWLINE: "\n"@1350..1351
+      WHITESPACE: "             "@1351..1364
+      TEXT_LINE: "mask=[ True,  True,  True, False],"@1364..1398
+      NEWLINE: "\n"@1398..1399
+      WHITESPACE: "       "@1399..1406
+      TEXT_LINE: "fill_value=999999)"@1406..1424
+      NEWLINE: "\n"@1424..1425
+      BLANK_LINE: "\n"@1425..1426
+      TEXT_LINE: "Mask array `b` conditional on `a`."@1426..1460
+      NEWLINE: "\n"@1460..1461
+      BLANK_LINE: "\n"@1461..1462
+      TEXT_LINE: ">>> b = ['a', 'b', 'c', 'd']"@1462..1490
+      NEWLINE: "\n"@1490..1491
+      TEXT_LINE: ">>> ma.masked_where(a == 2, b)"@1491..1521
+      NEWLINE: "\n"@1521..1522
+      TEXT_LINE: "masked_array(data=['a', 'b', --, 'd'],"@1522..1560
+      NEWLINE: "\n"@1560..1561
+      WHITESPACE: "             "@1561..1574
+      TEXT_LINE: "mask=[False, False,  True, False],"@1574..1608
+      NEWLINE: "\n"@1608..1609
+      WHITESPACE: "       "@1609..1616
+      TEXT_LINE: "fill_value='N/A',"@1616..1633
+      NEWLINE: "\n"@1633..1634
+      WHITESPACE: "            "@1634..1646
+      TEXT_LINE: "dtype='<U1')"@1646..1658
+      NEWLINE: "\n"@1658..1659
+      BLANK_LINE: "\n"@1659..1660
+      TEXT_LINE: "Effect of the `copy` argument."@1660..1690
+      NEWLINE: "\n"@1690..1691
+      BLANK_LINE: "\n"@1691..1692
+      TEXT_LINE: ">>> c = ma.masked_where(a <= 2, a)"@1692..1726
+      NEWLINE: "\n"@1726..1727
+      TEXT_LINE: ">>> c"@1727..1732
+      NEWLINE: "\n"@1732..1733
+      TEXT_LINE: "masked_array(data=[--, --, --, 3],"@1733..1767
+      NEWLINE: "\n"@1767..1768
+      WHITESPACE: "             "@1768..1781
+      TEXT_LINE: "mask=[ True,  True,  True, False],"@1781..1815
+      NEWLINE: "\n"@1815..1816
+      WHITESPACE: "       "@1816..1823
+      TEXT_LINE: "fill_value=999999)"@1823..1841
+      NEWLINE: "\n"@1841..1842
+      TEXT_LINE: ">>> c[0] = 99"@1842..1855
+      NEWLINE: "\n"@1855..1856
+      TEXT_LINE: ">>> c"@1856..1861
+      NEWLINE: "\n"@1861..1862
+      TEXT_LINE: "masked_array(data=[99, --, --, 3],"@1862..1896
+      NEWLINE: "\n"@1896..1897
+      WHITESPACE: "             "@1897..1910
+      TEXT_LINE: "mask=[False,  True,  True, False],"@1910..1944
+      NEWLINE: "\n"@1944..1945
+      WHITESPACE: "       "@1945..1952
+      TEXT_LINE: "fill_value=999999)"@1952..1970
+      NEWLINE: "\n"@1970..1971
+      TEXT_LINE: ">>> a"@1971..1976
+      NEWLINE: "\n"@1976..1977
+      TEXT_LINE: "array([0, 1, 2, 3])"@1977..1996
+      NEWLINE: "\n"@1996..1997
+      TEXT_LINE: ">>> c = ma.masked_where(a <= 2, a, copy=False)"@1997..2043
+      NEWLINE: "\n"@2043..2044
+      TEXT_LINE: ">>> c[0] = 99"@2044..2057
+      NEWLINE: "\n"@2057..2058
+      TEXT_LINE: ">>> c"@2058..2063
+      NEWLINE: "\n"@2063..2064
+      TEXT_LINE: "masked_array(data=[99, --, --, 3],"@2064..2098
+      NEWLINE: "\n"@2098..2099
+      WHITESPACE: "             "@2099..2112
+      TEXT_LINE: "mask=[False,  True,  True, False],"@2112..2146
+      NEWLINE: "\n"@2146..2147
+      WHITESPACE: "       "@2147..2154
+      TEXT_LINE: "fill_value=999999)"@2154..2172
+      NEWLINE: "\n"@2172..2173
+      TEXT_LINE: ">>> a"@2173..2178
+      NEWLINE: "\n"@2178..2179
+      TEXT_LINE: "array([99,  1,  2,  3])"@2179..2202
+      NEWLINE: "\n"@2202..2203
+      BLANK_LINE: "\n"@2203..2204
+      TEXT_LINE: "When `condition` or `a` contain masked values."@2204..2250
+      NEWLINE: "\n"@2250..2251
+      BLANK_LINE: "\n"@2251..2252
+      TEXT_LINE: ">>> a = np.arange(4)"@2252..2272
+      NEWLINE: "\n"@2272..2273
+      TEXT_LINE: ">>> a = ma.masked_where(a == 2, a)"@2273..2307
+      NEWLINE: "\n"@2307..2308
+      TEXT_LINE: ">>> a"@2308..2313
+      NEWLINE: "\n"@2313..2314
+      TEXT_LINE: "masked_array(data=[0, 1, --, 3],"@2314..2346
+      NEWLINE: "\n"@2346..2347
+      WHITESPACE: "             "@2347..2360
+      TEXT_LINE: "mask=[False, False,  True, False],"@2360..2394
+      NEWLINE: "\n"@2394..2395
+      WHITESPACE: "       "@2395..2402
+      TEXT_LINE: "fill_value=999999)"@2402..2420
+      NEWLINE: "\n"@2420..2421
+      TEXT_LINE: ">>> b = np.arange(4)"@2421..2441
+      NEWLINE: "\n"@2441..2442
+      TEXT_LINE: ">>> b = ma.masked_where(b == 0, b)"@2442..2476
+      NEWLINE: "\n"@2476..2477
+      TEXT_LINE: ">>> b"@2477..2482
+      NEWLINE: "\n"@2482..2483
+      TEXT_LINE: "masked_array(data=[--, 1, 2, 3],"@2483..2515
+      NEWLINE: "\n"@2515..2516
+      WHITESPACE: "             "@2516..2529
+      TEXT_LINE: "mask=[ True, False, False, False],"@2529..2563
+      NEWLINE: "\n"@2563..2564
+      WHITESPACE: "       "@2564..2571
+      TEXT_LINE: "fill_value=999999)"@2571..2589
+      NEWLINE: "\n"@2589..2590
+      TEXT_LINE: ">>> ma.masked_where(a == 3, b)"@2590..2620
+      NEWLINE: "\n"@2620..2621
+      TEXT_LINE: "masked_array(data=[--, 1, --, --],"@2621..2655
+      NEWLINE: "\n"@2655..2656
+      WHITESPACE: "             "@2656..2669
+      TEXT_LINE: "mask=[ True, False,  True,  True],"@2669..2703
+      NEWLINE: "\n"@2703..2704
+      WHITESPACE: "       "@2704..2711
+      TEXT_LINE: "fill_value=999999)"@2711..2729
+    }
+  }
+}
+=== EMIT ===
+Mask an array where a condition is met.
+
+Return `a` as an array masked where `condition` is True.
+Any masked values of `a` or `condition` are also masked in the output.
+
+Parameters
+----------
+condition : array_like
+    Masking condition.  When `condition` tests floating point values for
+    equality, consider using ``masked_values`` instead.
+a : array_like
+    Array to mask.
+copy : bool
+    If True (default) make a copy of `a` in the result.  If False modify
+    `a` in place and return a view.
+
+Returns
+-------
+result : MaskedArray
+    The result of masking `a` where `condition` is True.
+
+See Also
+--------
+masked_values : Mask using floating point equality.
+masked_equal : Mask where equal to a given value.
+masked_not_equal : Mask where *not* equal to a given value.
+masked_less_equal : Mask where less than or equal to a given value.
+masked_greater_equal : Mask where greater than or equal to a given value.
+masked_less : Mask where less than a given value.
+masked_greater : Mask where greater than a given value.
+masked_inside : Mask inside a given interval.
+masked_outside : Mask outside a given interval.
+masked_invalid : Mask invalid values (NaNs or infs).
+
+Examples
+--------
+>>> import numpy as np
+>>> import numpy.ma as ma
+>>> a = np.arange(4)
+>>> a
+array([0, 1, 2, 3])
+>>> ma.masked_where(a <= 2, a)
+masked_array(data=[--, --, --, 3],
+             mask=[ True,  True,  True, False],
+       fill_value=999999)
+
+Mask array `b` conditional on `a`.
+
+>>> b = ['a', 'b', 'c', 'd']
+>>> ma.masked_where(a == 2, b)
+masked_array(data=['a', 'b', --, 'd'],
+             mask=[False, False,  True, False],
+       fill_value='N/A',
+            dtype='<U1')
+
+Effect of the `copy` argument.
+
+>>> c = ma.masked_where(a <= 2, a)
+>>> c
+masked_array(data=[--, --, --, 3],
+             mask=[ True,  True,  True, False],
+       fill_value=999999)
+>>> c[0] = 99
+>>> c
+masked_array(data=[99, --, --, 3],
+             mask=[False,  True,  True, False],
+       fill_value=999999)
+>>> a
+array([0, 1, 2, 3])
+>>> c = ma.masked_where(a <= 2, a, copy=False)
+>>> c[0] = 99
+>>> c
+masked_array(data=[99, --, --, 3],
+             mask=[False,  True,  True, False],
+       fill_value=999999)
+>>> a
+array([99,  1,  2,  3])
+
+When `condition` or `a` contain masked values.
+
+>>> a = np.arange(4)
+>>> a = ma.masked_where(a == 2, a)
+>>> a
+masked_array(data=[0, 1, --, 3],
+             mask=[False, False,  True, False],
+       fill_value=999999)
+>>> b = np.arange(4)
+>>> b = ma.masked_where(b == 0, b)
+>>> b
+masked_array(data=[--, 1, 2, 3],
+             mask=[ True, False, False, False],
+       fill_value=999999)
+>>> ma.masked_where(a == 3, b)
+masked_array(data=[--, 1, --, --],
+             mask=[ True, False,  True,  True],
+       fill_value=999999)

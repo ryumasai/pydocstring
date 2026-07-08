@@ -1,0 +1,194 @@
+=== CST ===
+DOCUMENT@0..1214 {
+  SUMMARY@0..44 {
+    TEXT_LINE: "Score cell cycle genes :cite:p:`Satija2015`."@0..44
+  }
+  NEWLINE: "\n"@44..45
+  BLANK_LINE: "\n"@45..46
+  EXTENDED_SUMMARY@46..264 {
+    TEXT_LINE: "Given two lists of genes associated to S phase and G2M phase, calculates"@46..118
+    NEWLINE: "\n"@118..119
+    TEXT_LINE: "scores and assigns a cell cycle phase (G1, S or G2M). See"@119..176
+    NEWLINE: "\n"@176..177
+    TEXT_LINE: ":func:`~scanpy.tl.score_genes` for more explanation."@177..229
+    NEWLINE: "\n"@229..230
+    BLANK_LINE: "\n"@230..231
+    TEXT_LINE: ".. array-support:: tl.score_genes"@231..264
+  }
+  NEWLINE: "\n"@264..265
+  BLANK_LINE: "\n"@265..266
+  SECTION@266..618 {
+    SECTION_HEADER@266..287 {
+      NAME: "Parameters"@266..276
+      NEWLINE: "\n"@276..277
+      UNDERLINE: "----------"@277..287
+    }
+    NEWLINE: "\n"@287..288
+    ENTRY@288..324 {
+      NAME: "adata"@288..293
+      NEWLINE: "\n"@293..294
+      WHITESPACE: "    "@294..298
+      DESCRIPTION@298..324 {
+        TEXT_LINE: "The annotated data matrix."@298..324
+      }
+    }
+    NEWLINE: "\n"@324..325
+    ENTRY@325..375 {
+      NAME: "s_genes"@325..332
+      NEWLINE: "\n"@332..333
+      WHITESPACE: "    "@333..337
+      DESCRIPTION@337..375 {
+        TEXT_LINE: "List of genes associated with S phase."@337..375
+      }
+    }
+    NEWLINE: "\n"@375..376
+    ENTRY@376..430 {
+      NAME: "g2m_genes"@376..385
+      NEWLINE: "\n"@385..386
+      WHITESPACE: "    "@386..390
+      DESCRIPTION@390..430 {
+        TEXT_LINE: "List of genes associated with G2M phase."@390..430
+      }
+    }
+    NEWLINE: "\n"@430..431
+    ENTRY@431..474 {
+      NAME: "copy"@431..435
+      NEWLINE: "\n"@435..436
+      WHITESPACE: "    "@436..440
+      DESCRIPTION@440..474 {
+        TEXT_LINE: "Copy `adata` or modify it inplace."@440..474
+      }
+    }
+    NEWLINE: "\n"@474..475
+    ENTRY@475..618 {
+      NAME: "**kwargs"@475..483
+      NEWLINE: "\n"@483..484
+      WHITESPACE: "    "@484..488
+      DESCRIPTION@488..618 {
+        TEXT_LINE: "Are passed to :func:`~scanpy.tl.score_genes`. `ctrl_size` is not"@488..552
+        NEWLINE: "\n"@552..553
+        WHITESPACE: "    "@553..557
+        TEXT_LINE: "possible, as it's set as `min(len(s_genes), len(g2m_genes))`."@557..618
+      }
+    }
+  }
+  NEWLINE: "\n"@618..619
+  BLANK_LINE: "\n"@619..620
+  SECTION@620..1069 {
+    SECTION_HEADER@620..635 {
+      NAME: "Returns"@620..627
+      NEWLINE: "\n"@627..628
+      UNDERLINE: "-------"@628..635
+    }
+    NEWLINE: "\n"@635..636
+    ENTRY@636..728 {
+      TYPE: "Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:"@636..728
+    }
+    NEWLINE: "\n"@728..729
+    BLANK_LINE: "\n"@729..730
+    ENTRY@730..835 {
+      NAME: "`adata.obs['S_score']`"@730..752
+      WHITESPACE: " "@752..753
+      COLON: ":"@753..754
+      WHITESPACE: " "@754..755
+      TYPE: ":class:`pandas.Series` (dtype `object`)"@755..794
+      NEWLINE: "\n"@794..795
+      WHITESPACE: "    "@795..799
+      DESCRIPTION@799..835 {
+        TEXT_LINE: "The score for S phase for each cell."@799..835
+      }
+    }
+    NEWLINE: "\n"@835..836
+    ENTRY@836..945 {
+      NAME: "`adata.obs['G2M_score']`"@836..860
+      WHITESPACE: " "@860..861
+      COLON: ":"@861..862
+      WHITESPACE: " "@862..863
+      TYPE: ":class:`pandas.Series` (dtype `object`)"@863..902
+      NEWLINE: "\n"@902..903
+      WHITESPACE: "    "@903..907
+      DESCRIPTION@907..945 {
+        TEXT_LINE: "The score for G2M phase for each cell."@907..945
+      }
+    }
+    NEWLINE: "\n"@945..946
+    ENTRY@946..1069 {
+      NAME: "`adata.obs['phase']`"@946..966
+      WHITESPACE: " "@966..967
+      COLON: ":"@967..968
+      WHITESPACE: " "@968..969
+      TYPE: ":class:`pandas.Series` (dtype `object`)"@969..1008
+      NEWLINE: "\n"@1008..1009
+      WHITESPACE: "    "@1009..1013
+      DESCRIPTION@1013..1069 {
+        TEXT_LINE: "The cell cycle phase (`S`, `G2M` or `G1`) for each cell."@1013..1069
+      }
+    }
+  }
+  NEWLINE: "\n"@1069..1070
+  BLANK_LINE: "\n"@1070..1071
+  SECTION@1071..1100 {
+    SECTION_HEADER@1071..1088 {
+      NAME: "See Also"@1071..1079
+      NEWLINE: "\n"@1079..1080
+      UNDERLINE: "--------"@1080..1088
+    }
+    NEWLINE: "\n"@1088..1089
+    ENTRY@1089..1100 {
+      NAME: "score_genes"@1089..1100
+    }
+  }
+  NEWLINE: "\n"@1100..1101
+  BLANK_LINE: "\n"@1101..1102
+  SECTION@1102..1214 {
+    SECTION_HEADER@1102..1119 {
+      NAME: "Examples"@1102..1110
+      NEWLINE: "\n"@1110..1111
+      UNDERLINE: "--------"@1111..1119
+    }
+    NEWLINE: "\n"@1119..1120
+    DESCRIPTION@1120..1214 {
+      TEXT_LINE: "See this `notebook <https://github.com/scverse/scanpy_usage/tree/master/180209_cell_cycle>`__."@1120..1214
+    }
+  }
+}
+=== EMIT ===
+Score cell cycle genes :cite:p:`Satija2015`.
+
+Given two lists of genes associated to S phase and G2M phase, calculates
+scores and assigns a cell cycle phase (G1, S or G2M). See
+:func:`~scanpy.tl.score_genes` for more explanation.
+
+.. array-support:: tl.score_genes
+
+Parameters
+----------
+adata
+    The annotated data matrix.
+s_genes
+    List of genes associated with S phase.
+g2m_genes
+    List of genes associated with G2M phase.
+copy
+    Copy `adata` or modify it inplace.
+**kwargs
+    Are passed to :func:`~scanpy.tl.score_genes`. `ctrl_size` is not
+    possible, as it's set as `min(len(s_genes), len(g2m_genes))`.
+
+Returns
+-------
+Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:
+`adata.obs['S_score']` : :class:`pandas.Series` (dtype `object`)
+    The score for S phase for each cell.
+`adata.obs['G2M_score']` : :class:`pandas.Series` (dtype `object`)
+    The score for G2M phase for each cell.
+`adata.obs['phase']` : :class:`pandas.Series` (dtype `object`)
+    The cell cycle phase (`S`, `G2M` or `G1`) for each cell.
+
+See Also
+--------
+score_genes
+
+Examples
+--------
+See this `notebook <https://github.com/scverse/scanpy_usage/tree/master/180209_cell_cycle>`__.

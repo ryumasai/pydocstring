@@ -1,0 +1,571 @@
+=== CST ===
+DOCUMENT@0..5473 {
+  SUMMARY@0..45 {
+    TEXT_LINE: "Butterworth digital and analog filter design."@0..45
+  }
+  NEWLINE: "\n"@45..46
+  BLANK_LINE: "\n"@46..47
+  EXTENDED_SUMMARY@47..139 {
+    TEXT_LINE: "Design an Nth-order digital or analog Butterworth filter and return"@47..114
+    NEWLINE: "\n"@114..115
+    TEXT_LINE: "the filter coefficients."@115..139
+  }
+  NEWLINE: "\n"@139..140
+  BLANK_LINE: "\n"@140..141
+  SECTION@141..1641 {
+    SECTION_HEADER@141..162 {
+      NAME: "Parameters"@141..151
+      NEWLINE: "\n"@151..152
+      UNDERLINE: "----------"@152..162
+    }
+    NEWLINE: "\n"@162..163
+    ENTRY@163..394 {
+      NAME: "N"@163..164
+      WHITESPACE: " "@164..165
+      COLON: ":"@165..166
+      WHITESPACE: " "@166..167
+      TYPE: "int"@167..170
+      NEWLINE: "\n"@170..171
+      WHITESPACE: "    "@171..175
+      DESCRIPTION@175..394 {
+        TEXT_LINE: "The order of the filter. For 'bandpass' and 'bandstop' filters,"@175..238
+        NEWLINE: "\n"@238..239
+        WHITESPACE: "    "@239..243
+        TEXT_LINE: "the resulting order of the final second-order sections ('sos')"@243..305
+        NEWLINE: "\n"@305..306
+        WHITESPACE: "    "@306..310
+        TEXT_LINE: "matrix is ``2*N``, with `N` the number of biquad sections"@310..367
+        NEWLINE: "\n"@367..368
+        WHITESPACE: "    "@368..372
+        TEXT_LINE: "of the desired system."@372..394
+      }
+    }
+    NEWLINE: "\n"@394..395
+    ENTRY@395..1063 {
+      NAME: "Wn"@395..397
+      WHITESPACE: " "@397..398
+      COLON: ":"@398..399
+      WHITESPACE: " "@399..400
+      TYPE: "array_like"@400..410
+      NEWLINE: "\n"@410..411
+      WHITESPACE: "    "@411..415
+      DESCRIPTION@415..1063 {
+        TEXT_LINE: "The critical frequency or frequencies. For lowpass and highpass"@415..478
+        NEWLINE: "\n"@478..479
+        WHITESPACE: "    "@479..483
+        TEXT_LINE: "filters, Wn is a scalar; for bandpass and bandstop filters,"@483..542
+        NEWLINE: "\n"@542..543
+        WHITESPACE: "    "@543..547
+        TEXT_LINE: "Wn is a length-2 sequence."@547..573
+        NEWLINE: "\n"@573..574
+        BLANK_LINE: "    \n"@574..579
+        WHITESPACE: "    "@579..583
+        TEXT_LINE: "For a Butterworth filter, this is the point at which the gain"@583..644
+        NEWLINE: "\n"@644..645
+        WHITESPACE: "    "@645..649
+        TEXT_LINE: "drops to 1/sqrt(2) that of the passband (the \"-3 dB point\")."@649..709
+        NEWLINE: "\n"@709..710
+        BLANK_LINE: "    \n"@710..715
+        WHITESPACE: "    "@715..719
+        TEXT_LINE: "For digital filters, if `fs` is not specified, `Wn` units are"@719..780
+        NEWLINE: "\n"@780..781
+        WHITESPACE: "    "@781..785
+        TEXT_LINE: "normalized from 0 to 1, where 1 is the Nyquist frequency (`Wn` is"@785..850
+        NEWLINE: "\n"@850..851
+        WHITESPACE: "    "@851..855
+        TEXT_LINE: "thus in half cycles / sample and defined as 2*critical frequencies"@855..921
+        NEWLINE: "\n"@921..922
+        WHITESPACE: "    "@922..926
+        TEXT_LINE: "/ `fs`). If `fs` is specified, `Wn` is in the same units as `fs`."@926..991
+        NEWLINE: "\n"@991..992
+        BLANK_LINE: "    \n"@992..997
+        WHITESPACE: "    "@997..1001
+        TEXT_LINE: "For analog filters, `Wn` is an angular frequency (e.g. rad/s)."@1001..1063
+      }
+    }
+    NEWLINE: "\n"@1063..1064
+    ENTRY@1064..1176 {
+      NAME: "btype"@1064..1069
+      WHITESPACE: " "@1069..1070
+      COLON: ":"@1070..1071
+      WHITESPACE: " "@1071..1072
+      TYPE: "{'lowpass', 'highpass', 'bandpass', 'bandstop'}"@1072..1119
+      COMMA: ","@1119..1120
+      WHITESPACE: " "@1120..1121
+      OPTIONAL: "optional"@1121..1129
+      NEWLINE: "\n"@1129..1130
+      WHITESPACE: "    "@1130..1134
+      DESCRIPTION@1134..1176 {
+        TEXT_LINE: "The type of filter.  Default is 'lowpass'."@1134..1176
+      }
+    }
+    NEWLINE: "\n"@1176..1177
+    ENTRY@1177..1284 {
+      NAME: "analog"@1177..1183
+      WHITESPACE: " "@1183..1184
+      COLON: ":"@1184..1185
+      WHITESPACE: " "@1185..1186
+      TYPE: "bool"@1186..1190
+      COMMA: ","@1190..1191
+      WHITESPACE: " "@1191..1192
+      OPTIONAL: "optional"@1192..1200
+      NEWLINE: "\n"@1200..1201
+      WHITESPACE: "    "@1201..1205
+      DESCRIPTION@1205..1284 {
+        TEXT_LINE: "When True, return an analog filter, otherwise a digital filter is"@1205..1270
+        NEWLINE: "\n"@1270..1271
+        WHITESPACE: "    "@1271..1275
+        TEXT_LINE: "returned."@1275..1284
+      }
+    }
+    NEWLINE: "\n"@1284..1285
+    ENTRY@1285..1537 {
+      NAME: "output"@1285..1291
+      WHITESPACE: " "@1291..1292
+      COLON: ":"@1292..1293
+      WHITESPACE: " "@1293..1294
+      TYPE: "{'ba', 'zpk', 'sos'}"@1294..1314
+      COMMA: ","@1314..1315
+      WHITESPACE: " "@1315..1316
+      OPTIONAL: "optional"@1316..1324
+      NEWLINE: "\n"@1324..1325
+      WHITESPACE: "    "@1325..1329
+      DESCRIPTION@1329..1537 {
+        TEXT_LINE: "Type of output:  numerator/denominator ('ba'), pole-zero ('zpk'), or"@1329..1397
+        NEWLINE: "\n"@1397..1398
+        WHITESPACE: "    "@1398..1402
+        TEXT_LINE: "second-order sections ('sos'). Default is 'ba' for backwards"@1402..1462
+        NEWLINE: "\n"@1462..1463
+        WHITESPACE: "    "@1463..1467
+        TEXT_LINE: "compatibility, but 'sos' should be used for general-purpose filtering."@1467..1537
+      }
+    }
+    NEWLINE: "\n"@1537..1538
+    ENTRY@1538..1641 {
+      NAME: "fs"@1538..1540
+      WHITESPACE: " "@1540..1541
+      COLON: ":"@1541..1542
+      WHITESPACE: " "@1542..1543
+      TYPE: "float"@1543..1548
+      COMMA: ","@1548..1549
+      WHITESPACE: " "@1549..1550
+      OPTIONAL: "optional"@1550..1558
+      NEWLINE: "\n"@1558..1559
+      WHITESPACE: "    "@1559..1563
+      DESCRIPTION@1563..1641 {
+        TEXT_LINE: "The sampling frequency of the digital system."@1563..1608
+        NEWLINE: "\n"@1608..1609
+        BLANK_LINE: "    \n"@1609..1614
+        WHITESPACE: "    "@1614..1618
+        TEXT_LINE: ".. versionadded:: 1.2.0"@1618..1641
+      }
+    }
+  }
+  NEWLINE: "\n"@1641..1642
+  BLANK_LINE: "\n"@1642..1643
+  SECTION@1643..2051 {
+    SECTION_HEADER@1643..1658 {
+      NAME: "Returns"@1643..1650
+      NEWLINE: "\n"@1650..1651
+      UNDERLINE: "-------"@1651..1658
+    }
+    NEWLINE: "\n"@1658..1659
+    ENTRY@1659..1793 {
+      NAME: "b, a"@1659..1663
+      WHITESPACE: " "@1663..1664
+      COLON: ":"@1664..1665
+      WHITESPACE: " "@1665..1666
+      TYPE: "ndarray, ndarray"@1666..1682
+      NEWLINE: "\n"@1682..1683
+      WHITESPACE: "    "@1683..1687
+      DESCRIPTION@1687..1793 {
+        TEXT_LINE: "Numerator (`b`) and denominator (`a`) polynomials of the IIR filter."@1687..1755
+        NEWLINE: "\n"@1755..1756
+        WHITESPACE: "    "@1756..1760
+        TEXT_LINE: "Only returned if ``output='ba'``."@1760..1793
+      }
+    }
+    NEWLINE: "\n"@1793..1794
+    ENTRY@1794..1938 {
+      NAME: "z, p, k"@1794..1801
+      WHITESPACE: " "@1801..1802
+      COLON: ":"@1802..1803
+      WHITESPACE: " "@1803..1804
+      TYPE: "ndarray, ndarray, float"@1804..1827
+      NEWLINE: "\n"@1827..1828
+      WHITESPACE: "    "@1828..1832
+      DESCRIPTION@1832..1938 {
+        TEXT_LINE: "Zeros, poles, and system gain of the IIR filter transfer"@1832..1888
+        NEWLINE: "\n"@1888..1889
+        WHITESPACE: "    "@1889..1893
+        TEXT_LINE: "function.  Only returned if ``output='zpk'``."@1893..1938
+      }
+    }
+    NEWLINE: "\n"@1938..1939
+    ENTRY@1939..2051 {
+      NAME: "sos"@1939..1942
+      WHITESPACE: " "@1942..1943
+      COLON: ":"@1943..1944
+      WHITESPACE: " "@1944..1945
+      TYPE: "ndarray"@1945..1952
+      NEWLINE: "\n"@1952..1953
+      WHITESPACE: "    "@1953..1957
+      DESCRIPTION@1957..2051 {
+        TEXT_LINE: "Second-order sections representation of the IIR filter."@1957..2012
+        NEWLINE: "\n"@2012..2013
+        WHITESPACE: "    "@2013..2017
+        TEXT_LINE: "Only returned if ``output='sos'``."@2017..2051
+      }
+    }
+  }
+  NEWLINE: "\n"@2051..2052
+  BLANK_LINE: "\n"@2052..2053
+  SECTION@2053..2110 {
+    SECTION_HEADER@2053..2070 {
+      NAME: "See Also"@2053..2061
+      NEWLINE: "\n"@2061..2062
+      UNDERLINE: "--------"@2062..2070
+    }
+    NEWLINE: "\n"@2070..2071
+    BLANK_LINE: "\n"@2071..2072
+    ENTRY@2072..2110 {
+      NAME: ":func:`buttord`"@2072..2087
+      COMMA: ","@2087..2088
+      WHITESPACE: " "@2088..2089
+      NAME: ":func:`buttap`"@2089..2103
+      NEWLINE: "\n"@2103..2104
+      WHITESPACE: "    "@2104..2108
+      DESCRIPTION@2108..2110 {
+        TEXT_LINE: ".."@2108..2110
+      }
+    }
+  }
+  NEWLINE: "\n"@2110..2111
+  BLANK_LINE: "\n"@2111..2112
+  SECTION@2112..4064 {
+    SECTION_HEADER@2112..2123 {
+      NAME: "Notes"@2112..2117
+      NEWLINE: "\n"@2117..2118
+      UNDERLINE: "-----"@2118..2123
+    }
+    NEWLINE: "\n"@2123..2124
+    DESCRIPTION@2124..4064 {
+      TEXT_LINE: "The Butterworth filter has maximally flat frequency response in the"@2124..2191
+      NEWLINE: "\n"@2191..2192
+      TEXT_LINE: "passband."@2192..2201
+      NEWLINE: "\n"@2201..2202
+      BLANK_LINE: "\n"@2202..2203
+      TEXT_LINE: "The ``'sos'`` output parameter was added in 0.16.0."@2203..2254
+      NEWLINE: "\n"@2254..2255
+      BLANK_LINE: "\n"@2255..2256
+      TEXT_LINE: "If the transfer function form ``[b, a]`` is requested, numerical"@2256..2320
+      NEWLINE: "\n"@2320..2321
+      TEXT_LINE: "problems can occur since the conversion between roots and"@2321..2378
+      NEWLINE: "\n"@2378..2379
+      TEXT_LINE: "the polynomial coefficients is a numerically sensitive operation,"@2379..2444
+      NEWLINE: "\n"@2444..2445
+      TEXT_LINE: "even for N >= 4. It is recommended to work with the SOS"@2445..2500
+      NEWLINE: "\n"@2500..2501
+      TEXT_LINE: "representation."@2501..2516
+      NEWLINE: "\n"@2516..2517
+      BLANK_LINE: "\n"@2517..2518
+      TEXT_LINE: ".. warning::"@2518..2530
+      NEWLINE: "\n"@2530..2531
+      WHITESPACE: "    "@2531..2535
+      TEXT_LINE: "Designing high-order and narrowband IIR filters in TF form can"@2535..2597
+      NEWLINE: "\n"@2597..2598
+      WHITESPACE: "    "@2598..2602
+      TEXT_LINE: "result in unstable or incorrect filtering due to floating point"@2602..2665
+      NEWLINE: "\n"@2665..2666
+      WHITESPACE: "    "@2666..2670
+      TEXT_LINE: "numerical precision issues. Consider inspecting output filter"@2670..2731
+      NEWLINE: "\n"@2731..2732
+      WHITESPACE: "    "@2732..2736
+      TEXT_LINE: "characteristics `freqz` or designing the filters with second-order"@2736..2802
+      NEWLINE: "\n"@2802..2803
+      WHITESPACE: "    "@2803..2807
+      TEXT_LINE: "sections via ``output='sos'``."@2807..2837
+      NEWLINE: "\n"@2837..2838
+      BLANK_LINE: "\n"@2838..2839
+      TEXT_LINE: "The current behavior is for ``ndarray`` outputs to have 64 bit precision"@2839..2911
+      NEWLINE: "\n"@2911..2912
+      TEXT_LINE: "(``float64`` or ``complex128``) regardless of the dtype of `Wn` but"@2912..2979
+      NEWLINE: "\n"@2979..2980
+      TEXT_LINE: "outputs may respect the dtype of `Wn` in a future version."@2980..3038
+      NEWLINE: "\n"@3038..3039
+      BLANK_LINE: "\n"@3039..3040
+      TEXT_LINE: "**Array API Standard Support**"@3040..3070
+      NEWLINE: "\n"@3070..3071
+      BLANK_LINE: "\n"@3071..3072
+      TEXT_LINE: "`butter` has experimental support for Python Array API Standard compatible"@3072..3146
+      NEWLINE: "\n"@3146..3147
+      TEXT_LINE: "backends in addition to NumPy. Please consider testing these features"@3147..3216
+      NEWLINE: "\n"@3216..3217
+      TEXT_LINE: "by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing"@3217..3287
+      NEWLINE: "\n"@3287..3288
+      TEXT_LINE: "CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following"@3288..3356
+      NEWLINE: "\n"@3356..3357
+      TEXT_LINE: "combinations of backend and device (or other capability) are supported."@3357..3428
+      NEWLINE: "\n"@3428..3429
+      BLANK_LINE: "\n"@3429..3430
+      TEXT_LINE: "====================  ====================  ===================="@3430..3494
+      NEWLINE: "\n"@3494..3495
+      TEXT_LINE: "Library               CPU                   GPU"@3495..3542
+      NEWLINE: "\n"@3542..3543
+      TEXT_LINE: "====================  ====================  ===================="@3543..3607
+      NEWLINE: "\n"@3607..3608
+      TEXT_LINE: "NumPy                 ✅                     n/a"@3608..3657
+      WHITESPACE: "                 "@3657..3674
+      NEWLINE: "\n"@3674..3675
+      TEXT_LINE: "CuPy                  n/a                   ✅"@3675..3722
+      WHITESPACE: "                   "@3722..3741
+      NEWLINE: "\n"@3741..3742
+      TEXT_LINE: "PyTorch               ✅                     ⛔"@3742..3791
+      WHITESPACE: "                   "@3791..3810
+      NEWLINE: "\n"@3810..3811
+      TEXT_LINE: "JAX                   ⚠\u{fe0f} no JIT             ⛔"@3811..3862
+      WHITESPACE: "                   "@3862..3881
+      NEWLINE: "\n"@3881..3882
+      TEXT_LINE: "Dask                  ⚠\u{fe0f} computes graph     n/a"@3882..3933
+      WHITESPACE: "                 "@3933..3950
+      NEWLINE: "\n"@3950..3951
+      TEXT_LINE: "====================  ====================  ===================="@3951..4015
+      NEWLINE: "\n"@4015..4016
+      BLANK_LINE: "\n"@4016..4017
+      BLANK_LINE: "\n"@4017..4018
+      BLANK_LINE: "\n"@4018..4019
+      TEXT_LINE: "See :ref:`dev-arrayapi` for more information."@4019..4064
+    }
+  }
+  NEWLINE: "\n"@4064..4065
+  BLANK_LINE: "\n"@4065..4066
+  BLANK_LINE: "\n"@4066..4067
+  SECTION@4067..5473 {
+    SECTION_HEADER@4067..4084 {
+      NAME: "Examples"@4067..4075
+      NEWLINE: "\n"@4075..4076
+      UNDERLINE: "--------"@4076..4084
+    }
+    NEWLINE: "\n"@4084..4085
+    DESCRIPTION@4085..5473 {
+      TEXT_LINE: "Design an analog filter and plot its frequency response, showing the"@4085..4153
+      NEWLINE: "\n"@4153..4154
+      TEXT_LINE: "critical points:"@4154..4170
+      NEWLINE: "\n"@4170..4171
+      BLANK_LINE: "\n"@4171..4172
+      TEXT_LINE: ">>> from scipy import signal"@4172..4200
+      NEWLINE: "\n"@4200..4201
+      TEXT_LINE: ">>> import matplotlib.pyplot as plt"@4201..4236
+      NEWLINE: "\n"@4236..4237
+      TEXT_LINE: ">>> import numpy as np"@4237..4259
+      NEWLINE: "\n"@4259..4260
+      BLANK_LINE: "\n"@4260..4261
+      TEXT_LINE: ">>> b, a = signal.butter(4, 100, 'low', analog=True)"@4261..4313
+      NEWLINE: "\n"@4313..4314
+      TEXT_LINE: ">>> w, h = signal.freqs(b, a)"@4314..4343
+      NEWLINE: "\n"@4343..4344
+      TEXT_LINE: ">>> plt.semilogx(w, 20 * np.log10(abs(h)))"@4344..4386
+      NEWLINE: "\n"@4386..4387
+      TEXT_LINE: ">>> plt.title('Butterworth filter frequency response')"@4387..4441
+      NEWLINE: "\n"@4441..4442
+      TEXT_LINE: ">>> plt.xlabel('Frequency [rad/s]')"@4442..4477
+      NEWLINE: "\n"@4477..4478
+      TEXT_LINE: ">>> plt.ylabel('Amplitude [dB]')"@4478..4510
+      NEWLINE: "\n"@4510..4511
+      TEXT_LINE: ">>> plt.margins(0, 0.1)"@4511..4534
+      NEWLINE: "\n"@4534..4535
+      TEXT_LINE: ">>> plt.grid(which='both', axis='both')"@4535..4574
+      NEWLINE: "\n"@4574..4575
+      TEXT_LINE: ">>> plt.axvline(100, color='green') # cutoff frequency"@4575..4629
+      NEWLINE: "\n"@4629..4630
+      TEXT_LINE: ">>> plt.show()"@4630..4644
+      NEWLINE: "\n"@4644..4645
+      BLANK_LINE: "\n"@4645..4646
+      TEXT_LINE: "Generate a signal made up of 10 Hz and 20 Hz, sampled at 1 kHz"@4646..4708
+      NEWLINE: "\n"@4708..4709
+      BLANK_LINE: "\n"@4709..4710
+      TEXT_LINE: ">>> t = np.linspace(0, 1, 1000, False)  # 1 second"@4710..4760
+      NEWLINE: "\n"@4760..4761
+      TEXT_LINE: ">>> sig = np.sin(2*np.pi*10*t) + np.sin(2*np.pi*20*t)"@4761..4814
+      NEWLINE: "\n"@4814..4815
+      TEXT_LINE: ">>> fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)"@4815..4868
+      NEWLINE: "\n"@4868..4869
+      TEXT_LINE: ">>> ax1.plot(t, sig)"@4869..4889
+      NEWLINE: "\n"@4889..4890
+      TEXT_LINE: ">>> ax1.set_title('10 Hz and 20 Hz sinusoids')"@4890..4936
+      NEWLINE: "\n"@4936..4937
+      TEXT_LINE: ">>> ax1.axis([0, 1, -2, 2])"@4937..4964
+      NEWLINE: "\n"@4964..4965
+      BLANK_LINE: "\n"@4965..4966
+      TEXT_LINE: "Design a digital high-pass filter at 15 Hz to remove the 10 Hz tone, and"@4966..5038
+      NEWLINE: "\n"@5038..5039
+      TEXT_LINE: "apply it to the signal. (It's recommended to use second-order sections"@5039..5109
+      NEWLINE: "\n"@5109..5110
+      TEXT_LINE: "format when filtering, to avoid numerical error with transfer function"@5110..5180
+      NEWLINE: "\n"@5180..5181
+      TEXT_LINE: "(``ba``) format):"@5181..5198
+      NEWLINE: "\n"@5198..5199
+      BLANK_LINE: "\n"@5199..5200
+      TEXT_LINE: ">>> sos = signal.butter(10, 15, 'hp', fs=1000, output='sos')"@5200..5260
+      NEWLINE: "\n"@5260..5261
+      TEXT_LINE: ">>> filtered = signal.sosfilt(sos, sig)"@5261..5300
+      NEWLINE: "\n"@5300..5301
+      TEXT_LINE: ">>> ax2.plot(t, filtered)"@5301..5326
+      NEWLINE: "\n"@5326..5327
+      TEXT_LINE: ">>> ax2.set_title('After 15 Hz high-pass filter')"@5327..5376
+      NEWLINE: "\n"@5376..5377
+      TEXT_LINE: ">>> ax2.axis([0, 1, -2, 2])"@5377..5404
+      NEWLINE: "\n"@5404..5405
+      TEXT_LINE: ">>> ax2.set_xlabel('Time [s]')"@5405..5435
+      NEWLINE: "\n"@5435..5436
+      TEXT_LINE: ">>> plt.tight_layout()"@5436..5458
+      NEWLINE: "\n"@5458..5459
+      TEXT_LINE: ">>> plt.show()"@5459..5473
+    }
+  }
+}
+=== EMIT ===
+Butterworth digital and analog filter design.
+
+Design an Nth-order digital or analog Butterworth filter and return
+the filter coefficients.
+
+Parameters
+----------
+N : int
+    The order of the filter. For 'bandpass' and 'bandstop' filters,
+    the resulting order of the final second-order sections ('sos')
+    matrix is ``2*N``, with `N` the number of biquad sections
+    of the desired system.
+Wn : array_like
+    The critical frequency or frequencies. For lowpass and highpass
+    filters, Wn is a scalar; for bandpass and bandstop filters,
+    Wn is a length-2 sequence.
+
+    For a Butterworth filter, this is the point at which the gain
+    drops to 1/sqrt(2) that of the passband (the "-3 dB point").
+
+    For digital filters, if `fs` is not specified, `Wn` units are
+    normalized from 0 to 1, where 1 is the Nyquist frequency (`Wn` is
+    thus in half cycles / sample and defined as 2*critical frequencies
+    / `fs`). If `fs` is specified, `Wn` is in the same units as `fs`.
+
+    For analog filters, `Wn` is an angular frequency (e.g. rad/s).
+btype : {'lowpass', 'highpass', 'bandpass', 'bandstop'}, optional
+    The type of filter.  Default is 'lowpass'.
+analog : bool, optional
+    When True, return an analog filter, otherwise a digital filter is
+    returned.
+output : {'ba', 'zpk', 'sos'}, optional
+    Type of output:  numerator/denominator ('ba'), pole-zero ('zpk'), or
+    second-order sections ('sos'). Default is 'ba' for backwards
+    compatibility, but 'sos' should be used for general-purpose filtering.
+fs : float, optional
+    The sampling frequency of the digital system.
+
+    .. versionadded:: 1.2.0
+
+Returns
+-------
+b, a : ndarray, ndarray
+    Numerator (`b`) and denominator (`a`) polynomials of the IIR filter.
+    Only returned if ``output='ba'``.
+z, p, k : ndarray, ndarray, float
+    Zeros, poles, and system gain of the IIR filter transfer
+    function.  Only returned if ``output='zpk'``.
+sos : ndarray
+    Second-order sections representation of the IIR filter.
+    Only returned if ``output='sos'``.
+
+See Also
+--------
+:func:`buttord`, :func:`buttap` : ..
+
+Notes
+-----
+The Butterworth filter has maximally flat frequency response in the
+passband.
+
+The ``'sos'`` output parameter was added in 0.16.0.
+
+If the transfer function form ``[b, a]`` is requested, numerical
+problems can occur since the conversion between roots and
+the polynomial coefficients is a numerically sensitive operation,
+even for N >= 4. It is recommended to work with the SOS
+representation.
+
+.. warning::
+    Designing high-order and narrowband IIR filters in TF form can
+    result in unstable or incorrect filtering due to floating point
+    numerical precision issues. Consider inspecting output filter
+    characteristics `freqz` or designing the filters with second-order
+    sections via ``output='sos'``.
+
+The current behavior is for ``ndarray`` outputs to have 64 bit precision
+(``float64`` or ``complex128``) regardless of the dtype of `Wn` but
+outputs may respect the dtype of `Wn` in a future version.
+
+**Array API Standard Support**
+
+`butter` has experimental support for Python Array API Standard compatible
+backends in addition to NumPy. Please consider testing these features
+by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing
+CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following
+combinations of backend and device (or other capability) are supported.
+
+====================  ====================  ====================
+Library               CPU                   GPU
+====================  ====================  ====================
+NumPy                 ✅                     n/a                 
+CuPy                  n/a                   ✅                   
+PyTorch               ✅                     ⛔                   
+JAX                   ⚠️ no JIT             ⛔                   
+Dask                  ⚠️ computes graph     n/a                 
+====================  ====================  ====================
+
+
+
+See :ref:`dev-arrayapi` for more information.
+
+Examples
+--------
+Design an analog filter and plot its frequency response, showing the
+critical points:
+
+>>> from scipy import signal
+>>> import matplotlib.pyplot as plt
+>>> import numpy as np
+
+>>> b, a = signal.butter(4, 100, 'low', analog=True)
+>>> w, h = signal.freqs(b, a)
+>>> plt.semilogx(w, 20 * np.log10(abs(h)))
+>>> plt.title('Butterworth filter frequency response')
+>>> plt.xlabel('Frequency [rad/s]')
+>>> plt.ylabel('Amplitude [dB]')
+>>> plt.margins(0, 0.1)
+>>> plt.grid(which='both', axis='both')
+>>> plt.axvline(100, color='green') # cutoff frequency
+>>> plt.show()
+
+Generate a signal made up of 10 Hz and 20 Hz, sampled at 1 kHz
+
+>>> t = np.linspace(0, 1, 1000, False)  # 1 second
+>>> sig = np.sin(2*np.pi*10*t) + np.sin(2*np.pi*20*t)
+>>> fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
+>>> ax1.plot(t, sig)
+>>> ax1.set_title('10 Hz and 20 Hz sinusoids')
+>>> ax1.axis([0, 1, -2, 2])
+
+Design a digital high-pass filter at 15 Hz to remove the 10 Hz tone, and
+apply it to the signal. (It's recommended to use second-order sections
+format when filtering, to avoid numerical error with transfer function
+(``ba``) format):
+
+>>> sos = signal.butter(10, 15, 'hp', fs=1000, output='sos')
+>>> filtered = signal.sosfilt(sos, sig)
+>>> ax2.plot(t, filtered)
+>>> ax2.set_title('After 15 Hz high-pass filter')
+>>> ax2.axis([0, 1, -2, 2])
+>>> ax2.set_xlabel('Time [s]')
+>>> plt.tight_layout()
+>>> plt.show()

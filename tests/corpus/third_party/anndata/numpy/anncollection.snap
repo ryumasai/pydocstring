@@ -1,0 +1,357 @@
+=== CST ===
+DOCUMENT@0..4007 {
+  SUMMARY@0..56 {
+    TEXT_LINE: "Lazily concatenate AnnData objects along the `obs` axis."@0..56
+  }
+  NEWLINE: "\n"@56..57
+  BLANK_LINE: "\n"@57..58
+  EXTENDED_SUMMARY@58..452 {
+    TEXT_LINE: "This class doesn't copy data from underlying AnnData objects, but lazily subsets using a joint"@58..152
+    NEWLINE: "\n"@152..153
+    TEXT_LINE: "index of observations and variables. It also allows on-the-fly application of prespecified"@153..243
+    NEWLINE: "\n"@243..244
+    TEXT_LINE: "converters to `.obs` attributes of the AnnData objects."@244..299
+    NEWLINE: "\n"@299..300
+    BLANK_LINE: "\n"@300..301
+    TEXT_LINE: "Subsetting of this object returns an `AnnCollectionView`, which provides views of `.obs`,"@301..390
+    NEWLINE: "\n"@390..391
+    TEXT_LINE: "`.obsm`, `.layers`, `.X` from the underlying AnnData objects."@391..452
+  }
+  NEWLINE: "\n"@452..453
+  BLANK_LINE: "\n"@453..454
+  SECTION@454..3245 {
+    SECTION_HEADER@454..475 {
+      NAME: "Parameters"@454..464
+      NEWLINE: "\n"@464..465
+      UNDERLINE: "----------"@465..475
+    }
+    NEWLINE: "\n"@475..476
+    ENTRY@476..620 {
+      NAME: "adatas"@476..482
+      NEWLINE: "\n"@482..483
+      WHITESPACE: "    "@483..487
+      DESCRIPTION@487..620 {
+        TEXT_LINE: "The objects to be lazily concatenated."@487..525
+        NEWLINE: "\n"@525..526
+        WHITESPACE: "    "@526..530
+        TEXT_LINE: "If a Mapping is passed, keys are used for the `keys` argument and values are concatenated."@530..620
+      }
+    }
+    NEWLINE: "\n"@620..621
+    ENTRY@621..1246 {
+      NAME: "join_obs"@621..629
+      NEWLINE: "\n"@629..630
+      WHITESPACE: "    "@630..634
+      DESCRIPTION@634..1246 {
+        TEXT_LINE: "If \"inner\" specified all `.obs` attributes from `adatas` will be inner joined"@634..711
+        NEWLINE: "\n"@711..712
+        WHITESPACE: "    "@712..716
+        TEXT_LINE: "and copied to this object."@716..742
+        NEWLINE: "\n"@742..743
+        WHITESPACE: "    "@743..747
+        TEXT_LINE: "If \"outer\" specified all `.obsm` attributes from `adatas` will be outer joined"@747..825
+        NEWLINE: "\n"@825..826
+        WHITESPACE: "    "@826..830
+        TEXT_LINE: "and copied to this object."@830..856
+        NEWLINE: "\n"@856..857
+        WHITESPACE: "    "@857..861
+        TEXT_LINE: "For \"inner\" and \"outer\" subset objects will access `.obs` of this object,"@861..934
+        NEWLINE: "\n"@934..935
+        WHITESPACE: "    "@935..939
+        TEXT_LINE: "not the original `.obs` attributes of `adatas`."@939..986
+        NEWLINE: "\n"@986..987
+        WHITESPACE: "    "@987..991
+        TEXT_LINE: "If `None`, nothing is copied to this object's `.obs`, a subset object will directly"@991..1074
+        NEWLINE: "\n"@1074..1075
+        WHITESPACE: "    "@1075..1079
+        TEXT_LINE: "access `.obs` attributes of `adatas` (with proper reindexing and dtype conversions)."@1079..1163
+        NEWLINE: "\n"@1163..1164
+        WHITESPACE: "    "@1164..1168
+        TEXT_LINE: "For `None`the inner join rule is used to select columns of `.obs` of `adatas`."@1168..1246
+      }
+    }
+    NEWLINE: "\n"@1246..1247
+    ENTRY@1247..1741 {
+      NAME: "join_obsm"@1247..1256
+      NEWLINE: "\n"@1256..1257
+      WHITESPACE: "    "@1257..1261
+      DESCRIPTION@1261..1741 {
+        TEXT_LINE: "If \"inner\" specified all `.obsm` attributes from `adatas` will be inner joined"@1261..1339
+        NEWLINE: "\n"@1339..1340
+        WHITESPACE: "    "@1340..1344
+        TEXT_LINE: "and copied to this object. Subset objects will access `.obsm` of this object,"@1344..1421
+        NEWLINE: "\n"@1421..1422
+        WHITESPACE: "    "@1422..1426
+        TEXT_LINE: "not the original `.obsm` attributes of `adatas`."@1426..1474
+        NEWLINE: "\n"@1474..1475
+        WHITESPACE: "    "@1475..1479
+        TEXT_LINE: "If `None`, nothing is copied to this object's `.obsm`, a subset object will directly"@1479..1563
+        NEWLINE: "\n"@1563..1564
+        WHITESPACE: "    "@1564..1568
+        TEXT_LINE: "access `.obsm` attributes of `adatas` (with proper reindexing and dtype conversions)."@1568..1653
+        NEWLINE: "\n"@1653..1654
+        WHITESPACE: "    "@1654..1658
+        TEXT_LINE: "For both options the inner join rule for the underlying `.obsm` attributes is used."@1658..1741
+      }
+    }
+    NEWLINE: "\n"@1741..1742
+    ENTRY@1742..1941 {
+      NAME: "join_vars"@1742..1751
+      NEWLINE: "\n"@1751..1752
+      WHITESPACE: "    "@1752..1756
+      DESCRIPTION@1756..1941 {
+        TEXT_LINE: "Specify how to join `adatas` along the var axis. If `None`, assumes all `adatas`"@1756..1836
+        NEWLINE: "\n"@1836..1837
+        WHITESPACE: "    "@1837..1841
+        TEXT_LINE: "have the same variables. If \"inner\", the intersection of all variables in"@1841..1914
+        NEWLINE: "\n"@1914..1915
+        WHITESPACE: "    "@1915..1919
+        TEXT_LINE: "`adatas` will be used."@1919..1941
+      }
+    }
+    NEWLINE: "\n"@1941..1942
+    ENTRY@1942..2037 {
+      NAME: "label"@1942..1947
+      NEWLINE: "\n"@1947..1948
+      WHITESPACE: "    "@1948..1952
+      DESCRIPTION@1952..2037 {
+        TEXT_LINE: "Column in `.obs` to place batch information in."@1952..1999
+        NEWLINE: "\n"@1999..2000
+        WHITESPACE: "    "@2000..2004
+        TEXT_LINE: "If it's None, no column is added."@2004..2037
+      }
+    }
+    NEWLINE: "\n"@2037..2038
+    ENTRY@2038..2240 {
+      NAME: "keys"@2038..2042
+      NEWLINE: "\n"@2042..2043
+      WHITESPACE: "    "@2043..2047
+      DESCRIPTION@2047..2240 {
+        TEXT_LINE: "Names for each object being added. These values are used for column values for"@2047..2125
+        NEWLINE: "\n"@2125..2126
+        WHITESPACE: "    "@2126..2130
+        TEXT_LINE: "`label` or appended to the index if `index_unique` is not `None`. Defaults to"@2130..2207
+        NEWLINE: "\n"@2207..2208
+        WHITESPACE: "    "@2208..2212
+        TEXT_LINE: "incrementing integer labels."@2212..2240
+      }
+    }
+    NEWLINE: "\n"@2240..2241
+    ENTRY@2241..2437 {
+      NAME: "index_unique"@2241..2253
+      NEWLINE: "\n"@2253..2254
+      WHITESPACE: "    "@2254..2258
+      DESCRIPTION@2258..2437 {
+        TEXT_LINE: "Whether to make the index unique by using the keys. If provided, this"@2258..2327
+        NEWLINE: "\n"@2327..2328
+        WHITESPACE: "    "@2328..2332
+        TEXT_LINE: "is the delimiter between \"{orig_idx}{index_unique}{key}\". When `None`,"@2332..2402
+        NEWLINE: "\n"@2402..2403
+        WHITESPACE: "    "@2403..2407
+        TEXT_LINE: "the original indices are kept."@2407..2437
+      }
+    }
+    NEWLINE: "\n"@2437..2438
+    ENTRY@2438..2776 {
+      NAME: "convert"@2438..2445
+      NEWLINE: "\n"@2445..2446
+      WHITESPACE: "    "@2446..2450
+      DESCRIPTION@2450..2776 {
+        TEXT_LINE: "You can pass a function or a Mapping of functions which will be applied"@2450..2521
+        NEWLINE: "\n"@2521..2522
+        WHITESPACE: "    "@2522..2526
+        TEXT_LINE: "to the values of attributes (`.obs`, `.obsm`, `.layers`, `.X`) or to specific"@2526..2603
+        NEWLINE: "\n"@2603..2604
+        WHITESPACE: "    "@2604..2608
+        TEXT_LINE: "keys of these attributes in the subset object."@2608..2654
+        NEWLINE: "\n"@2654..2655
+        WHITESPACE: "    "@2655..2659
+        TEXT_LINE: "Specify an attribute and a key (if needed) as keys of the passed Mapping"@2659..2731
+        NEWLINE: "\n"@2731..2732
+        WHITESPACE: "    "@2732..2736
+        TEXT_LINE: "and a function to be applied as a value."@2736..2776
+      }
+    }
+    NEWLINE: "\n"@2776..2777
+    ENTRY@2777..2875 {
+      NAME: "harmonize_dtypes"@2777..2793
+      NEWLINE: "\n"@2793..2794
+      WHITESPACE: "    "@2794..2798
+      DESCRIPTION@2798..2875 {
+        TEXT_LINE: "If `True`, all retrieved arrays from subset objects will have the same dtype."@2798..2875
+      }
+    }
+    NEWLINE: "\n"@2875..2876
+    ENTRY@2876..3245 {
+      NAME: "indices_strict"@2876..2890
+      NEWLINE: "\n"@2890..2891
+      WHITESPACE: "    "@2891..2895
+      DESCRIPTION@2895..3245 {
+        TEXT_LINE: "If  `True`, arrays from the subset objects will always have the same order"@2895..2969
+        NEWLINE: "\n"@2969..2970
+        WHITESPACE: "    "@2970..2974
+        TEXT_LINE: "of indices as in selection used to subset."@2974..3016
+        NEWLINE: "\n"@3016..3017
+        WHITESPACE: "    "@3017..3021
+        TEXT_LINE: "This parameter can be set to `False` if the order in the returned arrays"@3021..3093
+        NEWLINE: "\n"@3093..3094
+        WHITESPACE: "    "@3094..3098
+        TEXT_LINE: "is not important, for example, when using them for stochastic gradient descent."@3098..3177
+        NEWLINE: "\n"@3177..3178
+        WHITESPACE: "    "@3178..3182
+        TEXT_LINE: "In this case the performance of subsetting can be a bit better."@3182..3245
+      }
+    }
+  }
+  NEWLINE: "\n"@3245..3246
+  BLANK_LINE: "\n"@3246..3247
+  SECTION@3247..4007 {
+    SECTION_HEADER@3247..3266 {
+      NAME: "Examples"@3247..3255
+      NEWLINE: "\n"@3255..3256
+      UNDERLINE: "----------"@3256..3266
+    }
+    NEWLINE: "\n"@3266..3267
+    DESCRIPTION@3267..4007 {
+      TEXT_LINE: ">>> from scanpy.datasets import pbmc68k_reduced, pbmc3k_processed"@3267..3332
+      NEWLINE: "\n"@3332..3333
+      TEXT_LINE: ">>> adata1, adata2 = pbmc68k_reduced(), pbmc3k_processed()"@3333..3391
+      NEWLINE: "\n"@3391..3392
+      TEXT_LINE: ">>> adata1.shape"@3392..3408
+      NEWLINE: "\n"@3408..3409
+      TEXT_LINE: "(700, 765)"@3409..3419
+      NEWLINE: "\n"@3419..3420
+      TEXT_LINE: ">>> adata2.shape"@3420..3436
+      NEWLINE: "\n"@3436..3437
+      TEXT_LINE: "(2638, 1838)"@3437..3449
+      NEWLINE: "\n"@3449..3450
+      TEXT_LINE: ">>> dc = AnnCollection([adata1, adata2], join_vars='inner')"@3450..3509
+      NEWLINE: "\n"@3509..3510
+      TEXT_LINE: ">>> dc"@3510..3516
+      NEWLINE: "\n"@3516..3517
+      TEXT_LINE: "AnnCollection object with n_obs × n_vars = 3338 × 208"@3517..3572
+      NEWLINE: "\n"@3572..3573
+      WHITESPACE: "  "@3573..3575
+      TEXT_LINE: "constructed from 2 AnnData objects"@3575..3609
+      NEWLINE: "\n"@3609..3610
+      WHITESPACE: "    "@3610..3614
+      TEXT_LINE: "view of obsm: 'X_pca', 'X_umap'"@3614..3645
+      NEWLINE: "\n"@3645..3646
+      WHITESPACE: "    "@3646..3650
+      TEXT_LINE: "view of layers: None"@3650..3670
+      NEWLINE: "\n"@3670..3671
+      WHITESPACE: "    "@3671..3675
+      TEXT_LINE: "obs: 'n_genes', 'percent_mito', 'n_counts', 'louvain'"@3675..3728
+      NEWLINE: "\n"@3728..3729
+      TEXT_LINE: ">>> batch = dc[100:200] # AnnCollectionView"@3729..3772
+      NEWLINE: "\n"@3772..3773
+      TEXT_LINE: ">>> batch"@3773..3782
+      NEWLINE: "\n"@3782..3783
+      TEXT_LINE: "AnnCollectionView object with n_obs × n_vars = 100 × 208"@3783..3841
+      NEWLINE: "\n"@3841..3842
+      WHITESPACE: "    "@3842..3846
+      TEXT_LINE: "obsm: 'X_pca', 'X_umap'"@3846..3869
+      NEWLINE: "\n"@3869..3870
+      WHITESPACE: "    "@3870..3874
+      TEXT_LINE: "layers: None"@3874..3886
+      NEWLINE: "\n"@3886..3887
+      WHITESPACE: "    "@3887..3891
+      TEXT_LINE: "obs: 'n_genes', 'percent_mito', 'n_counts', 'louvain'"@3891..3944
+      NEWLINE: "\n"@3944..3945
+      TEXT_LINE: ">>> batch.X.shape"@3945..3962
+      NEWLINE: "\n"@3962..3963
+      TEXT_LINE: "(100, 208)"@3963..3973
+      NEWLINE: "\n"@3973..3974
+      TEXT_LINE: ">>> len(batch.obs['louvain'])"@3974..4003
+      NEWLINE: "\n"@4003..4004
+      TEXT_LINE: "100"@4004..4007
+    }
+  }
+}
+=== EMIT ===
+Lazily concatenate AnnData objects along the `obs` axis.
+
+This class doesn't copy data from underlying AnnData objects, but lazily subsets using a joint
+index of observations and variables. It also allows on-the-fly application of prespecified
+converters to `.obs` attributes of the AnnData objects.
+
+Subsetting of this object returns an `AnnCollectionView`, which provides views of `.obs`,
+`.obsm`, `.layers`, `.X` from the underlying AnnData objects.
+
+Parameters
+----------
+adatas
+    The objects to be lazily concatenated.
+    If a Mapping is passed, keys are used for the `keys` argument and values are concatenated.
+join_obs
+    If "inner" specified all `.obs` attributes from `adatas` will be inner joined
+    and copied to this object.
+    If "outer" specified all `.obsm` attributes from `adatas` will be outer joined
+    and copied to this object.
+    For "inner" and "outer" subset objects will access `.obs` of this object,
+    not the original `.obs` attributes of `adatas`.
+    If `None`, nothing is copied to this object's `.obs`, a subset object will directly
+    access `.obs` attributes of `adatas` (with proper reindexing and dtype conversions).
+    For `None`the inner join rule is used to select columns of `.obs` of `adatas`.
+join_obsm
+    If "inner" specified all `.obsm` attributes from `adatas` will be inner joined
+    and copied to this object. Subset objects will access `.obsm` of this object,
+    not the original `.obsm` attributes of `adatas`.
+    If `None`, nothing is copied to this object's `.obsm`, a subset object will directly
+    access `.obsm` attributes of `adatas` (with proper reindexing and dtype conversions).
+    For both options the inner join rule for the underlying `.obsm` attributes is used.
+join_vars
+    Specify how to join `adatas` along the var axis. If `None`, assumes all `adatas`
+    have the same variables. If "inner", the intersection of all variables in
+    `adatas` will be used.
+label
+    Column in `.obs` to place batch information in.
+    If it's None, no column is added.
+keys
+    Names for each object being added. These values are used for column values for
+    `label` or appended to the index if `index_unique` is not `None`. Defaults to
+    incrementing integer labels.
+index_unique
+    Whether to make the index unique by using the keys. If provided, this
+    is the delimiter between "{orig_idx}{index_unique}{key}". When `None`,
+    the original indices are kept.
+convert
+    You can pass a function or a Mapping of functions which will be applied
+    to the values of attributes (`.obs`, `.obsm`, `.layers`, `.X`) or to specific
+    keys of these attributes in the subset object.
+    Specify an attribute and a key (if needed) as keys of the passed Mapping
+    and a function to be applied as a value.
+harmonize_dtypes
+    If `True`, all retrieved arrays from subset objects will have the same dtype.
+indices_strict
+    If  `True`, arrays from the subset objects will always have the same order
+    of indices as in selection used to subset.
+    This parameter can be set to `False` if the order in the returned arrays
+    is not important, for example, when using them for stochastic gradient descent.
+    In this case the performance of subsetting can be a bit better.
+
+Examples
+--------
+>>> from scanpy.datasets import pbmc68k_reduced, pbmc3k_processed
+>>> adata1, adata2 = pbmc68k_reduced(), pbmc3k_processed()
+>>> adata1.shape
+(700, 765)
+>>> adata2.shape
+(2638, 1838)
+>>> dc = AnnCollection([adata1, adata2], join_vars='inner')
+>>> dc
+AnnCollection object with n_obs × n_vars = 3338 × 208
+  constructed from 2 AnnData objects
+    view of obsm: 'X_pca', 'X_umap'
+    view of layers: None
+    obs: 'n_genes', 'percent_mito', 'n_counts', 'louvain'
+>>> batch = dc[100:200] # AnnCollectionView
+>>> batch
+AnnCollectionView object with n_obs × n_vars = 100 × 208
+    obsm: 'X_pca', 'X_umap'
+    layers: None
+    obs: 'n_genes', 'percent_mito', 'n_counts', 'louvain'
+>>> batch.X.shape
+(100, 208)
+>>> len(batch.obs['louvain'])
+100

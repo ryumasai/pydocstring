@@ -1,0 +1,704 @@
+=== CST ===
+DOCUMENT@0..6632 {
+  SUMMARY@0..43 {
+    TEXT_LINE: "Concatenates AnnData objects along an axis."@0..43
+  }
+  NEWLINE: "\n"@43..44
+  BLANK_LINE: "\n"@44..45
+  EXTENDED_SUMMARY@45..145 {
+    TEXT_LINE: "See the :doc:`concatenation <../concatenation>` section in the docs for a more in-depth description."@45..145
+  }
+  NEWLINE: "\n"@145..146
+  BLANK_LINE: "\n"@146..147
+  SECTION@147..2358 {
+    SECTION_HEADER@147..160 {
+      NAME: "Params"@147..153
+      NEWLINE: "\n"@153..154
+      UNDERLINE: "------"@154..160
+    }
+    NEWLINE: "\n"@160..161
+    ENTRY@161..298 {
+      NAME: "adatas"@161..167
+      NEWLINE: "\n"@167..168
+      WHITESPACE: "    "@168..172
+      DESCRIPTION@172..298 {
+        TEXT_LINE: "The objects to be concatenated. If a Mapping is passed, keys are used for the `keys`"@172..256
+        NEWLINE: "\n"@256..257
+        WHITESPACE: "    "@257..261
+        TEXT_LINE: "argument and values are concatenated."@261..298
+      }
+    }
+    NEWLINE: "\n"@298..299
+    ENTRY@299..340 {
+      NAME: "axis"@299..303
+      NEWLINE: "\n"@303..304
+      WHITESPACE: "    "@304..308
+      DESCRIPTION@308..340 {
+        TEXT_LINE: "Which axis to concatenate along."@308..340
+      }
+    }
+    NEWLINE: "\n"@340..341
+    ENTRY@341..531 {
+      NAME: "join"@341..345
+      NEWLINE: "\n"@345..346
+      WHITESPACE: "    "@346..350
+      DESCRIPTION@350..531 {
+        TEXT_LINE: "How to align values when concatenating. If \"outer\", the union of the other axis"@350..429
+        NEWLINE: "\n"@429..430
+        WHITESPACE: "    "@430..434
+        TEXT_LINE: "is taken. If \"inner\", the intersection. See :doc:`concatenation <../concatenation>`"@434..517
+        NEWLINE: "\n"@517..518
+        WHITESPACE: "    "@518..522
+        TEXT_LINE: "for more."@522..531
+      }
+    }
+    NEWLINE: "\n"@531..532
+    ENTRY@532..1078 {
+      NAME: "merge"@532..537
+      NEWLINE: "\n"@537..538
+      WHITESPACE: "    "@538..542
+      DESCRIPTION@542..1078 {
+        TEXT_LINE: "How elements not aligned to the axis being concatenated along are selected."@542..617
+        NEWLINE: "\n"@617..618
+        WHITESPACE: "    "@618..622
+        TEXT_LINE: "Currently implemented strategies include:"@622..663
+        NEWLINE: "\n"@663..664
+        BLANK_LINE: "\n"@664..665
+        WHITESPACE: "    "@665..669
+        TEXT_LINE: "* `None`: No elements are kept."@669..700
+        NEWLINE: "\n"@700..701
+        WHITESPACE: "    "@701..705
+        TEXT_LINE: "* `\"same\"`: Elements that are the same in each of the objects."@705..767
+        NEWLINE: "\n"@767..768
+        WHITESPACE: "    "@768..772
+        TEXT_LINE: "* `\"unique\"`: Elements for which there is only one possible value."@772..838
+        NEWLINE: "\n"@838..839
+        WHITESPACE: "    "@839..843
+        TEXT_LINE: "* `\"first\"`: The first element seen at each from each position."@843..906
+        NEWLINE: "\n"@906..907
+        WHITESPACE: "    "@907..911
+        TEXT_LINE: "* `\"only\"`: Elements that show up in only one of the objects."@911..972
+        NEWLINE: "\n"@972..973
+        BLANK_LINE: "\n"@973..974
+        WHITESPACE: "    "@974..978
+        TEXT_LINE: "For :class:`xarray.Dataset` objects, we use their :func:`xarray.merge` with `override` to stay lazy."@978..1078
+      }
+    }
+    NEWLINE: "\n"@1078..1079
+    ENTRY@1079..1222 {
+      NAME: "uns_merge"@1079..1088
+      NEWLINE: "\n"@1088..1089
+      WHITESPACE: "    "@1089..1093
+      DESCRIPTION@1093..1222 {
+        TEXT_LINE: "How the elements of `.uns` are selected. Uses the same set of strategies as"@1093..1168
+        NEWLINE: "\n"@1168..1169
+        WHITESPACE: "    "@1169..1173
+        TEXT_LINE: "the `merge` argument, except applied recursively."@1173..1222
+      }
+    }
+    NEWLINE: "\n"@1222..1223
+    ENTRY@1223..1351 {
+      NAME: "label"@1223..1228
+      NEWLINE: "\n"@1228..1229
+      WHITESPACE: "    "@1229..1233
+      DESCRIPTION@1233..1351 {
+        TEXT_LINE: "Column in axis annotation (i.e. `.obs` or `.var`) to place batch information in."@1233..1313
+        NEWLINE: "\n"@1313..1314
+        WHITESPACE: "    "@1314..1318
+        TEXT_LINE: "If it's None, no column is added."@1318..1351
+      }
+    }
+    NEWLINE: "\n"@1351..1352
+    ENTRY@1352..1554 {
+      NAME: "keys"@1352..1356
+      NEWLINE: "\n"@1356..1357
+      WHITESPACE: "    "@1357..1361
+      DESCRIPTION@1361..1554 {
+        TEXT_LINE: "Names for each object being added. These values are used for column values for"@1361..1439
+        NEWLINE: "\n"@1439..1440
+        WHITESPACE: "    "@1440..1444
+        TEXT_LINE: "`label` or appended to the index if `index_unique` is not `None`. Defaults to"@1444..1521
+        NEWLINE: "\n"@1521..1522
+        WHITESPACE: "    "@1522..1526
+        TEXT_LINE: "incrementing integer labels."@1526..1554
+      }
+    }
+    NEWLINE: "\n"@1554..1555
+    ENTRY@1555..1751 {
+      NAME: "index_unique"@1555..1567
+      NEWLINE: "\n"@1567..1568
+      WHITESPACE: "    "@1568..1572
+      DESCRIPTION@1572..1751 {
+        TEXT_LINE: "Whether to make the index unique by using the keys. If provided, this"@1572..1641
+        NEWLINE: "\n"@1641..1642
+        WHITESPACE: "    "@1642..1646
+        TEXT_LINE: "is the delimiter between \"{orig_idx}{index_unique}{key}\". When `None`,"@1646..1716
+        NEWLINE: "\n"@1716..1717
+        WHITESPACE: "    "@1717..1721
+        TEXT_LINE: "the original indices are kept."@1721..1751
+      }
+    }
+    NEWLINE: "\n"@1751..1752
+    ENTRY@1752..1978 {
+      NAME: "fill_value"@1752..1762
+      NEWLINE: "\n"@1762..1763
+      WHITESPACE: "    "@1763..1767
+      DESCRIPTION@1767..1978 {
+        TEXT_LINE: "When `join=\"outer\"`, this is the value that will be used to fill the introduced"@1767..1846
+        NEWLINE: "\n"@1846..1847
+        WHITESPACE: "    "@1847..1851
+        TEXT_LINE: "indices. By default, sparse arrays are padded with zeros, while dense arrays and"@1851..1931
+        NEWLINE: "\n"@1931..1932
+        WHITESPACE: "    "@1932..1936
+        TEXT_LINE: "DataFrames are padded with missing values."@1936..1978
+      }
+    }
+    NEWLINE: "\n"@1978..1979
+    ENTRY@1979..2153 {
+      NAME: "pairwise"@1979..1987
+      NEWLINE: "\n"@1987..1988
+      WHITESPACE: "    "@1988..1992
+      DESCRIPTION@1992..2153 {
+        TEXT_LINE: "Whether pairwise elements along the concatenated dimension should be included."@1992..2070
+        NEWLINE: "\n"@2070..2071
+        WHITESPACE: "    "@2071..2075
+        TEXT_LINE: "This is False by default, since the resulting arrays are often not meaningful."@2075..2153
+      }
+    }
+    NEWLINE: "\n"@2153..2154
+    ENTRY@2154..2358 {
+      NAME: "force_lazy"@2154..2164
+      NEWLINE: "\n"@2164..2165
+      WHITESPACE: "    "@2165..2169
+      DESCRIPTION@2169..2358 {
+        TEXT_LINE: "Whether to lazily concatenate elements using dask even when eager concatenation is possible."@2169..2261
+        NEWLINE: "\n"@2261..2262
+        WHITESPACE: "    "@2262..2266
+        TEXT_LINE: "At the moment, this only affects obs/var and elements of obsm/varm that are xarray Datasets."@2266..2358
+      }
+    }
+  }
+  NEWLINE: "\n"@2358..2359
+  BLANK_LINE: "\n"@2359..2360
+  SECTION@2360..2545 {
+    SECTION_HEADER@2360..2371 {
+      NAME: "Notes"@2360..2365
+      NEWLINE: "\n"@2365..2366
+      UNDERLINE: "-----"@2366..2371
+    }
+    NEWLINE: "\n"@2371..2372
+    BLANK_LINE: "\n"@2372..2373
+    DESCRIPTION@2373..2545 {
+      TEXT_LINE: ".. warning::"@2373..2385
+      NEWLINE: "\n"@2385..2386
+      BLANK_LINE: "\n"@2386..2387
+      WHITESPACE: "    "@2387..2391
+      TEXT_LINE: "If you use `join='outer'` this fills 0s for sparse data when"@2391..2451
+      NEWLINE: "\n"@2451..2452
+      WHITESPACE: "    "@2452..2456
+      TEXT_LINE: "variables are absent in a batch. Use this with care. Dense data is"@2456..2522
+      NEWLINE: "\n"@2522..2523
+      WHITESPACE: "    "@2523..2527
+      TEXT_LINE: "filled with `NaN`."@2527..2545
+    }
+  }
+  NEWLINE: "\n"@2545..2546
+  BLANK_LINE: "\n"@2546..2547
+  SECTION@2547..6632 {
+    SECTION_HEADER@2547..2564 {
+      NAME: "Examples"@2547..2555
+      NEWLINE: "\n"@2555..2556
+      UNDERLINE: "--------"@2556..2564
+    }
+    NEWLINE: "\n"@2564..2565
+    BLANK_LINE: "\n"@2565..2566
+    DESCRIPTION@2566..6632 {
+      TEXT_LINE: "Preparing example objects"@2566..2591
+      NEWLINE: "\n"@2591..2592
+      BLANK_LINE: "\n"@2592..2593
+      TEXT_LINE: ">>> import anndata as ad, pandas as pd, numpy as np"@2593..2644
+      NEWLINE: "\n"@2644..2645
+      TEXT_LINE: ">>> from scipy import sparse"@2645..2673
+      NEWLINE: "\n"@2673..2674
+      TEXT_LINE: ">>> a = ad.AnnData("@2674..2693
+      NEWLINE: "\n"@2693..2694
+      TEXT_LINE: "...     X=sparse.csr_matrix(np.array([[0, 1], [2, 3]])),"@2694..2750
+      NEWLINE: "\n"@2750..2751
+      TEXT_LINE: "...     obs=pd.DataFrame({\"group\": [\"a\", \"b\"]}, index=[\"s1\", \"s2\"]),"@2751..2819
+      NEWLINE: "\n"@2819..2820
+      TEXT_LINE: "...     var=pd.DataFrame(index=[\"var1\", \"var2\"]),"@2820..2869
+      NEWLINE: "\n"@2869..2870
+      TEXT_LINE: "...     varm={"@2870..2884
+      NEWLINE: "\n"@2884..2885
+      TEXT_LINE: "...         \"ones\": np.ones((2, 5)),"@2885..2921
+      NEWLINE: "\n"@2921..2922
+      TEXT_LINE: "...         \"rand\": np.random.randn(2, 3),"@2922..2964
+      NEWLINE: "\n"@2964..2965
+      TEXT_LINE: "...         \"zeros\": np.zeros((2, 5)),"@2965..3003
+      NEWLINE: "\n"@3003..3004
+      TEXT_LINE: "...     },"@3004..3014
+      NEWLINE: "\n"@3014..3015
+      TEXT_LINE: "...     uns={\"a\": 1, \"b\": 2, \"c\": {\"c.a\": 3, \"c.b\": 4}},"@3015..3071
+      NEWLINE: "\n"@3071..3072
+      TEXT_LINE: "... )"@3072..3077
+      NEWLINE: "\n"@3077..3078
+      TEXT_LINE: ">>> b = ad.AnnData("@3078..3097
+      NEWLINE: "\n"@3097..3098
+      TEXT_LINE: "...     X=sparse.csr_matrix(np.array([[4, 5, 6], [7, 8, 9]])),"@3098..3160
+      NEWLINE: "\n"@3160..3161
+      TEXT_LINE: "...     obs=pd.DataFrame("@3161..3186
+      NEWLINE: "\n"@3186..3187
+      TEXT_LINE: "...         {\"group\": [\"b\", \"c\"], \"measure\": [1.2, 4.3]}, index=[\"s3\", \"s4\"]"@3187..3263
+      NEWLINE: "\n"@3263..3264
+      TEXT_LINE: "...     ),"@3264..3274
+      NEWLINE: "\n"@3274..3275
+      TEXT_LINE: "...     var=pd.DataFrame(index=[\"var1\", \"var2\", \"var3\"]),"@3275..3332
+      NEWLINE: "\n"@3332..3333
+      TEXT_LINE: "...     varm={\"ones\": np.ones((3, 5)), \"rand\": np.random.randn(3, 5)},"@3333..3403
+      NEWLINE: "\n"@3403..3404
+      TEXT_LINE: "...     uns={\"a\": 1, \"b\": 3, \"c\": {\"c.b\": 4}},"@3404..3450
+      NEWLINE: "\n"@3450..3451
+      TEXT_LINE: "... )"@3451..3456
+      NEWLINE: "\n"@3456..3457
+      TEXT_LINE: ">>> c = ad.AnnData("@3457..3476
+      NEWLINE: "\n"@3476..3477
+      TEXT_LINE: "...     X=sparse.csr_matrix(np.array([[10, 11], [12, 13]])),"@3477..3537
+      NEWLINE: "\n"@3537..3538
+      TEXT_LINE: "...     obs=pd.DataFrame({\"group\": [\"a\", \"b\"]}, index=[\"s1\", \"s2\"]),"@3538..3606
+      NEWLINE: "\n"@3606..3607
+      TEXT_LINE: "...     var=pd.DataFrame(index=[\"var3\", \"var4\"]),"@3607..3656
+      NEWLINE: "\n"@3656..3657
+      TEXT_LINE: "...     uns={\"a\": 1, \"b\": 4, \"c\": {\"c.a\": 3, \"c.b\": 4, \"c.c\": 5}},"@3657..3723
+      NEWLINE: "\n"@3723..3724
+      TEXT_LINE: "... )"@3724..3729
+      NEWLINE: "\n"@3729..3730
+      BLANK_LINE: "\n"@3730..3731
+      TEXT_LINE: "Concatenating along different axes"@3731..3765
+      NEWLINE: "\n"@3765..3766
+      BLANK_LINE: "\n"@3766..3767
+      TEXT_LINE: ">>> ad.concat([a, b]).to_df()"@3767..3796
+      NEWLINE: "\n"@3796..3797
+      WHITESPACE: "    "@3797..3801
+      TEXT_LINE: "var1  var2"@3801..3811
+      NEWLINE: "\n"@3811..3812
+      TEXT_LINE: "s1     0     1"@3812..3826
+      NEWLINE: "\n"@3826..3827
+      TEXT_LINE: "s2     2     3"@3827..3841
+      NEWLINE: "\n"@3841..3842
+      TEXT_LINE: "s3     4     5"@3842..3856
+      NEWLINE: "\n"@3856..3857
+      TEXT_LINE: "s4     7     8"@3857..3871
+      NEWLINE: "\n"@3871..3872
+      TEXT_LINE: ">>> ad.concat([a, c], axis=\"var\").to_df()"@3872..3913
+      NEWLINE: "\n"@3913..3914
+      WHITESPACE: "    "@3914..3918
+      TEXT_LINE: "var1  var2  var3  var4"@3918..3940
+      NEWLINE: "\n"@3940..3941
+      TEXT_LINE: "s1     0     1    10    11"@3941..3967
+      NEWLINE: "\n"@3967..3968
+      TEXT_LINE: "s2     2     3    12    13"@3968..3994
+      NEWLINE: "\n"@3994..3995
+      BLANK_LINE: "\n"@3995..3996
+      TEXT_LINE: "Inner and outer joins"@3996..4017
+      NEWLINE: "\n"@4017..4018
+      BLANK_LINE: "\n"@4018..4019
+      TEXT_LINE: ">>> inner = ad.concat([a, b])  # Joining on intersection of variables"@4019..4088
+      NEWLINE: "\n"@4088..4089
+      TEXT_LINE: ">>> inner"@4089..4098
+      NEWLINE: "\n"@4098..4099
+      TEXT_LINE: "AnnData object with n_obs × n_vars = 4 × 2"@4099..4143
+      NEWLINE: "\n"@4143..4144
+      WHITESPACE: "    "@4144..4148
+      TEXT_LINE: "obs: 'group'"@4148..4160
+      NEWLINE: "\n"@4160..4161
+      WHITESPACE: "    "@4161..4165
+      TEXT_LINE: "layers: None"@4165..4177
+      NEWLINE: "\n"@4177..4178
+      TEXT_LINE: ">>> ("@4178..4183
+      NEWLINE: "\n"@4183..4184
+      TEXT_LINE: "...     inner.obs_names.astype(\"string\"),"@4184..4225
+      NEWLINE: "\n"@4225..4226
+      TEXT_LINE: "...     inner.var_names.astype(\"string\"),"@4226..4267
+      NEWLINE: "\n"@4267..4268
+      TEXT_LINE: "... )  # doctest: +NORMALIZE_WHITESPACE"@4268..4307
+      NEWLINE: "\n"@4307..4308
+      TEXT_LINE: "(Index(['s1', 's2', 's3', 's4'], dtype='string'),"@4308..4357
+      NEWLINE: "\n"@4357..4358
+      TEXT_LINE: "Index(['var1', 'var2'], dtype='string'))"@4358..4398
+      NEWLINE: "\n"@4398..4399
+      TEXT_LINE: ">>> outer = ad.concat([a, b], join=\"outer\")  # Joining on union of variables"@4399..4475
+      NEWLINE: "\n"@4475..4476
+      TEXT_LINE: ">>> outer"@4476..4485
+      NEWLINE: "\n"@4485..4486
+      TEXT_LINE: "AnnData object with n_obs × n_vars = 4 × 3"@4486..4530
+      NEWLINE: "\n"@4530..4531
+      WHITESPACE: "    "@4531..4535
+      TEXT_LINE: "obs: 'group', 'measure'"@4535..4558
+      NEWLINE: "\n"@4558..4559
+      WHITESPACE: "    "@4559..4563
+      TEXT_LINE: "layers: None"@4563..4575
+      NEWLINE: "\n"@4575..4576
+      TEXT_LINE: ">>> outer.var_names.astype(\"string\")"@4576..4612
+      NEWLINE: "\n"@4612..4613
+      TEXT_LINE: "Index(['var1', 'var2', 'var3'], dtype='string')"@4613..4660
+      NEWLINE: "\n"@4660..4661
+      TEXT_LINE: ">>> outer.to_df()  # Sparse arrays are padded with zeroes by default"@4661..4729
+      NEWLINE: "\n"@4729..4730
+      WHITESPACE: "    "@4730..4734
+      TEXT_LINE: "var1  var2  var3"@4734..4750
+      NEWLINE: "\n"@4750..4751
+      TEXT_LINE: "s1     0     1     0"@4751..4771
+      NEWLINE: "\n"@4771..4772
+      TEXT_LINE: "s2     2     3     0"@4772..4792
+      NEWLINE: "\n"@4792..4793
+      TEXT_LINE: "s3     4     5     6"@4793..4813
+      NEWLINE: "\n"@4813..4814
+      TEXT_LINE: "s4     7     8     9"@4814..4834
+      NEWLINE: "\n"@4834..4835
+      BLANK_LINE: "\n"@4835..4836
+      TEXT_LINE: "Using the axis’ index instead of its name"@4836..4879
+      NEWLINE: "\n"@4879..4880
+      BLANK_LINE: "\n"@4880..4881
+      TEXT_LINE: ">>> ad.concat([a, b], axis=0).to_df()  # Equivalent to axis=\"obs\""@4881..4946
+      NEWLINE: "\n"@4946..4947
+      WHITESPACE: "    "@4947..4951
+      TEXT_LINE: "var1  var2"@4951..4961
+      NEWLINE: "\n"@4961..4962
+      TEXT_LINE: "s1     0     1"@4962..4976
+      NEWLINE: "\n"@4976..4977
+      TEXT_LINE: "s2     2     3"@4977..4991
+      NEWLINE: "\n"@4991..4992
+      TEXT_LINE: "s3     4     5"@4992..5006
+      NEWLINE: "\n"@5006..5007
+      TEXT_LINE: "s4     7     8"@5007..5021
+      NEWLINE: "\n"@5021..5022
+      TEXT_LINE: ">>> ad.concat([a, c], axis=1).to_df()  # Equivalent to axis=\"var\""@5022..5087
+      NEWLINE: "\n"@5087..5088
+      WHITESPACE: "    "@5088..5092
+      TEXT_LINE: "var1  var2  var3  var4"@5092..5114
+      NEWLINE: "\n"@5114..5115
+      TEXT_LINE: "s1     0     1    10    11"@5115..5141
+      NEWLINE: "\n"@5141..5142
+      TEXT_LINE: "s2     2     3    12    13"@5142..5168
+      NEWLINE: "\n"@5168..5169
+      BLANK_LINE: "\n"@5169..5170
+      TEXT_LINE: "Keeping track of source objects"@5170..5201
+      NEWLINE: "\n"@5201..5202
+      BLANK_LINE: "\n"@5202..5203
+      TEXT_LINE: ">>> ad.concat({\"a\": a, \"b\": b}, label=\"batch\").obs"@5203..5253
+      NEWLINE: "\n"@5253..5254
+      WHITESPACE: "   "@5254..5257
+      TEXT_LINE: "group batch"@5257..5268
+      NEWLINE: "\n"@5268..5269
+      TEXT_LINE: "s1     a     a"@5269..5283
+      NEWLINE: "\n"@5283..5284
+      TEXT_LINE: "s2     b     a"@5284..5298
+      NEWLINE: "\n"@5298..5299
+      TEXT_LINE: "s3     b     b"@5299..5313
+      NEWLINE: "\n"@5313..5314
+      TEXT_LINE: "s4     c     b"@5314..5328
+      NEWLINE: "\n"@5328..5329
+      TEXT_LINE: ">>> ad.concat([a, b], label=\"batch\", keys=[\"a\", \"b\"]).obs  # Equivalent to previous"@5329..5412
+      NEWLINE: "\n"@5412..5413
+      WHITESPACE: "   "@5413..5416
+      TEXT_LINE: "group batch"@5416..5427
+      NEWLINE: "\n"@5427..5428
+      TEXT_LINE: "s1     a     a"@5428..5442
+      NEWLINE: "\n"@5442..5443
+      TEXT_LINE: "s2     b     a"@5443..5457
+      NEWLINE: "\n"@5457..5458
+      TEXT_LINE: "s3     b     b"@5458..5472
+      NEWLINE: "\n"@5472..5473
+      TEXT_LINE: "s4     c     b"@5473..5487
+      NEWLINE: "\n"@5487..5488
+      TEXT_LINE: ">>> ad.concat({\"a\": a, \"b\": b}, index_unique=\"-\").obs"@5488..5541
+      NEWLINE: "\n"@5541..5542
+      WHITESPACE: "     "@5542..5547
+      TEXT_LINE: "group"@5547..5552
+      NEWLINE: "\n"@5552..5553
+      TEXT_LINE: "s1-a     a"@5553..5563
+      NEWLINE: "\n"@5563..5564
+      TEXT_LINE: "s2-a     b"@5564..5574
+      NEWLINE: "\n"@5574..5575
+      TEXT_LINE: "s3-b     b"@5575..5585
+      NEWLINE: "\n"@5585..5586
+      TEXT_LINE: "s4-b     c"@5586..5596
+      NEWLINE: "\n"@5596..5597
+      BLANK_LINE: "\n"@5597..5598
+      TEXT_LINE: "Combining values not aligned to axis of concatenation"@5598..5651
+      NEWLINE: "\n"@5651..5652
+      BLANK_LINE: "\n"@5652..5653
+      TEXT_LINE: ">>> ad.concat([a, b], merge=\"same\")"@5653..5688
+      NEWLINE: "\n"@5688..5689
+      TEXT_LINE: "AnnData object with n_obs × n_vars = 4 × 2"@5689..5733
+      NEWLINE: "\n"@5733..5734
+      WHITESPACE: "    "@5734..5738
+      TEXT_LINE: "obs: 'group'"@5738..5750
+      NEWLINE: "\n"@5750..5751
+      WHITESPACE: "    "@5751..5755
+      TEXT_LINE: "varm: 'ones'"@5755..5767
+      NEWLINE: "\n"@5767..5768
+      WHITESPACE: "    "@5768..5772
+      TEXT_LINE: "layers: None"@5772..5784
+      NEWLINE: "\n"@5784..5785
+      TEXT_LINE: ">>> ad.concat([a, b], merge=\"unique\")"@5785..5822
+      NEWLINE: "\n"@5822..5823
+      TEXT_LINE: "AnnData object with n_obs × n_vars = 4 × 2"@5823..5867
+      NEWLINE: "\n"@5867..5868
+      WHITESPACE: "    "@5868..5872
+      TEXT_LINE: "obs: 'group'"@5872..5884
+      NEWLINE: "\n"@5884..5885
+      WHITESPACE: "    "@5885..5889
+      TEXT_LINE: "varm: 'ones', 'zeros'"@5889..5910
+      NEWLINE: "\n"@5910..5911
+      WHITESPACE: "    "@5911..5915
+      TEXT_LINE: "layers: None"@5915..5927
+      NEWLINE: "\n"@5927..5928
+      TEXT_LINE: ">>> ad.concat([a, b], merge=\"first\")"@5928..5964
+      NEWLINE: "\n"@5964..5965
+      TEXT_LINE: "AnnData object with n_obs × n_vars = 4 × 2"@5965..6009
+      NEWLINE: "\n"@6009..6010
+      WHITESPACE: "    "@6010..6014
+      TEXT_LINE: "obs: 'group'"@6014..6026
+      NEWLINE: "\n"@6026..6027
+      WHITESPACE: "    "@6027..6031
+      TEXT_LINE: "varm: 'ones', 'rand', 'zeros'"@6031..6060
+      NEWLINE: "\n"@6060..6061
+      WHITESPACE: "    "@6061..6065
+      TEXT_LINE: "layers: None"@6065..6077
+      NEWLINE: "\n"@6077..6078
+      TEXT_LINE: ">>> ad.concat([a, b], merge=\"only\")"@6078..6113
+      NEWLINE: "\n"@6113..6114
+      TEXT_LINE: "AnnData object with n_obs × n_vars = 4 × 2"@6114..6158
+      NEWLINE: "\n"@6158..6159
+      WHITESPACE: "    "@6159..6163
+      TEXT_LINE: "obs: 'group'"@6163..6175
+      NEWLINE: "\n"@6175..6176
+      WHITESPACE: "    "@6176..6180
+      TEXT_LINE: "varm: 'zeros'"@6180..6193
+      NEWLINE: "\n"@6193..6194
+      WHITESPACE: "    "@6194..6198
+      TEXT_LINE: "layers: None"@6198..6210
+      NEWLINE: "\n"@6210..6211
+      BLANK_LINE: "\n"@6211..6212
+      TEXT_LINE: "The same merge strategies can be used for elements in `.uns`"@6212..6272
+      NEWLINE: "\n"@6272..6273
+      BLANK_LINE: "\n"@6273..6274
+      TEXT_LINE: ">>> dict(ad.concat([a, b, c], uns_merge=\"same\").uns)"@6274..6326
+      NEWLINE: "\n"@6326..6327
+      TEXT_LINE: "{'a': 1, 'c': {'c.b': 4}}"@6327..6352
+      NEWLINE: "\n"@6352..6353
+      TEXT_LINE: ">>> dict(ad.concat([a, b, c], uns_merge=\"unique\").uns)"@6353..6407
+      NEWLINE: "\n"@6407..6408
+      TEXT_LINE: "{'a': 1, 'c': {'c.a': 3, 'c.b': 4, 'c.c': 5}}"@6408..6453
+      NEWLINE: "\n"@6453..6454
+      TEXT_LINE: ">>> dict(ad.concat([a, b, c], uns_merge=\"only\").uns)"@6454..6506
+      NEWLINE: "\n"@6506..6507
+      TEXT_LINE: "{'c': {'c.c': 5}}"@6507..6524
+      NEWLINE: "\n"@6524..6525
+      TEXT_LINE: ">>> dict(ad.concat([a, b, c], uns_merge=\"first\").uns)"@6525..6578
+      NEWLINE: "\n"@6578..6579
+      TEXT_LINE: "{'a': 1, 'b': 2, 'c': {'c.a': 3, 'c.b': 4, 'c.c': 5}}"@6579..6632
+    }
+  }
+}
+=== EMIT ===
+Concatenates AnnData objects along an axis.
+
+See the :doc:`concatenation <../concatenation>` section in the docs for a more in-depth description.
+
+Parameters
+----------
+adatas
+    The objects to be concatenated. If a Mapping is passed, keys are used for the `keys`
+    argument and values are concatenated.
+axis
+    Which axis to concatenate along.
+join
+    How to align values when concatenating. If "outer", the union of the other axis
+    is taken. If "inner", the intersection. See :doc:`concatenation <../concatenation>`
+    for more.
+merge
+    How elements not aligned to the axis being concatenated along are selected.
+    Currently implemented strategies include:
+
+    * `None`: No elements are kept.
+    * `"same"`: Elements that are the same in each of the objects.
+    * `"unique"`: Elements for which there is only one possible value.
+    * `"first"`: The first element seen at each from each position.
+    * `"only"`: Elements that show up in only one of the objects.
+
+    For :class:`xarray.Dataset` objects, we use their :func:`xarray.merge` with `override` to stay lazy.
+uns_merge
+    How the elements of `.uns` are selected. Uses the same set of strategies as
+    the `merge` argument, except applied recursively.
+label
+    Column in axis annotation (i.e. `.obs` or `.var`) to place batch information in.
+    If it's None, no column is added.
+keys
+    Names for each object being added. These values are used for column values for
+    `label` or appended to the index if `index_unique` is not `None`. Defaults to
+    incrementing integer labels.
+index_unique
+    Whether to make the index unique by using the keys. If provided, this
+    is the delimiter between "{orig_idx}{index_unique}{key}". When `None`,
+    the original indices are kept.
+fill_value
+    When `join="outer"`, this is the value that will be used to fill the introduced
+    indices. By default, sparse arrays are padded with zeros, while dense arrays and
+    DataFrames are padded with missing values.
+pairwise
+    Whether pairwise elements along the concatenated dimension should be included.
+    This is False by default, since the resulting arrays are often not meaningful.
+force_lazy
+    Whether to lazily concatenate elements using dask even when eager concatenation is possible.
+    At the moment, this only affects obs/var and elements of obsm/varm that are xarray Datasets.
+
+Notes
+-----
+.. warning::
+
+    If you use `join='outer'` this fills 0s for sparse data when
+    variables are absent in a batch. Use this with care. Dense data is
+    filled with `NaN`.
+
+Examples
+--------
+Preparing example objects
+
+>>> import anndata as ad, pandas as pd, numpy as np
+>>> from scipy import sparse
+>>> a = ad.AnnData(
+...     X=sparse.csr_matrix(np.array([[0, 1], [2, 3]])),
+...     obs=pd.DataFrame({"group": ["a", "b"]}, index=["s1", "s2"]),
+...     var=pd.DataFrame(index=["var1", "var2"]),
+...     varm={
+...         "ones": np.ones((2, 5)),
+...         "rand": np.random.randn(2, 3),
+...         "zeros": np.zeros((2, 5)),
+...     },
+...     uns={"a": 1, "b": 2, "c": {"c.a": 3, "c.b": 4}},
+... )
+>>> b = ad.AnnData(
+...     X=sparse.csr_matrix(np.array([[4, 5, 6], [7, 8, 9]])),
+...     obs=pd.DataFrame(
+...         {"group": ["b", "c"], "measure": [1.2, 4.3]}, index=["s3", "s4"]
+...     ),
+...     var=pd.DataFrame(index=["var1", "var2", "var3"]),
+...     varm={"ones": np.ones((3, 5)), "rand": np.random.randn(3, 5)},
+...     uns={"a": 1, "b": 3, "c": {"c.b": 4}},
+... )
+>>> c = ad.AnnData(
+...     X=sparse.csr_matrix(np.array([[10, 11], [12, 13]])),
+...     obs=pd.DataFrame({"group": ["a", "b"]}, index=["s1", "s2"]),
+...     var=pd.DataFrame(index=["var3", "var4"]),
+...     uns={"a": 1, "b": 4, "c": {"c.a": 3, "c.b": 4, "c.c": 5}},
+... )
+
+Concatenating along different axes
+
+>>> ad.concat([a, b]).to_df()
+    var1  var2
+s1     0     1
+s2     2     3
+s3     4     5
+s4     7     8
+>>> ad.concat([a, c], axis="var").to_df()
+    var1  var2  var3  var4
+s1     0     1    10    11
+s2     2     3    12    13
+
+Inner and outer joins
+
+>>> inner = ad.concat([a, b])  # Joining on intersection of variables
+>>> inner
+AnnData object with n_obs × n_vars = 4 × 2
+    obs: 'group'
+    layers: None
+>>> (
+...     inner.obs_names.astype("string"),
+...     inner.var_names.astype("string"),
+... )  # doctest: +NORMALIZE_WHITESPACE
+(Index(['s1', 's2', 's3', 's4'], dtype='string'),
+Index(['var1', 'var2'], dtype='string'))
+>>> outer = ad.concat([a, b], join="outer")  # Joining on union of variables
+>>> outer
+AnnData object with n_obs × n_vars = 4 × 3
+    obs: 'group', 'measure'
+    layers: None
+>>> outer.var_names.astype("string")
+Index(['var1', 'var2', 'var3'], dtype='string')
+>>> outer.to_df()  # Sparse arrays are padded with zeroes by default
+    var1  var2  var3
+s1     0     1     0
+s2     2     3     0
+s3     4     5     6
+s4     7     8     9
+
+Using the axis’ index instead of its name
+
+>>> ad.concat([a, b], axis=0).to_df()  # Equivalent to axis="obs"
+    var1  var2
+s1     0     1
+s2     2     3
+s3     4     5
+s4     7     8
+>>> ad.concat([a, c], axis=1).to_df()  # Equivalent to axis="var"
+    var1  var2  var3  var4
+s1     0     1    10    11
+s2     2     3    12    13
+
+Keeping track of source objects
+
+>>> ad.concat({"a": a, "b": b}, label="batch").obs
+   group batch
+s1     a     a
+s2     b     a
+s3     b     b
+s4     c     b
+>>> ad.concat([a, b], label="batch", keys=["a", "b"]).obs  # Equivalent to previous
+   group batch
+s1     a     a
+s2     b     a
+s3     b     b
+s4     c     b
+>>> ad.concat({"a": a, "b": b}, index_unique="-").obs
+     group
+s1-a     a
+s2-a     b
+s3-b     b
+s4-b     c
+
+Combining values not aligned to axis of concatenation
+
+>>> ad.concat([a, b], merge="same")
+AnnData object with n_obs × n_vars = 4 × 2
+    obs: 'group'
+    varm: 'ones'
+    layers: None
+>>> ad.concat([a, b], merge="unique")
+AnnData object with n_obs × n_vars = 4 × 2
+    obs: 'group'
+    varm: 'ones', 'zeros'
+    layers: None
+>>> ad.concat([a, b], merge="first")
+AnnData object with n_obs × n_vars = 4 × 2
+    obs: 'group'
+    varm: 'ones', 'rand', 'zeros'
+    layers: None
+>>> ad.concat([a, b], merge="only")
+AnnData object with n_obs × n_vars = 4 × 2
+    obs: 'group'
+    varm: 'zeros'
+    layers: None
+
+The same merge strategies can be used for elements in `.uns`
+
+>>> dict(ad.concat([a, b, c], uns_merge="same").uns)
+{'a': 1, 'c': {'c.b': 4}}
+>>> dict(ad.concat([a, b, c], uns_merge="unique").uns)
+{'a': 1, 'c': {'c.a': 3, 'c.b': 4, 'c.c': 5}}
+>>> dict(ad.concat([a, b, c], uns_merge="only").uns)
+{'c': {'c.c': 5}}
+>>> dict(ad.concat([a, b, c], uns_merge="first").uns)
+{'a': 1, 'b': 2, 'c': {'c.a': 3, 'c.b': 4, 'c.c': 5}}

@@ -1,0 +1,17 @@
+Generate shallow :class:`~pandas.DataFrame`.
+
+The data matrix :attr:`X` is returned as
+:class:`~pandas.DataFrame`, where :attr:`obs_names` initializes the
+index, and :attr:`var_names` the columns.
+
+* No annotations are maintained in the returned object.
+* The data matrix is densified in case it is sparse.
+
+Params
+------
+layer
+    Key for `.layers`.
+
+Returns
+-------
+Pandas DataFrame of specified data matrix.

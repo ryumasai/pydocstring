@@ -1,0 +1,466 @@
+=== CST ===
+DOCUMENT@0..4499 {
+  SUMMARY@0..45 {
+    TEXT_LINE: "FFT-based computation of the analytic signal."@0..45
+  }
+  NEWLINE: "\n"@45..46
+  BLANK_LINE: "\n"@46..47
+  EXTENDED_SUMMARY@47..452 {
+    TEXT_LINE: "The analytic signal is calculated by zeroing out the negative frequencies and"@47..124
+    NEWLINE: "\n"@124..125
+    TEXT_LINE: "doubling the amplitudes of the positive frequencies in the FFT domain."@125..195
+    NEWLINE: "\n"@195..196
+    TEXT_LINE: "The imaginary part of the result is the hilbert transform of the real-valued input"@196..278
+    NEWLINE: "\n"@278..279
+    TEXT_LINE: "signal."@279..286
+    NEWLINE: "\n"@286..287
+    BLANK_LINE: "\n"@287..288
+    TEXT_LINE: "The transformation is done along the last axis by default."@288..346
+    NEWLINE: "\n"@346..347
+    BLANK_LINE: "\n"@347..348
+    TEXT_LINE: "For numpy arrays, `scipy.fft.set_workers` can be used to change the number of"@348..425
+    NEWLINE: "\n"@425..426
+    TEXT_LINE: "workers used for the FFTs."@426..452
+  }
+  NEWLINE: "\n"@452..453
+  BLANK_LINE: "\n"@453..454
+  SECTION@454..752 {
+    SECTION_HEADER@454..475 {
+      NAME: "Parameters"@454..464
+      NEWLINE: "\n"@464..465
+      UNDERLINE: "----------"@465..475
+    }
+    NEWLINE: "\n"@475..476
+    ENTRY@476..522 {
+      NAME: "x"@476..477
+      WHITESPACE: " "@477..478
+      COLON: ":"@478..479
+      WHITESPACE: " "@479..480
+      TYPE: "array_like"@480..490
+      NEWLINE: "\n"@490..491
+      WHITESPACE: "    "@491..495
+      DESCRIPTION@495..522 {
+        TEXT_LINE: "Signal data.  Must be real."@495..522
+      }
+    }
+    NEWLINE: "\n"@522..523
+    ENTRY@523..670 {
+      NAME: "N"@523..524
+      WHITESPACE: " "@524..525
+      COLON: ":"@525..526
+      WHITESPACE: " "@526..527
+      TYPE: "int"@527..530
+      COMMA: ","@530..531
+      WHITESPACE: " "@531..532
+      OPTIONAL: "optional"@532..540
+      NEWLINE: "\n"@540..541
+      WHITESPACE: "    "@541..545
+      DESCRIPTION@545..670 {
+        TEXT_LINE: "Number of output samples. `x` is initially cropped or zero-padded to length"@545..620
+        NEWLINE: "\n"@620..621
+        WHITESPACE: "    "@621..625
+        TEXT_LINE: "`N` along `axis`.  Default: ``x.shape[axis]``"@625..670
+      }
+    }
+    NEWLINE: "\n"@670..671
+    ENTRY@671..752 {
+      NAME: "axis"@671..675
+      WHITESPACE: " "@675..676
+      COLON: ":"@676..677
+      WHITESPACE: " "@677..678
+      TYPE: "int"@678..681
+      COMMA: ","@681..682
+      WHITESPACE: " "@682..683
+      OPTIONAL: "optional"@683..691
+      NEWLINE: "\n"@691..692
+      WHITESPACE: "    "@692..696
+      DESCRIPTION@696..752 {
+        TEXT_LINE: "Axis along which to do the transformation.  Default: -1."@696..752
+      }
+    }
+  }
+  NEWLINE: "\n"@752..753
+  BLANK_LINE: "\n"@753..754
+  SECTION@754..841 {
+    SECTION_HEADER@754..769 {
+      NAME: "Returns"@754..761
+      NEWLINE: "\n"@761..762
+      UNDERLINE: "-------"@762..769
+    }
+    NEWLINE: "\n"@769..770
+    ENTRY@770..841 {
+      NAME: "xa"@770..772
+      WHITESPACE: " "@772..773
+      COLON: ":"@773..774
+      WHITESPACE: " "@774..775
+      TYPE: "ndarray"@775..782
+      NEWLINE: "\n"@782..783
+      WHITESPACE: "    "@783..787
+      DESCRIPTION@787..841 {
+        TEXT_LINE: "Analytic signal of `x`, of each 1-D array along `axis`"@787..841
+      }
+    }
+  }
+  NEWLINE: "\n"@841..842
+  BLANK_LINE: "\n"@842..843
+  SECTION@843..936 {
+    SECTION_HEADER@843..860 {
+      NAME: "See Also"@843..851
+      NEWLINE: "\n"@851..852
+      UNDERLINE: "--------"@852..860
+    }
+    NEWLINE: "\n"@860..861
+    BLANK_LINE: "\n"@861..862
+    ENTRY@862..936 {
+      NAME: ":func:`envelope`"@862..878
+      NEWLINE: "\n"@878..879
+      WHITESPACE: "    "@879..883
+      DESCRIPTION@883..936 {
+        TEXT_LINE: "Compute envelope of a real- or complex-valued signal."@883..936
+      }
+    }
+  }
+  NEWLINE: "\n"@936..937
+  BLANK_LINE: "\n"@937..938
+  BLANK_LINE: "\n"@938..939
+  SECTION@939..2485 {
+    SECTION_HEADER@939..950 {
+      NAME: "Notes"@939..944
+      NEWLINE: "\n"@944..945
+      UNDERLINE: "-----"@945..950
+    }
+    NEWLINE: "\n"@950..951
+    DESCRIPTION@951..2485 {
+      TEXT_LINE: "The analytic signal ``x_a(t)`` of a real-valued signal ``x(t)``"@951..1014
+      NEWLINE: "\n"@1014..1015
+      TEXT_LINE: "can be expressed as [1]_"@1015..1039
+      NEWLINE: "\n"@1039..1040
+      BLANK_LINE: "\n"@1040..1041
+      TEXT_LINE: ".. math:: x_a = F^{-1}(F(x) 2U) = x + i y\\ ,"@1041..1085
+      NEWLINE: "\n"@1085..1086
+      BLANK_LINE: "\n"@1086..1087
+      TEXT_LINE: "where `F` is the Fourier transform, `U` the unit step function,"@1087..1150
+      NEWLINE: "\n"@1150..1151
+      TEXT_LINE: "and `y` the Hilbert transform of `x`. [2]_"@1151..1193
+      NEWLINE: "\n"@1193..1194
+      BLANK_LINE: "\n"@1194..1195
+      TEXT_LINE: "In other words, the negative half of the frequency spectrum is zeroed"@1195..1264
+      NEWLINE: "\n"@1264..1265
+      TEXT_LINE: "out, turning the real-valued signal into a complex-valued signal.  The Hilbert"@1265..1343
+      NEWLINE: "\n"@1343..1344
+      TEXT_LINE: "transformed signal can be obtained from ``np.imag(hilbert(x))``, and the"@1344..1416
+      NEWLINE: "\n"@1416..1417
+      TEXT_LINE: "original signal from ``np.real(hilbert(x))``."@1417..1462
+      NEWLINE: "\n"@1462..1463
+      BLANK_LINE: "\n"@1463..1464
+      TEXT_LINE: "**Array API Standard Support**"@1464..1494
+      NEWLINE: "\n"@1494..1495
+      BLANK_LINE: "\n"@1495..1496
+      TEXT_LINE: "`hilbert` has experimental support for Python Array API Standard compatible"@1496..1571
+      NEWLINE: "\n"@1571..1572
+      TEXT_LINE: "backends in addition to NumPy. Please consider testing these features"@1572..1641
+      NEWLINE: "\n"@1641..1642
+      TEXT_LINE: "by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing"@1642..1712
+      NEWLINE: "\n"@1712..1713
+      TEXT_LINE: "CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following"@1713..1781
+      NEWLINE: "\n"@1781..1782
+      TEXT_LINE: "combinations of backend and device (or other capability) are supported."@1782..1853
+      NEWLINE: "\n"@1853..1854
+      BLANK_LINE: "\n"@1854..1855
+      TEXT_LINE: "====================  ====================  ===================="@1855..1919
+      NEWLINE: "\n"@1919..1920
+      TEXT_LINE: "Library               CPU                   GPU"@1920..1967
+      NEWLINE: "\n"@1967..1968
+      TEXT_LINE: "====================  ====================  ===================="@1968..2032
+      NEWLINE: "\n"@2032..2033
+      TEXT_LINE: "NumPy                 ✅                     n/a"@2033..2082
+      WHITESPACE: "                 "@2082..2099
+      NEWLINE: "\n"@2099..2100
+      TEXT_LINE: "CuPy                  n/a                   ✅"@2100..2147
+      WHITESPACE: "                   "@2147..2166
+      NEWLINE: "\n"@2166..2167
+      TEXT_LINE: "PyTorch               ✅                     ✅"@2167..2216
+      WHITESPACE: "                   "@2216..2235
+      NEWLINE: "\n"@2235..2236
+      TEXT_LINE: "JAX                   ✅                     ✅"@2236..2285
+      WHITESPACE: "                   "@2285..2304
+      NEWLINE: "\n"@2304..2305
+      TEXT_LINE: "Dask                  ✅                     n/a"@2305..2354
+      WHITESPACE: "                 "@2354..2371
+      NEWLINE: "\n"@2371..2372
+      TEXT_LINE: "====================  ====================  ===================="@2372..2436
+      NEWLINE: "\n"@2436..2437
+      BLANK_LINE: "\n"@2437..2438
+      BLANK_LINE: "\n"@2438..2439
+      BLANK_LINE: "\n"@2439..2440
+      TEXT_LINE: "See :ref:`dev-arrayapi` for more information."@2440..2485
+    }
+  }
+  NEWLINE: "\n"@2485..2486
+  BLANK_LINE: "\n"@2486..2487
+  BLANK_LINE: "\n"@2487..2488
+  SECTION@2488..2907 {
+    SECTION_HEADER@2488..2509 {
+      NAME: "References"@2488..2498
+      NEWLINE: "\n"@2498..2499
+      UNDERLINE: "----------"@2499..2509
+    }
+    NEWLINE: "\n"@2509..2510
+    CITATION@2510..2599 {
+      DIRECTIVE_MARKER: ".."@2510..2512
+      WHITESPACE: " "@2512..2513
+      OPEN_BRACKET: "["@2513..2514
+      LABEL: "1"@2514..2515
+      CLOSE_BRACKET: "]"@2515..2516
+      WHITESPACE: " "@2516..2517
+      DESCRIPTION@2517..2599 {
+        TEXT_LINE: "Wikipedia, \"Analytic signal\"."@2517..2546
+        NEWLINE: "\n"@2546..2547
+        WHITESPACE: "       "@2547..2554
+        TEXT_LINE: "https://en.wikipedia.org/wiki/Analytic_signal"@2554..2599
+      }
+    }
+    NEWLINE: "\n"@2599..2600
+    CITATION@2600..2693 {
+      DIRECTIVE_MARKER: ".."@2600..2602
+      WHITESPACE: " "@2602..2603
+      OPEN_BRACKET: "["@2603..2604
+      LABEL: "2"@2604..2605
+      CLOSE_BRACKET: "]"@2605..2606
+      WHITESPACE: " "@2606..2607
+      DESCRIPTION@2607..2693 {
+        TEXT_LINE: "Wikipedia, \"Hilbert Transform\"."@2607..2638
+        NEWLINE: "\n"@2638..2639
+        WHITESPACE: "       "@2639..2646
+        TEXT_LINE: "https://en.wikipedia.org/wiki/Hilbert_transform"@2646..2693
+      }
+    }
+    NEWLINE: "\n"@2693..2694
+    CITATION@2694..2756 {
+      DIRECTIVE_MARKER: ".."@2694..2696
+      WHITESPACE: " "@2696..2697
+      OPEN_BRACKET: "["@2697..2698
+      LABEL: "3"@2698..2699
+      CLOSE_BRACKET: "]"@2699..2700
+      WHITESPACE: " "@2700..2701
+      DESCRIPTION@2701..2756 {
+        TEXT_LINE: "Leon Cohen, \"Time-Frequency Analysis\", 1995. Chapter 2."@2701..2756
+      }
+    }
+    NEWLINE: "\n"@2756..2757
+    CITATION@2757..2907 {
+      DIRECTIVE_MARKER: ".."@2757..2759
+      WHITESPACE: " "@2759..2760
+      OPEN_BRACKET: "["@2760..2761
+      LABEL: "4"@2761..2762
+      CLOSE_BRACKET: "]"@2762..2763
+      WHITESPACE: " "@2763..2764
+      DESCRIPTION@2764..2907 {
+        TEXT_LINE: "Alan V. Oppenheim, Ronald W. Schafer. Discrete-Time Signal"@2764..2822
+        NEWLINE: "\n"@2822..2823
+        WHITESPACE: "       "@2823..2830
+        TEXT_LINE: "Processing, Third Edition, 2009. Chapter 12."@2830..2874
+        NEWLINE: "\n"@2874..2875
+        WHITESPACE: "       "@2875..2882
+        TEXT_LINE: "ISBN 13: 978-1292-02572-8"@2882..2907
+      }
+    }
+  }
+  NEWLINE: "\n"@2907..2908
+  BLANK_LINE: "\n"@2908..2909
+  SECTION@2909..4499 {
+    SECTION_HEADER@2909..2926 {
+      NAME: "Examples"@2909..2917
+      NEWLINE: "\n"@2917..2918
+      UNDERLINE: "--------"@2918..2926
+    }
+    NEWLINE: "\n"@2926..2927
+    DESCRIPTION@2927..4499 {
+      TEXT_LINE: "In this example we use the Hilbert transform to determine the amplitude"@2927..2998
+      NEWLINE: "\n"@2998..2999
+      TEXT_LINE: "envelope and instantaneous frequency of an amplitude-modulated signal."@2999..3069
+      NEWLINE: "\n"@3069..3070
+      BLANK_LINE: "\n"@3070..3071
+      TEXT_LINE: "Let's create a chirp of which the frequency increases from 20 Hz to 100 Hz and"@3071..3149
+      NEWLINE: "\n"@3149..3150
+      TEXT_LINE: "apply an amplitude modulation:"@3150..3180
+      NEWLINE: "\n"@3180..3181
+      BLANK_LINE: "\n"@3181..3182
+      TEXT_LINE: ">>> import numpy as np"@3182..3204
+      NEWLINE: "\n"@3204..3205
+      TEXT_LINE: ">>> import matplotlib.pyplot as plt"@3205..3240
+      NEWLINE: "\n"@3240..3241
+      TEXT_LINE: ">>> from scipy.signal import hilbert, chirp"@3241..3284
+      NEWLINE: "\n"@3284..3285
+      TEXT_LINE: "..."@3285..3288
+      NEWLINE: "\n"@3288..3289
+      TEXT_LINE: ">>> duration, fs = 1, 400  # 1 s signal with sampling frequency of 400 Hz"@3289..3362
+      NEWLINE: "\n"@3362..3363
+      TEXT_LINE: ">>> t = np.arange(int(fs*duration)) / fs  # timestamps of samples"@3363..3428
+      NEWLINE: "\n"@3428..3429
+      TEXT_LINE: ">>> signal = chirp(t, 20.0, t[-1], 100.0)"@3429..3470
+      NEWLINE: "\n"@3470..3471
+      TEXT_LINE: ">>> signal *= (1.0 + 0.5 * np.sin(2.0*np.pi*3.0*t) )"@3471..3523
+      NEWLINE: "\n"@3523..3524
+      BLANK_LINE: "\n"@3524..3525
+      TEXT_LINE: "The amplitude envelope is given by the magnitude of the analytic signal. The"@3525..3601
+      NEWLINE: "\n"@3601..3602
+      TEXT_LINE: "instantaneous frequency can be obtained by differentiating the"@3602..3664
+      NEWLINE: "\n"@3664..3665
+      TEXT_LINE: "instantaneous phase in respect to time. The instantaneous phase corresponds"@3665..3740
+      NEWLINE: "\n"@3740..3741
+      TEXT_LINE: "to the phase angle of the analytic signal."@3741..3783
+      NEWLINE: "\n"@3783..3784
+      BLANK_LINE: "\n"@3784..3785
+      TEXT_LINE: ">>> analytic_signal = hilbert(signal)"@3785..3822
+      NEWLINE: "\n"@3822..3823
+      TEXT_LINE: ">>> amplitude_envelope = np.abs(analytic_signal)"@3823..3871
+      NEWLINE: "\n"@3871..3872
+      TEXT_LINE: ">>> instantaneous_phase = np.unwrap(np.angle(analytic_signal))"@3872..3934
+      NEWLINE: "\n"@3934..3935
+      TEXT_LINE: ">>> instantaneous_frequency = np.diff(instantaneous_phase) / (2.0*np.pi) * fs"@3935..4012
+      NEWLINE: "\n"@4012..4013
+      TEXT_LINE: "..."@4013..4016
+      NEWLINE: "\n"@4016..4017
+      TEXT_LINE: ">>> fig, (ax0, ax1) = plt.subplots(nrows=2, sharex='all', tight_layout=True)"@4017..4093
+      NEWLINE: "\n"@4093..4094
+      TEXT_LINE: ">>> ax0.set_title(\"Amplitude-modulated Chirp Signal\")"@4094..4147
+      NEWLINE: "\n"@4147..4148
+      TEXT_LINE: ">>> ax0.set_ylabel(\"Amplitude\")"@4148..4179
+      NEWLINE: "\n"@4179..4180
+      TEXT_LINE: ">>> ax0.plot(t, signal, label='Signal')"@4180..4219
+      NEWLINE: "\n"@4219..4220
+      TEXT_LINE: ">>> ax0.plot(t, amplitude_envelope, label='Envelope')"@4220..4273
+      NEWLINE: "\n"@4273..4274
+      TEXT_LINE: ">>> ax0.legend()"@4274..4290
+      NEWLINE: "\n"@4290..4291
+      TEXT_LINE: ">>> ax1.set(xlabel=\"Time in seconds\", ylabel=\"Frequency in Hz\", ylim=(0, 120))"@4291..4369
+      NEWLINE: "\n"@4369..4370
+      TEXT_LINE: ">>> ax1.plot(t[1:], instantaneous_frequency, 'C2-',"@4370..4421
+      NEWLINE: "\n"@4421..4422
+      TEXT_LINE: "...          label='Instantaneous Frequency')"@4422..4467
+      NEWLINE: "\n"@4467..4468
+      TEXT_LINE: ">>> ax1.legend()"@4468..4484
+      NEWLINE: "\n"@4484..4485
+      TEXT_LINE: ">>> plt.show()"@4485..4499
+    }
+  }
+}
+=== EMIT ===
+FFT-based computation of the analytic signal.
+
+The analytic signal is calculated by zeroing out the negative frequencies and
+doubling the amplitudes of the positive frequencies in the FFT domain.
+The imaginary part of the result is the hilbert transform of the real-valued input
+signal.
+
+The transformation is done along the last axis by default.
+
+For numpy arrays, `scipy.fft.set_workers` can be used to change the number of
+workers used for the FFTs.
+
+Parameters
+----------
+x : array_like
+    Signal data.  Must be real.
+N : int, optional
+    Number of output samples. `x` is initially cropped or zero-padded to length
+    `N` along `axis`.  Default: ``x.shape[axis]``
+axis : int, optional
+    Axis along which to do the transformation.  Default: -1.
+
+Returns
+-------
+xa : ndarray
+    Analytic signal of `x`, of each 1-D array along `axis`
+
+See Also
+--------
+:func:`envelope` : Compute envelope of a real- or complex-valued signal.
+
+Notes
+-----
+The analytic signal ``x_a(t)`` of a real-valued signal ``x(t)``
+can be expressed as [1]_
+
+.. math:: x_a = F^{-1}(F(x) 2U) = x + i y\ ,
+
+where `F` is the Fourier transform, `U` the unit step function,
+and `y` the Hilbert transform of `x`. [2]_
+
+In other words, the negative half of the frequency spectrum is zeroed
+out, turning the real-valued signal into a complex-valued signal.  The Hilbert
+transformed signal can be obtained from ``np.imag(hilbert(x))``, and the
+original signal from ``np.real(hilbert(x))``.
+
+**Array API Standard Support**
+
+`hilbert` has experimental support for Python Array API Standard compatible
+backends in addition to NumPy. Please consider testing these features
+by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing
+CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following
+combinations of backend and device (or other capability) are supported.
+
+====================  ====================  ====================
+Library               CPU                   GPU
+====================  ====================  ====================
+NumPy                 ✅                     n/a                 
+CuPy                  n/a                   ✅                   
+PyTorch               ✅                     ✅                   
+JAX                   ✅                     ✅                   
+Dask                  ✅                     n/a                 
+====================  ====================  ====================
+
+
+
+See :ref:`dev-arrayapi` for more information.
+
+References
+----------
+.. [1] Wikipedia, "Analytic signal".
+    https://en.wikipedia.org/wiki/Analytic_signal
+.. [2] Wikipedia, "Hilbert Transform".
+    https://en.wikipedia.org/wiki/Hilbert_transform
+.. [3] Leon Cohen, "Time-Frequency Analysis", 1995. Chapter 2.
+.. [4] Alan V. Oppenheim, Ronald W. Schafer. Discrete-Time Signal
+    Processing, Third Edition, 2009. Chapter 12.
+    ISBN 13: 978-1292-02572-8
+
+Examples
+--------
+In this example we use the Hilbert transform to determine the amplitude
+envelope and instantaneous frequency of an amplitude-modulated signal.
+
+Let's create a chirp of which the frequency increases from 20 Hz to 100 Hz and
+apply an amplitude modulation:
+
+>>> import numpy as np
+>>> import matplotlib.pyplot as plt
+>>> from scipy.signal import hilbert, chirp
+...
+>>> duration, fs = 1, 400  # 1 s signal with sampling frequency of 400 Hz
+>>> t = np.arange(int(fs*duration)) / fs  # timestamps of samples
+>>> signal = chirp(t, 20.0, t[-1], 100.0)
+>>> signal *= (1.0 + 0.5 * np.sin(2.0*np.pi*3.0*t) )
+
+The amplitude envelope is given by the magnitude of the analytic signal. The
+instantaneous frequency can be obtained by differentiating the
+instantaneous phase in respect to time. The instantaneous phase corresponds
+to the phase angle of the analytic signal.
+
+>>> analytic_signal = hilbert(signal)
+>>> amplitude_envelope = np.abs(analytic_signal)
+>>> instantaneous_phase = np.unwrap(np.angle(analytic_signal))
+>>> instantaneous_frequency = np.diff(instantaneous_phase) / (2.0*np.pi) * fs
+...
+>>> fig, (ax0, ax1) = plt.subplots(nrows=2, sharex='all', tight_layout=True)
+>>> ax0.set_title("Amplitude-modulated Chirp Signal")
+>>> ax0.set_ylabel("Amplitude")
+>>> ax0.plot(t, signal, label='Signal')
+>>> ax0.plot(t, amplitude_envelope, label='Envelope')
+>>> ax0.legend()
+>>> ax1.set(xlabel="Time in seconds", ylabel="Frequency in Hz", ylim=(0, 120))
+>>> ax1.plot(t[1:], instantaneous_frequency, 'C2-',
+...          label='Instantaneous Frequency')
+>>> ax1.legend()
+>>> plt.show()

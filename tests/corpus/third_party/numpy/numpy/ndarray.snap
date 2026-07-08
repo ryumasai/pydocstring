@@ -1,0 +1,636 @@
+=== CST ===
+DOCUMENT@0..4095 {
+  SUMMARY@0..81 {
+    TEXT_LINE: "ndarray(shape, dtype=np.float64, buffer=None, offset=0, strides=None, order=None)"@0..81
+  }
+  NEWLINE: "\n"@81..82
+  BLANK_LINE: "\n"@82..83
+  EXTENDED_SUMMARY@83..687 {
+    TEXT_LINE: "An array object represents a multidimensional, homogeneous array"@83..147
+    NEWLINE: "\n"@147..148
+    TEXT_LINE: "of fixed-size items.  An associated data-type object describes the"@148..214
+    NEWLINE: "\n"@214..215
+    TEXT_LINE: "format of each element in the array (its byte-order, how many bytes it"@215..285
+    NEWLINE: "\n"@285..286
+    TEXT_LINE: "occupies in memory, whether it is an integer, a floating point number,"@286..356
+    NEWLINE: "\n"@356..357
+    TEXT_LINE: "or something else, etc.)"@357..381
+    NEWLINE: "\n"@381..382
+    BLANK_LINE: "\n"@382..383
+    TEXT_LINE: "Arrays should be constructed using `array`, `zeros` or `empty` (refer"@383..452
+    NEWLINE: "\n"@452..453
+    TEXT_LINE: "to the See Also section below).  The parameters given here refer to"@453..520
+    NEWLINE: "\n"@520..521
+    TEXT_LINE: "a low-level method (`ndarray(...)`) for instantiating an array."@521..584
+    NEWLINE: "\n"@584..585
+    BLANK_LINE: "\n"@585..586
+    TEXT_LINE: "For more information, refer to the `numpy` module and examine the"@586..651
+    NEWLINE: "\n"@651..652
+    TEXT_LINE: "methods and attributes of an array."@652..687
+  }
+  NEWLINE: "\n"@687..688
+  BLANK_LINE: "\n"@688..689
+  SECTION@689..1230 {
+    SECTION_HEADER@689..710 {
+      NAME: "Parameters"@689..699
+      NEWLINE: "\n"@699..700
+      UNDERLINE: "----------"@700..710
+    }
+    NEWLINE: "\n"@710..711
+    ENTRY@711..752 {
+      NAME: "(for the __new__ method; see Notes below)"@711..752
+    }
+    NEWLINE: "\n"@752..753
+    BLANK_LINE: "\n"@753..754
+    ENTRY@754..803 {
+      NAME: "shape"@754..759
+      WHITESPACE: " "@759..760
+      COLON: ":"@760..761
+      WHITESPACE: " "@761..762
+      TYPE: "tuple of ints"@762..775
+      NEWLINE: "\n"@775..776
+      WHITESPACE: "    "@776..780
+      DESCRIPTION@780..803 {
+        TEXT_LINE: "Shape of created array."@780..803
+      }
+    }
+    NEWLINE: "\n"@803..804
+    ENTRY@804..924 {
+      NAME: "dtype"@804..809
+      WHITESPACE: " "@809..810
+      COLON: ":"@810..811
+      WHITESPACE: " "@811..812
+      TYPE: "data-type"@812..821
+      COMMA: ","@821..822
+      WHITESPACE: " "@822..823
+      OPTIONAL: "optional"@823..831
+      NEWLINE: "\n"@831..832
+      WHITESPACE: "    "@832..836
+      DESCRIPTION@836..924 {
+        TEXT_LINE: "Any object that can be interpreted as a numpy data type."@836..892
+        NEWLINE: "\n"@892..893
+        WHITESPACE: "    "@893..897
+        TEXT_LINE: "Default is `numpy.float64`."@897..924
+      }
+    }
+    NEWLINE: "\n"@924..925
+    ENTRY@925..1014 {
+      NAME: "buffer"@925..931
+      WHITESPACE: " "@931..932
+      COLON: ":"@932..933
+      WHITESPACE: " "@933..934
+      TYPE: "object exposing buffer interface"@934..966
+      COMMA: ","@966..967
+      WHITESPACE: " "@967..968
+      OPTIONAL: "optional"@968..976
+      NEWLINE: "\n"@976..977
+      WHITESPACE: "    "@977..981
+      DESCRIPTION@981..1014 {
+        TEXT_LINE: "Used to fill the array with data."@981..1014
+      }
+    }
+    NEWLINE: "\n"@1014..1015
+    ENTRY@1015..1073 {
+      NAME: "offset"@1015..1021
+      WHITESPACE: " "@1021..1022
+      COLON: ":"@1022..1023
+      WHITESPACE: " "@1023..1024
+      TYPE: "int"@1024..1027
+      COMMA: ","@1027..1028
+      WHITESPACE: " "@1028..1029
+      OPTIONAL: "optional"@1029..1037
+      NEWLINE: "\n"@1037..1038
+      WHITESPACE: "    "@1038..1042
+      DESCRIPTION@1042..1073 {
+        TEXT_LINE: "Offset of array data in buffer."@1042..1073
+      }
+    }
+    NEWLINE: "\n"@1073..1074
+    ENTRY@1074..1138 {
+      NAME: "strides"@1074..1081
+      WHITESPACE: " "@1081..1082
+      COLON: ":"@1082..1083
+      WHITESPACE: " "@1083..1084
+      TYPE: "tuple of ints"@1084..1097
+      COMMA: ","@1097..1098
+      WHITESPACE: " "@1098..1099
+      OPTIONAL: "optional"@1099..1107
+      NEWLINE: "\n"@1107..1108
+      WHITESPACE: "    "@1108..1112
+      DESCRIPTION@1112..1138 {
+        TEXT_LINE: "Strides of data in memory."@1112..1138
+      }
+    }
+    NEWLINE: "\n"@1138..1139
+    ENTRY@1139..1230 {
+      NAME: "order"@1139..1144
+      WHITESPACE: " "@1144..1145
+      COLON: ":"@1145..1146
+      WHITESPACE: " "@1146..1147
+      TYPE: "{'C', 'F'}"@1147..1157
+      COMMA: ","@1157..1158
+      WHITESPACE: " "@1158..1159
+      OPTIONAL: "optional"@1159..1167
+      NEWLINE: "\n"@1167..1168
+      WHITESPACE: "    "@1168..1172
+      DESCRIPTION@1172..1230 {
+        TEXT_LINE: "Row-major (C-style) or column-major (Fortran-style) order."@1172..1230
+      }
+    }
+  }
+  NEWLINE: "\n"@1230..1231
+  BLANK_LINE: "\n"@1231..1232
+  SECTION@1232..2830 {
+    SECTION_HEADER@1232..1253 {
+      NAME: "Attributes"@1232..1242
+      NEWLINE: "\n"@1242..1243
+      UNDERLINE: "----------"@1243..1253
+    }
+    NEWLINE: "\n"@1253..1254
+    ENTRY@1254..1293 {
+      NAME: "T"@1254..1255
+      WHITESPACE: " "@1255..1256
+      COLON: ":"@1256..1257
+      WHITESPACE: " "@1257..1258
+      TYPE: "ndarray"@1258..1265
+      NEWLINE: "\n"@1265..1266
+      WHITESPACE: "    "@1266..1270
+      DESCRIPTION@1270..1293 {
+        TEXT_LINE: "Transpose of the array."@1270..1293
+      }
+    }
+    NEWLINE: "\n"@1293..1294
+    ENTRY@1294..1344 {
+      NAME: "data"@1294..1298
+      WHITESPACE: " "@1298..1299
+      COLON: ":"@1299..1300
+      WHITESPACE: " "@1300..1301
+      TYPE: "buffer"@1301..1307
+      NEWLINE: "\n"@1307..1308
+      WHITESPACE: "    "@1308..1312
+      DESCRIPTION@1312..1344 {
+        TEXT_LINE: "The array's elements, in memory."@1312..1344
+      }
+    }
+    NEWLINE: "\n"@1344..1345
+    ENTRY@1345..1420 {
+      NAME: "dtype"@1345..1350
+      WHITESPACE: " "@1350..1351
+      COLON: ":"@1351..1352
+      WHITESPACE: " "@1352..1353
+      TYPE: "dtype object"@1353..1365
+      NEWLINE: "\n"@1365..1366
+      WHITESPACE: "    "@1366..1370
+      DESCRIPTION@1370..1420 {
+        TEXT_LINE: "Describes the format of the elements in the array."@1370..1420
+      }
+    }
+    NEWLINE: "\n"@1420..1421
+    ENTRY@1421..1549 {
+      NAME: "flags"@1421..1426
+      WHITESPACE: " "@1426..1427
+      COLON: ":"@1427..1428
+      WHITESPACE: " "@1428..1429
+      TYPE: "dict"@1429..1433
+      NEWLINE: "\n"@1433..1434
+      WHITESPACE: "    "@1434..1438
+      DESCRIPTION@1438..1549 {
+        TEXT_LINE: "Dictionary containing information related to memory use, e.g.,"@1438..1500
+        NEWLINE: "\n"@1500..1501
+        WHITESPACE: "    "@1501..1505
+        TEXT_LINE: "'C_CONTIGUOUS', 'OWNDATA', 'WRITEABLE', etc."@1505..1549
+      }
+    }
+    NEWLINE: "\n"@1549..1550
+    ENTRY@1550..1744 {
+      NAME: "flat"@1550..1554
+      WHITESPACE: " "@1554..1555
+      COLON: ":"@1555..1556
+      WHITESPACE: " "@1556..1557
+      TYPE: "numpy.flatiter object"@1557..1578
+      NEWLINE: "\n"@1578..1579
+      WHITESPACE: "    "@1579..1583
+      DESCRIPTION@1583..1744 {
+        TEXT_LINE: "Flattened version of the array as an iterator.  The iterator"@1583..1643
+        NEWLINE: "\n"@1643..1644
+        WHITESPACE: "    "@1644..1648
+        TEXT_LINE: "allows assignments, e.g., ``x.flat = 3`` (See `ndarray.flat` for"@1648..1712
+        NEWLINE: "\n"@1712..1713
+        WHITESPACE: "    "@1713..1717
+        TEXT_LINE: "assignment examples; TODO)."@1717..1744
+      }
+    }
+    NEWLINE: "\n"@1744..1745
+    ENTRY@1745..1792 {
+      NAME: "imag"@1745..1749
+      WHITESPACE: " "@1749..1750
+      COLON: ":"@1750..1751
+      WHITESPACE: " "@1751..1752
+      TYPE: "ndarray"@1752..1759
+      NEWLINE: "\n"@1759..1760
+      WHITESPACE: "    "@1760..1764
+      DESCRIPTION@1764..1792 {
+        TEXT_LINE: "Imaginary part of the array."@1764..1792
+      }
+    }
+    NEWLINE: "\n"@1792..1793
+    ENTRY@1793..1835 {
+      NAME: "real"@1793..1797
+      WHITESPACE: " "@1797..1798
+      COLON: ":"@1798..1799
+      WHITESPACE: " "@1799..1800
+      TYPE: "ndarray"@1800..1807
+      NEWLINE: "\n"@1807..1808
+      WHITESPACE: "    "@1808..1812
+      DESCRIPTION@1812..1835 {
+        TEXT_LINE: "Real part of the array."@1812..1835
+      }
+    }
+    NEWLINE: "\n"@1835..1836
+    ENTRY@1836..1883 {
+      NAME: "size"@1836..1840
+      WHITESPACE: " "@1840..1841
+      COLON: ":"@1841..1842
+      WHITESPACE: " "@1842..1843
+      TYPE: "int"@1843..1846
+      NEWLINE: "\n"@1846..1847
+      WHITESPACE: "    "@1847..1851
+      DESCRIPTION@1851..1883 {
+        TEXT_LINE: "Number of elements in the array."@1851..1883
+      }
+    }
+    NEWLINE: "\n"@1883..1884
+    ENTRY@1884..1949 {
+      NAME: "itemsize"@1884..1892
+      WHITESPACE: " "@1892..1893
+      COLON: ":"@1893..1894
+      WHITESPACE: " "@1894..1895
+      TYPE: "int"@1895..1898
+      NEWLINE: "\n"@1898..1899
+      WHITESPACE: "    "@1899..1903
+      DESCRIPTION@1903..1949 {
+        TEXT_LINE: "The memory use of each array element in bytes."@1903..1949
+      }
+    }
+    NEWLINE: "\n"@1949..1950
+    ENTRY@1950..2057 {
+      NAME: "nbytes"@1950..1956
+      WHITESPACE: " "@1956..1957
+      COLON: ":"@1957..1958
+      WHITESPACE: " "@1958..1959
+      TYPE: "int"@1959..1962
+      NEWLINE: "\n"@1962..1963
+      WHITESPACE: "    "@1963..1967
+      DESCRIPTION@1967..2057 {
+        TEXT_LINE: "The total number of bytes required to store the array data,"@1967..2026
+        NEWLINE: "\n"@2026..2027
+        WHITESPACE: "    "@2027..2031
+        TEXT_LINE: "i.e., ``itemsize * size``."@2031..2057
+      }
+    }
+    NEWLINE: "\n"@2057..2058
+    ENTRY@2058..2106 {
+      NAME: "ndim"@2058..2062
+      WHITESPACE: " "@2062..2063
+      COLON: ":"@2063..2064
+      WHITESPACE: " "@2064..2065
+      TYPE: "int"@2065..2068
+      NEWLINE: "\n"@2068..2069
+      WHITESPACE: "    "@2069..2073
+      DESCRIPTION@2073..2106 {
+        TEXT_LINE: "The array's number of dimensions."@2073..2106
+      }
+    }
+    NEWLINE: "\n"@2106..2107
+    ENTRY@2107..2152 {
+      NAME: "shape"@2107..2112
+      WHITESPACE: " "@2112..2113
+      COLON: ":"@2113..2114
+      WHITESPACE: " "@2114..2115
+      TYPE: "tuple of ints"@2115..2128
+      NEWLINE: "\n"@2128..2129
+      WHITESPACE: "    "@2129..2133
+      DESCRIPTION@2133..2152 {
+        TEXT_LINE: "Shape of the array."@2133..2152
+      }
+    }
+    NEWLINE: "\n"@2152..2153
+    ENTRY@2153..2529 {
+      NAME: "strides"@2153..2160
+      WHITESPACE: " "@2160..2161
+      COLON: ":"@2161..2162
+      WHITESPACE: " "@2162..2163
+      TYPE: "tuple of ints"@2163..2176
+      NEWLINE: "\n"@2176..2177
+      WHITESPACE: "    "@2177..2181
+      DESCRIPTION@2181..2529 {
+        TEXT_LINE: "The step-size required to move from one element to the next in"@2181..2243
+        NEWLINE: "\n"@2243..2244
+        WHITESPACE: "    "@2244..2248
+        TEXT_LINE: "memory. For example, a contiguous ``(3, 4)`` array of type"@2248..2306
+        NEWLINE: "\n"@2306..2307
+        WHITESPACE: "    "@2307..2311
+        TEXT_LINE: "``int16`` in C-order has strides ``(8, 2)``.  This implies that"@2311..2374
+        NEWLINE: "\n"@2374..2375
+        WHITESPACE: "    "@2375..2379
+        TEXT_LINE: "to move from element to element in memory requires jumps of 2 bytes."@2379..2447
+        NEWLINE: "\n"@2447..2448
+        WHITESPACE: "    "@2448..2452
+        TEXT_LINE: "To move from row-to-row, one needs to jump 8 bytes at a time"@2452..2512
+        NEWLINE: "\n"@2512..2513
+        WHITESPACE: "    "@2513..2517
+        TEXT_LINE: "(``2 * 4``)."@2517..2529
+      }
+    }
+    NEWLINE: "\n"@2529..2530
+    ENTRY@2530..2637 {
+      NAME: "ctypes"@2530..2536
+      WHITESPACE: " "@2536..2537
+      COLON: ":"@2537..2538
+      WHITESPACE: " "@2538..2539
+      TYPE: "ctypes object"@2539..2552
+      NEWLINE: "\n"@2552..2553
+      WHITESPACE: "    "@2553..2557
+      DESCRIPTION@2557..2637 {
+        TEXT_LINE: "Class containing properties of the array needed for interaction"@2557..2620
+        NEWLINE: "\n"@2620..2621
+        WHITESPACE: "    "@2621..2625
+        TEXT_LINE: "with ctypes."@2625..2637
+      }
+    }
+    NEWLINE: "\n"@2637..2638
+    ENTRY@2638..2830 {
+      NAME: "base"@2638..2642
+      WHITESPACE: " "@2642..2643
+      COLON: ":"@2643..2644
+      WHITESPACE: " "@2644..2645
+      TYPE: "ndarray"@2645..2652
+      NEWLINE: "\n"@2652..2653
+      WHITESPACE: "    "@2653..2657
+      DESCRIPTION@2657..2830 {
+        TEXT_LINE: "If the array is a view into another array, that array is its `base`"@2657..2724
+        NEWLINE: "\n"@2724..2725
+        WHITESPACE: "    "@2725..2729
+        TEXT_LINE: "(unless that array is also a view).  The `base` array is where the"@2729..2795
+        NEWLINE: "\n"@2795..2796
+        WHITESPACE: "    "@2796..2800
+        TEXT_LINE: "array data is actually stored."@2800..2830
+      }
+    }
+  }
+  NEWLINE: "\n"@2830..2831
+  BLANK_LINE: "\n"@2831..2832
+  SECTION@2832..3204 {
+    SECTION_HEADER@2832..2849 {
+      NAME: "See Also"@2832..2840
+      NEWLINE: "\n"@2840..2841
+      UNDERLINE: "--------"@2841..2849
+    }
+    NEWLINE: "\n"@2849..2850
+    ENTRY@2850..2877 {
+      NAME: "array"@2850..2855
+      WHITESPACE: " "@2855..2856
+      COLON: ":"@2856..2857
+      WHITESPACE: " "@2857..2858
+      DESCRIPTION@2858..2877 {
+        TEXT_LINE: "Construct an array."@2858..2877
+      }
+    }
+    NEWLINE: "\n"@2877..2878
+    ENTRY@2878..2933 {
+      NAME: "zeros"@2878..2883
+      WHITESPACE: " "@2883..2884
+      COLON: ":"@2884..2885
+      WHITESPACE: " "@2885..2886
+      DESCRIPTION@2886..2933 {
+        TEXT_LINE: "Create an array, each element of which is zero."@2886..2933
+      }
+    }
+    NEWLINE: "\n"@2933..2934
+    ENTRY@2934..3038 {
+      NAME: "empty"@2934..2939
+      WHITESPACE: " "@2939..2940
+      COLON: ":"@2940..2941
+      WHITESPACE: " "@2941..2942
+      DESCRIPTION@2942..3038 {
+        TEXT_LINE: "Create an array, but leave its allocated memory unchanged (i.e.,"@2942..3006
+        NEWLINE: "\n"@3006..3007
+        WHITESPACE: "        "@3007..3015
+        TEXT_LINE: "it contains \"garbage\")."@3015..3038
+      }
+    }
+    NEWLINE: "\n"@3038..3039
+    ENTRY@3039..3066 {
+      NAME: "dtype"@3039..3044
+      WHITESPACE: " "@3044..3045
+      COLON: ":"@3045..3046
+      WHITESPACE: " "@3046..3047
+      DESCRIPTION@3047..3066 {
+        TEXT_LINE: "Create a data-type."@3047..3066
+      }
+    }
+    NEWLINE: "\n"@3066..3067
+    ENTRY@3067..3204 {
+      NAME: "numpy.typing.NDArray"@3067..3087
+      WHITESPACE: " "@3087..3088
+      COLON: ":"@3088..3089
+      WHITESPACE: " "@3089..3090
+      DESCRIPTION@3090..3204 {
+        TEXT_LINE: "An ndarray alias :term:`generic <generic type>`"@3090..3137
+        NEWLINE: "\n"@3137..3138
+        WHITESPACE: "                       "@3138..3161
+        TEXT_LINE: "w.r.t. its `dtype.type <numpy.dtype.type>`."@3161..3204
+      }
+    }
+  }
+  NEWLINE: "\n"@3204..3205
+  BLANK_LINE: "\n"@3205..3206
+  SECTION@3206..3555 {
+    SECTION_HEADER@3206..3217 {
+      NAME: "Notes"@3206..3211
+      NEWLINE: "\n"@3211..3212
+      UNDERLINE: "-----"@3212..3217
+    }
+    NEWLINE: "\n"@3217..3218
+    DESCRIPTION@3218..3555 {
+      TEXT_LINE: "There are two modes of creating an array using ``__new__``:"@3218..3277
+      NEWLINE: "\n"@3277..3278
+      BLANK_LINE: "\n"@3278..3279
+      TEXT_LINE: "1. If `buffer` is None, then only `shape`, `dtype`, and `order`"@3279..3342
+      NEWLINE: "\n"@3342..3343
+      WHITESPACE: "   "@3343..3346
+      TEXT_LINE: "are used."@3346..3355
+      NEWLINE: "\n"@3355..3356
+      TEXT_LINE: "2. If `buffer` is an object exposing the buffer interface, then"@3356..3419
+      NEWLINE: "\n"@3419..3420
+      WHITESPACE: "   "@3420..3423
+      TEXT_LINE: "all keywords are interpreted."@3423..3452
+      NEWLINE: "\n"@3452..3453
+      BLANK_LINE: "\n"@3453..3454
+      TEXT_LINE: "No ``__init__`` method is needed because the array is fully initialized"@3454..3525
+      NEWLINE: "\n"@3525..3526
+      TEXT_LINE: "after the ``__new__`` method."@3526..3555
+    }
+  }
+  NEWLINE: "\n"@3555..3556
+  BLANK_LINE: "\n"@3556..3557
+  SECTION@3557..4095 {
+    SECTION_HEADER@3557..3574 {
+      NAME: "Examples"@3557..3565
+      NEWLINE: "\n"@3565..3566
+      UNDERLINE: "--------"@3566..3574
+    }
+    NEWLINE: "\n"@3574..3575
+    DESCRIPTION@3575..4095 {
+      TEXT_LINE: "These examples illustrate the low-level `ndarray` constructor.  Refer"@3575..3644
+      NEWLINE: "\n"@3644..3645
+      TEXT_LINE: "to the `See Also` section above for easier ways of constructing an"@3645..3711
+      NEWLINE: "\n"@3711..3712
+      TEXT_LINE: "ndarray."@3712..3720
+      NEWLINE: "\n"@3720..3721
+      BLANK_LINE: "\n"@3721..3722
+      TEXT_LINE: "First mode, `buffer` is None:"@3722..3751
+      NEWLINE: "\n"@3751..3752
+      BLANK_LINE: "\n"@3752..3753
+      TEXT_LINE: ">>> import numpy as np"@3753..3775
+      NEWLINE: "\n"@3775..3776
+      TEXT_LINE: ">>> np.ndarray(shape=(2,2), dtype=np.float64, order='F')"@3776..3832
+      NEWLINE: "\n"@3832..3833
+      TEXT_LINE: "array([[0.0e+000, 0.0e+000], # random"@3833..3870
+      NEWLINE: "\n"@3870..3871
+      WHITESPACE: "       "@3871..3878
+      TEXT_LINE: "[     nan, 2.5e-323]])"@3878..3900
+      NEWLINE: "\n"@3900..3901
+      BLANK_LINE: "\n"@3901..3902
+      TEXT_LINE: "Second mode:"@3902..3914
+      NEWLINE: "\n"@3914..3915
+      BLANK_LINE: "\n"@3915..3916
+      TEXT_LINE: ">>> np.ndarray((2,), buffer=np.array([1,2,3]),"@3916..3962
+      NEWLINE: "\n"@3962..3963
+      TEXT_LINE: "...            offset=np.int_().itemsize,"@3963..4004
+      NEWLINE: "\n"@4004..4005
+      TEXT_LINE: "...            dtype=np.int_) # offset = 1*itemsize, i.e. skip first element"@4005..4081
+      NEWLINE: "\n"@4081..4082
+      TEXT_LINE: "array([2, 3])"@4082..4095
+    }
+  }
+}
+=== EMIT ===
+ndarray(shape, dtype=np.float64, buffer=None, offset=0, strides=None, order=None)
+
+An array object represents a multidimensional, homogeneous array
+of fixed-size items.  An associated data-type object describes the
+format of each element in the array (its byte-order, how many bytes it
+occupies in memory, whether it is an integer, a floating point number,
+or something else, etc.)
+
+Arrays should be constructed using `array`, `zeros` or `empty` (refer
+to the See Also section below).  The parameters given here refer to
+a low-level method (`ndarray(...)`) for instantiating an array.
+
+For more information, refer to the `numpy` module and examine the
+methods and attributes of an array.
+
+Parameters
+----------
+(for the __new__ method; see Notes below)
+shape : tuple of ints
+    Shape of created array.
+dtype : data-type, optional
+    Any object that can be interpreted as a numpy data type.
+    Default is `numpy.float64`.
+buffer : object exposing buffer interface, optional
+    Used to fill the array with data.
+offset : int, optional
+    Offset of array data in buffer.
+strides : tuple of ints, optional
+    Strides of data in memory.
+order : {'C', 'F'}, optional
+    Row-major (C-style) or column-major (Fortran-style) order.
+
+Attributes
+----------
+T : ndarray
+    Transpose of the array.
+data : buffer
+    The array's elements, in memory.
+dtype : dtype object
+    Describes the format of the elements in the array.
+flags : dict
+    Dictionary containing information related to memory use, e.g.,
+    'C_CONTIGUOUS', 'OWNDATA', 'WRITEABLE', etc.
+flat : numpy.flatiter object
+    Flattened version of the array as an iterator.  The iterator
+    allows assignments, e.g., ``x.flat = 3`` (See `ndarray.flat` for
+    assignment examples; TODO).
+imag : ndarray
+    Imaginary part of the array.
+real : ndarray
+    Real part of the array.
+size : int
+    Number of elements in the array.
+itemsize : int
+    The memory use of each array element in bytes.
+nbytes : int
+    The total number of bytes required to store the array data,
+    i.e., ``itemsize * size``.
+ndim : int
+    The array's number of dimensions.
+shape : tuple of ints
+    Shape of the array.
+strides : tuple of ints
+    The step-size required to move from one element to the next in
+    memory. For example, a contiguous ``(3, 4)`` array of type
+    ``int16`` in C-order has strides ``(8, 2)``.  This implies that
+    to move from element to element in memory requires jumps of 2 bytes.
+    To move from row-to-row, one needs to jump 8 bytes at a time
+    (``2 * 4``).
+ctypes : ctypes object
+    Class containing properties of the array needed for interaction
+    with ctypes.
+base : ndarray
+    If the array is a view into another array, that array is its `base`
+    (unless that array is also a view).  The `base` array is where the
+    array data is actually stored.
+
+See Also
+--------
+array : Construct an array.
+zeros : Create an array, each element of which is zero.
+empty : Create an array, but leave its allocated memory unchanged (i.e.,
+it contains "garbage").
+dtype : Create a data-type.
+numpy.typing.NDArray : An ndarray alias :term:`generic <generic type>`
+w.r.t. its `dtype.type <numpy.dtype.type>`.
+
+Notes
+-----
+There are two modes of creating an array using ``__new__``:
+
+1. If `buffer` is None, then only `shape`, `dtype`, and `order`
+   are used.
+2. If `buffer` is an object exposing the buffer interface, then
+   all keywords are interpreted.
+
+No ``__init__`` method is needed because the array is fully initialized
+after the ``__new__`` method.
+
+Examples
+--------
+These examples illustrate the low-level `ndarray` constructor.  Refer
+to the `See Also` section above for easier ways of constructing an
+ndarray.
+
+First mode, `buffer` is None:
+
+>>> import numpy as np
+>>> np.ndarray(shape=(2,2), dtype=np.float64, order='F')
+array([[0.0e+000, 0.0e+000], # random
+       [     nan, 2.5e-323]])
+
+Second mode:
+
+>>> np.ndarray((2,), buffer=np.array([1,2,3]),
+...            offset=np.int_().itemsize,
+...            dtype=np.int_) # offset = 1*itemsize, i.e. skip first element
+array([2, 3])

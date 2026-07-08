@@ -1,0 +1,78 @@
+=== CST ===
+DOCUMENT@0..644 {
+  SUMMARY@0..72 {
+    TEXT_LINE: "Set the fns for Fire to use to parse args when calling the decorated fn."@0..72
+  }
+  NEWLINE: "\n"@72..73
+  BLANK_LINE: "\n"@73..74
+  EXTENDED_SUMMARY@74..411 {
+    TEXT_LINE: "Returns a decorator, which when applied to a function adds metadata to the"@74..148
+    NEWLINE: "\n"@148..149
+    TEXT_LINE: "function telling Fire how to turn string command line arguments into proper"@149..224
+    NEWLINE: "\n"@224..225
+    TEXT_LINE: "Python arguments with which to call the function."@225..274
+    NEWLINE: "\n"@274..275
+    BLANK_LINE: "\n"@275..276
+    TEXT_LINE: "A parse function should accept a single string argument and return a value to"@276..353
+    NEWLINE: "\n"@353..354
+    TEXT_LINE: "be used in its place when calling the decorated function."@354..411
+  }
+  NEWLINE: "\n"@411..412
+  BLANK_LINE: "\n"@412..413
+  SECTION@413..557 {
+    SECTION_HEADER@413..418 {
+      NAME: "Args"@413..417
+      COLON: ":"@417..418
+    }
+    NEWLINE: "\n"@418..419
+    WHITESPACE: "  "@419..421
+    ENTRY@421..492 {
+      NAME: "*positional"@421..432
+      COLON: ":"@432..433
+      WHITESPACE: " "@433..434
+      DESCRIPTION@434..492 {
+        TEXT_LINE: "The functions to be used for parsing positional arguments."@434..492
+      }
+    }
+    NEWLINE: "\n"@492..493
+    WHITESPACE: "  "@493..495
+    ENTRY@495..557 {
+      NAME: "**named"@495..502
+      COLON: ":"@502..503
+      WHITESPACE: " "@503..504
+      DESCRIPTION@504..557 {
+        TEXT_LINE: "The functions to be used for parsing named arguments."@504..557
+      }
+    }
+  }
+  NEWLINE: "\n"@557..558
+  SECTION@558..644 {
+    SECTION_HEADER@558..566 {
+      NAME: "Returns"@558..565
+      COLON: ":"@565..566
+    }
+    NEWLINE: "\n"@566..567
+    WHITESPACE: "  "@567..569
+    ENTRY@569..644 {
+      DESCRIPTION@569..644 {
+        TEXT_LINE: "The decorated function, which now has metadata telling Fire how to perform."@569..644
+      }
+    }
+  }
+}
+=== EMIT ===
+Set the fns for Fire to use to parse args when calling the decorated fn.
+
+Returns a decorator, which when applied to a function adds metadata to the
+function telling Fire how to turn string command line arguments into proper
+Python arguments with which to call the function.
+
+A parse function should accept a single string argument and return a value to
+be used in its place when calling the decorated function.
+
+Args:
+    *positional: The functions to be used for parsing positional arguments.
+    **named: The functions to be used for parsing named arguments.
+
+Returns:
+    The decorated function, which now has metadata telling Fire how to perform.

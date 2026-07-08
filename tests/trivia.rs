@@ -20,9 +20,8 @@ mod common;
 
 use std::fs;
 
-use common::collect_inputs;
+use common::corpus_cases;
 use common::corpus_name;
-use common::style_dirs;
 use pydocstring::parse::TextBlock;
 use pydocstring::syntax::Parsed;
 use pydocstring::syntax::SyntaxElement;
@@ -122,14 +121,11 @@ fn corpus_trivia_invariants() {
     let mut violations = Vec::new();
     let mut checked = 0;
 
-    for style_dir in style_dirs() {
-        let style = style_dir.file_name().unwrap().to_str().unwrap().to_owned();
-        for txt_path in collect_inputs(&style_dir) {
-            checked += 1;
-            let input = fs::read_to_string(&txt_path).unwrap();
-            let parsed = parse_for_style(&style, &input);
-            violations.extend(check_invariants(&corpus_name(&txt_path), &parsed));
-        }
+    for (style, txt_path) in corpus_cases() {
+        checked += 1;
+        let input = fs::read_to_string(&txt_path).unwrap();
+        let parsed = parse_for_style(&style, &input);
+        violations.extend(check_invariants(&corpus_name(&txt_path), &parsed));
     }
 
     assert!(checked > 0, "no corpus input files found under tests/corpus");
@@ -274,14 +270,11 @@ fn zero_length_elements_are_missing_placeholders() {
 
     // Every corpus input.
     let mut checked = 0;
-    for style_dir in style_dirs() {
-        let style = style_dir.file_name().unwrap().to_str().unwrap().to_owned();
-        for txt_path in collect_inputs(&style_dir) {
-            checked += 1;
-            let input = fs::read_to_string(&txt_path).unwrap();
-            let parsed = parse_for_style(&style, &input);
-            violations.extend(check_missing_placeholders(&corpus_name(&txt_path), &parsed));
-        }
+    for (style, txt_path) in corpus_cases() {
+        checked += 1;
+        let input = fs::read_to_string(&txt_path).unwrap();
+        let parsed = parse_for_style(&style, &input);
+        violations.extend(check_missing_placeholders(&corpus_name(&txt_path), &parsed));
     }
     assert!(checked > 0, "no corpus input files found under tests/corpus");
 

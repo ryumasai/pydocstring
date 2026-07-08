@@ -1,0 +1,275 @@
+=== CST ===
+DOCUMENT@0..2373 {
+  SUMMARY@0..38 {
+    TEXT_LINE: "Information about a command-line flag."@0..38
+  }
+  NEWLINE: "\n"@38..39
+  BLANK_LINE: "\n"@39..40
+  SECTION@40..1373 {
+    SECTION_HEADER@40..51 {
+      NAME: "Attributes"@40..50
+      COLON: ":"@50..51
+    }
+    NEWLINE: "\n"@51..52
+    WHITESPACE: "  "@52..54
+    ENTRY@54..82 {
+      NAME: "name"@54..58
+      COLON: ":"@58..59
+      WHITESPACE: " "@59..60
+      DESCRIPTION@60..82 {
+        TEXT_LINE: "the name for this flag"@60..82
+      }
+    }
+    NEWLINE: "\n"@82..83
+    WHITESPACE: "  "@83..85
+    ENTRY@85..125 {
+      NAME: "default"@85..92
+      COLON: ":"@92..93
+      WHITESPACE: " "@93..94
+      DESCRIPTION@94..125 {
+        TEXT_LINE: "the default value for this flag"@94..125
+      }
+    }
+    NEWLINE: "\n"@125..126
+    WHITESPACE: "  "@126..128
+    ENTRY@128..187 {
+      NAME: "default_unparsed"@128..144
+      COLON: ":"@144..145
+      WHITESPACE: " "@145..146
+      DESCRIPTION@146..187 {
+        TEXT_LINE: "the unparsed default value for this flag."@146..187
+      }
+    }
+    NEWLINE: "\n"@187..188
+    WHITESPACE: "  "@188..190
+    ENTRY@190..262 {
+      NAME: "default_as_str"@190..204
+      COLON: ":"@204..205
+      WHITESPACE: " "@205..206
+      DESCRIPTION@206..262 {
+        TEXT_LINE: "default value as repr'd string, e.g., \"'true'\" (or None)"@206..262
+      }
+    }
+    NEWLINE: "\n"@262..263
+    WHITESPACE: "  "@263..265
+    ENTRY@265..334 {
+      NAME: "value"@265..270
+      COLON: ":"@270..271
+      WHITESPACE: " "@271..272
+      DESCRIPTION@272..334 {
+        TEXT_LINE: "the most recent parsed value of this flag set by :meth:`parse`"@272..334
+      }
+    }
+    NEWLINE: "\n"@334..335
+    WHITESPACE: "  "@335..337
+    ENTRY@337..388 {
+      NAME: "help"@337..341
+      COLON: ":"@341..342
+      WHITESPACE: " "@342..343
+      DESCRIPTION@343..388 {
+        TEXT_LINE: "a help string or None if no help is available"@343..388
+      }
+    }
+    NEWLINE: "\n"@388..389
+    WHITESPACE: "  "@389..391
+    ENTRY@391..450 {
+      NAME: "short_name"@391..401
+      COLON: ":"@401..402
+      WHITESPACE: " "@402..403
+      DESCRIPTION@403..450 {
+        TEXT_LINE: "the single letter alias for this flag (or None)"@403..450
+      }
+    }
+    NEWLINE: "\n"@450..451
+    WHITESPACE: "  "@451..453
+    ENTRY@453..508 {
+      NAME: "boolean"@453..460
+      COLON: ":"@460..461
+      WHITESPACE: " "@461..462
+      DESCRIPTION@462..508 {
+        TEXT_LINE: "if 'true', this flag does not accept arguments"@462..508
+      }
+    }
+    NEWLINE: "\n"@508..509
+    WHITESPACE: "  "@509..511
+    ENTRY@511..572 {
+      NAME: "present"@511..518
+      COLON: ":"@518..519
+      WHITESPACE: " "@519..520
+      DESCRIPTION@520..572 {
+        TEXT_LINE: "true if this flag was parsed from command line flags"@520..572
+      }
+    }
+    NEWLINE: "\n"@572..573
+    WHITESPACE: "  "@573..575
+    ENTRY@575..628 {
+      NAME: "parser"@575..581
+      COLON: ":"@581..582
+      WHITESPACE: " "@582..583
+      DESCRIPTION@583..628 {
+        TEXT_LINE: "an :class:`~absl.flags.ArgumentParser` object"@583..628
+      }
+    }
+    NEWLINE: "\n"@628..629
+    WHITESPACE: "  "@629..631
+    ENTRY@631..671 {
+      NAME: "serializer"@631..641
+      COLON: ":"@641..642
+      WHITESPACE: " "@642..643
+      DESCRIPTION@643..671 {
+        TEXT_LINE: "an ArgumentSerializer object"@643..671
+      }
+    }
+    NEWLINE: "\n"@671..672
+    WHITESPACE: "  "@672..674
+    ENTRY@674..791 {
+      NAME: "allow_override"@674..688
+      COLON: ":"@688..689
+      WHITESPACE: " "@689..690
+      DESCRIPTION@690..791 {
+        TEXT_LINE: "the flag may be redefined without raising an error, and"@690..745
+        NEWLINE: "\n"@745..746
+        WHITESPACE: "    "@746..750
+        TEXT_LINE: "newly defined flag overrides the old one."@750..791
+      }
+    }
+    NEWLINE: "\n"@791..792
+    WHITESPACE: "  "@792..794
+    ENTRY@794..911 {
+      NAME: "allow_override_cpp"@794..812
+      COLON: ":"@812..813
+      WHITESPACE: " "@813..814
+      DESCRIPTION@814..911 {
+        TEXT_LINE: "use the flag from C++ if available the flag definition"@814..868
+        NEWLINE: "\n"@868..869
+        WHITESPACE: "    "@869..873
+        TEXT_LINE: "is replaced by the C++ flag after init"@873..911
+      }
+    }
+    NEWLINE: "\n"@911..912
+    WHITESPACE: "  "@912..914
+    ENTRY@914..1020 {
+      NAME: "allow_hide_cpp"@914..928
+      COLON: ":"@928..929
+      WHITESPACE: " "@929..930
+      DESCRIPTION@930..1020 {
+        TEXT_LINE: "use the Python flag despite having a C++ flag with the same"@930..989
+        NEWLINE: "\n"@989..990
+        WHITESPACE: "    "@990..994
+        TEXT_LINE: "name (ignore the C++ flag)"@994..1020
+      }
+    }
+    NEWLINE: "\n"@1020..1021
+    WHITESPACE: "  "@1021..1023
+    ENTRY@1023..1083 {
+      NAME: "using_default_value"@1023..1042
+      COLON: ":"@1042..1043
+      WHITESPACE: " "@1043..1044
+      DESCRIPTION@1044..1083 {
+        TEXT_LINE: "the flag value has not been set by user"@1044..1083
+      }
+    }
+    NEWLINE: "\n"@1083..1084
+    WHITESPACE: "  "@1084..1086
+    ENTRY@1086..1202 {
+      NAME: "allow_overwrite"@1086..1101
+      COLON: ":"@1101..1102
+      WHITESPACE: " "@1102..1103
+      DESCRIPTION@1103..1202 {
+        TEXT_LINE: "the flag may be parsed more than once without raising an"@1103..1159
+        NEWLINE: "\n"@1159..1160
+        WHITESPACE: "    "@1160..1164
+        TEXT_LINE: "error, the last set value will be used"@1164..1202
+      }
+    }
+    NEWLINE: "\n"@1202..1203
+    WHITESPACE: "  "@1203..1205
+    ENTRY@1205..1330 {
+      NAME: "allow_using_method_names"@1205..1229
+      COLON: ":"@1229..1230
+      WHITESPACE: " "@1230..1231
+      DESCRIPTION@1231..1330 {
+        TEXT_LINE: "whether this flag can be defined even if it has a"@1231..1280
+        NEWLINE: "\n"@1280..1281
+        WHITESPACE: "    "@1281..1285
+        TEXT_LINE: "name that conflicts with a FlagValues method."@1285..1330
+      }
+    }
+    NEWLINE: "\n"@1330..1331
+    WHITESPACE: "  "@1331..1333
+    ENTRY@1333..1373 {
+      NAME: "validators"@1333..1343
+      COLON: ":"@1343..1344
+      WHITESPACE: " "@1344..1345
+      DESCRIPTION@1345..1373 {
+        TEXT_LINE: "list of the flag validators."@1345..1373
+      }
+    }
+  }
+  NEWLINE: "\n"@1373..1374
+  BLANK_LINE: "\n"@1374..1375
+  PARAGRAPH@1375..1780 {
+    TEXT_LINE: "The only public method of a ``Flag`` object is :meth:`parse`, but it is"@1375..1446
+    NEWLINE: "\n"@1446..1447
+    TEXT_LINE: "typically only called by a :class:`~absl.flags.FlagValues` object.  The"@1447..1518
+    NEWLINE: "\n"@1518..1519
+    TEXT_LINE: ":meth:`parse` method is a thin wrapper around the"@1519..1568
+    NEWLINE: "\n"@1568..1569
+    TEXT_LINE: ":meth:`ArgumentParser.parse()<absl.flags.ArgumentParser.parse>` method.  The"@1569..1645
+    NEWLINE: "\n"@1645..1646
+    TEXT_LINE: "parsed value is saved in ``.value``, and the ``.present`` attribute is"@1646..1716
+    NEWLINE: "\n"@1716..1717
+    TEXT_LINE: "updated.  If this flag was already present, an Error is raised."@1717..1780
+  }
+  NEWLINE: "\n"@1780..1781
+  BLANK_LINE: "\n"@1781..1782
+  PARAGRAPH@1782..2239 {
+    TEXT_LINE: ":meth:`parse` is also called during ``__init__`` to parse the default value"@1782..1857
+    NEWLINE: "\n"@1857..1858
+    TEXT_LINE: "and initialize the ``.value`` attribute.  This enables other python modules to"@1858..1936
+    NEWLINE: "\n"@1936..1937
+    TEXT_LINE: "safely use flags even if the ``__main__`` module neglects to parse the"@1937..2007
+    NEWLINE: "\n"@2007..2008
+    TEXT_LINE: "command line arguments.  The ``.present`` attribute is cleared after"@2008..2076
+    NEWLINE: "\n"@2076..2077
+    TEXT_LINE: "``__init__`` parsing.  If the default value is set to ``None``, then the"@2077..2149
+    NEWLINE: "\n"@2149..2150
+    TEXT_LINE: "``__init__`` parsing step is skipped and the ``.value`` attribute is"@2150..2218
+    NEWLINE: "\n"@2218..2219
+    TEXT_LINE: "initialized to None."@2219..2239
+  }
+  NEWLINE: "\n"@2239..2240
+  BLANK_LINE: "\n"@2240..2241
+  PARAGRAPH@2241..2373 {
+    TEXT_LINE: "Note: The default value is also presented to the user in the help"@2241..2306
+    NEWLINE: "\n"@2306..2307
+    TEXT_LINE: "string, so it is important that it be a legal value for this flag."@2307..2373
+  }
+}
+=== EMIT ===
+Information about a command-line flag.
+
+Attributes:
+    name: the name for this flag
+    default: the default value for this flag
+    default_unparsed: the unparsed default value for this flag.
+    default_as_str: default value as repr'd string, e.g., "'true'" (or None)
+    value: the most recent parsed value of this flag set by :meth:`parse`
+    help: a help string or None if no help is available
+    short_name: the single letter alias for this flag (or None)
+    boolean: if 'true', this flag does not accept arguments
+    present: true if this flag was parsed from command line flags
+    parser: an :class:`~absl.flags.ArgumentParser` object
+    serializer: an ArgumentSerializer object
+    allow_override: the flag may be redefined without raising an error, and
+        newly defined flag overrides the old one.
+    allow_override_cpp: use the flag from C++ if available the flag definition
+        is replaced by the C++ flag after init
+    allow_hide_cpp: use the Python flag despite having a C++ flag with the same
+        name (ignore the C++ flag)
+    using_default_value: the flag value has not been set by user
+    allow_overwrite: the flag may be parsed more than once without raising an
+        error, the last set value will be used
+    allow_using_method_names: whether this flag can be defined even if it has a
+        name that conflicts with a FlagValues method.
+    validators: list of the flag validators.

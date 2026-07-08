@@ -1,0 +1,14 @@
+Set the fns for Fire to use to parse args when calling the decorated fn.
+
+Returns a decorator, which when applied to a function adds metadata to the
+function telling Fire how to turn string command line arguments into proper
+Python arguments with which to call the function.
+
+A parse function should accept a single string argument and return a value to
+be used in its place when calling the decorated function.
+
+Args:
+  *positional: The functions to be used for parsing positional arguments.
+  **named: The functions to be used for parsing named arguments.
+Returns:
+  The decorated function, which now has metadata telling Fire how to perform.

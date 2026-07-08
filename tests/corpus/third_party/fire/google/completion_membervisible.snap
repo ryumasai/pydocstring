@@ -1,0 +1,124 @@
+=== CST ===
+DOCUMENT@0..915 {
+  SUMMARY@0..71 {
+    TEXT_LINE: "Returns whether a member should be included in auto-completion or help."@0..71
+  }
+  NEWLINE: "\n"@71..72
+  BLANK_LINE: "\n"@72..73
+  EXTENDED_SUMMARY@73..517 {
+    TEXT_LINE: "Determines whether a member of an object with the specified name should be"@73..147
+    NEWLINE: "\n"@147..148
+    TEXT_LINE: "included in auto-completion or help text(both usage and detailed help)."@148..219
+    NEWLINE: "\n"@219..220
+    BLANK_LINE: "\n"@220..221
+    TEXT_LINE: "If the member name starts with '__', it will always be excluded. If it"@221..291
+    NEWLINE: "\n"@291..292
+    TEXT_LINE: "starts with only one '_', it will be included for all non-string types. If"@292..366
+    NEWLINE: "\n"@366..367
+    TEXT_LINE: "verbose is True, the members, including the private members, are included."@367..441
+    NEWLINE: "\n"@441..442
+    BLANK_LINE: "\n"@442..443
+    TEXT_LINE: "When not in verbose mode, some modules and functions are excluded as well."@443..517
+  }
+  NEWLINE: "\n"@517..518
+  BLANK_LINE: "\n"@518..519
+  SECTION@519..839 {
+    SECTION_HEADER@519..524 {
+      NAME: "Args"@519..523
+      COLON: ":"@523..524
+    }
+    NEWLINE: "\n"@524..525
+    WHITESPACE: "  "@525..527
+    ENTRY@527..574 {
+      NAME: "component"@527..536
+      COLON: ":"@536..537
+      WHITESPACE: " "@537..538
+      DESCRIPTION@538..574 {
+        TEXT_LINE: "The component containing the member."@538..574
+      }
+    }
+    NEWLINE: "\n"@574..575
+    WHITESPACE: "  "@575..577
+    ENTRY@577..606 {
+      NAME: "name"@577..581
+      COLON: ":"@581..582
+      WHITESPACE: " "@582..583
+      DESCRIPTION@583..606 {
+        TEXT_LINE: "The name of the member."@583..606
+      }
+    }
+    NEWLINE: "\n"@606..607
+    WHITESPACE: "  "@607..609
+    ENTRY@609..635 {
+      NAME: "member"@609..615
+      COLON: ":"@615..616
+      WHITESPACE: " "@616..617
+      DESCRIPTION@617..635 {
+        TEXT_LINE: "The member itself."@617..635
+      }
+    }
+    NEWLINE: "\n"@635..636
+    WHITESPACE: "  "@636..638
+    ENTRY@638..792 {
+      NAME: "class_attrs"@638..649
+      COLON: ":"@649..650
+      WHITESPACE: " "@650..651
+      DESCRIPTION@651..792 {
+        TEXT_LINE: "(optional) If component is a class, provide this as:"@651..703
+        NEWLINE: "\n"@703..704
+        WHITESPACE: "    "@704..708
+        TEXT_LINE: "inspectutils.GetClassAttrsDict(component). If not provided, it will be"@708..778
+        NEWLINE: "\n"@778..779
+        WHITESPACE: "    "@779..783
+        TEXT_LINE: "computed."@783..792
+      }
+    }
+    NEWLINE: "\n"@792..793
+    WHITESPACE: "  "@793..795
+    ENTRY@795..839 {
+      NAME: "verbose"@795..802
+      COLON: ":"@802..803
+      WHITESPACE: " "@803..804
+      DESCRIPTION@804..839 {
+        TEXT_LINE: "Whether to include private members."@804..839
+      }
+    }
+  }
+  NEWLINE: "\n"@839..840
+  SECTION@840..915 {
+    SECTION_HEADER@840..847 {
+      NAME: "Returns"@840..847
+      COLON: <missing>@847..847
+    }
+    NEWLINE: "\n"@847..848
+    WHITESPACE: "  "@848..850
+    ENTRY@850..915 {
+      DESCRIPTION@850..915 {
+        TEXT_LINE: "A boolean value indicating whether the member should be included."@850..915
+      }
+    }
+  }
+}
+=== EMIT ===
+Returns whether a member should be included in auto-completion or help.
+
+Determines whether a member of an object with the specified name should be
+included in auto-completion or help text(both usage and detailed help).
+
+If the member name starts with '__', it will always be excluded. If it
+starts with only one '_', it will be included for all non-string types. If
+verbose is True, the members, including the private members, are included.
+
+When not in verbose mode, some modules and functions are excluded as well.
+
+Args:
+    component: The component containing the member.
+    name: The name of the member.
+    member: The member itself.
+    class_attrs: (optional) If component is a class, provide this as:
+        inspectutils.GetClassAttrsDict(component). If not provided, it will be
+        computed.
+    verbose: Whether to include private members.
+
+Returns:
+    A boolean value indicating whether the member should be included.

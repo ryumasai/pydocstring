@@ -1,0 +1,288 @@
+=== CST ===
+DOCUMENT@0..1805 {
+  SUMMARY@0..69 {
+    TEXT_LINE: "Solve a linear matrix equation, or system of linear scalar equations."@0..69
+  }
+  NEWLINE: "\n"@69..70
+  BLANK_LINE: "\n"@70..71
+  EXTENDED_SUMMARY@71..180 {
+    TEXT_LINE: "Computes the \"exact\" solution, `x`, of the well-determined, i.e., full"@71..141
+    NEWLINE: "\n"@141..142
+    TEXT_LINE: "rank, linear matrix equation `ax = b`."@142..180
+  }
+  NEWLINE: "\n"@180..181
+  BLANK_LINE: "\n"@181..182
+  SECTION@182..335 {
+    SECTION_HEADER@182..203 {
+      NAME: "Parameters"@182..192
+      NEWLINE: "\n"@192..193
+      UNDERLINE: "----------"@193..203
+    }
+    NEWLINE: "\n"@203..204
+    ENTRY@204..254 {
+      NAME: "a"@204..205
+      WHITESPACE: " "@205..206
+      COLON: ":"@206..207
+      WHITESPACE: " "@207..208
+      TYPE: "(..., M, M) array_like"@208..230
+      NEWLINE: "\n"@230..231
+      WHITESPACE: "    "@231..235
+      DESCRIPTION@235..254 {
+        TEXT_LINE: "Coefficient matrix."@235..254
+      }
+    }
+    NEWLINE: "\n"@254..255
+    ENTRY@255..335 {
+      NAME: "b"@255..256
+      WHITESPACE: " "@256..257
+      COLON: ":"@257..258
+      WHITESPACE: " "@258..259
+      TYPE: "{(M,), (..., M, K)}, array_like"@259..290
+      NEWLINE: "\n"@290..291
+      WHITESPACE: "    "@291..295
+      DESCRIPTION@295..335 {
+        TEXT_LINE: "Ordinate or \"dependent variable\" values."@295..335
+      }
+    }
+  }
+  NEWLINE: "\n"@335..336
+  BLANK_LINE: "\n"@336..337
+  SECTION@337..570 {
+    SECTION_HEADER@337..352 {
+      NAME: "Returns"@337..344
+      NEWLINE: "\n"@344..345
+      UNDERLINE: "-------"@345..352
+    }
+    NEWLINE: "\n"@352..353
+    ENTRY@353..570 {
+      NAME: "x"@353..354
+      WHITESPACE: " "@354..355
+      COLON: ":"@355..356
+      WHITESPACE: " "@356..357
+      TYPE: "{(..., M,), (..., M, K)} ndarray"@357..389
+      NEWLINE: "\n"@389..390
+      WHITESPACE: "    "@390..394
+      DESCRIPTION@394..570 {
+        TEXT_LINE: "Solution to the system a x = b.  Returned shape is (..., M) if b is"@394..461
+        NEWLINE: "\n"@461..462
+        WHITESPACE: "    "@462..466
+        TEXT_LINE: "shape (M,) and (..., M, K) if b is (..., M, K), where the \"...\" part is"@466..537
+        NEWLINE: "\n"@537..538
+        WHITESPACE: "    "@538..542
+        TEXT_LINE: "broadcasted between a and b."@542..570
+      }
+    }
+  }
+  NEWLINE: "\n"@570..571
+  BLANK_LINE: "\n"@571..572
+  SECTION@572..635 {
+    SECTION_HEADER@572..585 {
+      NAME: "Raises"@572..578
+      NEWLINE: "\n"@578..579
+      UNDERLINE: "------"@579..585
+    }
+    NEWLINE: "\n"@585..586
+    ENTRY@586..635 {
+      TYPE: "LinAlgError"@586..597
+      NEWLINE: "\n"@597..598
+      WHITESPACE: "    "@598..602
+      DESCRIPTION@602..635 {
+        TEXT_LINE: "If `a` is singular or not square."@602..635
+      }
+    }
+  }
+  NEWLINE: "\n"@635..636
+  BLANK_LINE: "\n"@636..637
+  SECTION@637..702 {
+    SECTION_HEADER@637..654 {
+      NAME: "See Also"@637..645
+      NEWLINE: "\n"@645..646
+      UNDERLINE: "--------"@646..654
+    }
+    NEWLINE: "\n"@654..655
+    ENTRY@655..702 {
+      NAME: "scipy.linalg.solve"@655..673
+      WHITESPACE: " "@673..674
+      COLON: ":"@674..675
+      WHITESPACE: " "@675..676
+      DESCRIPTION@676..702 {
+        TEXT_LINE: "Similar function in SciPy."@676..702
+      }
+    }
+  }
+  NEWLINE: "\n"@702..703
+  BLANK_LINE: "\n"@703..704
+  SECTION@704..1347 {
+    SECTION_HEADER@704..715 {
+      NAME: "Notes"@704..709
+      NEWLINE: "\n"@709..710
+      UNDERLINE: "-----"@710..715
+    }
+    NEWLINE: "\n"@715..716
+    DESCRIPTION@716..1347 {
+      TEXT_LINE: "Broadcasting rules apply, see the `numpy.linalg` documentation for"@716..782
+      NEWLINE: "\n"@782..783
+      TEXT_LINE: "details."@783..791
+      NEWLINE: "\n"@791..792
+      BLANK_LINE: "\n"@792..793
+      TEXT_LINE: "The solutions are computed using LAPACK routine ``_gesv``."@793..851
+      NEWLINE: "\n"@851..852
+      BLANK_LINE: "\n"@852..853
+      TEXT_LINE: "`a` must be square and of full-rank, i.e., all rows (or, equivalently,"@853..923
+      NEWLINE: "\n"@923..924
+      TEXT_LINE: "columns) must be linearly independent; if either is not true, use"@924..989
+      NEWLINE: "\n"@989..990
+      TEXT_LINE: "`lstsq` for the least-squares best \"solution\" of the"@990..1042
+      NEWLINE: "\n"@1042..1043
+      TEXT_LINE: "system/equation."@1043..1059
+      NEWLINE: "\n"@1059..1060
+      BLANK_LINE: "\n"@1060..1061
+      TEXT_LINE: ".. versionchanged:: 2.0"@1061..1084
+      NEWLINE: "\n"@1084..1085
+      BLANK_LINE: "\n"@1085..1086
+      WHITESPACE: "   "@1086..1089
+      TEXT_LINE: "The b array is only treated as a shape (M,) column vector if it is"@1089..1155
+      NEWLINE: "\n"@1155..1156
+      WHITESPACE: "   "@1156..1159
+      TEXT_LINE: "exactly 1-dimensional. In all other instances it is treated as a stack"@1159..1229
+      NEWLINE: "\n"@1229..1230
+      WHITESPACE: "   "@1230..1233
+      TEXT_LINE: "of (M, K) matrices. Previously b would be treated as a stack of (M,)"@1233..1301
+      NEWLINE: "\n"@1301..1302
+      WHITESPACE: "   "@1302..1305
+      TEXT_LINE: "vectors if b.ndim was equal to a.ndim - 1."@1305..1347
+    }
+  }
+  NEWLINE: "\n"@1347..1348
+  BLANK_LINE: "\n"@1348..1349
+  SECTION@1349..1492 {
+    SECTION_HEADER@1349..1370 {
+      NAME: "References"@1349..1359
+      NEWLINE: "\n"@1359..1360
+      UNDERLINE: "----------"@1360..1370
+    }
+    NEWLINE: "\n"@1370..1371
+    CITATION@1371..1492 {
+      DIRECTIVE_MARKER: ".."@1371..1373
+      WHITESPACE: " "@1373..1374
+      OPEN_BRACKET: "["@1374..1375
+      LABEL: "1"@1375..1376
+      CLOSE_BRACKET: "]"@1376..1377
+      WHITESPACE: " "@1377..1378
+      DESCRIPTION@1378..1492 {
+        TEXT_LINE: "G. Strang, *Linear Algebra and Its Applications*, 2nd Ed., Orlando,"@1378..1445
+        NEWLINE: "\n"@1445..1446
+        WHITESPACE: "       "@1446..1453
+        TEXT_LINE: "FL, Academic Press, Inc., 1980, pg. 22."@1453..1492
+      }
+    }
+  }
+  NEWLINE: "\n"@1492..1493
+  BLANK_LINE: "\n"@1493..1494
+  SECTION@1494..1805 {
+    SECTION_HEADER@1494..1511 {
+      NAME: "Examples"@1494..1502
+      NEWLINE: "\n"@1502..1503
+      UNDERLINE: "--------"@1503..1511
+    }
+    NEWLINE: "\n"@1511..1512
+    DESCRIPTION@1512..1805 {
+      TEXT_LINE: "Solve the system of equations:"@1512..1542
+      NEWLINE: "\n"@1542..1543
+      TEXT_LINE: "``x0 + 2 * x1 = 1`` and"@1543..1566
+      NEWLINE: "\n"@1566..1567
+      TEXT_LINE: "``3 * x0 + 5 * x1 = 2``:"@1567..1591
+      NEWLINE: "\n"@1591..1592
+      BLANK_LINE: "\n"@1592..1593
+      TEXT_LINE: ">>> import numpy as np"@1593..1615
+      NEWLINE: "\n"@1615..1616
+      TEXT_LINE: ">>> a = np.array([[1, 2], [3, 5]])"@1616..1650
+      NEWLINE: "\n"@1650..1651
+      TEXT_LINE: ">>> b = np.array([1, 2])"@1651..1675
+      NEWLINE: "\n"@1675..1676
+      TEXT_LINE: ">>> x = np.linalg.solve(a, b)"@1676..1705
+      NEWLINE: "\n"@1705..1706
+      TEXT_LINE: ">>> x"@1706..1711
+      NEWLINE: "\n"@1711..1712
+      TEXT_LINE: "array([-1.,  1.])"@1712..1729
+      NEWLINE: "\n"@1729..1730
+      BLANK_LINE: "\n"@1730..1731
+      TEXT_LINE: "Check that the solution is correct:"@1731..1766
+      NEWLINE: "\n"@1766..1767
+      BLANK_LINE: "\n"@1767..1768
+      TEXT_LINE: ">>> np.allclose(np.dot(a, x), b)"@1768..1800
+      NEWLINE: "\n"@1800..1801
+      TEXT_LINE: "True"@1801..1805
+    }
+  }
+}
+=== EMIT ===
+Solve a linear matrix equation, or system of linear scalar equations.
+
+Computes the "exact" solution, `x`, of the well-determined, i.e., full
+rank, linear matrix equation `ax = b`.
+
+Parameters
+----------
+a : (..., M, M) array_like
+    Coefficient matrix.
+b : {(M,), (..., M, K)}, array_like
+    Ordinate or "dependent variable" values.
+
+Returns
+-------
+x : {(..., M,), (..., M, K)} ndarray
+    Solution to the system a x = b.  Returned shape is (..., M) if b is
+    shape (M,) and (..., M, K) if b is (..., M, K), where the "..." part is
+    broadcasted between a and b.
+
+Raises
+------
+LinAlgError
+    If `a` is singular or not square.
+
+See Also
+--------
+scipy.linalg.solve : Similar function in SciPy.
+
+Notes
+-----
+Broadcasting rules apply, see the `numpy.linalg` documentation for
+details.
+
+The solutions are computed using LAPACK routine ``_gesv``.
+
+`a` must be square and of full-rank, i.e., all rows (or, equivalently,
+columns) must be linearly independent; if either is not true, use
+`lstsq` for the least-squares best "solution" of the
+system/equation.
+
+.. versionchanged:: 2.0
+
+   The b array is only treated as a shape (M,) column vector if it is
+   exactly 1-dimensional. In all other instances it is treated as a stack
+   of (M, K) matrices. Previously b would be treated as a stack of (M,)
+   vectors if b.ndim was equal to a.ndim - 1.
+
+References
+----------
+.. [1] G. Strang, *Linear Algebra and Its Applications*, 2nd Ed., Orlando,
+    FL, Academic Press, Inc., 1980, pg. 22.
+
+Examples
+--------
+Solve the system of equations:
+``x0 + 2 * x1 = 1`` and
+``3 * x0 + 5 * x1 = 2``:
+
+>>> import numpy as np
+>>> a = np.array([[1, 2], [3, 5]])
+>>> b = np.array([1, 2])
+>>> x = np.linalg.solve(a, b)
+>>> x
+array([-1.,  1.])
+
+Check that the solution is correct:
+
+>>> np.allclose(np.dot(a, x), b)
+True

@@ -1,0 +1,757 @@
+=== CST ===
+DOCUMENT@0..7904 {
+  SUMMARY@0..55 {
+    TEXT_LINE: "Piecewise cubic interpolator to fit values (C2 smooth)."@0..55
+  }
+  NEWLINE: "\n"@55..56
+  BLANK_LINE: "\n"@56..57
+  EXTENDED_SUMMARY@57..246 {
+    TEXT_LINE: "Interpolate data with a piecewise cubic polynomial which is twice"@57..122
+    NEWLINE: "\n"@122..123
+    TEXT_LINE: "continuously differentiable [1]_. The result is represented as a `PPoly`"@123..195
+    NEWLINE: "\n"@195..196
+    TEXT_LINE: "instance with breakpoints matching the given data."@196..246
+  }
+  NEWLINE: "\n"@246..247
+  BLANK_LINE: "\n"@247..248
+  SECTION@248..3004 {
+    SECTION_HEADER@248..269 {
+      NAME: "Parameters"@248..258
+      NEWLINE: "\n"@258..259
+      UNDERLINE: "----------"@259..269
+    }
+    NEWLINE: "\n"@269..270
+    ENTRY@270..423 {
+      NAME: "x"@270..271
+      WHITESPACE: " "@271..272
+      COLON: ":"@272..273
+      WHITESPACE: " "@273..274
+      TYPE: "array_like, shape (n,)"@274..296
+      NEWLINE: "\n"@296..297
+      WHITESPACE: "    "@297..301
+      DESCRIPTION@301..423 {
+        TEXT_LINE: "1-D array containing values of the independent variable."@301..357
+        NEWLINE: "\n"@357..358
+        WHITESPACE: "    "@358..362
+        TEXT_LINE: "Values must be real, finite and in strictly increasing order."@362..423
+      }
+    }
+    NEWLINE: "\n"@423..424
+    ENTRY@424..642 {
+      NAME: "y"@424..425
+      WHITESPACE: " "@425..426
+      COLON: ":"@426..427
+      WHITESPACE: " "@427..428
+      TYPE: "array_like"@428..438
+      NEWLINE: "\n"@438..439
+      WHITESPACE: "    "@439..443
+      DESCRIPTION@443..642 {
+        TEXT_LINE: "Array containing values of the dependent variable. It can have"@443..505
+        NEWLINE: "\n"@505..506
+        WHITESPACE: "    "@506..510
+        TEXT_LINE: "arbitrary number of dimensions, but the length along ``axis``"@510..571
+        NEWLINE: "\n"@571..572
+        WHITESPACE: "    "@572..576
+        TEXT_LINE: "(see below) must match the length of ``x``. Values must be finite."@576..642
+      }
+    }
+    NEWLINE: "\n"@642..643
+    ENTRY@643..821 {
+      NAME: "axis"@643..647
+      WHITESPACE: " "@647..648
+      COLON: ":"@648..649
+      WHITESPACE: " "@649..650
+      TYPE: "int"@650..653
+      COMMA: ","@653..654
+      WHITESPACE: " "@654..655
+      OPTIONAL: "optional"@655..663
+      NEWLINE: "\n"@663..664
+      WHITESPACE: "    "@664..668
+      DESCRIPTION@668..821 {
+        TEXT_LINE: "Axis along which `y` is assumed to be varying. Meaning that for"@668..731
+        NEWLINE: "\n"@731..732
+        WHITESPACE: "    "@732..736
+        TEXT_LINE: "``x[i]`` the corresponding values are ``np.take(y, i, axis=axis)``."@736..803
+        NEWLINE: "\n"@803..804
+        WHITESPACE: "    "@804..808
+        TEXT_LINE: "Default is 0."@808..821
+      }
+    }
+    NEWLINE: "\n"@821..822
+    ENTRY@822..2614 {
+      NAME: "bc_type"@822..829
+      WHITESPACE: " "@829..830
+      COLON: ":"@830..831
+      WHITESPACE: " "@831..832
+      TYPE: "str or 2-tuple"@832..846
+      COMMA: ","@846..847
+      WHITESPACE: " "@847..848
+      OPTIONAL: "optional"@848..856
+      NEWLINE: "\n"@856..857
+      WHITESPACE: "    "@857..861
+      DESCRIPTION@861..2614 {
+        TEXT_LINE: "Boundary condition type. Two additional equations, given by the"@861..924
+        NEWLINE: "\n"@924..925
+        WHITESPACE: "    "@925..929
+        TEXT_LINE: "boundary conditions, are required to determine all coefficients of"@929..995
+        NEWLINE: "\n"@995..996
+        WHITESPACE: "    "@996..1000
+        TEXT_LINE: "polynomials on each segment [2]_."@1000..1033
+        NEWLINE: "\n"@1033..1034
+        BLANK_LINE: "    \n"@1034..1039
+        WHITESPACE: "    "@1039..1043
+        TEXT_LINE: "If `bc_type` is a string, then the specified condition will be applied"@1043..1113
+        NEWLINE: "\n"@1113..1114
+        WHITESPACE: "    "@1114..1118
+        TEXT_LINE: "at both ends of a spline. Available conditions are:"@1118..1169
+        NEWLINE: "\n"@1169..1170
+        BLANK_LINE: "    \n"@1170..1175
+        WHITESPACE: "    "@1175..1179
+        TEXT_LINE: "* 'not-a-knot' (default): The first and second segment at a curve end"@1179..1248
+        NEWLINE: "\n"@1248..1249
+        WHITESPACE: "      "@1249..1255
+        TEXT_LINE: "are the same polynomial. It is a good default when there is no"@1255..1317
+        NEWLINE: "\n"@1317..1318
+        WHITESPACE: "      "@1318..1324
+        TEXT_LINE: "information on boundary conditions."@1324..1359
+        NEWLINE: "\n"@1359..1360
+        WHITESPACE: "    "@1360..1364
+        TEXT_LINE: "* 'periodic': The interpolated functions is assumed to be periodic"@1364..1430
+        NEWLINE: "\n"@1430..1431
+        WHITESPACE: "      "@1431..1437
+        TEXT_LINE: "of period ``x[-1] - x[0]``. The first and last value of `y` must be"@1437..1504
+        NEWLINE: "\n"@1504..1505
+        WHITESPACE: "      "@1505..1511
+        TEXT_LINE: "identical: ``y[0] == y[-1]``. This boundary condition will result in"@1511..1579
+        NEWLINE: "\n"@1579..1580
+        WHITESPACE: "      "@1580..1586
+        TEXT_LINE: "``y'[0] == y'[-1]`` and ``y''[0] == y''[-1]``."@1586..1632
+        NEWLINE: "\n"@1632..1633
+        WHITESPACE: "    "@1633..1637
+        TEXT_LINE: "* 'clamped': The first derivative at curves ends are zero. Assuming"@1637..1704
+        NEWLINE: "\n"@1704..1705
+        WHITESPACE: "      "@1705..1711
+        TEXT_LINE: "a 1D `y`, ``bc_type=((1, 0.0), (1, 0.0))`` is the same condition."@1711..1776
+        NEWLINE: "\n"@1776..1777
+        WHITESPACE: "    "@1777..1781
+        TEXT_LINE: "* 'natural': The second derivative at curve ends are zero. Assuming"@1781..1848
+        NEWLINE: "\n"@1848..1849
+        WHITESPACE: "      "@1849..1855
+        TEXT_LINE: "a 1D `y`, ``bc_type=((2, 0.0), (2, 0.0))`` is the same condition."@1855..1920
+        NEWLINE: "\n"@1920..1921
+        BLANK_LINE: "    \n"@1921..1926
+        WHITESPACE: "    "@1926..1930
+        TEXT_LINE: "If `bc_type` is a 2-tuple, the first and the second value will be"@1930..1995
+        NEWLINE: "\n"@1995..1996
+        WHITESPACE: "    "@1996..2000
+        TEXT_LINE: "applied at the curve start and end respectively. The tuple values can"@2000..2069
+        NEWLINE: "\n"@2069..2070
+        WHITESPACE: "    "@2070..2074
+        TEXT_LINE: "be one of the previously mentioned strings (except 'periodic') or a"@2074..2141
+        NEWLINE: "\n"@2141..2142
+        WHITESPACE: "    "@2142..2146
+        TEXT_LINE: "tuple ``(order, deriv_values)`` allowing to specify arbitrary"@2146..2207
+        NEWLINE: "\n"@2207..2208
+        WHITESPACE: "    "@2208..2212
+        TEXT_LINE: "derivatives at curve ends:"@2212..2238
+        NEWLINE: "\n"@2238..2239
+        BLANK_LINE: "    \n"@2239..2244
+        WHITESPACE: "    "@2244..2248
+        TEXT_LINE: "* `order`: the derivative order, 1 or 2."@2248..2288
+        NEWLINE: "\n"@2288..2289
+        WHITESPACE: "    "@2289..2293
+        TEXT_LINE: "* `deriv_value`: array_like containing derivative values, shape must"@2293..2361
+        NEWLINE: "\n"@2361..2362
+        WHITESPACE: "      "@2362..2368
+        TEXT_LINE: "be the same as `y`, excluding ``axis`` dimension. For example, if"@2368..2433
+        NEWLINE: "\n"@2433..2434
+        WHITESPACE: "      "@2434..2440
+        TEXT_LINE: "`y` is 1-D, then `deriv_value` must be a scalar. If `y` is 3-D with"@2440..2507
+        NEWLINE: "\n"@2507..2508
+        WHITESPACE: "      "@2508..2514
+        TEXT_LINE: "the shape (n0, n1, n2) and axis=2, then `deriv_value` must be 2-D"@2514..2579
+        NEWLINE: "\n"@2579..2580
+        WHITESPACE: "      "@2580..2586
+        TEXT_LINE: "and have the shape (n0, n1)."@2586..2614
+      }
+    }
+    NEWLINE: "\n"@2614..2615
+    ENTRY@2615..3004 {
+      NAME: "extrapolate"@2615..2626
+      WHITESPACE: " "@2626..2627
+      COLON: ":"@2627..2628
+      WHITESPACE: " "@2628..2629
+      TYPE: "{bool, 'periodic', None}"@2629..2653
+      COMMA: ","@2653..2654
+      WHITESPACE: " "@2654..2655
+      OPTIONAL: "optional"@2655..2663
+      NEWLINE: "\n"@2663..2664
+      WHITESPACE: "    "@2664..2668
+      DESCRIPTION@2668..3004 {
+        TEXT_LINE: "If bool, determines whether to extrapolate to out-of-bounds points"@2668..2734
+        NEWLINE: "\n"@2734..2735
+        WHITESPACE: "    "@2735..2739
+        TEXT_LINE: "based on first and last intervals, or to return NaNs. If 'periodic',"@2739..2807
+        NEWLINE: "\n"@2807..2808
+        WHITESPACE: "    "@2808..2812
+        TEXT_LINE: "periodic extrapolation is used. If None (default), ``extrapolate`` is"@2812..2881
+        NEWLINE: "\n"@2881..2882
+        WHITESPACE: "    "@2882..2886
+        TEXT_LINE: "set to 'periodic' for ``bc_type='periodic'`` and to True otherwise."@2886..2953
+        NEWLINE: "\n"@2953..2954
+        WHITESPACE: "    "@2954..2958
+        TEXT_LINE: "See :ref:`tutorial-interpolate_out_of_bounds`."@2958..3004
+      }
+    }
+  }
+  NEWLINE: "\n"@3004..3005
+  BLANK_LINE: "\n"@3005..3006
+  SECTION@3006..3515 {
+    SECTION_HEADER@3006..3027 {
+      NAME: "Attributes"@3006..3016
+      NEWLINE: "\n"@3016..3017
+      UNDERLINE: "----------"@3017..3027
+    }
+    NEWLINE: "\n"@3027..3028
+    ENTRY@3028..3120 {
+      NAME: "x"@3028..3029
+      WHITESPACE: " "@3029..3030
+      COLON: ":"@3030..3031
+      WHITESPACE: " "@3031..3032
+      TYPE: "ndarray, shape (n,)"@3032..3051
+      NEWLINE: "\n"@3051..3052
+      WHITESPACE: "    "@3052..3056
+      DESCRIPTION@3056..3120 {
+        TEXT_LINE: "Breakpoints. The same ``x`` which was passed to the constructor."@3056..3120
+      }
+    }
+    NEWLINE: "\n"@3120..3121
+    ENTRY@3121..3425 {
+      NAME: "c"@3121..3122
+      WHITESPACE: " "@3122..3123
+      COLON: ":"@3123..3124
+      WHITESPACE: " "@3124..3125
+      TYPE: "ndarray, shape (4, n-1, ...)"@3125..3153
+      NEWLINE: "\n"@3153..3154
+      WHITESPACE: "    "@3154..3158
+      DESCRIPTION@3158..3425 {
+        TEXT_LINE: "Coefficients of the polynomials on each segment. The trailing"@3158..3219
+        NEWLINE: "\n"@3219..3220
+        WHITESPACE: "    "@3220..3224
+        TEXT_LINE: "dimensions match the dimensions of `y`, excluding ``axis``."@3224..3283
+        NEWLINE: "\n"@3283..3284
+        WHITESPACE: "    "@3284..3288
+        TEXT_LINE: "For example, if `y` is 1-d, then ``c[k, i]`` is a coefficient for"@3288..3353
+        NEWLINE: "\n"@3353..3354
+        WHITESPACE: "    "@3354..3358
+        TEXT_LINE: "``(x-x[i])**(3-k)`` on the segment between ``x[i]`` and ``x[i+1]``."@3358..3425
+      }
+    }
+    NEWLINE: "\n"@3425..3426
+    ENTRY@3426..3515 {
+      NAME: "axis"@3426..3430
+      WHITESPACE: " "@3430..3431
+      COLON: ":"@3431..3432
+      WHITESPACE: " "@3432..3433
+      TYPE: "int"@3433..3436
+      NEWLINE: "\n"@3436..3437
+      WHITESPACE: "    "@3437..3441
+      DESCRIPTION@3441..3515 {
+        TEXT_LINE: "Interpolation axis. The same axis which was passed to the"@3441..3498
+        NEWLINE: "\n"@3498..3499
+        WHITESPACE: "    "@3499..3503
+        TEXT_LINE: "constructor."@3503..3515
+      }
+    }
+  }
+  NEWLINE: "\n"@3515..3516
+  BLANK_LINE: "\n"@3516..3517
+  SECTION@3517..3589 {
+    SECTION_HEADER@3517..3532 {
+      NAME: "Methods"@3517..3524
+      NEWLINE: "\n"@3524..3525
+      UNDERLINE: "-------"@3525..3532
+    }
+    NEWLINE: "\n"@3532..3533
+    ENTRY@3533..3541 {
+      NAME: "__call__"@3533..3541
+    }
+    NEWLINE: "\n"@3541..3542
+    ENTRY@3542..3552 {
+      NAME: "derivative"@3542..3552
+    }
+    NEWLINE: "\n"@3552..3553
+    ENTRY@3553..3567 {
+      NAME: "antiderivative"@3553..3567
+    }
+    NEWLINE: "\n"@3567..3568
+    ENTRY@3568..3577 {
+      NAME: "integrate"@3568..3577
+    }
+    NEWLINE: "\n"@3577..3578
+    ENTRY@3578..3583 {
+      NAME: "solve"@3578..3583
+    }
+    NEWLINE: "\n"@3583..3584
+    ENTRY@3584..3589 {
+      NAME: "roots"@3584..3589
+    }
+  }
+  NEWLINE: "\n"@3589..3590
+  BLANK_LINE: "\n"@3590..3591
+  SECTION@3591..3815 {
+    SECTION_HEADER@3591..3608 {
+      NAME: "See Also"@3591..3599
+      NEWLINE: "\n"@3599..3600
+      UNDERLINE: "--------"@3600..3608
+    }
+    NEWLINE: "\n"@3608..3609
+    BLANK_LINE: "\n"@3609..3610
+    ENTRY@3610..3664 {
+      NAME: ":func:`Akima1DInterpolator`"@3610..3637
+      NEWLINE: "\n"@3637..3638
+      WHITESPACE: "    "@3638..3642
+      DESCRIPTION@3642..3664 {
+        TEXT_LINE: "Akima 1D interpolator."@3642..3664
+      }
+    }
+    NEWLINE: "\n"@3664..3665
+    ENTRY@3665..3734 {
+      NAME: ":func:`PchipInterpolator`"@3665..3690
+      NEWLINE: "\n"@3690..3691
+      WHITESPACE: "    "@3691..3695
+      DESCRIPTION@3695..3734 {
+        TEXT_LINE: "PCHIP 1-D monotonic cubic interpolator."@3695..3734
+      }
+    }
+    NEWLINE: "\n"@3734..3735
+    ENTRY@3735..3815 {
+      NAME: ":func:`PPoly`"@3735..3748
+      NEWLINE: "\n"@3748..3749
+      WHITESPACE: "    "@3749..3753
+      DESCRIPTION@3753..3815 {
+        TEXT_LINE: "Piecewise polynomial in terms of coefficients and breakpoints."@3753..3815
+      }
+    }
+  }
+  NEWLINE: "\n"@3815..3816
+  BLANK_LINE: "\n"@3816..3817
+  BLANK_LINE: "\n"@3817..3818
+  SECTION@3818..5549 {
+    SECTION_HEADER@3818..3829 {
+      NAME: "Notes"@3818..3823
+      NEWLINE: "\n"@3823..3824
+      UNDERLINE: "-----"@3824..3829
+    }
+    NEWLINE: "\n"@3829..3830
+    DESCRIPTION@3830..5549 {
+      TEXT_LINE: "Parameters `bc_type` and ``extrapolate`` work independently, i.e. the"@3830..3899
+      NEWLINE: "\n"@3899..3900
+      TEXT_LINE: "former controls only construction of a spline, and the latter only"@3900..3966
+      NEWLINE: "\n"@3966..3967
+      TEXT_LINE: "evaluation."@3967..3978
+      NEWLINE: "\n"@3978..3979
+      BLANK_LINE: "\n"@3979..3980
+      TEXT_LINE: "When a boundary condition is 'not-a-knot' and n = 2, it is replaced by"@3980..4050
+      NEWLINE: "\n"@4050..4051
+      TEXT_LINE: "a condition that the first derivative is equal to the linear interpolant"@4051..4123
+      NEWLINE: "\n"@4123..4124
+      TEXT_LINE: "slope. When both boundary conditions are 'not-a-knot' and n = 3, the"@4124..4192
+      NEWLINE: "\n"@4192..4193
+      TEXT_LINE: "solution is sought as a parabola passing through given points."@4193..4255
+      NEWLINE: "\n"@4255..4256
+      BLANK_LINE: "\n"@4256..4257
+      TEXT_LINE: "When 'not-a-knot' boundary conditions is applied to both ends, the"@4257..4323
+      NEWLINE: "\n"@4323..4324
+      TEXT_LINE: "resulting spline will be the same as returned by `splrep` (with ``s=0``)"@4324..4396
+      NEWLINE: "\n"@4396..4397
+      TEXT_LINE: "and `InterpolatedUnivariateSpline`, but these two methods use a"@4397..4460
+      NEWLINE: "\n"@4460..4461
+      TEXT_LINE: "representation in B-spline basis."@4461..4494
+      NEWLINE: "\n"@4494..4495
+      BLANK_LINE: "\n"@4495..4496
+      TEXT_LINE: ".. versionadded:: 0.18.0"@4496..4520
+      NEWLINE: "\n"@4520..4521
+      BLANK_LINE: "\n"@4521..4522
+      TEXT_LINE: "**Array API Standard Support**"@4522..4552
+      NEWLINE: "\n"@4552..4553
+      BLANK_LINE: "\n"@4553..4554
+      TEXT_LINE: "`CubicSpline` has experimental support for Python Array API Standard compatible"@4554..4633
+      NEWLINE: "\n"@4633..4634
+      TEXT_LINE: "backends in addition to NumPy. Please consider testing these features"@4634..4703
+      NEWLINE: "\n"@4703..4704
+      TEXT_LINE: "by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing"@4704..4774
+      NEWLINE: "\n"@4774..4775
+      TEXT_LINE: "CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following"@4775..4843
+      NEWLINE: "\n"@4843..4844
+      TEXT_LINE: "combinations of backend and device (or other capability) are supported."@4844..4915
+      NEWLINE: "\n"@4915..4916
+      BLANK_LINE: "\n"@4916..4917
+      TEXT_LINE: "====================  ====================  ===================="@4917..4981
+      NEWLINE: "\n"@4981..4982
+      TEXT_LINE: "Library               CPU                   GPU"@4982..5029
+      NEWLINE: "\n"@5029..5030
+      TEXT_LINE: "====================  ====================  ===================="@5030..5094
+      NEWLINE: "\n"@5094..5095
+      TEXT_LINE: "NumPy                 ✅                     n/a"@5095..5144
+      WHITESPACE: "                 "@5144..5161
+      NEWLINE: "\n"@5161..5162
+      TEXT_LINE: "CuPy                  n/a                   ⛔"@5162..5209
+      WHITESPACE: "                   "@5209..5228
+      NEWLINE: "\n"@5228..5229
+      TEXT_LINE: "PyTorch               ✅                     ⛔"@5229..5278
+      WHITESPACE: "                   "@5278..5297
+      NEWLINE: "\n"@5297..5298
+      TEXT_LINE: "JAX                   ⚠\u{fe0f} no JIT             ⛔"@5298..5349
+      WHITESPACE: "                   "@5349..5368
+      NEWLINE: "\n"@5368..5369
+      TEXT_LINE: "Dask                  ⛔                     n/a"@5369..5418
+      WHITESPACE: "                 "@5418..5435
+      NEWLINE: "\n"@5435..5436
+      TEXT_LINE: "====================  ====================  ===================="@5436..5500
+      NEWLINE: "\n"@5500..5501
+      BLANK_LINE: "\n"@5501..5502
+      BLANK_LINE: "\n"@5502..5503
+      BLANK_LINE: "\n"@5503..5504
+      TEXT_LINE: "See :ref:`dev-arrayapi` for more information."@5504..5549
+    }
+  }
+  NEWLINE: "\n"@5549..5550
+  BLANK_LINE: "\n"@5550..5551
+  BLANK_LINE: "\n"@5551..5552
+  SECTION@5552..5779 {
+    SECTION_HEADER@5552..5573 {
+      NAME: "References"@5552..5562
+      NEWLINE: "\n"@5562..5563
+      UNDERLINE: "----------"@5563..5573
+    }
+    NEWLINE: "\n"@5573..5574
+    CITATION@5574..5703 {
+      DIRECTIVE_MARKER: ".."@5574..5576
+      WHITESPACE: " "@5576..5577
+      OPEN_BRACKET: "["@5577..5578
+      LABEL: "1"@5578..5579
+      CLOSE_BRACKET: "]"@5579..5580
+      WHITESPACE: " "@5580..5581
+      DESCRIPTION@5581..5703 {
+        TEXT_LINE: "`Cubic Spline Interpolation"@5581..5608
+        NEWLINE: "\n"@5608..5609
+        WHITESPACE: "        "@5609..5617
+        TEXT_LINE: "<https://en.wikiversity.org/wiki/Cubic_Spline_Interpolation>`_"@5617..5679
+        NEWLINE: "\n"@5679..5680
+        WHITESPACE: "        "@5680..5688
+        TEXT_LINE: "on Wikiversity."@5688..5703
+      }
+    }
+    NEWLINE: "\n"@5703..5704
+    CITATION@5704..5779 {
+      DIRECTIVE_MARKER: ".."@5704..5706
+      WHITESPACE: " "@5706..5707
+      OPEN_BRACKET: "["@5707..5708
+      LABEL: "2"@5708..5709
+      CLOSE_BRACKET: "]"@5709..5710
+      WHITESPACE: " "@5710..5711
+      DESCRIPTION@5711..5779 {
+        TEXT_LINE: "Carl de Boor, \"A Practical Guide to Splines\", Springer-Verlag, 1978."@5711..5779
+      }
+    }
+  }
+  NEWLINE: "\n"@5779..5780
+  BLANK_LINE: "\n"@5780..5781
+  SECTION@5781..7904 {
+    SECTION_HEADER@5781..5798 {
+      NAME: "Examples"@5781..5789
+      NEWLINE: "\n"@5789..5790
+      UNDERLINE: "--------"@5790..5798
+    }
+    NEWLINE: "\n"@5798..5799
+    DESCRIPTION@5799..7904 {
+      TEXT_LINE: "In this example the cubic spline is used to interpolate a sampled sinusoid."@5799..5874
+      NEWLINE: "\n"@5874..5875
+      TEXT_LINE: "You can see that the spline continuity property holds for the first and"@5875..5946
+      NEWLINE: "\n"@5946..5947
+      TEXT_LINE: "second derivatives and violates only for the third derivative."@5947..6009
+      NEWLINE: "\n"@6009..6010
+      BLANK_LINE: "\n"@6010..6011
+      TEXT_LINE: ">>> import numpy as np"@6011..6033
+      NEWLINE: "\n"@6033..6034
+      TEXT_LINE: ">>> from scipy.interpolate import CubicSpline"@6034..6079
+      NEWLINE: "\n"@6079..6080
+      TEXT_LINE: ">>> import matplotlib.pyplot as plt"@6080..6115
+      NEWLINE: "\n"@6115..6116
+      TEXT_LINE: ">>> x = np.arange(10)"@6116..6137
+      NEWLINE: "\n"@6137..6138
+      TEXT_LINE: ">>> y = np.sin(x)"@6138..6155
+      NEWLINE: "\n"@6155..6156
+      TEXT_LINE: ">>> cs = CubicSpline(x, y)"@6156..6182
+      NEWLINE: "\n"@6182..6183
+      TEXT_LINE: ">>> xs = np.arange(-0.5, 9.6, 0.1)"@6183..6217
+      NEWLINE: "\n"@6217..6218
+      TEXT_LINE: ">>> fig, ax = plt.subplots(figsize=(6.5, 4))"@6218..6262
+      NEWLINE: "\n"@6262..6263
+      TEXT_LINE: ">>> ax.plot(x, y, 'o', label='data')"@6263..6299
+      NEWLINE: "\n"@6299..6300
+      TEXT_LINE: ">>> ax.plot(xs, np.sin(xs), label='true')"@6300..6341
+      NEWLINE: "\n"@6341..6342
+      TEXT_LINE: ">>> ax.plot(xs, cs(xs), label=\"S\")"@6342..6376
+      NEWLINE: "\n"@6376..6377
+      TEXT_LINE: ">>> ax.plot(xs, cs(xs, 1), label=\"S'\")"@6377..6415
+      NEWLINE: "\n"@6415..6416
+      TEXT_LINE: ">>> ax.plot(xs, cs(xs, 2), label=\"S''\")"@6416..6455
+      NEWLINE: "\n"@6455..6456
+      TEXT_LINE: ">>> ax.plot(xs, cs(xs, 3), label=\"S'''\")"@6456..6496
+      NEWLINE: "\n"@6496..6497
+      TEXT_LINE: ">>> ax.set_xlim(-0.5, 9.5)"@6497..6523
+      NEWLINE: "\n"@6523..6524
+      TEXT_LINE: ">>> ax.legend(loc='lower left', ncol=2)"@6524..6563
+      NEWLINE: "\n"@6563..6564
+      TEXT_LINE: ">>> plt.show()"@6564..6578
+      NEWLINE: "\n"@6578..6579
+      BLANK_LINE: "\n"@6579..6580
+      TEXT_LINE: "In the second example, the unit circle is interpolated with a spline. A"@6580..6651
+      NEWLINE: "\n"@6651..6652
+      TEXT_LINE: "periodic boundary condition is used. You can see that the first derivative"@6652..6726
+      NEWLINE: "\n"@6726..6727
+      TEXT_LINE: "values, ds/dx=0, ds/dy=1 at the periodic point (1, 0) are correctly"@6727..6794
+      NEWLINE: "\n"@6794..6795
+      TEXT_LINE: "computed. Note that a circle cannot be exactly represented by a cubic"@6795..6864
+      NEWLINE: "\n"@6864..6865
+      TEXT_LINE: "spline. To increase precision, more breakpoints would be required."@6865..6931
+      NEWLINE: "\n"@6931..6932
+      BLANK_LINE: "\n"@6932..6933
+      TEXT_LINE: ">>> theta = 2 * np.pi * np.linspace(0, 1, 5)"@6933..6977
+      NEWLINE: "\n"@6977..6978
+      TEXT_LINE: ">>> y = np.c_[np.cos(theta), np.sin(theta)]"@6978..7021
+      NEWLINE: "\n"@7021..7022
+      TEXT_LINE: ">>> cs = CubicSpline(theta, y, bc_type='periodic')"@7022..7072
+      NEWLINE: "\n"@7072..7073
+      TEXT_LINE: ">>> print(\"ds/dx={:.1f} ds/dy={:.1f}\".format(cs(0, 1)[0], cs(0, 1)[1]))"@7073..7144
+      NEWLINE: "\n"@7144..7145
+      TEXT_LINE: "ds/dx=0.0 ds/dy=1.0"@7145..7164
+      NEWLINE: "\n"@7164..7165
+      TEXT_LINE: ">>> xs = 2 * np.pi * np.linspace(0, 1, 100)"@7165..7208
+      NEWLINE: "\n"@7208..7209
+      TEXT_LINE: ">>> fig, ax = plt.subplots(figsize=(6.5, 4))"@7209..7253
+      NEWLINE: "\n"@7253..7254
+      TEXT_LINE: ">>> ax.plot(y[:, 0], y[:, 1], 'o', label='data')"@7254..7302
+      NEWLINE: "\n"@7302..7303
+      TEXT_LINE: ">>> ax.plot(np.cos(xs), np.sin(xs), label='true')"@7303..7352
+      NEWLINE: "\n"@7352..7353
+      TEXT_LINE: ">>> ax.plot(cs(xs)[:, 0], cs(xs)[:, 1], label='spline')"@7353..7408
+      NEWLINE: "\n"@7408..7409
+      TEXT_LINE: ">>> ax.axes.set_aspect('equal')"@7409..7440
+      NEWLINE: "\n"@7440..7441
+      TEXT_LINE: ">>> ax.legend(loc='center')"@7441..7468
+      NEWLINE: "\n"@7468..7469
+      TEXT_LINE: ">>> plt.show()"@7469..7483
+      NEWLINE: "\n"@7483..7484
+      BLANK_LINE: "\n"@7484..7485
+      TEXT_LINE: "The third example is the interpolation of a polynomial y = x**3 on the"@7485..7555
+      NEWLINE: "\n"@7555..7556
+      TEXT_LINE: "interval 0 <= x<= 1. A cubic spline can represent this function exactly."@7556..7628
+      NEWLINE: "\n"@7628..7629
+      TEXT_LINE: "To achieve that we need to specify values and first derivatives at"@7629..7695
+      NEWLINE: "\n"@7695..7696
+      TEXT_LINE: "endpoints of the interval. Note that y' = 3 * x**2 and thus y'(0) = 0 and"@7696..7769
+      NEWLINE: "\n"@7769..7770
+      TEXT_LINE: "y'(1) = 3."@7770..7780
+      NEWLINE: "\n"@7780..7781
+      BLANK_LINE: "\n"@7781..7782
+      TEXT_LINE: ">>> cs = CubicSpline([0, 1], [0, 1], bc_type=((1, 0), (1, 3)))"@7782..7844
+      NEWLINE: "\n"@7844..7845
+      TEXT_LINE: ">>> x = np.linspace(0, 1)"@7845..7870
+      NEWLINE: "\n"@7870..7871
+      TEXT_LINE: ">>> np.allclose(x**3, cs(x))"@7871..7899
+      NEWLINE: "\n"@7899..7900
+      TEXT_LINE: "True"@7900..7904
+    }
+  }
+}
+=== EMIT ===
+Piecewise cubic interpolator to fit values (C2 smooth).
+
+Interpolate data with a piecewise cubic polynomial which is twice
+continuously differentiable [1]_. The result is represented as a `PPoly`
+instance with breakpoints matching the given data.
+
+Parameters
+----------
+x : array_like, shape (n,)
+    1-D array containing values of the independent variable.
+    Values must be real, finite and in strictly increasing order.
+y : array_like
+    Array containing values of the dependent variable. It can have
+    arbitrary number of dimensions, but the length along ``axis``
+    (see below) must match the length of ``x``. Values must be finite.
+axis : int, optional
+    Axis along which `y` is assumed to be varying. Meaning that for
+    ``x[i]`` the corresponding values are ``np.take(y, i, axis=axis)``.
+    Default is 0.
+bc_type : str or 2-tuple, optional
+    Boundary condition type. Two additional equations, given by the
+    boundary conditions, are required to determine all coefficients of
+    polynomials on each segment [2]_.
+
+    If `bc_type` is a string, then the specified condition will be applied
+    at both ends of a spline. Available conditions are:
+
+    * 'not-a-knot' (default): The first and second segment at a curve end
+      are the same polynomial. It is a good default when there is no
+      information on boundary conditions.
+    * 'periodic': The interpolated functions is assumed to be periodic
+      of period ``x[-1] - x[0]``. The first and last value of `y` must be
+      identical: ``y[0] == y[-1]``. This boundary condition will result in
+      ``y'[0] == y'[-1]`` and ``y''[0] == y''[-1]``.
+    * 'clamped': The first derivative at curves ends are zero. Assuming
+      a 1D `y`, ``bc_type=((1, 0.0), (1, 0.0))`` is the same condition.
+    * 'natural': The second derivative at curve ends are zero. Assuming
+      a 1D `y`, ``bc_type=((2, 0.0), (2, 0.0))`` is the same condition.
+
+    If `bc_type` is a 2-tuple, the first and the second value will be
+    applied at the curve start and end respectively. The tuple values can
+    be one of the previously mentioned strings (except 'periodic') or a
+    tuple ``(order, deriv_values)`` allowing to specify arbitrary
+    derivatives at curve ends:
+
+    * `order`: the derivative order, 1 or 2.
+    * `deriv_value`: array_like containing derivative values, shape must
+      be the same as `y`, excluding ``axis`` dimension. For example, if
+      `y` is 1-D, then `deriv_value` must be a scalar. If `y` is 3-D with
+      the shape (n0, n1, n2) and axis=2, then `deriv_value` must be 2-D
+      and have the shape (n0, n1).
+extrapolate : {bool, 'periodic', None}, optional
+    If bool, determines whether to extrapolate to out-of-bounds points
+    based on first and last intervals, or to return NaNs. If 'periodic',
+    periodic extrapolation is used. If None (default), ``extrapolate`` is
+    set to 'periodic' for ``bc_type='periodic'`` and to True otherwise.
+    See :ref:`tutorial-interpolate_out_of_bounds`.
+
+Attributes
+----------
+x : ndarray, shape (n,)
+    Breakpoints. The same ``x`` which was passed to the constructor.
+c : ndarray, shape (4, n-1, ...)
+    Coefficients of the polynomials on each segment. The trailing
+    dimensions match the dimensions of `y`, excluding ``axis``.
+    For example, if `y` is 1-d, then ``c[k, i]`` is a coefficient for
+    ``(x-x[i])**(3-k)`` on the segment between ``x[i]`` and ``x[i+1]``.
+axis : int
+    Interpolation axis. The same axis which was passed to the
+    constructor.
+
+Methods
+-------
+__call__
+derivative
+antiderivative
+integrate
+solve
+roots
+
+See Also
+--------
+:func:`Akima1DInterpolator` : Akima 1D interpolator.
+:func:`PchipInterpolator` : PCHIP 1-D monotonic cubic interpolator.
+:func:`PPoly` : Piecewise polynomial in terms of coefficients and breakpoints.
+
+Notes
+-----
+Parameters `bc_type` and ``extrapolate`` work independently, i.e. the
+former controls only construction of a spline, and the latter only
+evaluation.
+
+When a boundary condition is 'not-a-knot' and n = 2, it is replaced by
+a condition that the first derivative is equal to the linear interpolant
+slope. When both boundary conditions are 'not-a-knot' and n = 3, the
+solution is sought as a parabola passing through given points.
+
+When 'not-a-knot' boundary conditions is applied to both ends, the
+resulting spline will be the same as returned by `splrep` (with ``s=0``)
+and `InterpolatedUnivariateSpline`, but these two methods use a
+representation in B-spline basis.
+
+.. versionadded:: 0.18.0
+
+**Array API Standard Support**
+
+`CubicSpline` has experimental support for Python Array API Standard compatible
+backends in addition to NumPy. Please consider testing these features
+by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing
+CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following
+combinations of backend and device (or other capability) are supported.
+
+====================  ====================  ====================
+Library               CPU                   GPU
+====================  ====================  ====================
+NumPy                 ✅                     n/a                 
+CuPy                  n/a                   ⛔                   
+PyTorch               ✅                     ⛔                   
+JAX                   ⚠️ no JIT             ⛔                   
+Dask                  ⛔                     n/a                 
+====================  ====================  ====================
+
+
+
+See :ref:`dev-arrayapi` for more information.
+
+References
+----------
+.. [1] `Cubic Spline Interpolation
+    <https://en.wikiversity.org/wiki/Cubic_Spline_Interpolation>`_
+    on Wikiversity.
+.. [2] Carl de Boor, "A Practical Guide to Splines", Springer-Verlag, 1978.
+
+Examples
+--------
+In this example the cubic spline is used to interpolate a sampled sinusoid.
+You can see that the spline continuity property holds for the first and
+second derivatives and violates only for the third derivative.
+
+>>> import numpy as np
+>>> from scipy.interpolate import CubicSpline
+>>> import matplotlib.pyplot as plt
+>>> x = np.arange(10)
+>>> y = np.sin(x)
+>>> cs = CubicSpline(x, y)
+>>> xs = np.arange(-0.5, 9.6, 0.1)
+>>> fig, ax = plt.subplots(figsize=(6.5, 4))
+>>> ax.plot(x, y, 'o', label='data')
+>>> ax.plot(xs, np.sin(xs), label='true')
+>>> ax.plot(xs, cs(xs), label="S")
+>>> ax.plot(xs, cs(xs, 1), label="S'")
+>>> ax.plot(xs, cs(xs, 2), label="S''")
+>>> ax.plot(xs, cs(xs, 3), label="S'''")
+>>> ax.set_xlim(-0.5, 9.5)
+>>> ax.legend(loc='lower left', ncol=2)
+>>> plt.show()
+
+In the second example, the unit circle is interpolated with a spline. A
+periodic boundary condition is used. You can see that the first derivative
+values, ds/dx=0, ds/dy=1 at the periodic point (1, 0) are correctly
+computed. Note that a circle cannot be exactly represented by a cubic
+spline. To increase precision, more breakpoints would be required.
+
+>>> theta = 2 * np.pi * np.linspace(0, 1, 5)
+>>> y = np.c_[np.cos(theta), np.sin(theta)]
+>>> cs = CubicSpline(theta, y, bc_type='periodic')
+>>> print("ds/dx={:.1f} ds/dy={:.1f}".format(cs(0, 1)[0], cs(0, 1)[1]))
+ds/dx=0.0 ds/dy=1.0
+>>> xs = 2 * np.pi * np.linspace(0, 1, 100)
+>>> fig, ax = plt.subplots(figsize=(6.5, 4))
+>>> ax.plot(y[:, 0], y[:, 1], 'o', label='data')
+>>> ax.plot(np.cos(xs), np.sin(xs), label='true')
+>>> ax.plot(cs(xs)[:, 0], cs(xs)[:, 1], label='spline')
+>>> ax.axes.set_aspect('equal')
+>>> ax.legend(loc='center')
+>>> plt.show()
+
+The third example is the interpolation of a polynomial y = x**3 on the
+interval 0 <= x<= 1. A cubic spline can represent this function exactly.
+To achieve that we need to specify values and first derivatives at
+endpoints of the interval. Note that y' = 3 * x**2 and thus y'(0) = 0 and
+y'(1) = 3.
+
+>>> cs = CubicSpline([0, 1], [0, 1], bc_type=((1, 0), (1, 3)))
+>>> x = np.linspace(0, 1)
+>>> np.allclose(x**3, cs(x))
+True

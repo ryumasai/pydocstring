@@ -1,0 +1,276 @@
+=== CST ===
+DOCUMENT@0..2204 {
+  SUMMARY@0..68 {
+    TEXT_LINE: "Filter cell outliers based on counts and numbers of genes expressed."@0..68
+  }
+  NEWLINE: "\n"@68..69
+  BLANK_LINE: "\n"@69..70
+  EXTENDED_SUMMARY@70..349 {
+    TEXT_LINE: "For instance, only keep cells with at least `min_counts` counts or"@70..136
+    NEWLINE: "\n"@136..137
+    TEXT_LINE: "`min_genes` genes expressed. This is to filter measurement outliers,"@137..205
+    NEWLINE: "\n"@205..206
+    TEXT_LINE: "i.e. “unreliable” observations."@206..241
+    NEWLINE: "\n"@241..242
+    BLANK_LINE: "\n"@242..243
+    TEXT_LINE: "Only provide one of the optional parameters `min_counts`, `min_genes`,"@243..313
+    NEWLINE: "\n"@313..314
+    TEXT_LINE: "`max_counts`, `max_genes` per call."@314..349
+  }
+  NEWLINE: "\n"@349..350
+  BLANK_LINE: "\n"@350..351
+  SECTION@351..880 {
+    SECTION_HEADER@351..372 {
+      NAME: "Parameters"@351..361
+      NEWLINE: "\n"@361..362
+      UNDERLINE: "----------"@362..372
+    }
+    NEWLINE: "\n"@372..373
+    ENTRY@373..490 {
+      NAME: "data"@373..377
+      NEWLINE: "\n"@377..378
+      WHITESPACE: "    "@378..382
+      DESCRIPTION@382..490 {
+        TEXT_LINE: "The (annotated) data matrix of shape `n_obs` × `n_vars`."@382..439
+        NEWLINE: "\n"@439..440
+        WHITESPACE: "    "@440..444
+        TEXT_LINE: "Rows correspond to cells and columns to genes."@444..490
+      }
+    }
+    NEWLINE: "\n"@490..491
+    ENTRY@491..569 {
+      NAME: "min_counts"@491..501
+      NEWLINE: "\n"@501..502
+      WHITESPACE: "    "@502..506
+      DESCRIPTION@506..569 {
+        TEXT_LINE: "Minimum number of counts required for a cell to pass filtering."@506..569
+      }
+    }
+    NEWLINE: "\n"@569..570
+    ENTRY@570..656 {
+      NAME: "min_genes"@570..579
+      NEWLINE: "\n"@579..580
+      WHITESPACE: "    "@580..584
+      DESCRIPTION@584..656 {
+        TEXT_LINE: "Minimum number of genes expressed required for a cell to pass filtering."@584..656
+      }
+    }
+    NEWLINE: "\n"@656..657
+    ENTRY@657..735 {
+      NAME: "max_counts"@657..667
+      NEWLINE: "\n"@667..668
+      WHITESPACE: "    "@668..672
+      DESCRIPTION@672..735 {
+        TEXT_LINE: "Maximum number of counts required for a cell to pass filtering."@672..735
+      }
+    }
+    NEWLINE: "\n"@735..736
+    ENTRY@736..822 {
+      NAME: "max_genes"@736..745
+      NEWLINE: "\n"@745..746
+      WHITESPACE: "    "@746..750
+      DESCRIPTION@750..822 {
+        TEXT_LINE: "Maximum number of genes expressed required for a cell to pass filtering."@750..822
+      }
+    }
+    NEWLINE: "\n"@822..823
+    ENTRY@823..880 {
+      NAME: "inplace"@823..830
+      NEWLINE: "\n"@830..831
+      WHITESPACE: "    "@831..835
+      DESCRIPTION@835..880 {
+        TEXT_LINE: "Perform computation inplace or return result."@835..880
+      }
+    }
+  }
+  NEWLINE: "\n"@880..881
+  BLANK_LINE: "\n"@881..882
+  SECTION@882..1302 {
+    SECTION_HEADER@882..897 {
+      NAME: "Returns"@882..889
+      NEWLINE: "\n"@889..890
+      UNDERLINE: "-------"@890..897
+    }
+    NEWLINE: "\n"@897..898
+    ENTRY@898..970 {
+      TYPE: "Depending on `inplace`, returns the following arrays or directly subsets"@898..970
+    }
+    NEWLINE: "\n"@970..971
+    ENTRY@971..1001 {
+      TYPE: "and annotates the data matrix:"@971..1001
+    }
+    NEWLINE: "\n"@1001..1002
+    BLANK_LINE: "\n"@1002..1003
+    ENTRY@1003..1134 {
+      TYPE: "cells_subset"@1003..1015
+      NEWLINE: "\n"@1015..1016
+      WHITESPACE: "    "@1016..1020
+      DESCRIPTION@1020..1134 {
+        TEXT_LINE: "Boolean index mask that does filtering. `True` means that the"@1020..1081
+        NEWLINE: "\n"@1081..1082
+        WHITESPACE: "    "@1082..1086
+        TEXT_LINE: "cell is kept. `False` means the cell is removed."@1086..1134
+      }
+    }
+    NEWLINE: "\n"@1134..1135
+    ENTRY@1135..1266 {
+      TYPE: "number_per_cell"@1135..1150
+      NEWLINE: "\n"@1150..1151
+      WHITESPACE: "    "@1151..1155
+      DESCRIPTION@1155..1266 {
+        TEXT_LINE: "Depending on what was thresholded (`counts` or `genes`),"@1155..1211
+        NEWLINE: "\n"@1211..1212
+        WHITESPACE: "    "@1212..1216
+        TEXT_LINE: "the array stores `n_counts` or `n_genes` per cell."@1216..1266
+      }
+    }
+    NEWLINE: "\n"@1266..1267
+    BLANK_LINE: "\n"@1267..1268
+    ENTRY@1268..1302 {
+      TYPE: ".. array-support:: pp.filter_cells"@1268..1302
+    }
+  }
+  NEWLINE: "\n"@1302..1303
+  BLANK_LINE: "\n"@1303..1304
+  SECTION@1304..2204 {
+    SECTION_HEADER@1304..1321 {
+      NAME: "Examples"@1304..1312
+      NEWLINE: "\n"@1312..1313
+      UNDERLINE: "--------"@1313..1321
+    }
+    NEWLINE: "\n"@1321..1322
+    DESCRIPTION@1322..2204 {
+      TEXT_LINE: ">>> import scanpy as sc"@1322..1345
+      NEWLINE: "\n"@1345..1346
+      TEXT_LINE: ">>> adata = sc.datasets.krumsiek11()  # doctest: +ELLIPSIS"@1346..1404
+      NEWLINE: "\n"@1404..1405
+      TEXT_LINE: "UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`."@1405..1503
+      NEWLINE: "\n"@1503..1504
+      WHITESPACE: "    "@1504..1508
+      TEXT_LINE: "..."@1508..1511
+      NEWLINE: "\n"@1511..1512
+      TEXT_LINE: ">>> adata.obs_names_make_unique()"@1512..1545
+      NEWLINE: "\n"@1545..1546
+      TEXT_LINE: ">>> adata.n_obs"@1546..1561
+      NEWLINE: "\n"@1561..1562
+      TEXT_LINE: "640"@1562..1565
+      NEWLINE: "\n"@1565..1566
+      TEXT_LINE: ">>> adata.var_names.tolist()  # doctest: +NORMALIZE_WHITESPACE"@1566..1628
+      NEWLINE: "\n"@1628..1629
+      TEXT_LINE: "['Gata2', 'Gata1', 'Fog1', 'EKLF', 'Fli1', 'SCL',"@1629..1678
+      NEWLINE: "\n"@1678..1679
+      WHITESPACE: " "@1679..1680
+      TEXT_LINE: "'Cebpa', 'Pu.1', 'cJun', 'EgrNab', 'Gfi1']"@1680..1722
+      NEWLINE: "\n"@1722..1723
+      TEXT_LINE: ">>> # add some true zeros"@1723..1748
+      NEWLINE: "\n"@1748..1749
+      TEXT_LINE: ">>> adata.X[adata.X < 0.3] = 0"@1749..1779
+      NEWLINE: "\n"@1779..1780
+      TEXT_LINE: ">>> # simply compute the number of genes per cell"@1780..1829
+      NEWLINE: "\n"@1829..1830
+      TEXT_LINE: ">>> sc.pp.filter_cells(adata, min_genes=0)"@1830..1872
+      NEWLINE: "\n"@1872..1873
+      TEXT_LINE: ">>> adata.n_obs"@1873..1888
+      NEWLINE: "\n"@1888..1889
+      TEXT_LINE: "640"@1889..1892
+      NEWLINE: "\n"@1892..1893
+      TEXT_LINE: ">>> int(adata.obs[\"n_genes\"].min())"@1893..1928
+      NEWLINE: "\n"@1928..1929
+      TEXT_LINE: "1"@1929..1930
+      NEWLINE: "\n"@1930..1931
+      TEXT_LINE: ">>> # filter manually"@1931..1952
+      NEWLINE: "\n"@1952..1953
+      TEXT_LINE: ">>> adata_copy = adata[adata.obs[\"n_genes\"] >= 3]"@1953..2002
+      NEWLINE: "\n"@2002..2003
+      TEXT_LINE: ">>> adata_copy.n_obs"@2003..2023
+      NEWLINE: "\n"@2023..2024
+      TEXT_LINE: "554"@2024..2027
+      NEWLINE: "\n"@2027..2028
+      TEXT_LINE: ">>> int(adata_copy.obs[\"n_genes\"].min())"@2028..2068
+      NEWLINE: "\n"@2068..2069
+      TEXT_LINE: "3"@2069..2070
+      NEWLINE: "\n"@2070..2071
+      TEXT_LINE: ">>> # actually do some filtering"@2071..2103
+      NEWLINE: "\n"@2103..2104
+      TEXT_LINE: ">>> sc.pp.filter_cells(adata, min_genes=3)"@2104..2146
+      NEWLINE: "\n"@2146..2147
+      TEXT_LINE: ">>> adata.n_obs"@2147..2162
+      NEWLINE: "\n"@2162..2163
+      TEXT_LINE: "554"@2163..2166
+      NEWLINE: "\n"@2166..2167
+      TEXT_LINE: ">>> int(adata.obs[\"n_genes\"].min())"@2167..2202
+      NEWLINE: "\n"@2202..2203
+      TEXT_LINE: "3"@2203..2204
+    }
+  }
+}
+=== EMIT ===
+Filter cell outliers based on counts and numbers of genes expressed.
+
+For instance, only keep cells with at least `min_counts` counts or
+`min_genes` genes expressed. This is to filter measurement outliers,
+i.e. “unreliable” observations.
+
+Only provide one of the optional parameters `min_counts`, `min_genes`,
+`max_counts`, `max_genes` per call.
+
+Parameters
+----------
+data
+    The (annotated) data matrix of shape `n_obs` × `n_vars`.
+    Rows correspond to cells and columns to genes.
+min_counts
+    Minimum number of counts required for a cell to pass filtering.
+min_genes
+    Minimum number of genes expressed required for a cell to pass filtering.
+max_counts
+    Maximum number of counts required for a cell to pass filtering.
+max_genes
+    Maximum number of genes expressed required for a cell to pass filtering.
+inplace
+    Perform computation inplace or return result.
+
+Returns
+-------
+Depending on `inplace`, returns the following arrays or directly subsets
+and annotates the data matrix:
+cells_subset
+    Boolean index mask that does filtering. `True` means that the
+    cell is kept. `False` means the cell is removed.
+number_per_cell
+    Depending on what was thresholded (`counts` or `genes`),
+    the array stores `n_counts` or `n_genes` per cell.
+.. array-support:: pp.filter_cells
+
+Examples
+--------
+>>> import scanpy as sc
+>>> adata = sc.datasets.krumsiek11()  # doctest: +ELLIPSIS
+UserWarning: Observation names are not unique. To make them unique, call `.obs_names_make_unique`.
+    ...
+>>> adata.obs_names_make_unique()
+>>> adata.n_obs
+640
+>>> adata.var_names.tolist()  # doctest: +NORMALIZE_WHITESPACE
+['Gata2', 'Gata1', 'Fog1', 'EKLF', 'Fli1', 'SCL',
+ 'Cebpa', 'Pu.1', 'cJun', 'EgrNab', 'Gfi1']
+>>> # add some true zeros
+>>> adata.X[adata.X < 0.3] = 0
+>>> # simply compute the number of genes per cell
+>>> sc.pp.filter_cells(adata, min_genes=0)
+>>> adata.n_obs
+640
+>>> int(adata.obs["n_genes"].min())
+1
+>>> # filter manually
+>>> adata_copy = adata[adata.obs["n_genes"] >= 3]
+>>> adata_copy.n_obs
+554
+>>> int(adata_copy.obs["n_genes"].min())
+3
+>>> # actually do some filtering
+>>> sc.pp.filter_cells(adata, min_genes=3)
+>>> adata.n_obs
+554
+>>> int(adata.obs["n_genes"].min())
+3

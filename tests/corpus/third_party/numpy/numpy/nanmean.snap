@@ -1,0 +1,355 @@
+=== CST ===
+DOCUMENT@0..2696 {
+  SUMMARY@0..68 {
+    TEXT_LINE: "Compute the arithmetic mean along the specified axis, ignoring NaNs."@0..68
+  }
+  NEWLINE: "\n"@68..69
+  BLANK_LINE: "\n"@69..70
+  EXTENDED_SUMMARY@70..347 {
+    TEXT_LINE: "Returns the average of the array elements.  The average is taken over"@70..139
+    NEWLINE: "\n"@139..140
+    TEXT_LINE: "the flattened array by default, otherwise over the specified axis."@140..206
+    NEWLINE: "\n"@206..207
+    TEXT_LINE: "`float64` intermediate and return values are used for integer inputs."@207..276
+    NEWLINE: "\n"@276..277
+    BLANK_LINE: "\n"@277..278
+    TEXT_LINE: "For all-NaN slices, NaN is returned and a `RuntimeWarning` is raised."@278..347
+  }
+  NEWLINE: "\n"@347..348
+  BLANK_LINE: "\n"@348..349
+  SECTION@349..1711 {
+    SECTION_HEADER@349..370 {
+      NAME: "Parameters"@349..359
+      NEWLINE: "\n"@359..360
+      UNDERLINE: "----------"@360..370
+    }
+    NEWLINE: "\n"@370..371
+    ENTRY@371..492 {
+      NAME: "a"@371..372
+      WHITESPACE: " "@372..373
+      COLON: ":"@373..374
+      WHITESPACE: " "@374..375
+      TYPE: "array_like"@375..385
+      NEWLINE: "\n"@385..386
+      WHITESPACE: "    "@386..390
+      DESCRIPTION@390..492 {
+        TEXT_LINE: "Array containing numbers whose mean is desired. If `a` is not an"@390..454
+        NEWLINE: "\n"@454..455
+        WHITESPACE: "    "@455..459
+        TEXT_LINE: "array, a conversion is attempted."@459..492
+      }
+    }
+    NEWLINE: "\n"@492..493
+    ENTRY@493..651 {
+      NAME: "axis"@493..497
+      WHITESPACE: " "@497..498
+      COLON: ":"@498..499
+      WHITESPACE: " "@499..500
+      TYPE: "{int, tuple of int, None}"@500..525
+      COMMA: ","@525..526
+      WHITESPACE: " "@526..527
+      OPTIONAL: "optional"@527..535
+      NEWLINE: "\n"@535..536
+      WHITESPACE: "    "@536..540
+      DESCRIPTION@540..651 {
+        TEXT_LINE: "Axis or axes along which the means are computed. The default is to compute"@540..614
+        NEWLINE: "\n"@614..615
+        WHITESPACE: "    "@615..619
+        TEXT_LINE: "the mean of the flattened array."@619..651
+      }
+    }
+    NEWLINE: "\n"@651..652
+    ENTRY@652..828 {
+      NAME: "dtype"@652..657
+      WHITESPACE: " "@657..658
+      COLON: ":"@658..659
+      WHITESPACE: " "@659..660
+      TYPE: "data-type"@660..669
+      COMMA: ","@669..670
+      WHITESPACE: " "@670..671
+      OPTIONAL: "optional"@671..679
+      NEWLINE: "\n"@679..680
+      WHITESPACE: "    "@680..684
+      DESCRIPTION@684..828 {
+        TEXT_LINE: "Type to use in computing the mean.  For integer inputs, the default"@684..751
+        NEWLINE: "\n"@751..752
+        WHITESPACE: "    "@752..756
+        TEXT_LINE: "is `float64`; for inexact inputs, it is the same as the input"@756..817
+        NEWLINE: "\n"@817..818
+        WHITESPACE: "    "@818..822
+        TEXT_LINE: "dtype."@822..828
+      }
+    }
+    NEWLINE: "\n"@828..829
+    ENTRY@829..1100 {
+      NAME: "out"@829..832
+      WHITESPACE: " "@832..833
+      COLON: ":"@833..834
+      WHITESPACE: " "@834..835
+      TYPE: "ndarray"@835..842
+      COMMA: ","@842..843
+      WHITESPACE: " "@843..844
+      OPTIONAL: "optional"@844..852
+      NEWLINE: "\n"@852..853
+      WHITESPACE: "    "@853..857
+      DESCRIPTION@857..1100 {
+        TEXT_LINE: "Alternate output array in which to place the result.  The default"@857..922
+        NEWLINE: "\n"@922..923
+        WHITESPACE: "    "@923..927
+        TEXT_LINE: "is ``None``; if provided, it must have the same shape as the"@927..987
+        NEWLINE: "\n"@987..988
+        WHITESPACE: "    "@988..992
+        TEXT_LINE: "expected output, but the type will be cast if necessary."@992..1048
+        NEWLINE: "\n"@1048..1049
+        WHITESPACE: "    "@1049..1053
+        TEXT_LINE: "See :ref:`ufuncs-output-type` for more details."@1053..1100
+      }
+    }
+    NEWLINE: "\n"@1100..1101
+    ENTRY@1101..1568 {
+      NAME: "keepdims"@1101..1109
+      WHITESPACE: " "@1109..1110
+      COLON: ":"@1110..1111
+      WHITESPACE: " "@1111..1112
+      TYPE: "bool"@1112..1116
+      COMMA: ","@1116..1117
+      WHITESPACE: " "@1117..1118
+      OPTIONAL: "optional"@1118..1126
+      NEWLINE: "\n"@1126..1127
+      WHITESPACE: "    "@1127..1131
+      DESCRIPTION@1131..1568 {
+        TEXT_LINE: "If this is set to True, the axes which are reduced are left"@1131..1190
+        NEWLINE: "\n"@1190..1191
+        WHITESPACE: "    "@1191..1195
+        TEXT_LINE: "in the result as dimensions with size one. With this option,"@1195..1255
+        NEWLINE: "\n"@1255..1256
+        WHITESPACE: "    "@1256..1260
+        TEXT_LINE: "the result will broadcast correctly against the original `a`."@1260..1321
+        NEWLINE: "\n"@1321..1322
+        BLANK_LINE: "\n"@1322..1323
+        WHITESPACE: "    "@1323..1327
+        TEXT_LINE: "If the value is anything but the default, then"@1327..1373
+        NEWLINE: "\n"@1373..1374
+        WHITESPACE: "    "@1374..1378
+        TEXT_LINE: "`keepdims` will be passed through to the `mean` or `sum` methods"@1378..1442
+        NEWLINE: "\n"@1442..1443
+        WHITESPACE: "    "@1443..1447
+        TEXT_LINE: "of sub-classes of `ndarray`.  If the sub-classes methods"@1447..1503
+        NEWLINE: "\n"@1503..1504
+        WHITESPACE: "    "@1504..1508
+        TEXT_LINE: "does not implement `keepdims` any exceptions will be raised."@1508..1568
+      }
+    }
+    NEWLINE: "\n"@1568..1569
+    ENTRY@1569..1711 {
+      NAME: "where"@1569..1574
+      WHITESPACE: " "@1574..1575
+      COLON: ":"@1575..1576
+      WHITESPACE: " "@1576..1577
+      TYPE: "array_like of bool"@1577..1595
+      COMMA: ","@1595..1596
+      WHITESPACE: " "@1596..1597
+      OPTIONAL: "optional"@1597..1605
+      NEWLINE: "\n"@1605..1606
+      WHITESPACE: "    "@1606..1610
+      DESCRIPTION@1610..1711 {
+        TEXT_LINE: "Elements to include in the mean. See `~numpy.ufunc.reduce` for details."@1610..1681
+        NEWLINE: "\n"@1681..1682
+        BLANK_LINE: "\n"@1682..1683
+        WHITESPACE: "    "@1683..1687
+        TEXT_LINE: ".. versionadded:: 1.22.0"@1687..1711
+      }
+    }
+  }
+  NEWLINE: "\n"@1711..1712
+  BLANK_LINE: "\n"@1712..1713
+  SECTION@1713..1948 {
+    SECTION_HEADER@1713..1728 {
+      NAME: "Returns"@1713..1720
+      NEWLINE: "\n"@1720..1721
+      UNDERLINE: "-------"@1721..1728
+    }
+    NEWLINE: "\n"@1728..1729
+    ENTRY@1729..1948 {
+      NAME: "m"@1729..1730
+      WHITESPACE: " "@1730..1731
+      COLON: ":"@1731..1732
+      WHITESPACE: " "@1732..1733
+      TYPE: "ndarray, see dtype parameter above"@1733..1767
+      NEWLINE: "\n"@1767..1768
+      WHITESPACE: "    "@1768..1772
+      DESCRIPTION@1772..1948 {
+        TEXT_LINE: "If `out=None`, returns a new array containing the mean values,"@1772..1834
+        NEWLINE: "\n"@1834..1835
+        WHITESPACE: "    "@1835..1839
+        TEXT_LINE: "otherwise a reference to the output array is returned. Nan is"@1839..1900
+        NEWLINE: "\n"@1900..1901
+        WHITESPACE: "    "@1901..1905
+        TEXT_LINE: "returned for slices that contain only NaNs."@1905..1948
+      }
+    }
+  }
+  NEWLINE: "\n"@1948..1949
+  BLANK_LINE: "\n"@1949..1950
+  SECTION@1950..2059 {
+    SECTION_HEADER@1950..1967 {
+      NAME: "See Also"@1950..1958
+      NEWLINE: "\n"@1958..1959
+      UNDERLINE: "--------"@1959..1967
+    }
+    NEWLINE: "\n"@1967..1968
+    ENTRY@1968..1994 {
+      NAME: "average"@1968..1975
+      WHITESPACE: " "@1975..1976
+      COLON: ":"@1976..1977
+      WHITESPACE: " "@1977..1978
+      DESCRIPTION@1978..1994 {
+        TEXT_LINE: "Weighted average"@1978..1994
+      }
+    }
+    NEWLINE: "\n"@1994..1995
+    ENTRY@1995..2047 {
+      NAME: "mean"@1995..1999
+      WHITESPACE: " "@1999..2000
+      COLON: ":"@2000..2001
+      WHITESPACE: " "@2001..2002
+      DESCRIPTION@2002..2047 {
+        TEXT_LINE: "Arithmetic mean taken while not ignoring NaNs"@2002..2047
+      }
+    }
+    NEWLINE: "\n"@2047..2048
+    ENTRY@2048..2059 {
+      NAME: "var"@2048..2051
+      COMMA: ","@2051..2052
+      WHITESPACE: " "@2052..2053
+      NAME: "nanvar"@2053..2059
+    }
+  }
+  NEWLINE: "\n"@2059..2060
+  BLANK_LINE: "\n"@2060..2061
+  SECTION@2061..2479 {
+    SECTION_HEADER@2061..2072 {
+      NAME: "Notes"@2061..2066
+      NEWLINE: "\n"@2066..2067
+      UNDERLINE: "-----"@2067..2072
+    }
+    NEWLINE: "\n"@2072..2073
+    DESCRIPTION@2073..2479 {
+      TEXT_LINE: "The arithmetic mean is the sum of the non-NaN elements along the axis"@2073..2142
+      NEWLINE: "\n"@2142..2143
+      TEXT_LINE: "divided by the number of non-NaN elements."@2143..2185
+      NEWLINE: "\n"@2185..2186
+      BLANK_LINE: "\n"@2186..2187
+      TEXT_LINE: "Note that for floating-point input, the mean is computed using the same"@2187..2258
+      NEWLINE: "\n"@2258..2259
+      TEXT_LINE: "precision the input has.  Depending on the input data, this can cause"@2259..2328
+      NEWLINE: "\n"@2328..2329
+      TEXT_LINE: "the results to be inaccurate, especially for `float32`.  Specifying a"@2329..2398
+      NEWLINE: "\n"@2398..2399
+      TEXT_LINE: "higher-precision accumulator using the `dtype` keyword can alleviate"@2399..2467
+      NEWLINE: "\n"@2467..2468
+      TEXT_LINE: "this issue."@2468..2479
+    }
+  }
+  NEWLINE: "\n"@2479..2480
+  BLANK_LINE: "\n"@2480..2481
+  SECTION@2481..2696 {
+    SECTION_HEADER@2481..2498 {
+      NAME: "Examples"@2481..2489
+      NEWLINE: "\n"@2489..2490
+      UNDERLINE: "--------"@2490..2498
+    }
+    NEWLINE: "\n"@2498..2499
+    DESCRIPTION@2499..2696 {
+      TEXT_LINE: ">>> import numpy as np"@2499..2521
+      NEWLINE: "\n"@2521..2522
+      TEXT_LINE: ">>> a = np.array([[1, np.nan], [3, 4]])"@2522..2561
+      NEWLINE: "\n"@2561..2562
+      TEXT_LINE: ">>> np.nanmean(a)"@2562..2579
+      NEWLINE: "\n"@2579..2580
+      TEXT_LINE: "2.6666666666666665"@2580..2598
+      NEWLINE: "\n"@2598..2599
+      TEXT_LINE: ">>> np.nanmean(a, axis=0)"@2599..2624
+      NEWLINE: "\n"@2624..2625
+      TEXT_LINE: "array([2.,  4.])"@2625..2641
+      NEWLINE: "\n"@2641..2642
+      TEXT_LINE: ">>> np.nanmean(a, axis=1)"@2642..2667
+      NEWLINE: "\n"@2667..2668
+      TEXT_LINE: "array([1.,  3.5]) # may vary"@2668..2696
+    }
+  }
+}
+=== EMIT ===
+Compute the arithmetic mean along the specified axis, ignoring NaNs.
+
+Returns the average of the array elements.  The average is taken over
+the flattened array by default, otherwise over the specified axis.
+`float64` intermediate and return values are used for integer inputs.
+
+For all-NaN slices, NaN is returned and a `RuntimeWarning` is raised.
+
+Parameters
+----------
+a : array_like
+    Array containing numbers whose mean is desired. If `a` is not an
+    array, a conversion is attempted.
+axis : {int, tuple of int, None}, optional
+    Axis or axes along which the means are computed. The default is to compute
+    the mean of the flattened array.
+dtype : data-type, optional
+    Type to use in computing the mean.  For integer inputs, the default
+    is `float64`; for inexact inputs, it is the same as the input
+    dtype.
+out : ndarray, optional
+    Alternate output array in which to place the result.  The default
+    is ``None``; if provided, it must have the same shape as the
+    expected output, but the type will be cast if necessary.
+    See :ref:`ufuncs-output-type` for more details.
+keepdims : bool, optional
+    If this is set to True, the axes which are reduced are left
+    in the result as dimensions with size one. With this option,
+    the result will broadcast correctly against the original `a`.
+
+    If the value is anything but the default, then
+    `keepdims` will be passed through to the `mean` or `sum` methods
+    of sub-classes of `ndarray`.  If the sub-classes methods
+    does not implement `keepdims` any exceptions will be raised.
+where : array_like of bool, optional
+    Elements to include in the mean. See `~numpy.ufunc.reduce` for details.
+
+    .. versionadded:: 1.22.0
+
+Returns
+-------
+m : ndarray, see dtype parameter above
+    If `out=None`, returns a new array containing the mean values,
+    otherwise a reference to the output array is returned. Nan is
+    returned for slices that contain only NaNs.
+
+See Also
+--------
+average : Weighted average
+mean : Arithmetic mean taken while not ignoring NaNs
+var, nanvar
+
+Notes
+-----
+The arithmetic mean is the sum of the non-NaN elements along the axis
+divided by the number of non-NaN elements.
+
+Note that for floating-point input, the mean is computed using the same
+precision the input has.  Depending on the input data, this can cause
+the results to be inaccurate, especially for `float32`.  Specifying a
+higher-precision accumulator using the `dtype` keyword can alleviate
+this issue.
+
+Examples
+--------
+>>> import numpy as np
+>>> a = np.array([[1, np.nan], [3, 4]])
+>>> np.nanmean(a)
+2.6666666666666665
+>>> np.nanmean(a, axis=0)
+array([2.,  4.])
+>>> np.nanmean(a, axis=1)
+array([1.,  3.5]) # may vary

@@ -14,16 +14,22 @@ mod common;
 
 use std::fs;
 
-use common::collect_inputs;
+use common::corpus_cases;
 use common::corpus_name;
-use common::style_dirs;
 use pydocstring::syntax::Parsed;
 use pydocstring::syntax::SyntaxElement;
 use pydocstring::syntax::SyntaxNode;
 use pydocstring::syntax::SyntaxToken;
 
 /// Corpus inputs currently known to violate the coverage law.
-const KNOWN_COVERAGE_FAILURES: &[&str] = &[];
+const KNOWN_COVERAGE_FAILURES: &[&str] = &[
+    // Multi-name Attributes entries (`jac, hess : ndarray`): unlike
+    // build_parameter_node, build_attribute_node keeps the FIRST name only,
+    // so the later NAME/COMMA tokens of the name list never reach the CST
+    // and their bytes are dropped (src/parse/numpy/parser.rs,
+    // "Attributes use the first name only").
+    "third_party/scipy/numpy/optimize_optimizeresult.txt",
+];
 
 fn parse_for_style(style: &str, input: &str) -> Parsed {
     match style {
@@ -113,22 +119,19 @@ fn every_source_byte_has_a_token() {
     let mut passed_known: Vec<&str> = KNOWN_COVERAGE_FAILURES.to_vec();
     let mut checked = 0;
 
-    for style_dir in style_dirs() {
-        let style = style_dir.file_name().unwrap().to_str().unwrap().to_owned();
-        for txt_path in collect_inputs(&style_dir) {
-            checked += 1;
-            let input = fs::read_to_string(&txt_path).unwrap();
-            let parsed = parse_for_style(&style, &input);
-            let violations = check_coverage(&parsed);
-            if violations.is_empty() {
-                continue;
-            }
-            let name = corpus_name(&txt_path);
-            if let Some(pos) = passed_known.iter().position(|k| *k == name) {
-                passed_known.remove(pos);
-            } else {
-                failures.push(format!("{name}:\n  {}", violations.join("\n  ")));
-            }
+    for (style, txt_path) in corpus_cases() {
+        checked += 1;
+        let input = fs::read_to_string(&txt_path).unwrap();
+        let parsed = parse_for_style(&style, &input);
+        let violations = check_coverage(&parsed);
+        if violations.is_empty() {
+            continue;
+        }
+        let name = corpus_name(&txt_path);
+        if let Some(pos) = passed_known.iter().position(|k| *k == name) {
+            passed_known.remove(pos);
+        } else {
+            failures.push(format!("{name}:\n  {}", violations.join("\n  ")));
         }
     }
 

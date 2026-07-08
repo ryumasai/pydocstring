@@ -1,0 +1,101 @@
+=== CST ===
+DOCUMENT@0..1103 {
+  SUMMARY@0..29 {
+    TEXT_LINE: "Begins executing the program."@0..29
+  }
+  NEWLINE: "\n"@29..30
+  BLANK_LINE: "\n"@30..31
+  SECTION@31..896 {
+    SECTION_HEADER@31..36 {
+      NAME: "Args"@31..35
+      COLON: ":"@35..36
+    }
+    NEWLINE: "\n"@36..37
+    WHITESPACE: "  "@37..39
+    ENTRY@39..465 {
+      NAME: "main"@39..43
+      COLON: ":"@43..44
+      WHITESPACE: " "@44..45
+      DESCRIPTION@45..465 {
+        TEXT_LINE: "The main function to execute. It takes an single argument \"argv\","@45..110
+        NEWLINE: "\n"@110..111
+        WHITESPACE: "      "@111..117
+        TEXT_LINE: "which is a list of command line arguments with parsed flags removed."@117..185
+        NEWLINE: "\n"@185..186
+        WHITESPACE: "      "@186..192
+        TEXT_LINE: "The return value is passed to `sys.exit`, and so for example"@192..252
+        NEWLINE: "\n"@252..253
+        WHITESPACE: "      "@253..259
+        TEXT_LINE: "a return value of 0 or None results in a successful termination, whereas"@259..331
+        NEWLINE: "\n"@331..332
+        WHITESPACE: "      "@332..338
+        TEXT_LINE: "a return value of 1 results in abnormal termination."@338..390
+        NEWLINE: "\n"@390..391
+        WHITESPACE: "      "@391..397
+        TEXT_LINE: "For more details, see https://docs.python.org/3/library/sys#sys.exit"@397..465
+      }
+    }
+    NEWLINE: "\n"@465..466
+    WHITESPACE: "  "@466..468
+    ENTRY@468..576 {
+      NAME: "argv"@468..472
+      COLON: ":"@472..473
+      WHITESPACE: " "@473..474
+      DESCRIPTION@474..576 {
+        TEXT_LINE: "A non-empty list of the command line arguments including program name,"@474..544
+        NEWLINE: "\n"@544..545
+        WHITESPACE: "      "@545..551
+        TEXT_LINE: "sys.argv is used if None."@551..576
+      }
+    }
+    NEWLINE: "\n"@576..577
+    WHITESPACE: "  "@577..579
+    ENTRY@579..896 {
+      NAME: "flags_parser"@579..591
+      COLON: ":"@591..592
+      WHITESPACE: " "@592..593
+      DESCRIPTION@593..896 {
+        TEXT_LINE: "Callable[[List[str]], Any], the function used to parse flags."@593..654
+        NEWLINE: "\n"@654..655
+        WHITESPACE: "      "@655..661
+        TEXT_LINE: "The return value of this function is passed to `main` untouched."@661..725
+        NEWLINE: "\n"@725..726
+        WHITESPACE: "      "@726..732
+        TEXT_LINE: "It must guarantee FLAGS is parsed after this function is called."@732..796
+        NEWLINE: "\n"@796..797
+        WHITESPACE: "      "@797..803
+        TEXT_LINE: "Should be passed as a keyword-only arg which will become mandatory in a"@803..874
+        NEWLINE: "\n"@874..875
+        WHITESPACE: "      "@875..881
+        TEXT_LINE: "future release."@881..896
+      }
+    }
+  }
+  NEWLINE: "\n"@896..897
+  PARAGRAPH@897..1103 {
+    TEXT_LINE: "- Parses command line flags with the flag module."@897..946
+    NEWLINE: "\n"@946..947
+    TEXT_LINE: "- If there are any errors, prints usage()."@947..989
+    NEWLINE: "\n"@989..990
+    TEXT_LINE: "- Calls main() with the remaining arguments."@990..1034
+    NEWLINE: "\n"@1034..1035
+    TEXT_LINE: "- If main() raises a UsageError, prints usage and the error message."@1035..1103
+  }
+}
+=== EMIT ===
+Begins executing the program.
+
+Args:
+    main: The main function to execute. It takes an single argument "argv",
+        which is a list of command line arguments with parsed flags removed.
+        The return value is passed to `sys.exit`, and so for example
+        a return value of 0 or None results in a successful termination, whereas
+        a return value of 1 results in abnormal termination.
+        For more details, see https://docs.python.org/3/library/sys#sys.exit
+    argv: A non-empty list of the command line arguments including program name,
+        sys.argv is used if None.
+    flags_parser: Callable[[List[str]], Any], the function used to parse flags.
+        The return value of this function is passed to `main` untouched.
+        It must guarantee FLAGS is parsed after this function is called.
+        Should be passed as a keyword-only arg which will become mandatory in a
+        future release.

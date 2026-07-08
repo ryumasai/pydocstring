@@ -1,0 +1,362 @@
+=== CST ===
+DOCUMENT@0..2448 {
+  SUMMARY@0..41 {
+    TEXT_LINE: "Compute the outer product of two vectors."@0..41
+  }
+  NEWLINE: "\n"@41..42
+  BLANK_LINE: "\n"@42..43
+  EXTENDED_SUMMARY@43..264 {
+    TEXT_LINE: "Given two vectors `a` and `b` of length ``M`` and ``N``, respectively,"@43..113
+    NEWLINE: "\n"@113..114
+    TEXT_LINE: "the outer product [1]_ is::"@114..141
+    NEWLINE: "\n"@141..142
+    BLANK_LINE: "\n"@142..143
+    WHITESPACE: "  "@143..145
+    TEXT_LINE: "[[a_0*b_0  a_0*b_1 ... a_0*b_{N-1} ]"@145..181
+    NEWLINE: "\n"@181..182
+    WHITESPACE: "   "@182..185
+    TEXT_LINE: "[a_1*b_0    ."@185..198
+    NEWLINE: "\n"@198..199
+    WHITESPACE: "   "@199..202
+    TEXT_LINE: "[ ...          ."@202..218
+    NEWLINE: "\n"@218..219
+    WHITESPACE: "   "@219..222
+    TEXT_LINE: "[a_{M-1}*b_0            a_{M-1}*b_{N-1} ]]"@222..264
+  }
+  NEWLINE: "\n"@264..265
+  BLANK_LINE: "\n"@265..266
+  SECTION@266..557 {
+    SECTION_HEADER@266..287 {
+      NAME: "Parameters"@266..276
+      NEWLINE: "\n"@276..277
+      UNDERLINE: "----------"@277..287
+    }
+    NEWLINE: "\n"@287..288
+    ENTRY@288..385 {
+      NAME: "a"@288..289
+      WHITESPACE: " "@289..290
+      COLON: ":"@290..291
+      WHITESPACE: " "@291..292
+      TYPE: "(M,) array_like"@292..307
+      NEWLINE: "\n"@307..308
+      WHITESPACE: "    "@308..312
+      DESCRIPTION@312..385 {
+        TEXT_LINE: "First input vector.  Input is flattened if"@312..354
+        NEWLINE: "\n"@354..355
+        WHITESPACE: "    "@355..359
+        TEXT_LINE: "not already 1-dimensional."@359..385
+      }
+    }
+    NEWLINE: "\n"@385..386
+    ENTRY@386..484 {
+      NAME: "b"@386..387
+      WHITESPACE: " "@387..388
+      COLON: ":"@388..389
+      WHITESPACE: " "@389..390
+      TYPE: "(N,) array_like"@390..405
+      NEWLINE: "\n"@405..406
+      WHITESPACE: "    "@406..410
+      DESCRIPTION@410..484 {
+        TEXT_LINE: "Second input vector.  Input is flattened if"@410..453
+        NEWLINE: "\n"@453..454
+        WHITESPACE: "    "@454..458
+        TEXT_LINE: "not already 1-dimensional."@458..484
+      }
+    }
+    NEWLINE: "\n"@484..485
+    ENTRY@485..557 {
+      NAME: "out"@485..488
+      WHITESPACE: " "@488..489
+      COLON: ":"@489..490
+      WHITESPACE: " "@490..491
+      TYPE: "(M, N) ndarray"@491..505
+      COMMA: ","@505..506
+      WHITESPACE: " "@506..507
+      OPTIONAL: "optional"@507..515
+      NEWLINE: "\n"@515..516
+      WHITESPACE: "    "@516..520
+      DESCRIPTION@520..557 {
+        TEXT_LINE: "A location where the result is stored"@520..557
+      }
+    }
+  }
+  NEWLINE: "\n"@557..558
+  BLANK_LINE: "\n"@558..559
+  SECTION@559..627 {
+    SECTION_HEADER@559..574 {
+      NAME: "Returns"@559..566
+      NEWLINE: "\n"@566..567
+      UNDERLINE: "-------"@567..574
+    }
+    NEWLINE: "\n"@574..575
+    ENTRY@575..627 {
+      NAME: "out"@575..578
+      WHITESPACE: " "@578..579
+      COLON: ":"@579..580
+      WHITESPACE: " "@580..581
+      TYPE: "(M, N) ndarray"@581..595
+      NEWLINE: "\n"@595..596
+      WHITESPACE: "    "@596..600
+      DESCRIPTION@600..627 {
+        TEXT_LINE: "``out[i, j] = a[i] * b[j]``"@600..627
+      }
+    }
+  }
+  NEWLINE: "\n"@627..628
+  BLANK_LINE: "\n"@628..629
+  SECTION@629..1115 {
+    SECTION_HEADER@629..646 {
+      NAME: "See also"@629..637
+      NEWLINE: "\n"@637..638
+      UNDERLINE: "--------"@638..646
+    }
+    NEWLINE: "\n"@646..647
+    ENTRY@647..652 {
+      NAME: "inner"@647..652
+    }
+    NEWLINE: "\n"@652..653
+    ENTRY@653..724 {
+      NAME: "einsum"@653..659
+      WHITESPACE: " "@659..660
+      COLON: ":"@660..661
+      WHITESPACE: " "@661..662
+      DESCRIPTION@662..724 {
+        TEXT_LINE: "``einsum('i,j->ij', a.ravel(), b.ravel())`` is the equivalent."@662..724
+      }
+    }
+    NEWLINE: "\n"@724..725
+    ENTRY@725..896 {
+      NAME: "ufunc.outer"@725..736
+      WHITESPACE: " "@736..737
+      COLON: ":"@737..738
+      WHITESPACE: " "@738..739
+      DESCRIPTION@739..896 {
+        TEXT_LINE: "A generalization to dimensions other than 1D and other"@739..793
+        NEWLINE: "\n"@793..794
+        WHITESPACE: "              "@794..808
+        TEXT_LINE: "operations. ``np.multiply.outer(a.ravel(), b.ravel())``"@808..863
+        NEWLINE: "\n"@863..864
+        WHITESPACE: "              "@864..878
+        TEXT_LINE: "is the equivalent."@878..896
+      }
+    }
+    NEWLINE: "\n"@896..897
+    ENTRY@897..1018 {
+      NAME: "linalg.outer"@897..909
+      WHITESPACE: " "@909..910
+      COLON: ":"@910..911
+      WHITESPACE: " "@911..912
+      DESCRIPTION@912..1018 {
+        TEXT_LINE: "An Array API compatible variation of ``np.outer``,"@912..962
+        NEWLINE: "\n"@962..963
+        WHITESPACE: "               "@963..978
+        TEXT_LINE: "which accepts 1-dimensional inputs only."@978..1018
+      }
+    }
+    NEWLINE: "\n"@1018..1019
+    ENTRY@1019..1115 {
+      NAME: "tensordot"@1019..1028
+      WHITESPACE: " "@1028..1029
+      COLON: ":"@1029..1030
+      WHITESPACE: " "@1030..1031
+      DESCRIPTION@1031..1115 {
+        TEXT_LINE: "``np.tensordot(a.ravel(), b.ravel(), axes=((), ()))``"@1031..1084
+        NEWLINE: "\n"@1084..1085
+        WHITESPACE: "            "@1085..1097
+        TEXT_LINE: "is the equivalent."@1097..1115
+      }
+    }
+  }
+  NEWLINE: "\n"@1115..1116
+  BLANK_LINE: "\n"@1116..1117
+  SECTION@1117..1283 {
+    SECTION_HEADER@1117..1138 {
+      NAME: "References"@1117..1127
+      NEWLINE: "\n"@1127..1128
+      UNDERLINE: "----------"@1128..1138
+    }
+    NEWLINE: "\n"@1138..1139
+    CITATION@1139..1283 {
+      DIRECTIVE_MARKER: ".."@1139..1141
+      WHITESPACE: " "@1141..1142
+      OPEN_BRACKET: "["@1142..1143
+      LABEL: "1"@1143..1144
+      CLOSE_BRACKET: "]"@1144..1145
+      WHITESPACE: " "@1145..1146
+      DESCRIPTION@1146..1283 {
+        TEXT_LINE: "G. H. Golub and C. F. Van Loan, *Matrix Computations*, 3rd"@1146..1204
+        NEWLINE: "\n"@1204..1205
+        WHITESPACE: "       "@1205..1212
+        TEXT_LINE: "ed., Baltimore, MD, Johns Hopkins University Press, 1996,"@1212..1269
+        NEWLINE: "\n"@1269..1270
+        WHITESPACE: "       "@1270..1277
+        TEXT_LINE: "pg. 8."@1277..1283
+      }
+    }
+  }
+  NEWLINE: "\n"@1283..1284
+  BLANK_LINE: "\n"@1284..1285
+  SECTION@1285..2448 {
+    SECTION_HEADER@1285..1302 {
+      NAME: "Examples"@1285..1293
+      NEWLINE: "\n"@1293..1294
+      UNDERLINE: "--------"@1294..1302
+    }
+    NEWLINE: "\n"@1302..1303
+    DESCRIPTION@1303..2448 {
+      TEXT_LINE: "Make a (*very* coarse) grid for computing a Mandelbrot set:"@1303..1362
+      NEWLINE: "\n"@1362..1363
+      BLANK_LINE: "\n"@1363..1364
+      TEXT_LINE: ">>> import numpy as np"@1364..1386
+      NEWLINE: "\n"@1386..1387
+      TEXT_LINE: ">>> rl = np.outer(np.ones((5,)), np.linspace(-2, 2, 5))"@1387..1442
+      NEWLINE: "\n"@1442..1443
+      TEXT_LINE: ">>> rl"@1443..1449
+      NEWLINE: "\n"@1449..1450
+      TEXT_LINE: "array([[-2., -1.,  0.,  1.,  2.],"@1450..1483
+      NEWLINE: "\n"@1483..1484
+      WHITESPACE: "       "@1484..1491
+      TEXT_LINE: "[-2., -1.,  0.,  1.,  2.],"@1491..1517
+      NEWLINE: "\n"@1517..1518
+      WHITESPACE: "       "@1518..1525
+      TEXT_LINE: "[-2., -1.,  0.,  1.,  2.],"@1525..1551
+      NEWLINE: "\n"@1551..1552
+      WHITESPACE: "       "@1552..1559
+      TEXT_LINE: "[-2., -1.,  0.,  1.,  2.],"@1559..1585
+      NEWLINE: "\n"@1585..1586
+      WHITESPACE: "       "@1586..1593
+      TEXT_LINE: "[-2., -1.,  0.,  1.,  2.]])"@1593..1620
+      NEWLINE: "\n"@1620..1621
+      TEXT_LINE: ">>> im = np.outer(1j*np.linspace(2, -2, 5), np.ones((5,)))"@1621..1679
+      NEWLINE: "\n"@1679..1680
+      TEXT_LINE: ">>> im"@1680..1686
+      NEWLINE: "\n"@1686..1687
+      TEXT_LINE: "array([[0.+2.j, 0.+2.j, 0.+2.j, 0.+2.j, 0.+2.j],"@1687..1735
+      NEWLINE: "\n"@1735..1736
+      WHITESPACE: "       "@1736..1743
+      TEXT_LINE: "[0.+1.j, 0.+1.j, 0.+1.j, 0.+1.j, 0.+1.j],"@1743..1784
+      NEWLINE: "\n"@1784..1785
+      WHITESPACE: "       "@1785..1792
+      TEXT_LINE: "[0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],"@1792..1833
+      NEWLINE: "\n"@1833..1834
+      WHITESPACE: "       "@1834..1841
+      TEXT_LINE: "[0.-1.j, 0.-1.j, 0.-1.j, 0.-1.j, 0.-1.j],"@1841..1882
+      NEWLINE: "\n"@1882..1883
+      WHITESPACE: "       "@1883..1890
+      TEXT_LINE: "[0.-2.j, 0.-2.j, 0.-2.j, 0.-2.j, 0.-2.j]])"@1890..1932
+      NEWLINE: "\n"@1932..1933
+      TEXT_LINE: ">>> grid = rl + im"@1933..1951
+      NEWLINE: "\n"@1951..1952
+      TEXT_LINE: ">>> grid"@1952..1960
+      NEWLINE: "\n"@1960..1961
+      TEXT_LINE: "array([[-2.+2.j, -1.+2.j,  0.+2.j,  1.+2.j,  2.+2.j],"@1961..2014
+      NEWLINE: "\n"@2014..2015
+      WHITESPACE: "       "@2015..2022
+      TEXT_LINE: "[-2.+1.j, -1.+1.j,  0.+1.j,  1.+1.j,  2.+1.j],"@2022..2068
+      NEWLINE: "\n"@2068..2069
+      WHITESPACE: "       "@2069..2076
+      TEXT_LINE: "[-2.+0.j, -1.+0.j,  0.+0.j,  1.+0.j,  2.+0.j],"@2076..2122
+      NEWLINE: "\n"@2122..2123
+      WHITESPACE: "       "@2123..2130
+      TEXT_LINE: "[-2.-1.j, -1.-1.j,  0.-1.j,  1.-1.j,  2.-1.j],"@2130..2176
+      NEWLINE: "\n"@2176..2177
+      WHITESPACE: "       "@2177..2184
+      TEXT_LINE: "[-2.-2.j, -1.-2.j,  0.-2.j,  1.-2.j,  2.-2.j]])"@2184..2231
+      NEWLINE: "\n"@2231..2232
+      BLANK_LINE: "\n"@2232..2233
+      TEXT_LINE: "An example using a \"vector\" of letters:"@2233..2272
+      NEWLINE: "\n"@2272..2273
+      BLANK_LINE: "\n"@2273..2274
+      TEXT_LINE: ">>> x = np.array(['a', 'b', 'c'], dtype=np.object_)"@2274..2325
+      NEWLINE: "\n"@2325..2326
+      TEXT_LINE: ">>> np.outer(x, [1, 2, 3])"@2326..2352
+      NEWLINE: "\n"@2352..2353
+      TEXT_LINE: "array([['a', 'aa', 'aaa'],"@2353..2379
+      NEWLINE: "\n"@2379..2380
+      WHITESPACE: "       "@2380..2387
+      TEXT_LINE: "['b', 'bb', 'bbb'],"@2387..2406
+      NEWLINE: "\n"@2406..2407
+      WHITESPACE: "       "@2407..2414
+      TEXT_LINE: "['c', 'cc', 'ccc']], dtype=object)"@2414..2448
+    }
+  }
+}
+=== EMIT ===
+Compute the outer product of two vectors.
+
+Given two vectors `a` and `b` of length ``M`` and ``N``, respectively,
+the outer product [1]_ is::
+
+  [[a_0*b_0  a_0*b_1 ... a_0*b_{N-1} ]
+   [a_1*b_0    .
+   [ ...          .
+   [a_{M-1}*b_0            a_{M-1}*b_{N-1} ]]
+
+Parameters
+----------
+a : (M,) array_like
+    First input vector.  Input is flattened if
+    not already 1-dimensional.
+b : (N,) array_like
+    Second input vector.  Input is flattened if
+    not already 1-dimensional.
+out : (M, N) ndarray, optional
+    A location where the result is stored
+
+Returns
+-------
+out : (M, N) ndarray
+    ``out[i, j] = a[i] * b[j]``
+
+See Also
+--------
+inner
+einsum : ``einsum('i,j->ij', a.ravel(), b.ravel())`` is the equivalent.
+ufunc.outer : A generalization to dimensions other than 1D and other
+operations. ``np.multiply.outer(a.ravel(), b.ravel())``
+is the equivalent.
+linalg.outer : An Array API compatible variation of ``np.outer``,
+which accepts 1-dimensional inputs only.
+tensordot : ``np.tensordot(a.ravel(), b.ravel(), axes=((), ()))``
+is the equivalent.
+
+References
+----------
+.. [1] G. H. Golub and C. F. Van Loan, *Matrix Computations*, 3rd
+    ed., Baltimore, MD, Johns Hopkins University Press, 1996,
+    pg. 8.
+
+Examples
+--------
+Make a (*very* coarse) grid for computing a Mandelbrot set:
+
+>>> import numpy as np
+>>> rl = np.outer(np.ones((5,)), np.linspace(-2, 2, 5))
+>>> rl
+array([[-2., -1.,  0.,  1.,  2.],
+       [-2., -1.,  0.,  1.,  2.],
+       [-2., -1.,  0.,  1.,  2.],
+       [-2., -1.,  0.,  1.,  2.],
+       [-2., -1.,  0.,  1.,  2.]])
+>>> im = np.outer(1j*np.linspace(2, -2, 5), np.ones((5,)))
+>>> im
+array([[0.+2.j, 0.+2.j, 0.+2.j, 0.+2.j, 0.+2.j],
+       [0.+1.j, 0.+1.j, 0.+1.j, 0.+1.j, 0.+1.j],
+       [0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j, 0.+0.j],
+       [0.-1.j, 0.-1.j, 0.-1.j, 0.-1.j, 0.-1.j],
+       [0.-2.j, 0.-2.j, 0.-2.j, 0.-2.j, 0.-2.j]])
+>>> grid = rl + im
+>>> grid
+array([[-2.+2.j, -1.+2.j,  0.+2.j,  1.+2.j,  2.+2.j],
+       [-2.+1.j, -1.+1.j,  0.+1.j,  1.+1.j,  2.+1.j],
+       [-2.+0.j, -1.+0.j,  0.+0.j,  1.+0.j,  2.+0.j],
+       [-2.-1.j, -1.-1.j,  0.-1.j,  1.-1.j,  2.-1.j],
+       [-2.-2.j, -1.-2.j,  0.-2.j,  1.-2.j,  2.-2.j]])
+
+An example using a "vector" of letters:
+
+>>> x = np.array(['a', 'b', 'c'], dtype=np.object_)
+>>> np.outer(x, [1, 2, 3])
+array([['a', 'aa', 'aaa'],
+       ['b', 'bb', 'bbb'],
+       ['c', 'cc', 'ccc']], dtype=object)

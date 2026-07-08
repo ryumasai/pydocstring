@@ -1,0 +1,240 @@
+=== CST ===
+DOCUMENT@0..1915 {
+  SUMMARY@0..50 {
+    TEXT_LINE: "Perform a median filter on an N-dimensional array."@0..50
+  }
+  NEWLINE: "\n"@50..51
+  BLANK_LINE: "\n"@51..52
+  EXTENDED_SUMMARY@52..187 {
+    TEXT_LINE: "Apply a median filter to the input array using a local window-size"@52..118
+    NEWLINE: "\n"@118..119
+    TEXT_LINE: "given by `kernel_size`. The array will automatically be zero-padded."@119..187
+  }
+  NEWLINE: "\n"@187..188
+  BLANK_LINE: "\n"@188..189
+  SECTION@189..573 {
+    SECTION_HEADER@189..210 {
+      NAME: "Parameters"@189..199
+      NEWLINE: "\n"@199..200
+      UNDERLINE: "----------"@200..210
+    }
+    NEWLINE: "\n"@210..211
+    ENTRY@211..264 {
+      NAME: "volume"@211..217
+      WHITESPACE: " "@217..218
+      COLON: ":"@218..219
+      WHITESPACE: " "@219..220
+      TYPE: "array_like"@220..230
+      NEWLINE: "\n"@230..231
+      WHITESPACE: "    "@231..235
+      DESCRIPTION@235..264 {
+        TEXT_LINE: "An N-dimensional input array."@235..264
+      }
+    }
+    NEWLINE: "\n"@264..265
+    ENTRY@265..573 {
+      NAME: "kernel_size"@265..276
+      WHITESPACE: " "@276..277
+      COLON: ":"@277..278
+      WHITESPACE: " "@278..279
+      TYPE: "array_like"@279..289
+      COMMA: ","@289..290
+      WHITESPACE: " "@290..291
+      OPTIONAL: "optional"@291..299
+      NEWLINE: "\n"@299..300
+      WHITESPACE: "    "@300..304
+      DESCRIPTION@304..573 {
+        TEXT_LINE: "A scalar or an N-length list giving the size of the median filter"@304..369
+        NEWLINE: "\n"@369..370
+        WHITESPACE: "    "@370..374
+        TEXT_LINE: "window in each dimension.  Elements of `kernel_size` should be odd."@374..441
+        NEWLINE: "\n"@441..442
+        WHITESPACE: "    "@442..446
+        TEXT_LINE: "If `kernel_size` is a scalar, then this scalar is used as the size in"@446..515
+        NEWLINE: "\n"@515..516
+        WHITESPACE: "    "@516..520
+        TEXT_LINE: "each dimension. Default size is 3 for each dimension."@520..573
+      }
+    }
+  }
+  NEWLINE: "\n"@573..574
+  BLANK_LINE: "\n"@574..575
+  SECTION@575..683 {
+    SECTION_HEADER@575..590 {
+      NAME: "Returns"@575..582
+      NEWLINE: "\n"@582..583
+      UNDERLINE: "-------"@583..590
+    }
+    NEWLINE: "\n"@590..591
+    ENTRY@591..683 {
+      NAME: "out"@591..594
+      WHITESPACE: " "@594..595
+      COLON: ":"@595..596
+      WHITESPACE: " "@596..597
+      TYPE: "ndarray"@597..604
+      NEWLINE: "\n"@604..605
+      WHITESPACE: "    "@605..609
+      DESCRIPTION@609..683 {
+        TEXT_LINE: "An array the same size as input containing the median filtered"@609..671
+        NEWLINE: "\n"@671..672
+        WHITESPACE: "    "@672..676
+        TEXT_LINE: "result."@676..683
+      }
+    }
+  }
+  NEWLINE: "\n"@683..684
+  BLANK_LINE: "\n"@684..685
+  SECTION@685..774 {
+    SECTION_HEADER@685..696 {
+      NAME: "Warns"@685..690
+      NEWLINE: "\n"@690..691
+      UNDERLINE: "-----"@691..696
+    }
+    NEWLINE: "\n"@696..697
+    ENTRY@697..774 {
+      TYPE: "UserWarning"@697..708
+      NEWLINE: "\n"@708..709
+      WHITESPACE: "    "@709..713
+      DESCRIPTION@713..774 {
+        TEXT_LINE: "If array size is smaller than kernel size along any dimension"@713..774
+      }
+    }
+  }
+  NEWLINE: "\n"@774..775
+  BLANK_LINE: "\n"@775..776
+  SECTION@776..875 {
+    SECTION_HEADER@776..793 {
+      NAME: "See Also"@776..784
+      NEWLINE: "\n"@784..785
+      UNDERLINE: "--------"@785..793
+    }
+    NEWLINE: "\n"@793..794
+    BLANK_LINE: "\n"@794..795
+    ENTRY@795..837 {
+      NAME: ":func:`scipy.ndimage.median_filter`"@795..830
+      NEWLINE: "\n"@830..831
+      WHITESPACE: "    "@831..835
+      DESCRIPTION@835..837 {
+        TEXT_LINE: ".."@835..837
+      }
+    }
+    NEWLINE: "\n"@837..838
+    ENTRY@838..875 {
+      NAME: ":func:`scipy.signal.medfilt2d`"@838..868
+      NEWLINE: "\n"@868..869
+      WHITESPACE: "    "@869..873
+      DESCRIPTION@873..875 {
+        TEXT_LINE: ".."@873..875
+      }
+    }
+  }
+  NEWLINE: "\n"@875..876
+  BLANK_LINE: "\n"@876..877
+  SECTION@877..1915 {
+    SECTION_HEADER@877..888 {
+      NAME: "Notes"@877..882
+      NEWLINE: "\n"@882..883
+      UNDERLINE: "-----"@883..888
+    }
+    NEWLINE: "\n"@888..889
+    BLANK_LINE: "\n"@889..890
+    DESCRIPTION@890..1915 {
+      TEXT_LINE: "**Array API Standard Support**"@890..920
+      NEWLINE: "\n"@920..921
+      BLANK_LINE: "\n"@921..922
+      TEXT_LINE: "`medfilt` has experimental support for Python Array API Standard compatible"@922..997
+      NEWLINE: "\n"@997..998
+      TEXT_LINE: "backends in addition to NumPy. Please consider testing these features"@998..1067
+      NEWLINE: "\n"@1067..1068
+      TEXT_LINE: "by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing"@1068..1138
+      NEWLINE: "\n"@1138..1139
+      TEXT_LINE: "CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following"@1139..1207
+      NEWLINE: "\n"@1207..1208
+      TEXT_LINE: "combinations of backend and device (or other capability) are supported."@1208..1279
+      NEWLINE: "\n"@1279..1280
+      BLANK_LINE: "\n"@1280..1281
+      TEXT_LINE: "====================  ====================  ===================="@1281..1345
+      NEWLINE: "\n"@1345..1346
+      TEXT_LINE: "Library               CPU                   GPU"@1346..1393
+      NEWLINE: "\n"@1393..1394
+      TEXT_LINE: "====================  ====================  ===================="@1394..1458
+      NEWLINE: "\n"@1458..1459
+      TEXT_LINE: "NumPy                 ✅                     n/a"@1459..1508
+      WHITESPACE: "                 "@1508..1525
+      NEWLINE: "\n"@1525..1526
+      TEXT_LINE: "CuPy                  n/a                   ✅"@1526..1573
+      WHITESPACE: "                   "@1573..1592
+      NEWLINE: "\n"@1592..1593
+      TEXT_LINE: "PyTorch               ✅                     ⛔"@1593..1642
+      WHITESPACE: "                   "@1642..1661
+      NEWLINE: "\n"@1661..1662
+      TEXT_LINE: "JAX                   ⚠\u{fe0f} no JIT             ⛔"@1662..1713
+      WHITESPACE: "                   "@1713..1732
+      NEWLINE: "\n"@1732..1733
+      TEXT_LINE: "Dask                  ⚠\u{fe0f} computes graph     n/a"@1733..1784
+      WHITESPACE: "                 "@1784..1801
+      NEWLINE: "\n"@1801..1802
+      TEXT_LINE: "====================  ====================  ===================="@1802..1866
+      NEWLINE: "\n"@1866..1867
+      BLANK_LINE: "\n"@1867..1868
+      BLANK_LINE: "\n"@1868..1869
+      BLANK_LINE: "\n"@1869..1870
+      TEXT_LINE: "See :ref:`dev-arrayapi` for more information."@1870..1915
+    }
+  }
+}
+=== EMIT ===
+Perform a median filter on an N-dimensional array.
+
+Apply a median filter to the input array using a local window-size
+given by `kernel_size`. The array will automatically be zero-padded.
+
+Parameters
+----------
+volume : array_like
+    An N-dimensional input array.
+kernel_size : array_like, optional
+    A scalar or an N-length list giving the size of the median filter
+    window in each dimension.  Elements of `kernel_size` should be odd.
+    If `kernel_size` is a scalar, then this scalar is used as the size in
+    each dimension. Default size is 3 for each dimension.
+
+Returns
+-------
+out : ndarray
+    An array the same size as input containing the median filtered
+    result.
+
+Warns
+-----
+UserWarning
+    If array size is smaller than kernel size along any dimension
+
+See Also
+--------
+:func:`scipy.ndimage.median_filter` : ..
+:func:`scipy.signal.medfilt2d` : ..
+
+Notes
+-----
+**Array API Standard Support**
+
+`medfilt` has experimental support for Python Array API Standard compatible
+backends in addition to NumPy. Please consider testing these features
+by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing
+CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following
+combinations of backend and device (or other capability) are supported.
+
+====================  ====================  ====================
+Library               CPU                   GPU
+====================  ====================  ====================
+NumPy                 ✅                     n/a                 
+CuPy                  n/a                   ✅                   
+PyTorch               ✅                     ⛔                   
+JAX                   ⚠️ no JIT             ⛔                   
+Dask                  ⚠️ computes graph     n/a                 
+====================  ====================  ====================
+
+
+
+See :ref:`dev-arrayapi` for more information.

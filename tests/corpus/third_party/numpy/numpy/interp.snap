@@ -1,0 +1,383 @@
+=== CST ===
+DOCUMENT@0..2766 {
+  SUMMARY@0..80 {
+    TEXT_LINE: "One-dimensional linear interpolation for monotonically increasing sample points."@0..80
+  }
+  NEWLINE: "\n"@80..81
+  BLANK_LINE: "\n"@81..82
+  EXTENDED_SUMMARY@82..216 {
+    TEXT_LINE: "Returns the one-dimensional piecewise linear interpolant to a function"@82..152
+    NEWLINE: "\n"@152..153
+    TEXT_LINE: "with given discrete data points (`xp`, `fp`), evaluated at `x`."@153..216
+  }
+  NEWLINE: "\n"@216..217
+  BLANK_LINE: "\n"@217..218
+  SECTION@218..1111 {
+    SECTION_HEADER@218..239 {
+      NAME: "Parameters"@218..228
+      NEWLINE: "\n"@228..229
+      UNDERLINE: "----------"@229..239
+    }
+    NEWLINE: "\n"@239..240
+    ENTRY@240..322 {
+      NAME: "x"@240..241
+      WHITESPACE: " "@241..242
+      COLON: ":"@242..243
+      WHITESPACE: " "@243..244
+      TYPE: "array_like"@244..254
+      NEWLINE: "\n"@254..255
+      WHITESPACE: "    "@255..259
+      DESCRIPTION@259..322 {
+        TEXT_LINE: "The x-coordinates at which to evaluate the interpolated values."@259..322
+      }
+    }
+    NEWLINE: "\n"@322..323
+    BLANK_LINE: "\n"@323..324
+    ENTRY@324..565 {
+      NAME: "xp"@324..326
+      WHITESPACE: " "@326..327
+      COLON: ":"@327..328
+      WHITESPACE: " "@328..329
+      TYPE: "1-D sequence of floats"@329..351
+      NEWLINE: "\n"@351..352
+      WHITESPACE: "    "@352..356
+      DESCRIPTION@356..565 {
+        TEXT_LINE: "The x-coordinates of the data points, must be increasing if argument"@356..424
+        NEWLINE: "\n"@424..425
+        WHITESPACE: "    "@425..429
+        TEXT_LINE: "`period` is not specified. Otherwise, `xp` is internally sorted after"@429..498
+        NEWLINE: "\n"@498..499
+        WHITESPACE: "    "@499..503
+        TEXT_LINE: "normalizing the periodic boundaries with ``xp = xp % period``."@503..565
+      }
+    }
+    NEWLINE: "\n"@565..566
+    BLANK_LINE: "\n"@566..567
+    ENTRY@567..667 {
+      NAME: "fp"@567..569
+      WHITESPACE: " "@569..570
+      COLON: ":"@570..571
+      WHITESPACE: " "@571..572
+      TYPE: "1-D sequence of float or complex"@572..604
+      NEWLINE: "\n"@604..605
+      WHITESPACE: "    "@605..609
+      DESCRIPTION@609..667 {
+        TEXT_LINE: "The y-coordinates of the data points, same length as `xp`."@609..667
+      }
+    }
+    NEWLINE: "\n"@667..668
+    BLANK_LINE: "\n"@668..669
+    ENTRY@669..778 {
+      NAME: "left"@669..673
+      WHITESPACE: " "@673..674
+      COLON: ":"@674..675
+      WHITESPACE: " "@675..676
+      TYPE: "optional float or complex corresponding to fp"@676..721
+      NEWLINE: "\n"@721..722
+      WHITESPACE: "    "@722..726
+      DESCRIPTION@726..778 {
+        TEXT_LINE: "Value to return for `x < xp[0]`, default is `fp[0]`."@726..778
+      }
+    }
+    NEWLINE: "\n"@778..779
+    BLANK_LINE: "\n"@779..780
+    ENTRY@780..892 {
+      NAME: "right"@780..785
+      WHITESPACE: " "@785..786
+      COLON: ":"@786..787
+      WHITESPACE: " "@787..788
+      TYPE: "optional float or complex corresponding to fp"@788..833
+      NEWLINE: "\n"@833..834
+      WHITESPACE: "    "@834..838
+      DESCRIPTION@838..892 {
+        TEXT_LINE: "Value to return for `x > xp[-1]`, default is `fp[-1]`."@838..892
+      }
+    }
+    NEWLINE: "\n"@892..893
+    BLANK_LINE: "\n"@893..894
+    ENTRY@894..1111 {
+      NAME: "period"@894..900
+      WHITESPACE: " "@900..901
+      COLON: ":"@901..902
+      WHITESPACE: " "@902..903
+      TYPE: "None or float"@903..916
+      COMMA: ","@916..917
+      WHITESPACE: " "@917..918
+      OPTIONAL: "optional"@918..926
+      NEWLINE: "\n"@926..927
+      WHITESPACE: "    "@927..931
+      DESCRIPTION@931..1111 {
+        TEXT_LINE: "A period for the x-coordinates. This parameter allows the proper"@931..995
+        NEWLINE: "\n"@995..996
+        WHITESPACE: "    "@996..1000
+        TEXT_LINE: "interpolation of angular x-coordinates. Parameters `left` and `right`"@1000..1069
+        NEWLINE: "\n"@1069..1070
+        WHITESPACE: "    "@1070..1074
+        TEXT_LINE: "are ignored if `period` is specified."@1074..1111
+      }
+    }
+  }
+  NEWLINE: "\n"@1111..1112
+  BLANK_LINE: "\n"@1112..1113
+  SECTION@1113..1230 {
+    SECTION_HEADER@1113..1128 {
+      NAME: "Returns"@1113..1120
+      NEWLINE: "\n"@1120..1121
+      UNDERLINE: "-------"@1121..1128
+    }
+    NEWLINE: "\n"@1128..1129
+    ENTRY@1129..1230 {
+      NAME: "y"@1129..1130
+      WHITESPACE: " "@1130..1131
+      COLON: ":"@1131..1132
+      WHITESPACE: " "@1132..1133
+      TYPE: "float or complex (corresponding to fp) or ndarray"@1133..1182
+      NEWLINE: "\n"@1182..1183
+      WHITESPACE: "    "@1183..1187
+      DESCRIPTION@1187..1230 {
+        TEXT_LINE: "The interpolated values, same shape as `x`."@1187..1230
+      }
+    }
+  }
+  NEWLINE: "\n"@1230..1231
+  BLANK_LINE: "\n"@1231..1232
+  SECTION@1232..1362 {
+    SECTION_HEADER@1232..1245 {
+      NAME: "Raises"@1232..1238
+      NEWLINE: "\n"@1238..1239
+      UNDERLINE: "------"@1239..1245
+    }
+    NEWLINE: "\n"@1245..1246
+    ENTRY@1246..1362 {
+      TYPE: "ValueError"@1246..1256
+      NEWLINE: "\n"@1256..1257
+      WHITESPACE: "    "@1257..1261
+      DESCRIPTION@1261..1362 {
+        TEXT_LINE: "If `xp` and `fp` have different length"@1261..1299
+        NEWLINE: "\n"@1299..1300
+        WHITESPACE: "    "@1300..1304
+        TEXT_LINE: "If `xp` or `fp` are not 1-D sequences"@1304..1341
+        NEWLINE: "\n"@1341..1342
+        WHITESPACE: "    "@1342..1346
+        TEXT_LINE: "If `period == 0`"@1346..1362
+      }
+    }
+  }
+  NEWLINE: "\n"@1362..1363
+  BLANK_LINE: "\n"@1363..1364
+  SECTION@1364..1399 {
+    SECTION_HEADER@1364..1381 {
+      NAME: "See Also"@1364..1372
+      NEWLINE: "\n"@1372..1373
+      UNDERLINE: "--------"@1373..1381
+    }
+    NEWLINE: "\n"@1381..1382
+    ENTRY@1382..1399 {
+      NAME: "scipy.interpolate"@1382..1399
+    }
+  }
+  NEWLINE: "\n"@1399..1400
+  BLANK_LINE: "\n"@1400..1401
+  SECTION@1401..1753 {
+    SECTION_HEADER@1401..1418 {
+      NAME: "Warnings"@1401..1409
+      NEWLINE: "\n"@1409..1410
+      UNDERLINE: "--------"@1410..1418
+    }
+    NEWLINE: "\n"@1418..1419
+    DESCRIPTION@1419..1753 {
+      TEXT_LINE: "The x-coordinate sequence is expected to be increasing, but this is not"@1419..1490
+      NEWLINE: "\n"@1490..1491
+      TEXT_LINE: "explicitly enforced.  However, if the sequence `xp` is non-increasing,"@1491..1561
+      NEWLINE: "\n"@1561..1562
+      TEXT_LINE: "interpolation results are meaningless."@1562..1600
+      NEWLINE: "\n"@1600..1601
+      BLANK_LINE: "\n"@1601..1602
+      TEXT_LINE: "Note that, since NaN is unsortable, `xp` also cannot contain NaNs."@1602..1668
+      NEWLINE: "\n"@1668..1669
+      BLANK_LINE: "\n"@1669..1670
+      TEXT_LINE: "A simple check for `xp` being strictly increasing is::"@1670..1724
+      NEWLINE: "\n"@1724..1725
+      BLANK_LINE: "\n"@1725..1726
+      WHITESPACE: "    "@1726..1730
+      TEXT_LINE: "np.all(np.diff(xp) > 0)"@1730..1753
+    }
+  }
+  NEWLINE: "\n"@1753..1754
+  BLANK_LINE: "\n"@1754..1755
+  SECTION@1755..2766 {
+    SECTION_HEADER@1755..1772 {
+      NAME: "Examples"@1755..1763
+      NEWLINE: "\n"@1763..1764
+      UNDERLINE: "--------"@1764..1772
+    }
+    NEWLINE: "\n"@1772..1773
+    DESCRIPTION@1773..2766 {
+      TEXT_LINE: ">>> import numpy as np"@1773..1795
+      NEWLINE: "\n"@1795..1796
+      TEXT_LINE: ">>> xp = [1, 2, 3]"@1796..1814
+      NEWLINE: "\n"@1814..1815
+      TEXT_LINE: ">>> fp = [3, 2, 0]"@1815..1833
+      NEWLINE: "\n"@1833..1834
+      TEXT_LINE: ">>> np.interp(2.5, xp, fp)"@1834..1860
+      NEWLINE: "\n"@1860..1861
+      TEXT_LINE: "1.0"@1861..1864
+      NEWLINE: "\n"@1864..1865
+      TEXT_LINE: ">>> np.interp([0, 1, 1.5, 2.72, 3.14], xp, fp)"@1865..1911
+      NEWLINE: "\n"@1911..1912
+      TEXT_LINE: "array([3.  , 3.  , 2.5 , 0.56, 0.  ])"@1912..1949
+      NEWLINE: "\n"@1949..1950
+      TEXT_LINE: ">>> UNDEF = -99.0"@1950..1967
+      NEWLINE: "\n"@1967..1968
+      TEXT_LINE: ">>> np.interp(3.14, xp, fp, right=UNDEF)"@1968..2008
+      NEWLINE: "\n"@2008..2009
+      TEXT_LINE: "-99.0"@2009..2014
+      NEWLINE: "\n"@2014..2015
+      BLANK_LINE: "\n"@2015..2016
+      TEXT_LINE: "Plot an interpolant to the sine function:"@2016..2057
+      NEWLINE: "\n"@2057..2058
+      BLANK_LINE: "\n"@2058..2059
+      TEXT_LINE: ">>> x = np.linspace(0, 2*np.pi, 10)"@2059..2094
+      NEWLINE: "\n"@2094..2095
+      TEXT_LINE: ">>> y = np.sin(x)"@2095..2112
+      NEWLINE: "\n"@2112..2113
+      TEXT_LINE: ">>> xvals = np.linspace(0, 2*np.pi, 50)"@2113..2152
+      NEWLINE: "\n"@2152..2153
+      TEXT_LINE: ">>> yinterp = np.interp(xvals, x, y)"@2153..2189
+      NEWLINE: "\n"@2189..2190
+      TEXT_LINE: ">>> import matplotlib.pyplot as plt"@2190..2225
+      NEWLINE: "\n"@2225..2226
+      TEXT_LINE: ">>> plt.plot(x, y, 'o')"@2226..2249
+      NEWLINE: "\n"@2249..2250
+      TEXT_LINE: "[<matplotlib.lines.Line2D object at 0x...>]"@2250..2293
+      NEWLINE: "\n"@2293..2294
+      TEXT_LINE: ">>> plt.plot(xvals, yinterp, '-x')"@2294..2328
+      NEWLINE: "\n"@2328..2329
+      TEXT_LINE: "[<matplotlib.lines.Line2D object at 0x...>]"@2329..2372
+      NEWLINE: "\n"@2372..2373
+      TEXT_LINE: ">>> plt.show()"@2373..2387
+      NEWLINE: "\n"@2387..2388
+      BLANK_LINE: "\n"@2388..2389
+      TEXT_LINE: "Interpolation with periodic x-coordinates:"@2389..2431
+      NEWLINE: "\n"@2431..2432
+      BLANK_LINE: "\n"@2432..2433
+      TEXT_LINE: ">>> x = [-180, -170, -185, 185, -10, -5, 0, 365]"@2433..2481
+      NEWLINE: "\n"@2481..2482
+      TEXT_LINE: ">>> xp = [190, -190, 350, -350]"@2482..2513
+      NEWLINE: "\n"@2513..2514
+      TEXT_LINE: ">>> fp = [5, 10, 3, 4]"@2514..2536
+      NEWLINE: "\n"@2536..2537
+      TEXT_LINE: ">>> np.interp(x, xp, fp, period=360)"@2537..2573
+      NEWLINE: "\n"@2573..2574
+      TEXT_LINE: "array([7.5 , 5.  , 8.75, 6.25, 3.  , 3.25, 3.5 , 3.75])"@2574..2629
+      NEWLINE: "\n"@2629..2630
+      BLANK_LINE: "\n"@2630..2631
+      TEXT_LINE: "Complex interpolation:"@2631..2653
+      NEWLINE: "\n"@2653..2654
+      BLANK_LINE: "\n"@2654..2655
+      TEXT_LINE: ">>> x = [1.5, 4.0]"@2655..2673
+      NEWLINE: "\n"@2673..2674
+      TEXT_LINE: ">>> xp = [2,3,5]"@2674..2690
+      NEWLINE: "\n"@2690..2691
+      TEXT_LINE: ">>> fp = [1.0j, 0, 2+3j]"@2691..2715
+      NEWLINE: "\n"@2715..2716
+      TEXT_LINE: ">>> np.interp(x, xp, fp)"@2716..2740
+      NEWLINE: "\n"@2740..2741
+      TEXT_LINE: "array([0.+1.j , 1.+1.5j])"@2741..2766
+    }
+  }
+}
+=== EMIT ===
+One-dimensional linear interpolation for monotonically increasing sample points.
+
+Returns the one-dimensional piecewise linear interpolant to a function
+with given discrete data points (`xp`, `fp`), evaluated at `x`.
+
+Parameters
+----------
+x : array_like
+    The x-coordinates at which to evaluate the interpolated values.
+xp : 1-D sequence of floats
+    The x-coordinates of the data points, must be increasing if argument
+    `period` is not specified. Otherwise, `xp` is internally sorted after
+    normalizing the periodic boundaries with ``xp = xp % period``.
+fp : 1-D sequence of float or complex
+    The y-coordinates of the data points, same length as `xp`.
+left : optional float or complex corresponding to fp
+    Value to return for `x < xp[0]`, default is `fp[0]`.
+right : optional float or complex corresponding to fp
+    Value to return for `x > xp[-1]`, default is `fp[-1]`.
+period : None or float, optional
+    A period for the x-coordinates. This parameter allows the proper
+    interpolation of angular x-coordinates. Parameters `left` and `right`
+    are ignored if `period` is specified.
+
+Returns
+-------
+y : float or complex (corresponding to fp) or ndarray
+    The interpolated values, same shape as `x`.
+
+Raises
+------
+ValueError
+    If `xp` and `fp` have different length
+    If `xp` or `fp` are not 1-D sequences
+    If `period == 0`
+
+See Also
+--------
+scipy.interpolate
+
+Warnings
+--------
+The x-coordinate sequence is expected to be increasing, but this is not
+explicitly enforced.  However, if the sequence `xp` is non-increasing,
+interpolation results are meaningless.
+
+Note that, since NaN is unsortable, `xp` also cannot contain NaNs.
+
+A simple check for `xp` being strictly increasing is::
+
+    np.all(np.diff(xp) > 0)
+
+Examples
+--------
+>>> import numpy as np
+>>> xp = [1, 2, 3]
+>>> fp = [3, 2, 0]
+>>> np.interp(2.5, xp, fp)
+1.0
+>>> np.interp([0, 1, 1.5, 2.72, 3.14], xp, fp)
+array([3.  , 3.  , 2.5 , 0.56, 0.  ])
+>>> UNDEF = -99.0
+>>> np.interp(3.14, xp, fp, right=UNDEF)
+-99.0
+
+Plot an interpolant to the sine function:
+
+>>> x = np.linspace(0, 2*np.pi, 10)
+>>> y = np.sin(x)
+>>> xvals = np.linspace(0, 2*np.pi, 50)
+>>> yinterp = np.interp(xvals, x, y)
+>>> import matplotlib.pyplot as plt
+>>> plt.plot(x, y, 'o')
+[<matplotlib.lines.Line2D object at 0x...>]
+>>> plt.plot(xvals, yinterp, '-x')
+[<matplotlib.lines.Line2D object at 0x...>]
+>>> plt.show()
+
+Interpolation with periodic x-coordinates:
+
+>>> x = [-180, -170, -185, 185, -10, -5, 0, 365]
+>>> xp = [190, -190, 350, -350]
+>>> fp = [5, 10, 3, 4]
+>>> np.interp(x, xp, fp, period=360)
+array([7.5 , 5.  , 8.75, 6.25, 3.  , 3.25, 3.5 , 3.75])
+
+Complex interpolation:
+
+>>> x = [1.5, 4.0]
+>>> xp = [2,3,5]
+>>> fp = [1.0j, 0, 2+3j]
+>>> np.interp(x, xp, fp)
+array([0.+1.j , 1.+1.5j])

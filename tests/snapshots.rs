@@ -18,10 +18,9 @@ mod common;
 
 use std::fs;
 
-use common::collect_inputs;
+use common::corpus_cases;
 use common::corpus_name;
 use common::diff;
-use common::style_dirs;
 use pydocstring::syntax::Parsed;
 
 /// Renders the snapshot text for one input: CST shape, then (for styles with
@@ -67,27 +66,24 @@ fn corpus_snapshots() {
     let mut failures = Vec::new();
     let mut checked = 0;
 
-    for style_dir in style_dirs() {
-        let style = style_dir.file_name().unwrap().to_str().unwrap().to_owned();
-        for txt_path in collect_inputs(&style_dir) {
-            checked += 1;
-            let input = fs::read_to_string(&txt_path).unwrap();
-            let actual = render_snapshot(&style, &input);
-            let snap_path = txt_path.with_extension("snap");
-            let expected = fs::read_to_string(&snap_path).ok();
+    for (style, txt_path) in corpus_cases() {
+        checked += 1;
+        let input = fs::read_to_string(&txt_path).unwrap();
+        let actual = render_snapshot(&style, &input);
+        let snap_path = txt_path.with_extension("snap");
+        let expected = fs::read_to_string(&snap_path).ok();
 
-            if expected.as_deref() == Some(actual.as_str()) {
-                continue;
-            }
-            if update {
-                fs::write(&snap_path, &actual).unwrap();
-                eprintln!("blessed {}", snap_path.display());
-            } else {
-                let name = corpus_name(&txt_path);
-                match expected {
-                    None => failures.push(format!("{name}: snapshot file missing")),
-                    Some(expected) => failures.push(format!("{name}:\n{}", diff(&expected, &actual))),
-                }
+        if expected.as_deref() == Some(actual.as_str()) {
+            continue;
+        }
+        if update {
+            fs::write(&snap_path, &actual).unwrap();
+            eprintln!("blessed {}", snap_path.display());
+        } else {
+            let name = corpus_name(&txt_path);
+            match expected {
+                None => failures.push(format!("{name}: snapshot file missing")),
+                Some(expected) => failures.push(format!("{name}:\n{}", diff(&expected, &actual))),
             }
         }
     }

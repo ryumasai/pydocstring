@@ -1,0 +1,200 @@
+=== CST ===
+DOCUMENT@0..1090 {
+  SUMMARY@0..33 {
+    TEXT_LINE: "Read `.loom`-formatted hdf5 file."@0..33
+  }
+  NEWLINE: "\n"@33..34
+  BLANK_LINE: "\n"@34..35
+  EXTENDED_SUMMARY@35..162 {
+    TEXT_LINE: "This reads the whole file into memory."@35..73
+    NEWLINE: "\n"@73..74
+    BLANK_LINE: "\n"@74..75
+    TEXT_LINE: "Beware that you have to explicitly state when you want to read the file as"@75..149
+    NEWLINE: "\n"@149..150
+    TEXT_LINE: "sparse data."@150..162
+  }
+  NEWLINE: "\n"@162..163
+  BLANK_LINE: "\n"@163..164
+  SECTION@164..807 {
+    SECTION_HEADER@164..185 {
+      NAME: "Parameters"@164..174
+      NEWLINE: "\n"@174..175
+      UNDERLINE: "----------"@175..185
+    }
+    NEWLINE: "\n"@185..186
+    ENTRY@186..212 {
+      NAME: "filename"@186..194
+      NEWLINE: "\n"@194..195
+      WHITESPACE: "    "@195..199
+      DESCRIPTION@199..212 {
+        TEXT_LINE: "The filename."@199..212
+      }
+    }
+    NEWLINE: "\n"@212..213
+    ENTRY@213..266 {
+      NAME: "sparse"@213..219
+      NEWLINE: "\n"@219..220
+      WHITESPACE: "    "@220..224
+      DESCRIPTION@224..266 {
+        TEXT_LINE: "Whether to read the data matrix as sparse."@224..266
+      }
+    }
+    NEWLINE: "\n"@266..267
+    ENTRY@267..377 {
+      NAME: "cleanup"@267..274
+      NEWLINE: "\n"@274..275
+      WHITESPACE: "    "@275..279
+      DESCRIPTION@279..377 {
+        TEXT_LINE: "Whether to collapse all obs/var fields that only store"@279..333
+        NEWLINE: "\n"@333..334
+        WHITESPACE: "    "@334..338
+        TEXT_LINE: "one unique value into `.uns['loom-.']`."@338..377
+      }
+    }
+    NEWLINE: "\n"@377..378
+    ENTRY@378..469 {
+      NAME: "X_name"@378..384
+      NEWLINE: "\n"@384..385
+      WHITESPACE: "    "@385..389
+      DESCRIPTION@389..469 {
+        TEXT_LINE: "Loompy key with which the data matrix :attr:`~anndata.AnnData.X` is initialized."@389..469
+      }
+    }
+    NEWLINE: "\n"@469..470
+    ENTRY@470..539 {
+      NAME: "obs_names"@470..479
+      NEWLINE: "\n"@479..480
+      WHITESPACE: "    "@480..484
+      DESCRIPTION@484..539 {
+        TEXT_LINE: "Loompy key where the observation/cell names are stored."@484..539
+      }
+    }
+    NEWLINE: "\n"@539..540
+    ENTRY@540..620 {
+      NAME: "obsm_mapping"@540..552
+      NEWLINE: "\n"@552..553
+      WHITESPACE: "    "@553..557
+      DESCRIPTION@557..620 {
+        TEXT_LINE: "Loompy keys which will be constructed into observation matrices"@557..620
+      }
+    }
+    NEWLINE: "\n"@620..621
+    ENTRY@621..687 {
+      NAME: "var_names"@621..630
+      NEWLINE: "\n"@630..631
+      WHITESPACE: "    "@631..635
+      DESCRIPTION@635..687 {
+        TEXT_LINE: "Loompy key where the variable/gene names are stored."@635..687
+      }
+    }
+    NEWLINE: "\n"@687..688
+    ENTRY@688..765 {
+      NAME: "varm_mapping"@688..700
+      NEWLINE: "\n"@700..701
+      WHITESPACE: "    "@701..705
+      DESCRIPTION@705..765 {
+        TEXT_LINE: "Loompy keys which will be constructed into variable matrices"@705..765
+      }
+    }
+    NEWLINE: "\n"@765..766
+    ENTRY@766..807 {
+      NAME: "**kwargs"@766..774
+      COLON: ":"@774..775
+      TYPE: <missing>@775..775
+      NEWLINE: "\n"@775..776
+      WHITESPACE: "    "@776..780
+      DESCRIPTION@780..807 {
+        TEXT_LINE: "Arguments to loompy.connect"@780..807
+      }
+    }
+  }
+  NEWLINE: "\n"@807..808
+  BLANK_LINE: "\n"@808..809
+  SECTION@809..1090 {
+    SECTION_HEADER@809..824 {
+      NAME: "Example"@809..816
+      NEWLINE: "\n"@816..817
+      UNDERLINE: "-------"@817..824
+    }
+    NEWLINE: "\n"@824..825
+    BLANK_LINE: "\n"@825..826
+    DESCRIPTION@826..1090 {
+      TEXT_LINE: ".. code:: python"@826..842
+      NEWLINE: "\n"@842..843
+      BLANK_LINE: "\n"@843..844
+      WHITESPACE: "    "@844..848
+      TEXT_LINE: "pbmc = anndata.io.read_loom("@848..876
+      NEWLINE: "\n"@876..877
+      WHITESPACE: "        "@877..885
+      TEXT_LINE: "\"pbmc.loom\","@885..897
+      NEWLINE: "\n"@897..898
+      WHITESPACE: "        "@898..906
+      TEXT_LINE: "sparse=True,"@906..918
+      NEWLINE: "\n"@918..919
+      WHITESPACE: "        "@919..927
+      TEXT_LINE: "X_name=\"lognorm\","@927..944
+      NEWLINE: "\n"@944..945
+      WHITESPACE: "        "@945..953
+      TEXT_LINE: "obs_names=\"cell_names\","@953..976
+      NEWLINE: "\n"@976..977
+      WHITESPACE: "        "@977..985
+      TEXT_LINE: "var_names=\"gene_names\","@985..1008
+      NEWLINE: "\n"@1008..1009
+      WHITESPACE: "        "@1009..1017
+      TEXT_LINE: "obsm_mapping={"@1017..1031
+      NEWLINE: "\n"@1031..1032
+      WHITESPACE: "            "@1032..1044
+      TEXT_LINE: "\"X_umap\": [\"umap_1\", \"umap_2\"]"@1044..1074
+      NEWLINE: "\n"@1074..1075
+      WHITESPACE: "        "@1075..1083
+      TEXT_LINE: "}"@1083..1084
+      NEWLINE: "\n"@1084..1085
+      WHITESPACE: "    "@1085..1089
+      TEXT_LINE: ")"@1089..1090
+    }
+  }
+}
+=== EMIT ===
+Read `.loom`-formatted hdf5 file.
+
+This reads the whole file into memory.
+
+Beware that you have to explicitly state when you want to read the file as
+sparse data.
+
+Parameters
+----------
+filename
+    The filename.
+sparse
+    Whether to read the data matrix as sparse.
+cleanup
+    Whether to collapse all obs/var fields that only store
+    one unique value into `.uns['loom-.']`.
+X_name
+    Loompy key with which the data matrix :attr:`~anndata.AnnData.X` is initialized.
+obs_names
+    Loompy key where the observation/cell names are stored.
+obsm_mapping
+    Loompy keys which will be constructed into observation matrices
+var_names
+    Loompy key where the variable/gene names are stored.
+varm_mapping
+    Loompy keys which will be constructed into variable matrices
+**kwargs
+    Arguments to loompy.connect
+
+Examples
+--------
+.. code:: python
+
+    pbmc = anndata.io.read_loom(
+        "pbmc.loom",
+        sparse=True,
+        X_name="lognorm",
+        obs_names="cell_names",
+        var_names="gene_names",
+        obsm_mapping={
+            "X_umap": ["umap_1", "umap_2"]
+        }
+    )

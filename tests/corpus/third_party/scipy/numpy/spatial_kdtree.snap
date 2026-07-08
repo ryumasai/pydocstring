@@ -1,0 +1,460 @@
+=== CST ===
+DOCUMENT@0..3927 {
+  SUMMARY@0..42 {
+    TEXT_LINE: "kd-tree for quick nearest-neighbor lookup."@0..42
+  }
+  NEWLINE: "\n"@42..43
+  BLANK_LINE: "\n"@43..44
+  EXTENDED_SUMMARY@44..180 {
+    TEXT_LINE: "This class provides an index into a set of k-dimensional points"@44..107
+    NEWLINE: "\n"@107..108
+    TEXT_LINE: "which can be used to rapidly look up the nearest neighbors of any"@108..173
+    NEWLINE: "\n"@173..174
+    TEXT_LINE: "point."@174..180
+  }
+  NEWLINE: "\n"@180..181
+  BLANK_LINE: "\n"@181..182
+  SECTION@182..1899 {
+    SECTION_HEADER@182..203 {
+      NAME: "Parameters"@182..192
+      NEWLINE: "\n"@192..193
+      UNDERLINE: "----------"@193..203
+    }
+    NEWLINE: "\n"@203..204
+    ENTRY@204..741 {
+      NAME: "data"@204..208
+      WHITESPACE: " "@208..209
+      COLON: ":"@209..210
+      WHITESPACE: " "@210..211
+      TYPE: "array_like, shape (n,m)"@211..234
+      NEWLINE: "\n"@234..235
+      WHITESPACE: "    "@235..239
+      DESCRIPTION@239..741 {
+        TEXT_LINE: "The n data points of dimension m to be indexed. This array is"@239..300
+        NEWLINE: "\n"@300..301
+        WHITESPACE: "    "@301..305
+        TEXT_LINE: "not copied unless this is necessary to produce a contiguous"@305..364
+        NEWLINE: "\n"@364..365
+        WHITESPACE: "    "@365..369
+        TEXT_LINE: "array of doubles. The data are also copied if the kd-tree is built"@369..435
+        NEWLINE: "\n"@435..436
+        WHITESPACE: "    "@436..440
+        TEXT_LINE: "with copy_data=True. Concurrently modifying the data while constructing"@440..511
+        NEWLINE: "\n"@511..512
+        WHITESPACE: "    "@512..516
+        TEXT_LINE: "a KDTree is not well-defined and may lead to crashes or data"@516..576
+        NEWLINE: "\n"@576..577
+        WHITESPACE: "    "@577..581
+        TEXT_LINE: "corruption. If no copy happens, modifying the data *after* creating"@581..648
+        NEWLINE: "\n"@648..649
+        WHITESPACE: "    "@649..653
+        TEXT_LINE: "the KDTree may lead to data corruption or incorrect answers when"@653..717
+        NEWLINE: "\n"@717..718
+        WHITESPACE: "    "@718..722
+        TEXT_LINE: "searching the tree."@722..741
+      }
+    }
+    NEWLINE: "\n"@741..742
+    ENTRY@742..871 {
+      NAME: "leafsize"@742..750
+      WHITESPACE: " "@750..751
+      COLON: ":"@751..752
+      WHITESPACE: " "@752..753
+      TYPE: "positive int"@753..765
+      COMMA: ","@765..766
+      WHITESPACE: " "@766..767
+      OPTIONAL: "optional"@767..775
+      NEWLINE: "\n"@775..776
+      WHITESPACE: "    "@776..780
+      DESCRIPTION@780..871 {
+        TEXT_LINE: "The number of points at which the algorithm switches over to"@780..840
+        NEWLINE: "\n"@840..841
+        WHITESPACE: "    "@841..845
+        TEXT_LINE: "brute-force.  Default: 10."@845..871
+      }
+    }
+    NEWLINE: "\n"@871..872
+    ENTRY@872..1166 {
+      NAME: "compact_nodes"@872..885
+      WHITESPACE: " "@885..886
+      COLON: ":"@886..887
+      WHITESPACE: " "@887..888
+      TYPE: "bool"@888..892
+      COMMA: ","@892..893
+      WHITESPACE: " "@893..894
+      OPTIONAL: "optional"@894..902
+      NEWLINE: "\n"@902..903
+      WHITESPACE: "    "@903..907
+      DESCRIPTION@907..1166 {
+        TEXT_LINE: "If True, the kd-tree is built to shrink the hyperrectangles to"@907..969
+        NEWLINE: "\n"@969..970
+        WHITESPACE: "    "@970..974
+        TEXT_LINE: "the actual data range. This usually gives a more compact tree that"@974..1040
+        NEWLINE: "\n"@1040..1041
+        WHITESPACE: "    "@1041..1045
+        TEXT_LINE: "is robust against degenerated input data and gives faster queries"@1045..1110
+        NEWLINE: "\n"@1110..1111
+        WHITESPACE: "    "@1111..1115
+        TEXT_LINE: "at the expense of longer build time. Default: True."@1115..1166
+      }
+    }
+    NEWLINE: "\n"@1166..1167
+    ENTRY@1167..1299 {
+      NAME: "copy_data"@1167..1176
+      WHITESPACE: " "@1176..1177
+      COLON: ":"@1177..1178
+      WHITESPACE: " "@1178..1179
+      TYPE: "bool"@1179..1183
+      COMMA: ","@1183..1184
+      WHITESPACE: " "@1184..1185
+      OPTIONAL: "optional"@1185..1193
+      NEWLINE: "\n"@1193..1194
+      WHITESPACE: "    "@1194..1198
+      DESCRIPTION@1198..1299 {
+        TEXT_LINE: "If True the data is always copied to protect the kd-tree against"@1198..1262
+        NEWLINE: "\n"@1262..1263
+        WHITESPACE: "    "@1263..1267
+        TEXT_LINE: "data corruption. Default: False."@1267..1299
+      }
+    }
+    NEWLINE: "\n"@1299..1300
+    ENTRY@1300..1534 {
+      NAME: "balanced_tree"@1300..1313
+      WHITESPACE: " "@1313..1314
+      COLON: ":"@1314..1315
+      WHITESPACE: " "@1315..1316
+      TYPE: "bool"@1316..1320
+      COMMA: ","@1320..1321
+      WHITESPACE: " "@1321..1322
+      OPTIONAL: "optional"@1322..1330
+      NEWLINE: "\n"@1330..1331
+      WHITESPACE: "    "@1331..1335
+      DESCRIPTION@1335..1534 {
+        TEXT_LINE: "If True, the median is used to split the hyperrectangles instead of"@1335..1402
+        NEWLINE: "\n"@1402..1403
+        WHITESPACE: "    "@1403..1407
+        TEXT_LINE: "the midpoint. This usually gives a more compact tree and"@1407..1463
+        NEWLINE: "\n"@1463..1464
+        WHITESPACE: "    "@1464..1468
+        TEXT_LINE: "faster queries at the expense of longer build time. Default: True."@1468..1534
+      }
+    }
+    NEWLINE: "\n"@1534..1535
+    ENTRY@1535..1899 {
+      NAME: "boxsize"@1535..1542
+      WHITESPACE: " "@1542..1543
+      COLON: ":"@1543..1544
+      WHITESPACE: " "@1544..1545
+      TYPE: "array_like or scalar"@1545..1565
+      COMMA: ","@1565..1566
+      WHITESPACE: " "@1566..1567
+      OPTIONAL: "optional"@1567..1575
+      NEWLINE: "\n"@1575..1576
+      WHITESPACE: "    "@1576..1580
+      DESCRIPTION@1580..1899 {
+        TEXT_LINE: "Apply an m-d toroidal topology to the KDTree. The topology is generated"@1580..1651
+        NEWLINE: "\n"@1651..1652
+        WHITESPACE: "    "@1652..1656
+        TEXT_LINE: "by :math:`x_i + n_i L_i` where :math:`n_i` are integers and :math:`L_i`"@1656..1727
+        NEWLINE: "\n"@1727..1728
+        WHITESPACE: "    "@1728..1732
+        TEXT_LINE: "is the boxsize along i-th dimension. The input data shall be wrapped"@1732..1800
+        NEWLINE: "\n"@1800..1801
+        WHITESPACE: "    "@1801..1805
+        TEXT_LINE: "into :math:`[0, L_i)`. A ValueError is raised if any of the data is"@1805..1872
+        NEWLINE: "\n"@1872..1873
+        WHITESPACE: "    "@1873..1877
+        TEXT_LINE: "outside of this bound."@1877..1899
+      }
+    }
+  }
+  NEWLINE: "\n"@1899..1900
+  BLANK_LINE: "\n"@1900..1901
+  SECTION@1901..2771 {
+    SECTION_HEADER@1901..1922 {
+      NAME: "Attributes"@1901..1911
+      NEWLINE: "\n"@1911..1912
+      UNDERLINE: "----------"@1912..1922
+    }
+    NEWLINE: "\n"@1922..1923
+    ENTRY@1923..2180 {
+      NAME: "data"@1923..1927
+      WHITESPACE: " "@1927..1928
+      COLON: ":"@1928..1929
+      WHITESPACE: " "@1929..1930
+      TYPE: "ndarray, shape (n,m)"@1930..1950
+      NEWLINE: "\n"@1950..1951
+      WHITESPACE: "    "@1951..1955
+      DESCRIPTION@1955..2180 {
+        TEXT_LINE: "The n data points of dimension m to be indexed. This array is"@1955..2016
+        NEWLINE: "\n"@2016..2017
+        WHITESPACE: "    "@2017..2021
+        TEXT_LINE: "not copied unless this is necessary to produce a contiguous"@2021..2080
+        NEWLINE: "\n"@2080..2081
+        WHITESPACE: "    "@2081..2085
+        TEXT_LINE: "array of doubles. The data are also copied if the kd-tree is built"@2085..2151
+        NEWLINE: "\n"@2151..2152
+        WHITESPACE: "    "@2152..2156
+        TEXT_LINE: "with ``copy_data=True``."@2156..2180
+      }
+    }
+    NEWLINE: "\n"@2180..2181
+    ENTRY@2181..2286 {
+      NAME: "leafsize"@2181..2189
+      WHITESPACE: " "@2189..2190
+      COLON: ":"@2190..2191
+      WHITESPACE: " "@2191..2192
+      TYPE: "positive int"@2192..2204
+      NEWLINE: "\n"@2204..2205
+      WHITESPACE: "    "@2205..2209
+      DESCRIPTION@2209..2286 {
+        TEXT_LINE: "The number of points at which the algorithm switches over to"@2209..2269
+        NEWLINE: "\n"@2269..2270
+        WHITESPACE: "    "@2270..2274
+        TEXT_LINE: "brute-force."@2274..2286
+      }
+    }
+    NEWLINE: "\n"@2286..2287
+    ENTRY@2287..2336 {
+      NAME: "m"@2287..2288
+      WHITESPACE: " "@2288..2289
+      COLON: ":"@2289..2290
+      WHITESPACE: " "@2290..2291
+      TYPE: "int"@2291..2294
+      NEWLINE: "\n"@2294..2295
+      WHITESPACE: "    "@2295..2299
+      DESCRIPTION@2299..2336 {
+        TEXT_LINE: "The dimension of a single data-point."@2299..2336
+      }
+    }
+    NEWLINE: "\n"@2336..2337
+    ENTRY@2337..2375 {
+      NAME: "n"@2337..2338
+      WHITESPACE: " "@2338..2339
+      COLON: ":"@2339..2340
+      WHITESPACE: " "@2340..2341
+      TYPE: "int"@2341..2344
+      NEWLINE: "\n"@2344..2345
+      WHITESPACE: "    "@2345..2349
+      DESCRIPTION@2349..2375 {
+        TEXT_LINE: "The number of data points."@2349..2375
+      }
+    }
+    NEWLINE: "\n"@2375..2376
+    ENTRY@2376..2465 {
+      NAME: "maxes"@2376..2381
+      WHITESPACE: " "@2381..2382
+      COLON: ":"@2382..2383
+      WHITESPACE: " "@2383..2384
+      TYPE: "ndarray, shape (m,)"@2384..2403
+      NEWLINE: "\n"@2403..2404
+      WHITESPACE: "    "@2404..2408
+      DESCRIPTION@2408..2465 {
+        TEXT_LINE: "The maximum value in each dimension of the n data points."@2408..2465
+      }
+    }
+    NEWLINE: "\n"@2465..2466
+    ENTRY@2466..2554 {
+      NAME: "mins"@2466..2470
+      WHITESPACE: " "@2470..2471
+      COLON: ":"@2471..2472
+      WHITESPACE: " "@2472..2473
+      TYPE: "ndarray, shape (m,)"@2473..2492
+      NEWLINE: "\n"@2492..2493
+      WHITESPACE: "    "@2493..2497
+      DESCRIPTION@2497..2554 {
+        TEXT_LINE: "The minimum value in each dimension of the n data points."@2497..2554
+      }
+    }
+    NEWLINE: "\n"@2554..2555
+    ENTRY@2555..2602 {
+      NAME: "size"@2555..2559
+      WHITESPACE: " "@2559..2560
+      COLON: ":"@2560..2561
+      WHITESPACE: " "@2561..2562
+      TYPE: "int"@2562..2565
+      NEWLINE: "\n"@2565..2566
+      WHITESPACE: "    "@2566..2570
+      DESCRIPTION@2570..2602 {
+        TEXT_LINE: "The number of nodes in the tree."@2570..2602
+      }
+    }
+    NEWLINE: "\n"@2602..2603
+    ENTRY@2603..2771 {
+      NAME: "boxsize"@2603..2610
+      WHITESPACE: " "@2610..2611
+      COLON: ":"@2611..2612
+      WHITESPACE: " "@2612..2613
+      TYPE: "None or ndarray, shape (m.)"@2613..2640
+      NEWLINE: "\n"@2640..2641
+      WHITESPACE: "    "@2641..2645
+      DESCRIPTION@2645..2771 {
+        TEXT_LINE: "If boxsize is passed to the initializer, this will be set to the bounds"@2645..2716
+        NEWLINE: "\n"@2716..2717
+        WHITESPACE: "    "@2717..2721
+        TEXT_LINE: "of the periodic box. None if no boxsize is passed."@2721..2771
+      }
+    }
+  }
+  NEWLINE: "\n"@2771..2772
+  BLANK_LINE: "\n"@2772..2773
+  SECTION@2773..3711 {
+    SECTION_HEADER@2773..2784 {
+      NAME: "Notes"@2773..2778
+      NEWLINE: "\n"@2778..2779
+      UNDERLINE: "-----"@2779..2784
+    }
+    NEWLINE: "\n"@2784..2785
+    DESCRIPTION@2785..3711 {
+      TEXT_LINE: "The algorithm used is described in [1]_."@2785..2825
+      NEWLINE: "\n"@2825..2826
+      TEXT_LINE: "The general idea is that the kd-tree is a binary tree, each of whose"@2826..2894
+      NEWLINE: "\n"@2894..2895
+      TEXT_LINE: "nodes represents an axis-aligned hyperrectangle. Each node specifies"@2895..2963
+      NEWLINE: "\n"@2963..2964
+      TEXT_LINE: "an axis and splits the set of points based on whether their coordinate"@2964..3034
+      NEWLINE: "\n"@3034..3035
+      TEXT_LINE: "along that axis is greater than or less than a particular value."@3035..3099
+      NEWLINE: "\n"@3099..3100
+      BLANK_LINE: "\n"@3100..3101
+      TEXT_LINE: "During construction, the axis and splitting point are chosen by the"@3101..3168
+      NEWLINE: "\n"@3168..3169
+      TEXT_LINE: "\"sliding midpoint\" rule, which ensures that the cells do not all"@3169..3233
+      NEWLINE: "\n"@3233..3234
+      TEXT_LINE: "become long and thin."@3234..3255
+      NEWLINE: "\n"@3255..3256
+      BLANK_LINE: "\n"@3256..3257
+      TEXT_LINE: "The tree can be queried for the r closest neighbors of any given point"@3257..3327
+      NEWLINE: "\n"@3327..3328
+      TEXT_LINE: "(optionally returning only those within some maximum distance of the"@3328..3396
+      NEWLINE: "\n"@3396..3397
+      TEXT_LINE: "point). It can also be queried, with a substantial gain in efficiency,"@3397..3467
+      NEWLINE: "\n"@3467..3468
+      TEXT_LINE: "for the r approximate closest neighbors."@3468..3508
+      NEWLINE: "\n"@3508..3509
+      BLANK_LINE: "\n"@3509..3510
+      TEXT_LINE: "For large dimensions (20 is already large) do not expect this to run"@3510..3578
+      NEWLINE: "\n"@3578..3579
+      TEXT_LINE: "significantly faster than brute force. High-dimensional nearest-neighbor"@3579..3651
+      NEWLINE: "\n"@3651..3652
+      TEXT_LINE: "queries are a substantial open problem in computer science."@3652..3711
+    }
+  }
+  NEWLINE: "\n"@3711..3712
+  BLANK_LINE: "\n"@3712..3713
+  SECTION@3713..3927 {
+    SECTION_HEADER@3713..3734 {
+      NAME: "References"@3713..3723
+      NEWLINE: "\n"@3723..3724
+      UNDERLINE: "----------"@3724..3734
+    }
+    NEWLINE: "\n"@3734..3735
+    CITATION@3735..3927 {
+      DIRECTIVE_MARKER: ".."@3735..3737
+      WHITESPACE: " "@3737..3738
+      OPEN_BRACKET: "["@3738..3739
+      LABEL: "1"@3739..3740
+      CLOSE_BRACKET: "]"@3740..3741
+      WHITESPACE: " "@3741..3742
+      DESCRIPTION@3742..3927 {
+        TEXT_LINE: "S. Maneewongvatana and D.E. Mount, \"Analysis of approximate"@3742..3801
+        NEWLINE: "\n"@3801..3802
+        WHITESPACE: "       "@3802..3809
+        TEXT_LINE: "nearest neighbor searching with clustered point sets,\""@3809..3863
+        NEWLINE: "\n"@3863..3864
+        WHITESPACE: "       "@3864..3871
+        TEXT_LINE: "Arxiv e-print, 1999, https://arxiv.org/pdf/cs.CG/9901013"@3871..3927
+      }
+    }
+  }
+}
+=== EMIT ===
+kd-tree for quick nearest-neighbor lookup.
+
+This class provides an index into a set of k-dimensional points
+which can be used to rapidly look up the nearest neighbors of any
+point.
+
+Parameters
+----------
+data : array_like, shape (n,m)
+    The n data points of dimension m to be indexed. This array is
+    not copied unless this is necessary to produce a contiguous
+    array of doubles. The data are also copied if the kd-tree is built
+    with copy_data=True. Concurrently modifying the data while constructing
+    a KDTree is not well-defined and may lead to crashes or data
+    corruption. If no copy happens, modifying the data *after* creating
+    the KDTree may lead to data corruption or incorrect answers when
+    searching the tree.
+leafsize : positive int, optional
+    The number of points at which the algorithm switches over to
+    brute-force.  Default: 10.
+compact_nodes : bool, optional
+    If True, the kd-tree is built to shrink the hyperrectangles to
+    the actual data range. This usually gives a more compact tree that
+    is robust against degenerated input data and gives faster queries
+    at the expense of longer build time. Default: True.
+copy_data : bool, optional
+    If True the data is always copied to protect the kd-tree against
+    data corruption. Default: False.
+balanced_tree : bool, optional
+    If True, the median is used to split the hyperrectangles instead of
+    the midpoint. This usually gives a more compact tree and
+    faster queries at the expense of longer build time. Default: True.
+boxsize : array_like or scalar, optional
+    Apply an m-d toroidal topology to the KDTree. The topology is generated
+    by :math:`x_i + n_i L_i` where :math:`n_i` are integers and :math:`L_i`
+    is the boxsize along i-th dimension. The input data shall be wrapped
+    into :math:`[0, L_i)`. A ValueError is raised if any of the data is
+    outside of this bound.
+
+Attributes
+----------
+data : ndarray, shape (n,m)
+    The n data points of dimension m to be indexed. This array is
+    not copied unless this is necessary to produce a contiguous
+    array of doubles. The data are also copied if the kd-tree is built
+    with ``copy_data=True``.
+leafsize : positive int
+    The number of points at which the algorithm switches over to
+    brute-force.
+m : int
+    The dimension of a single data-point.
+n : int
+    The number of data points.
+maxes : ndarray, shape (m,)
+    The maximum value in each dimension of the n data points.
+mins : ndarray, shape (m,)
+    The minimum value in each dimension of the n data points.
+size : int
+    The number of nodes in the tree.
+boxsize : None or ndarray, shape (m.)
+    If boxsize is passed to the initializer, this will be set to the bounds
+    of the periodic box. None if no boxsize is passed.
+
+Notes
+-----
+The algorithm used is described in [1]_.
+The general idea is that the kd-tree is a binary tree, each of whose
+nodes represents an axis-aligned hyperrectangle. Each node specifies
+an axis and splits the set of points based on whether their coordinate
+along that axis is greater than or less than a particular value.
+
+During construction, the axis and splitting point are chosen by the
+"sliding midpoint" rule, which ensures that the cells do not all
+become long and thin.
+
+The tree can be queried for the r closest neighbors of any given point
+(optionally returning only those within some maximum distance of the
+point). It can also be queried, with a substantial gain in efficiency,
+for the r approximate closest neighbors.
+
+For large dimensions (20 is already large) do not expect this to run
+significantly faster than brute force. High-dimensional nearest-neighbor
+queries are a substantial open problem in computer science.
+
+References
+----------
+.. [1] S. Maneewongvatana and D.E. Mount, "Analysis of approximate
+    nearest neighbor searching with clustered point sets,"
+    Arxiv e-print, 1999, https://arxiv.org/pdf/cs.CG/9901013

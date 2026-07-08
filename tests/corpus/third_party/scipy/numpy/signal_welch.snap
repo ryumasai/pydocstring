@@ -1,0 +1,710 @@
+=== CST ===
+DOCUMENT@0..6042 {
+  SUMMARY@0..53 {
+    TEXT_LINE: "Estimate power spectral density using Welch's method."@0..53
+  }
+  NEWLINE: "\n"@53..54
+  BLANK_LINE: "\n"@54..55
+  EXTENDED_SUMMARY@55..255 {
+    TEXT_LINE: "Welch's method [1]_ computes an estimate of the power spectral"@55..117
+    NEWLINE: "\n"@117..118
+    TEXT_LINE: "density by dividing the data into overlapping segments, computing a"@118..185
+    NEWLINE: "\n"@185..186
+    TEXT_LINE: "modified periodogram for each segment and averaging the"@186..241
+    NEWLINE: "\n"@241..242
+    TEXT_LINE: "periodograms."@242..255
+  }
+  NEWLINE: "\n"@255..256
+  BLANK_LINE: "\n"@256..257
+  SECTION@257..2464 {
+    SECTION_HEADER@257..278 {
+      NAME: "Parameters"@257..267
+      NEWLINE: "\n"@267..268
+      UNDERLINE: "----------"@268..278
+    }
+    NEWLINE: "\n"@278..279
+    ENTRY@279..331 {
+      NAME: "x"@279..280
+      WHITESPACE: " "@280..281
+      COLON: ":"@281..282
+      WHITESPACE: " "@282..283
+      TYPE: "array_like"@283..293
+      NEWLINE: "\n"@293..294
+      WHITESPACE: "    "@294..298
+      DESCRIPTION@298..331 {
+        TEXT_LINE: "Time series of measurement values"@298..331
+      }
+    }
+    NEWLINE: "\n"@331..332
+    ENTRY@332..416 {
+      NAME: "fs"@332..334
+      WHITESPACE: " "@334..335
+      COLON: ":"@335..336
+      WHITESPACE: " "@336..337
+      TYPE: "float"@337..342
+      COMMA: ","@342..343
+      WHITESPACE: " "@343..344
+      OPTIONAL: "optional"@344..352
+      NEWLINE: "\n"@352..353
+      WHITESPACE: "    "@353..357
+      DESCRIPTION@357..416 {
+        TEXT_LINE: "Sampling frequency of the `x` time series. Defaults to 1.0."@357..416
+      }
+    }
+    NEWLINE: "\n"@416..417
+    ENTRY@417..831 {
+      NAME: "window"@417..423
+      WHITESPACE: " "@423..424
+      COLON: ":"@424..425
+      WHITESPACE: " "@425..426
+      TYPE: "str or tuple or array_like"@426..452
+      COMMA: ","@452..453
+      WHITESPACE: " "@453..454
+      OPTIONAL: "optional"@454..462
+      NEWLINE: "\n"@462..463
+      WHITESPACE: "    "@463..467
+      DESCRIPTION@467..831 {
+        TEXT_LINE: "Desired window to use. If `window` is a string or tuple, it is"@467..529
+        NEWLINE: "\n"@529..530
+        WHITESPACE: "    "@530..534
+        TEXT_LINE: "passed to `get_window` to generate the window values, which are"@534..597
+        NEWLINE: "\n"@597..598
+        WHITESPACE: "    "@598..602
+        TEXT_LINE: "DFT-even by default. See `get_window` for a list of windows and"@602..665
+        NEWLINE: "\n"@665..666
+        WHITESPACE: "    "@666..670
+        TEXT_LINE: "required parameters. If `window` is array_like it will be used"@670..732
+        NEWLINE: "\n"@732..733
+        WHITESPACE: "    "@733..737
+        TEXT_LINE: "directly as the window and its length must be nperseg. Defaults"@737..800
+        NEWLINE: "\n"@800..801
+        WHITESPACE: "    "@801..805
+        TEXT_LINE: "to a periodic Hann window."@805..831
+      }
+    }
+    NEWLINE: "\n"@831..832
+    ENTRY@832..1020 {
+      NAME: "nperseg"@832..839
+      WHITESPACE: " "@839..840
+      COLON: ":"@840..841
+      WHITESPACE: " "@841..842
+      TYPE: "int"@842..845
+      COMMA: ","@845..846
+      WHITESPACE: " "@846..847
+      OPTIONAL: "optional"@847..855
+      NEWLINE: "\n"@855..856
+      WHITESPACE: "    "@856..860
+      DESCRIPTION@860..1020 {
+        TEXT_LINE: "Length of each segment. Defaults to None, but if window is str or"@860..925
+        NEWLINE: "\n"@925..926
+        WHITESPACE: "    "@926..930
+        TEXT_LINE: "tuple, is set to 256, and if window is array_like, is set to the"@930..994
+        NEWLINE: "\n"@994..995
+        WHITESPACE: "    "@995..999
+        TEXT_LINE: "length of the window."@999..1020
+      }
+    }
+    NEWLINE: "\n"@1020..1021
+    ENTRY@1021..1159 {
+      NAME: "noverlap"@1021..1029
+      WHITESPACE: " "@1029..1030
+      COLON: ":"@1030..1031
+      WHITESPACE: " "@1031..1032
+      TYPE: "int"@1032..1035
+      COMMA: ","@1035..1036
+      WHITESPACE: " "@1036..1037
+      OPTIONAL: "optional"@1037..1045
+      NEWLINE: "\n"@1045..1046
+      WHITESPACE: "    "@1046..1050
+      DESCRIPTION@1050..1159 {
+        TEXT_LINE: "Number of points to overlap between segments. If `None`,"@1050..1106
+        NEWLINE: "\n"@1106..1107
+        WHITESPACE: "    "@1107..1111
+        TEXT_LINE: "``noverlap = nperseg // 2``. Defaults to `None`."@1111..1159
+      }
+    }
+    NEWLINE: "\n"@1159..1160
+    ENTRY@1160..1305 {
+      NAME: "nfft"@1160..1164
+      WHITESPACE: " "@1164..1165
+      COLON: ":"@1165..1166
+      WHITESPACE: " "@1166..1167
+      TYPE: "int"@1167..1170
+      COMMA: ","@1170..1171
+      WHITESPACE: " "@1171..1172
+      OPTIONAL: "optional"@1172..1180
+      NEWLINE: "\n"@1180..1181
+      WHITESPACE: "    "@1181..1185
+      DESCRIPTION@1185..1305 {
+        TEXT_LINE: "Length of the FFT used, if a zero padded FFT is desired. If"@1185..1244
+        NEWLINE: "\n"@1244..1245
+        WHITESPACE: "    "@1245..1249
+        TEXT_LINE: "`None`, the FFT length is `nperseg`. Defaults to `None`."@1249..1305
+      }
+    }
+    NEWLINE: "\n"@1305..1306
+    ENTRY@1306..1645 {
+      NAME: "detrend"@1306..1313
+      WHITESPACE: " "@1313..1314
+      COLON: ":"@1314..1315
+      WHITESPACE: " "@1315..1316
+      TYPE: "str or function or `False`"@1316..1342
+      COMMA: ","@1342..1343
+      WHITESPACE: " "@1343..1344
+      OPTIONAL: "optional"@1344..1352
+      NEWLINE: "\n"@1352..1353
+      WHITESPACE: "    "@1353..1357
+      DESCRIPTION@1357..1645 {
+        TEXT_LINE: "Specifies how to detrend each segment. If `detrend` is a"@1357..1413
+        NEWLINE: "\n"@1413..1414
+        WHITESPACE: "    "@1414..1418
+        TEXT_LINE: "string, it is passed as the `type` argument to the `detrend`"@1418..1478
+        NEWLINE: "\n"@1478..1479
+        WHITESPACE: "    "@1479..1483
+        TEXT_LINE: "function. If it is a function, it takes a segment and returns a"@1483..1546
+        NEWLINE: "\n"@1546..1547
+        WHITESPACE: "    "@1547..1551
+        TEXT_LINE: "detrended segment. If `detrend` is `False`, no detrending is"@1551..1611
+        NEWLINE: "\n"@1611..1612
+        WHITESPACE: "    "@1612..1616
+        TEXT_LINE: "done. Defaults to 'constant'."@1616..1645
+      }
+    }
+    NEWLINE: "\n"@1645..1646
+    ENTRY@1646..1867 {
+      NAME: "return_onesided"@1646..1661
+      WHITESPACE: " "@1661..1662
+      COLON: ":"@1662..1663
+      WHITESPACE: " "@1663..1664
+      TYPE: "bool"@1664..1668
+      COMMA: ","@1668..1669
+      WHITESPACE: " "@1669..1670
+      OPTIONAL: "optional"@1670..1678
+      NEWLINE: "\n"@1678..1679
+      WHITESPACE: "    "@1679..1683
+      DESCRIPTION@1683..1867 {
+        TEXT_LINE: "If `True`, return a one-sided spectrum for real data. If"@1683..1739
+        NEWLINE: "\n"@1739..1740
+        WHITESPACE: "    "@1740..1744
+        TEXT_LINE: "`False` return a two-sided spectrum. Defaults to `True`, but for"@1744..1808
+        NEWLINE: "\n"@1808..1809
+        WHITESPACE: "    "@1809..1813
+        TEXT_LINE: "complex data, a two-sided spectrum is always returned."@1813..1867
+      }
+    }
+    NEWLINE: "\n"@1867..1868
+    ENTRY@1868..2194 {
+      NAME: "scaling"@1868..1875
+      WHITESPACE: " "@1875..1876
+      COLON: ":"@1876..1877
+      WHITESPACE: " "@1877..1878
+      TYPE: "{ 'density', 'spectrum' }"@1878..1903
+      COMMA: ","@1903..1904
+      WHITESPACE: " "@1904..1905
+      OPTIONAL: "optional"@1905..1913
+      NEWLINE: "\n"@1913..1914
+      WHITESPACE: "    "@1914..1918
+      DESCRIPTION@1918..2194 {
+        TEXT_LINE: "Selects between computing the power spectral density ('density')"@1918..1982
+        NEWLINE: "\n"@1982..1983
+        WHITESPACE: "    "@1983..1987
+        TEXT_LINE: "where `Pxx` has units of V**2/Hz and computing the squared magnitude"@1987..2055
+        NEWLINE: "\n"@2055..2056
+        WHITESPACE: "    "@2056..2060
+        TEXT_LINE: "spectrum ('spectrum') where `Pxx` has units of V**2, if `x`"@2060..2119
+        NEWLINE: "\n"@2119..2120
+        WHITESPACE: "    "@2120..2124
+        TEXT_LINE: "is measured in V and `fs` is measured in Hz. Defaults to"@2124..2180
+        NEWLINE: "\n"@2180..2181
+        WHITESPACE: "    "@2181..2185
+        TEXT_LINE: "'density'"@2185..2194
+      }
+    }
+    NEWLINE: "\n"@2194..2195
+    ENTRY@2195..2323 {
+      NAME: "axis"@2195..2199
+      WHITESPACE: " "@2199..2200
+      COLON: ":"@2200..2201
+      WHITESPACE: " "@2201..2202
+      TYPE: "int"@2202..2205
+      COMMA: ","@2205..2206
+      WHITESPACE: " "@2206..2207
+      OPTIONAL: "optional"@2207..2215
+      NEWLINE: "\n"@2215..2216
+      WHITESPACE: "    "@2216..2220
+      DESCRIPTION@2220..2323 {
+        TEXT_LINE: "Axis along which the periodogram is computed; the default is"@2220..2280
+        NEWLINE: "\n"@2280..2281
+        WHITESPACE: "    "@2281..2285
+        TEXT_LINE: "over the last axis (i.e. ``axis=-1``)."@2285..2323
+      }
+    }
+    NEWLINE: "\n"@2323..2324
+    ENTRY@2324..2464 {
+      NAME: "average"@2324..2331
+      WHITESPACE: " "@2331..2332
+      COLON: ":"@2332..2333
+      WHITESPACE: " "@2333..2334
+      TYPE: "{ 'mean', 'median' }"@2334..2354
+      COMMA: ","@2354..2355
+      WHITESPACE: " "@2355..2356
+      OPTIONAL: "optional"@2356..2364
+      NEWLINE: "\n"@2364..2365
+      WHITESPACE: "    "@2365..2369
+      DESCRIPTION@2369..2464 {
+        TEXT_LINE: "Method to use when averaging periodograms. Defaults to 'mean'."@2369..2431
+        NEWLINE: "\n"@2431..2432
+        BLANK_LINE: "    \n"@2432..2437
+        WHITESPACE: "    "@2437..2441
+        TEXT_LINE: ".. versionadded:: 1.2.0"@2441..2464
+      }
+    }
+  }
+  NEWLINE: "\n"@2464..2465
+  BLANK_LINE: "\n"@2465..2466
+  SECTION@2466..2591 {
+    SECTION_HEADER@2466..2481 {
+      NAME: "Returns"@2466..2473
+      NEWLINE: "\n"@2473..2474
+      UNDERLINE: "-------"@2474..2481
+    }
+    NEWLINE: "\n"@2481..2482
+    ENTRY@2482..2526 {
+      NAME: "f"@2482..2483
+      WHITESPACE: " "@2483..2484
+      COLON: ":"@2484..2485
+      WHITESPACE: " "@2485..2486
+      TYPE: "ndarray"@2486..2493
+      NEWLINE: "\n"@2493..2494
+      WHITESPACE: "    "@2494..2498
+      DESCRIPTION@2498..2526 {
+        TEXT_LINE: "Array of sample frequencies."@2498..2526
+      }
+    }
+    NEWLINE: "\n"@2526..2527
+    ENTRY@2527..2591 {
+      NAME: "Pxx"@2527..2530
+      WHITESPACE: " "@2530..2531
+      COLON: ":"@2531..2532
+      WHITESPACE: " "@2532..2533
+      TYPE: "ndarray"@2533..2540
+      NEWLINE: "\n"@2540..2541
+      WHITESPACE: "    "@2541..2545
+      DESCRIPTION@2545..2591 {
+        TEXT_LINE: "Power spectral density or power spectrum of x."@2545..2591
+      }
+    }
+  }
+  NEWLINE: "\n"@2591..2592
+  BLANK_LINE: "\n"@2592..2593
+  SECTION@2593..2816 {
+    SECTION_HEADER@2593..2610 {
+      NAME: "See Also"@2593..2601
+      NEWLINE: "\n"@2601..2602
+      UNDERLINE: "--------"@2602..2610
+    }
+    NEWLINE: "\n"@2610..2611
+    BLANK_LINE: "\n"@2611..2612
+    ENTRY@2612..2677 {
+      NAME: ":func:`csd`"@2612..2623
+      NEWLINE: "\n"@2623..2624
+      WHITESPACE: "    "@2624..2628
+      DESCRIPTION@2628..2677 {
+        TEXT_LINE: "Cross power spectral density using Welch's method"@2628..2677
+      }
+    }
+    NEWLINE: "\n"@2677..2678
+    ENTRY@2678..2741 {
+      NAME: ":func:`periodogram`"@2678..2697
+      NEWLINE: "\n"@2697..2698
+      WHITESPACE: "    "@2698..2702
+      DESCRIPTION@2702..2741 {
+        TEXT_LINE: "Simple, optionally modified periodogram"@2702..2741
+      }
+    }
+    NEWLINE: "\n"@2741..2742
+    ENTRY@2742..2816 {
+      NAME: ":func:`lombscargle`"@2742..2761
+      NEWLINE: "\n"@2761..2762
+      WHITESPACE: "    "@2762..2766
+      DESCRIPTION@2766..2816 {
+        TEXT_LINE: "Lomb-Scargle periodogram for unevenly sampled data"@2766..2816
+      }
+    }
+  }
+  NEWLINE: "\n"@2816..2817
+  BLANK_LINE: "\n"@2817..2818
+  BLANK_LINE: "\n"@2818..2819
+  SECTION@2819..3740 {
+    SECTION_HEADER@2819..2830 {
+      NAME: "Notes"@2819..2824
+      NEWLINE: "\n"@2824..2825
+      UNDERLINE: "-----"@2825..2830
+    }
+    NEWLINE: "\n"@2830..2831
+    DESCRIPTION@2831..3740 {
+      TEXT_LINE: "An appropriate amount of overlap will depend on the choice of window"@2831..2899
+      NEWLINE: "\n"@2899..2900
+      TEXT_LINE: "and on your requirements. For the default Hann window an overlap of"@2900..2967
+      NEWLINE: "\n"@2967..2968
+      TEXT_LINE: "50% is a reasonable trade-off between accurately estimating the"@2968..3031
+      NEWLINE: "\n"@3031..3032
+      TEXT_LINE: "signal power, while not over counting any of the data. Narrower"@3032..3095
+      NEWLINE: "\n"@3095..3096
+      TEXT_LINE: "windows may require a larger overlap. If `noverlap` is 0, this"@3096..3158
+      NEWLINE: "\n"@3158..3159
+      TEXT_LINE: "method is equivalent to Bartlett's method [2]_."@3159..3206
+      NEWLINE: "\n"@3206..3207
+      BLANK_LINE: "\n"@3207..3208
+      TEXT_LINE: "The ratio of the squared magnitude (``scaling='spectrum'``) divided by the spectral"@3208..3291
+      NEWLINE: "\n"@3291..3292
+      TEXT_LINE: "power density (``scaling='density'``) is the constant factor of"@3292..3355
+      NEWLINE: "\n"@3355..3356
+      TEXT_LINE: "``sum(abs(window)**2)*fs / abs(sum(window))**2``."@3356..3405
+      NEWLINE: "\n"@3405..3406
+      TEXT_LINE: "If `return_onesided` is ``True``, the values of the negative frequencies are added"@3406..3488
+      NEWLINE: "\n"@3488..3489
+      TEXT_LINE: "to values of the corresponding positive ones."@3489..3534
+      NEWLINE: "\n"@3534..3535
+      BLANK_LINE: "\n"@3535..3536
+      TEXT_LINE: "Consult the :ref:`tutorial_SpectralAnalysis` section of the :ref:`user_guide`"@3536..3613
+      NEWLINE: "\n"@3613..3614
+      TEXT_LINE: "for a discussion of the scalings of the power spectral density and"@3614..3680
+      NEWLINE: "\n"@3680..3681
+      TEXT_LINE: "the (squared) magnitude spectrum."@3681..3714
+      NEWLINE: "\n"@3714..3715
+      BLANK_LINE: "\n"@3715..3716
+      TEXT_LINE: ".. versionadded:: 0.12.0"@3716..3740
+    }
+  }
+  NEWLINE: "\n"@3740..3741
+  BLANK_LINE: "\n"@3741..3742
+  SECTION@3742..4118 {
+    SECTION_HEADER@3742..3763 {
+      NAME: "References"@3742..3752
+      NEWLINE: "\n"@3752..3753
+      UNDERLINE: "----------"@3753..3763
+    }
+    NEWLINE: "\n"@3763..3764
+    CITATION@3764..4005 {
+      DIRECTIVE_MARKER: ".."@3764..3766
+      WHITESPACE: " "@3766..3767
+      OPEN_BRACKET: "["@3767..3768
+      LABEL: "1"@3768..3769
+      CLOSE_BRACKET: "]"@3769..3770
+      WHITESPACE: " "@3770..3771
+      DESCRIPTION@3771..4005 {
+        TEXT_LINE: "P. Welch, \"The use of the fast Fourier transform for the"@3771..3827
+        NEWLINE: "\n"@3827..3828
+        WHITESPACE: "       "@3828..3835
+        TEXT_LINE: "estimation of power spectra: A method based on time averaging"@3835..3896
+        NEWLINE: "\n"@3896..3897
+        WHITESPACE: "       "@3897..3904
+        TEXT_LINE: "over short, modified periodograms\", IEEE Trans. Audio"@3904..3957
+        NEWLINE: "\n"@3957..3958
+        WHITESPACE: "       "@3958..3965
+        TEXT_LINE: "Electroacoust. vol. 15, pp. 70-73, 1967."@3965..4005
+      }
+    }
+    NEWLINE: "\n"@4005..4006
+    CITATION@4006..4118 {
+      DIRECTIVE_MARKER: ".."@4006..4008
+      WHITESPACE: " "@4008..4009
+      OPEN_BRACKET: "["@4009..4010
+      LABEL: "2"@4010..4011
+      CLOSE_BRACKET: "]"@4011..4012
+      WHITESPACE: " "@4012..4013
+      DESCRIPTION@4013..4118 {
+        TEXT_LINE: "M.S. Bartlett, \"Periodogram Analysis and Continuous Spectra\","@4013..4074
+        NEWLINE: "\n"@4074..4075
+        WHITESPACE: "       "@4075..4082
+        TEXT_LINE: "Biometrika, vol. 37, pp. 1-16, 1950."@4082..4118
+      }
+    }
+  }
+  NEWLINE: "\n"@4118..4119
+  BLANK_LINE: "\n"@4119..4120
+  SECTION@4120..6042 {
+    SECTION_HEADER@4120..4137 {
+      NAME: "Examples"@4120..4128
+      NEWLINE: "\n"@4128..4129
+      UNDERLINE: "--------"@4129..4137
+    }
+    NEWLINE: "\n"@4137..4138
+    DESCRIPTION@4138..6042 {
+      TEXT_LINE: ">>> import numpy as np"@4138..4160
+      NEWLINE: "\n"@4160..4161
+      TEXT_LINE: ">>> from scipy import signal"@4161..4189
+      NEWLINE: "\n"@4189..4190
+      TEXT_LINE: ">>> import matplotlib.pyplot as plt"@4190..4225
+      NEWLINE: "\n"@4225..4226
+      TEXT_LINE: ">>> rng = np.random.default_rng()"@4226..4259
+      NEWLINE: "\n"@4259..4260
+      BLANK_LINE: "\n"@4260..4261
+      TEXT_LINE: "Generate a test signal, a 2 Vrms sine wave at 1234 Hz, corrupted by"@4261..4328
+      NEWLINE: "\n"@4328..4329
+      TEXT_LINE: "0.001 V**2/Hz of white noise sampled at 10 kHz."@4329..4376
+      NEWLINE: "\n"@4376..4377
+      BLANK_LINE: "\n"@4377..4378
+      TEXT_LINE: ">>> fs = 10e3"@4378..4391
+      NEWLINE: "\n"@4391..4392
+      TEXT_LINE: ">>> N = 1e5"@4392..4403
+      NEWLINE: "\n"@4403..4404
+      TEXT_LINE: ">>> amp = 2*np.sqrt(2)"@4404..4426
+      NEWLINE: "\n"@4426..4427
+      TEXT_LINE: ">>> freq = 1234.0"@4427..4444
+      NEWLINE: "\n"@4444..4445
+      TEXT_LINE: ">>> noise_power = 0.001 * fs / 2"@4445..4477
+      NEWLINE: "\n"@4477..4478
+      TEXT_LINE: ">>> time = np.arange(N) / fs"@4478..4506
+      NEWLINE: "\n"@4506..4507
+      TEXT_LINE: ">>> x = amp*np.sin(2*np.pi*freq*time)"@4507..4544
+      NEWLINE: "\n"@4544..4545
+      TEXT_LINE: ">>> x += rng.normal(scale=np.sqrt(noise_power), size=time.shape)"@4545..4609
+      NEWLINE: "\n"@4609..4610
+      BLANK_LINE: "\n"@4610..4611
+      TEXT_LINE: "Compute and plot the power spectral density."@4611..4655
+      NEWLINE: "\n"@4655..4656
+      BLANK_LINE: "\n"@4656..4657
+      TEXT_LINE: ">>> f, Pxx_den = signal.welch(x, fs, nperseg=1024)"@4657..4707
+      NEWLINE: "\n"@4707..4708
+      TEXT_LINE: ">>> plt.semilogy(f, Pxx_den)"@4708..4736
+      NEWLINE: "\n"@4736..4737
+      TEXT_LINE: ">>> plt.ylim([0.5e-3, 1])"@4737..4762
+      NEWLINE: "\n"@4762..4763
+      TEXT_LINE: ">>> plt.xlabel('frequency [Hz]')"@4763..4795
+      NEWLINE: "\n"@4795..4796
+      TEXT_LINE: ">>> plt.ylabel('PSD [V**2/Hz]')"@4796..4827
+      NEWLINE: "\n"@4827..4828
+      TEXT_LINE: ">>> plt.show()"@4828..4842
+      NEWLINE: "\n"@4842..4843
+      BLANK_LINE: "\n"@4843..4844
+      TEXT_LINE: "If we average the last half of the spectral density, to exclude the"@4844..4911
+      NEWLINE: "\n"@4911..4912
+      TEXT_LINE: "peak, we can recover the noise power on the signal."@4912..4963
+      NEWLINE: "\n"@4963..4964
+      BLANK_LINE: "\n"@4964..4965
+      TEXT_LINE: ">>> np.mean(Pxx_den[256:])"@4965..4991
+      NEWLINE: "\n"@4991..4992
+      TEXT_LINE: "0.0009924865443739191"@4992..5013
+      NEWLINE: "\n"@5013..5014
+      BLANK_LINE: "\n"@5014..5015
+      TEXT_LINE: "Now compute and plot the power spectrum."@5015..5055
+      NEWLINE: "\n"@5055..5056
+      BLANK_LINE: "\n"@5056..5057
+      TEXT_LINE: ">>> f, Pxx_spec = signal.welch(x, fs, 'flattop', 1024, scaling='spectrum')"@5057..5131
+      NEWLINE: "\n"@5131..5132
+      TEXT_LINE: ">>> plt.figure()"@5132..5148
+      NEWLINE: "\n"@5148..5149
+      TEXT_LINE: ">>> plt.semilogy(f, np.sqrt(Pxx_spec))"@5149..5187
+      NEWLINE: "\n"@5187..5188
+      TEXT_LINE: ">>> plt.xlabel('frequency [Hz]')"@5188..5220
+      NEWLINE: "\n"@5220..5221
+      TEXT_LINE: ">>> plt.ylabel('Linear spectrum [V RMS]')"@5221..5262
+      NEWLINE: "\n"@5262..5263
+      TEXT_LINE: ">>> plt.show()"@5263..5277
+      NEWLINE: "\n"@5277..5278
+      BLANK_LINE: "\n"@5278..5279
+      TEXT_LINE: "The peak height in the power spectrum is an estimate of the RMS"@5279..5342
+      NEWLINE: "\n"@5342..5343
+      TEXT_LINE: "amplitude."@5343..5353
+      NEWLINE: "\n"@5353..5354
+      BLANK_LINE: "\n"@5354..5355
+      TEXT_LINE: ">>> np.sqrt(Pxx_spec.max())"@5355..5382
+      NEWLINE: "\n"@5382..5383
+      TEXT_LINE: "2.0077340678640727"@5383..5401
+      NEWLINE: "\n"@5401..5402
+      BLANK_LINE: "\n"@5402..5403
+      TEXT_LINE: "If we now introduce a discontinuity in the signal, by increasing the"@5403..5471
+      NEWLINE: "\n"@5471..5472
+      TEXT_LINE: "amplitude of a small portion of the signal by 50, we can see the"@5472..5536
+      NEWLINE: "\n"@5536..5537
+      TEXT_LINE: "corruption of the mean average power spectral density, but using a"@5537..5603
+      NEWLINE: "\n"@5603..5604
+      TEXT_LINE: "median average better estimates the normal behaviour."@5604..5657
+      NEWLINE: "\n"@5657..5658
+      BLANK_LINE: "\n"@5658..5659
+      TEXT_LINE: ">>> x[int(N//2):int(N//2)+10] *= 50."@5659..5695
+      NEWLINE: "\n"@5695..5696
+      TEXT_LINE: ">>> f, Pxx_den = signal.welch(x, fs, nperseg=1024)"@5696..5746
+      NEWLINE: "\n"@5746..5747
+      TEXT_LINE: ">>> f_med, Pxx_den_med = signal.welch(x, fs, nperseg=1024, average='median')"@5747..5823
+      NEWLINE: "\n"@5823..5824
+      TEXT_LINE: ">>> plt.semilogy(f, Pxx_den, label='mean')"@5824..5866
+      NEWLINE: "\n"@5866..5867
+      TEXT_LINE: ">>> plt.semilogy(f_med, Pxx_den_med, label='median')"@5867..5919
+      NEWLINE: "\n"@5919..5920
+      TEXT_LINE: ">>> plt.ylim([0.5e-3, 1])"@5920..5945
+      NEWLINE: "\n"@5945..5946
+      TEXT_LINE: ">>> plt.xlabel('frequency [Hz]')"@5946..5978
+      NEWLINE: "\n"@5978..5979
+      TEXT_LINE: ">>> plt.ylabel('PSD [V**2/Hz]')"@5979..6010
+      NEWLINE: "\n"@6010..6011
+      TEXT_LINE: ">>> plt.legend()"@6011..6027
+      NEWLINE: "\n"@6027..6028
+      TEXT_LINE: ">>> plt.show()"@6028..6042
+    }
+  }
+}
+=== EMIT ===
+Estimate power spectral density using Welch's method.
+
+Welch's method [1]_ computes an estimate of the power spectral
+density by dividing the data into overlapping segments, computing a
+modified periodogram for each segment and averaging the
+periodograms.
+
+Parameters
+----------
+x : array_like
+    Time series of measurement values
+fs : float, optional
+    Sampling frequency of the `x` time series. Defaults to 1.0.
+window : str or tuple or array_like, optional
+    Desired window to use. If `window` is a string or tuple, it is
+    passed to `get_window` to generate the window values, which are
+    DFT-even by default. See `get_window` for a list of windows and
+    required parameters. If `window` is array_like it will be used
+    directly as the window and its length must be nperseg. Defaults
+    to a periodic Hann window.
+nperseg : int, optional
+    Length of each segment. Defaults to None, but if window is str or
+    tuple, is set to 256, and if window is array_like, is set to the
+    length of the window.
+noverlap : int, optional
+    Number of points to overlap between segments. If `None`,
+    ``noverlap = nperseg // 2``. Defaults to `None`.
+nfft : int, optional
+    Length of the FFT used, if a zero padded FFT is desired. If
+    `None`, the FFT length is `nperseg`. Defaults to `None`.
+detrend : str or function or `False`, optional
+    Specifies how to detrend each segment. If `detrend` is a
+    string, it is passed as the `type` argument to the `detrend`
+    function. If it is a function, it takes a segment and returns a
+    detrended segment. If `detrend` is `False`, no detrending is
+    done. Defaults to 'constant'.
+return_onesided : bool, optional
+    If `True`, return a one-sided spectrum for real data. If
+    `False` return a two-sided spectrum. Defaults to `True`, but for
+    complex data, a two-sided spectrum is always returned.
+scaling : { 'density', 'spectrum' }, optional
+    Selects between computing the power spectral density ('density')
+    where `Pxx` has units of V**2/Hz and computing the squared magnitude
+    spectrum ('spectrum') where `Pxx` has units of V**2, if `x`
+    is measured in V and `fs` is measured in Hz. Defaults to
+    'density'
+axis : int, optional
+    Axis along which the periodogram is computed; the default is
+    over the last axis (i.e. ``axis=-1``).
+average : { 'mean', 'median' }, optional
+    Method to use when averaging periodograms. Defaults to 'mean'.
+
+    .. versionadded:: 1.2.0
+
+Returns
+-------
+f : ndarray
+    Array of sample frequencies.
+Pxx : ndarray
+    Power spectral density or power spectrum of x.
+
+See Also
+--------
+:func:`csd` : Cross power spectral density using Welch's method
+:func:`periodogram` : Simple, optionally modified periodogram
+:func:`lombscargle` : Lomb-Scargle periodogram for unevenly sampled data
+
+Notes
+-----
+An appropriate amount of overlap will depend on the choice of window
+and on your requirements. For the default Hann window an overlap of
+50% is a reasonable trade-off between accurately estimating the
+signal power, while not over counting any of the data. Narrower
+windows may require a larger overlap. If `noverlap` is 0, this
+method is equivalent to Bartlett's method [2]_.
+
+The ratio of the squared magnitude (``scaling='spectrum'``) divided by the spectral
+power density (``scaling='density'``) is the constant factor of
+``sum(abs(window)**2)*fs / abs(sum(window))**2``.
+If `return_onesided` is ``True``, the values of the negative frequencies are added
+to values of the corresponding positive ones.
+
+Consult the :ref:`tutorial_SpectralAnalysis` section of the :ref:`user_guide`
+for a discussion of the scalings of the power spectral density and
+the (squared) magnitude spectrum.
+
+.. versionadded:: 0.12.0
+
+References
+----------
+.. [1] P. Welch, "The use of the fast Fourier transform for the
+    estimation of power spectra: A method based on time averaging
+    over short, modified periodograms", IEEE Trans. Audio
+    Electroacoust. vol. 15, pp. 70-73, 1967.
+.. [2] M.S. Bartlett, "Periodogram Analysis and Continuous Spectra",
+    Biometrika, vol. 37, pp. 1-16, 1950.
+
+Examples
+--------
+>>> import numpy as np
+>>> from scipy import signal
+>>> import matplotlib.pyplot as plt
+>>> rng = np.random.default_rng()
+
+Generate a test signal, a 2 Vrms sine wave at 1234 Hz, corrupted by
+0.001 V**2/Hz of white noise sampled at 10 kHz.
+
+>>> fs = 10e3
+>>> N = 1e5
+>>> amp = 2*np.sqrt(2)
+>>> freq = 1234.0
+>>> noise_power = 0.001 * fs / 2
+>>> time = np.arange(N) / fs
+>>> x = amp*np.sin(2*np.pi*freq*time)
+>>> x += rng.normal(scale=np.sqrt(noise_power), size=time.shape)
+
+Compute and plot the power spectral density.
+
+>>> f, Pxx_den = signal.welch(x, fs, nperseg=1024)
+>>> plt.semilogy(f, Pxx_den)
+>>> plt.ylim([0.5e-3, 1])
+>>> plt.xlabel('frequency [Hz]')
+>>> plt.ylabel('PSD [V**2/Hz]')
+>>> plt.show()
+
+If we average the last half of the spectral density, to exclude the
+peak, we can recover the noise power on the signal.
+
+>>> np.mean(Pxx_den[256:])
+0.0009924865443739191
+
+Now compute and plot the power spectrum.
+
+>>> f, Pxx_spec = signal.welch(x, fs, 'flattop', 1024, scaling='spectrum')
+>>> plt.figure()
+>>> plt.semilogy(f, np.sqrt(Pxx_spec))
+>>> plt.xlabel('frequency [Hz]')
+>>> plt.ylabel('Linear spectrum [V RMS]')
+>>> plt.show()
+
+The peak height in the power spectrum is an estimate of the RMS
+amplitude.
+
+>>> np.sqrt(Pxx_spec.max())
+2.0077340678640727
+
+If we now introduce a discontinuity in the signal, by increasing the
+amplitude of a small portion of the signal by 50, we can see the
+corruption of the mean average power spectral density, but using a
+median average better estimates the normal behaviour.
+
+>>> x[int(N//2):int(N//2)+10] *= 50.
+>>> f, Pxx_den = signal.welch(x, fs, nperseg=1024)
+>>> f_med, Pxx_den_med = signal.welch(x, fs, nperseg=1024, average='median')
+>>> plt.semilogy(f, Pxx_den, label='mean')
+>>> plt.semilogy(f_med, Pxx_den_med, label='median')
+>>> plt.ylim([0.5e-3, 1])
+>>> plt.xlabel('frequency [Hz]')
+>>> plt.ylabel('PSD [V**2/Hz]')
+>>> plt.legend()
+>>> plt.show()

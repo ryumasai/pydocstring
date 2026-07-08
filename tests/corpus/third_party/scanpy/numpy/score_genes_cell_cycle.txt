@@ -1,0 +1,40 @@
+Score cell cycle genes :cite:p:`Satija2015`.
+
+Given two lists of genes associated to S phase and G2M phase, calculates
+scores and assigns a cell cycle phase (G1, S or G2M). See
+:func:`~scanpy.tl.score_genes` for more explanation.
+
+.. array-support:: tl.score_genes
+
+Parameters
+----------
+adata
+    The annotated data matrix.
+s_genes
+    List of genes associated with S phase.
+g2m_genes
+    List of genes associated with G2M phase.
+copy
+    Copy `adata` or modify it inplace.
+**kwargs
+    Are passed to :func:`~scanpy.tl.score_genes`. `ctrl_size` is not
+    possible, as it's set as `min(len(s_genes), len(g2m_genes))`.
+
+Returns
+-------
+Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:
+
+`adata.obs['S_score']` : :class:`pandas.Series` (dtype `object`)
+    The score for S phase for each cell.
+`adata.obs['G2M_score']` : :class:`pandas.Series` (dtype `object`)
+    The score for G2M phase for each cell.
+`adata.obs['phase']` : :class:`pandas.Series` (dtype `object`)
+    The cell cycle phase (`S`, `G2M` or `G1`) for each cell.
+
+See Also
+--------
+score_genes
+
+Examples
+--------
+See this `notebook <https://github.com/scverse/scanpy_usage/tree/master/180209_cell_cycle>`__.

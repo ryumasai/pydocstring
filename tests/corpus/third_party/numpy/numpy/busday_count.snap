@@ -1,0 +1,335 @@
+=== CST ===
+DOCUMENT@0..2293 {
+  SUMMARY@0..119 {
+    TEXT_LINE: "busday_count("@0..13
+    NEWLINE: "\n"@13..14
+    WHITESPACE: "    "@14..18
+    TEXT_LINE: "begindates,"@18..29
+    NEWLINE: "\n"@29..30
+    WHITESPACE: "    "@30..34
+    TEXT_LINE: "enddates,"@34..43
+    NEWLINE: "\n"@43..44
+    WHITESPACE: "    "@44..48
+    TEXT_LINE: "weekmask='1111100',"@48..67
+    NEWLINE: "\n"@67..68
+    WHITESPACE: "    "@68..72
+    TEXT_LINE: "holidays=[],"@72..84
+    NEWLINE: "\n"@84..85
+    WHITESPACE: "    "@85..89
+    TEXT_LINE: "busdaycal=None,"@89..104
+    NEWLINE: "\n"@104..105
+    WHITESPACE: "    "@105..109
+    TEXT_LINE: "out=None"@109..117
+    NEWLINE: "\n"@117..118
+    TEXT_LINE: ")"@118..119
+  }
+  NEWLINE: "\n"@119..120
+  BLANK_LINE: "\n"@120..121
+  EXTENDED_SUMMARY@121..360 {
+    TEXT_LINE: "Counts the number of valid days between `begindates` and"@121..177
+    NEWLINE: "\n"@177..178
+    TEXT_LINE: "`enddates`, not including the day of `enddates`."@178..226
+    NEWLINE: "\n"@226..227
+    BLANK_LINE: "\n"@227..228
+    TEXT_LINE: "If ``enddates`` specifies a date value that is earlier than the"@228..291
+    NEWLINE: "\n"@291..292
+    TEXT_LINE: "corresponding ``begindates`` date value, the count will be negative."@292..360
+  }
+  NEWLINE: "\n"@360..361
+  BLANK_LINE: "\n"@361..362
+  SECTION@362..1599 {
+    SECTION_HEADER@362..383 {
+      NAME: "Parameters"@362..372
+      NEWLINE: "\n"@372..373
+      UNDERLINE: "----------"@373..383
+    }
+    NEWLINE: "\n"@383..384
+    ENTRY@384..471 {
+      NAME: "begindates"@384..394
+      WHITESPACE: " "@394..395
+      COLON: ":"@395..396
+      WHITESPACE: " "@396..397
+      TYPE: "array_like of datetime64[D]"@397..424
+      NEWLINE: "\n"@424..425
+      WHITESPACE: "    "@425..429
+      DESCRIPTION@429..471 {
+        TEXT_LINE: "The array of the first dates for counting."@429..471
+      }
+    }
+    NEWLINE: "\n"@471..472
+    ENTRY@472..605 {
+      NAME: "enddates"@472..480
+      WHITESPACE: " "@480..481
+      COLON: ":"@481..482
+      WHITESPACE: " "@482..483
+      TYPE: "array_like of datetime64[D]"@483..510
+      NEWLINE: "\n"@510..511
+      WHITESPACE: "    "@511..515
+      DESCRIPTION@515..605 {
+        TEXT_LINE: "The array of the end dates for counting, which are excluded"@515..574
+        NEWLINE: "\n"@574..575
+        WHITESPACE: "    "@575..579
+        TEXT_LINE: "from the count themselves."@579..605
+      }
+    }
+    NEWLINE: "\n"@605..606
+    ENTRY@606..1048 {
+      NAME: "weekmask"@606..614
+      WHITESPACE: " "@614..615
+      COLON: ":"@615..616
+      WHITESPACE: " "@616..617
+      TYPE: "str or array_like of bool"@617..642
+      COMMA: ","@642..643
+      WHITESPACE: " "@643..644
+      OPTIONAL: "optional"@644..652
+      NEWLINE: "\n"@652..653
+      WHITESPACE: "    "@653..657
+      DESCRIPTION@657..1048 {
+        TEXT_LINE: "A seven-element array indicating which of Monday through Sunday are"@657..724
+        NEWLINE: "\n"@724..725
+        WHITESPACE: "    "@725..729
+        TEXT_LINE: "valid days. May be specified as a length-seven list or array, like"@729..795
+        NEWLINE: "\n"@795..796
+        WHITESPACE: "    "@796..800
+        TEXT_LINE: "[1,1,1,1,1,0,0]; a length-seven string, like '1111100'; or a string"@800..867
+        NEWLINE: "\n"@867..868
+        WHITESPACE: "    "@868..872
+        TEXT_LINE: "like \"Mon Tue Wed Thu Fri\", made up of 3-character abbreviations for"@872..940
+        NEWLINE: "\n"@940..941
+        WHITESPACE: "    "@941..945
+        TEXT_LINE: "weekdays, optionally separated by white space. Valid abbreviations"@945..1011
+        NEWLINE: "\n"@1011..1012
+        WHITESPACE: "    "@1012..1016
+        TEXT_LINE: "are: Mon Tue Wed Thu Fri Sat Sun"@1016..1048
+      }
+    }
+    NEWLINE: "\n"@1048..1049
+    ENTRY@1049..1330 {
+      NAME: "holidays"@1049..1057
+      WHITESPACE: " "@1057..1058
+      COLON: ":"@1058..1059
+      WHITESPACE: " "@1059..1060
+      TYPE: "array_like of datetime64[D]"@1060..1087
+      COMMA: ","@1087..1088
+      WHITESPACE: " "@1088..1089
+      OPTIONAL: "optional"@1089..1097
+      NEWLINE: "\n"@1097..1098
+      WHITESPACE: "    "@1098..1102
+      DESCRIPTION@1102..1330 {
+        TEXT_LINE: "An array of dates to consider as invalid dates.  They may be"@1102..1162
+        NEWLINE: "\n"@1162..1163
+        WHITESPACE: "    "@1163..1167
+        TEXT_LINE: "specified in any order, and NaT (not-a-time) dates are ignored."@1167..1230
+        NEWLINE: "\n"@1230..1231
+        WHITESPACE: "    "@1231..1235
+        TEXT_LINE: "This list is saved in a normalized form that is suited for"@1235..1293
+        NEWLINE: "\n"@1293..1294
+        WHITESPACE: "    "@1294..1298
+        TEXT_LINE: "fast calculations of valid days."@1298..1330
+      }
+    }
+    NEWLINE: "\n"@1330..1331
+    ENTRY@1331..1515 {
+      NAME: "busdaycal"@1331..1340
+      WHITESPACE: " "@1340..1341
+      COLON: ":"@1341..1342
+      WHITESPACE: " "@1342..1343
+      TYPE: "busdaycalendar"@1343..1357
+      COMMA: ","@1357..1358
+      WHITESPACE: " "@1358..1359
+      OPTIONAL: "optional"@1359..1367
+      NEWLINE: "\n"@1367..1368
+      WHITESPACE: "    "@1368..1372
+      DESCRIPTION@1372..1515 {
+        TEXT_LINE: "A `busdaycalendar` object which specifies the valid days. If this"@1372..1437
+        NEWLINE: "\n"@1437..1438
+        WHITESPACE: "    "@1438..1442
+        TEXT_LINE: "parameter is provided, neither weekmask nor holidays may be"@1442..1501
+        NEWLINE: "\n"@1501..1502
+        WHITESPACE: "    "@1502..1506
+        TEXT_LINE: "provided."@1506..1515
+      }
+    }
+    NEWLINE: "\n"@1515..1516
+    ENTRY@1516..1599 {
+      NAME: "out"@1516..1519
+      WHITESPACE: " "@1519..1520
+      COLON: ":"@1520..1521
+      WHITESPACE: " "@1521..1522
+      TYPE: "array of int"@1522..1534
+      COMMA: ","@1534..1535
+      WHITESPACE: " "@1535..1536
+      OPTIONAL: "optional"@1536..1544
+      NEWLINE: "\n"@1544..1545
+      WHITESPACE: "    "@1545..1549
+      DESCRIPTION@1549..1599 {
+        TEXT_LINE: "If provided, this array is filled with the result."@1549..1599
+      }
+    }
+  }
+  NEWLINE: "\n"@1599..1600
+  BLANK_LINE: "\n"@1600..1601
+  SECTION@1601..1798 {
+    SECTION_HEADER@1601..1616 {
+      NAME: "Returns"@1601..1608
+      NEWLINE: "\n"@1608..1609
+      UNDERLINE: "-------"@1609..1616
+    }
+    NEWLINE: "\n"@1616..1617
+    ENTRY@1617..1798 {
+      NAME: "out"@1617..1620
+      WHITESPACE: " "@1620..1621
+      COLON: ":"@1621..1622
+      WHITESPACE: " "@1622..1623
+      TYPE: "array of int"@1623..1635
+      NEWLINE: "\n"@1635..1636
+      WHITESPACE: "    "@1636..1640
+      DESCRIPTION@1640..1798 {
+        TEXT_LINE: "An array with a shape from broadcasting ``begindates`` and ``enddates``"@1640..1711
+        NEWLINE: "\n"@1711..1712
+        WHITESPACE: "    "@1712..1716
+        TEXT_LINE: "together, containing the number of valid days between"@1716..1769
+        NEWLINE: "\n"@1769..1770
+        WHITESPACE: "    "@1770..1774
+        TEXT_LINE: "the begin and end dates."@1774..1798
+      }
+    }
+  }
+  NEWLINE: "\n"@1798..1799
+  BLANK_LINE: "\n"@1799..1800
+  SECTION@1800..2003 {
+    SECTION_HEADER@1800..1817 {
+      NAME: "See Also"@1800..1808
+      NEWLINE: "\n"@1808..1809
+      UNDERLINE: "--------"@1809..1817
+    }
+    NEWLINE: "\n"@1817..1818
+    ENTRY@1818..1887 {
+      NAME: "busdaycalendar"@1818..1832
+      WHITESPACE: " "@1832..1833
+      COLON: ":"@1833..1834
+      WHITESPACE: " "@1834..1835
+      DESCRIPTION@1835..1887 {
+        TEXT_LINE: "An object that specifies a custom set of valid days."@1835..1887
+      }
+    }
+    NEWLINE: "\n"@1887..1888
+    ENTRY@1888..1946 {
+      NAME: "is_busday"@1888..1897
+      WHITESPACE: " "@1897..1898
+      COLON: ":"@1898..1899
+      WHITESPACE: " "@1899..1900
+      DESCRIPTION@1900..1946 {
+        TEXT_LINE: "Returns a boolean array indicating valid days."@1900..1946
+      }
+    }
+    NEWLINE: "\n"@1946..1947
+    ENTRY@1947..2003 {
+      NAME: "busday_offset"@1947..1960
+      WHITESPACE: " "@1960..1961
+      COLON: ":"@1961..1962
+      WHITESPACE: " "@1962..1963
+      DESCRIPTION@1963..2003 {
+        TEXT_LINE: "Applies an offset counted in valid days."@1963..2003
+      }
+    }
+  }
+  NEWLINE: "\n"@2003..2004
+  BLANK_LINE: "\n"@2004..2005
+  SECTION@2005..2293 {
+    SECTION_HEADER@2005..2022 {
+      NAME: "Examples"@2005..2013
+      NEWLINE: "\n"@2013..2014
+      UNDERLINE: "--------"@2014..2022
+    }
+    NEWLINE: "\n"@2022..2023
+    DESCRIPTION@2023..2293 {
+      TEXT_LINE: ">>> import numpy as np"@2023..2045
+      NEWLINE: "\n"@2045..2046
+      TEXT_LINE: ">>> # Number of weekdays in January 2011"@2046..2086
+      NEWLINE: "\n"@2086..2087
+      TEXT_LINE: "... np.busday_count('2011-01', '2011-02')"@2087..2128
+      NEWLINE: "\n"@2128..2129
+      TEXT_LINE: "21"@2129..2131
+      NEWLINE: "\n"@2131..2132
+      TEXT_LINE: ">>> # Number of weekdays in 2011"@2132..2164
+      NEWLINE: "\n"@2164..2165
+      TEXT_LINE: ">>> np.busday_count('2011', '2012')"@2165..2200
+      NEWLINE: "\n"@2200..2201
+      TEXT_LINE: "260"@2201..2204
+      NEWLINE: "\n"@2204..2205
+      TEXT_LINE: ">>> # Number of Saturdays in 2011"@2205..2238
+      NEWLINE: "\n"@2238..2239
+      TEXT_LINE: "... np.busday_count('2011', '2012', weekmask='Sat')"@2239..2290
+      NEWLINE: "\n"@2290..2291
+      TEXT_LINE: "53"@2291..2293
+    }
+  }
+}
+=== EMIT ===
+busday_count(
+    begindates,
+    enddates,
+    weekmask='1111100',
+    holidays=[],
+    busdaycal=None,
+    out=None
+)
+
+Counts the number of valid days between `begindates` and
+`enddates`, not including the day of `enddates`.
+
+If ``enddates`` specifies a date value that is earlier than the
+corresponding ``begindates`` date value, the count will be negative.
+
+Parameters
+----------
+begindates : array_like of datetime64[D]
+    The array of the first dates for counting.
+enddates : array_like of datetime64[D]
+    The array of the end dates for counting, which are excluded
+    from the count themselves.
+weekmask : str or array_like of bool, optional
+    A seven-element array indicating which of Monday through Sunday are
+    valid days. May be specified as a length-seven list or array, like
+    [1,1,1,1,1,0,0]; a length-seven string, like '1111100'; or a string
+    like "Mon Tue Wed Thu Fri", made up of 3-character abbreviations for
+    weekdays, optionally separated by white space. Valid abbreviations
+    are: Mon Tue Wed Thu Fri Sat Sun
+holidays : array_like of datetime64[D], optional
+    An array of dates to consider as invalid dates.  They may be
+    specified in any order, and NaT (not-a-time) dates are ignored.
+    This list is saved in a normalized form that is suited for
+    fast calculations of valid days.
+busdaycal : busdaycalendar, optional
+    A `busdaycalendar` object which specifies the valid days. If this
+    parameter is provided, neither weekmask nor holidays may be
+    provided.
+out : array of int, optional
+    If provided, this array is filled with the result.
+
+Returns
+-------
+out : array of int
+    An array with a shape from broadcasting ``begindates`` and ``enddates``
+    together, containing the number of valid days between
+    the begin and end dates.
+
+See Also
+--------
+busdaycalendar : An object that specifies a custom set of valid days.
+is_busday : Returns a boolean array indicating valid days.
+busday_offset : Applies an offset counted in valid days.
+
+Examples
+--------
+>>> import numpy as np
+>>> # Number of weekdays in January 2011
+... np.busday_count('2011-01', '2011-02')
+21
+>>> # Number of weekdays in 2011
+>>> np.busday_count('2011', '2012')
+260
+>>> # Number of Saturdays in 2011
+... np.busday_count('2011', '2012', weekmask='Sat')
+53

@@ -1,0 +1,325 @@
+=== CST ===
+DOCUMENT@0..3260 {
+  SUMMARY@0..56 {
+    TEXT_LINE: "t-SNE :cite:p:`vanDerMaaten2008,Amir2013,Pedregosa2011`."@0..56
+  }
+  NEWLINE: "\n"@56..57
+  BLANK_LINE: "\n"@57..58
+  EXTENDED_SUMMARY@58..554 {
+    TEXT_LINE: "t-distributed stochastic neighborhood embedding (tSNE, :cite:t:`vanDerMaaten2008`) was"@58..144
+    NEWLINE: "\n"@144..145
+    TEXT_LINE: "proposed for visualizating single-cell data by :cite:t:`Amir2013`. Here, by default,"@145..229
+    NEWLINE: "\n"@229..230
+    TEXT_LINE: "we use the implementation of *scikit-learn* :cite:p:`Pedregosa2011`. You can achieve"@230..314
+    NEWLINE: "\n"@314..315
+    TEXT_LINE: "a huge speedup and better convergence if you install Multicore-tSNE_"@315..383
+    NEWLINE: "\n"@383..384
+    TEXT_LINE: "by :cite:t:`Ulyanov2016`, which will be automatically detected by Scanpy."@384..457
+    NEWLINE: "\n"@457..458
+    BLANK_LINE: "\n"@458..459
+    TEXT_LINE: ".. _multicore-tsne: https://github.com/DmitryUlyanov/Multicore-TSNE"@459..526
+    NEWLINE: "\n"@526..527
+    BLANK_LINE: "\n"@527..528
+    TEXT_LINE: ".. array-support:: tl.tsne"@528..554
+  }
+  NEWLINE: "\n"@554..555
+  BLANK_LINE: "\n"@555..556
+  SECTION@556..2974 {
+    SECTION_HEADER@556..577 {
+      NAME: "Parameters"@556..566
+      NEWLINE: "\n"@566..567
+      UNDERLINE: "----------"@567..577
+    }
+    NEWLINE: "\n"@577..578
+    ENTRY@578..610 {
+      NAME: "adata"@578..583
+      NEWLINE: "\n"@583..584
+      WHITESPACE: "    "@584..588
+      DESCRIPTION@588..610 {
+        TEXT_LINE: "Annotated data matrix."@588..610
+      }
+    }
+    NEWLINE: "\n"@610..611
+    ENTRY@611..684 {
+      NAME: "n_pcs"@611..616
+      NEWLINE: "\n"@616..617
+      WHITESPACE: "    "@617..621
+      DESCRIPTION@621..684 {
+        TEXT_LINE: "Use this many PCs. If `n_pcs==0` use `.X` if `use_rep is None`."@621..684
+      }
+    }
+    NEWLINE: "\n"@684..685
+    ENTRY@685..1029 {
+      NAME: "use_rep"@685..692
+      NEWLINE: "\n"@692..693
+      WHITESPACE: "    "@693..697
+      DESCRIPTION@697..1029 {
+        TEXT_LINE: "Use the indicated representation. `'X'` or any key for `.obsm` is valid."@697..769
+        NEWLINE: "\n"@769..770
+        WHITESPACE: "    "@770..774
+        TEXT_LINE: "If `None`, the representation is chosen automatically:"@774..828
+        NEWLINE: "\n"@828..829
+        WHITESPACE: "    "@829..833
+        TEXT_LINE: "For `.n_vars` < :attr:`~scanpy.settings.N_PCS` (default: 50), `.X` is used, otherwise 'X_pca' is used."@833..935
+        NEWLINE: "\n"@935..936
+        WHITESPACE: "    "@936..940
+        TEXT_LINE: "If 'X_pca' is not present, it’s computed with default parameters or `n_pcs` if present."@940..1029
+      }
+    }
+    NEWLINE: "\n"@1029..1030
+    ENTRY@1030..1089 {
+      NAME: "n_components"@1030..1042
+      NEWLINE: "\n"@1042..1043
+      WHITESPACE: "    "@1043..1047
+      DESCRIPTION@1047..1089 {
+        TEXT_LINE: "The number of dimensions of the embedding."@1047..1089
+      }
+    }
+    NEWLINE: "\n"@1089..1090
+    ENTRY@1090..1420 {
+      NAME: "perplexity"@1090..1100
+      NEWLINE: "\n"@1100..1101
+      WHITESPACE: "    "@1101..1105
+      DESCRIPTION@1105..1420 {
+        TEXT_LINE: "The perplexity is related to the number of nearest neighbors that"@1105..1170
+        NEWLINE: "\n"@1170..1171
+        WHITESPACE: "    "@1171..1175
+        TEXT_LINE: "is used in other manifold learning algorithms. Larger datasets"@1175..1237
+        NEWLINE: "\n"@1237..1238
+        WHITESPACE: "    "@1238..1242
+        TEXT_LINE: "usually require a larger perplexity. Consider selecting a value"@1242..1305
+        NEWLINE: "\n"@1305..1306
+        WHITESPACE: "    "@1306..1310
+        TEXT_LINE: "between 5 and 50. The choice is not extremely critical since t-SNE"@1310..1376
+        NEWLINE: "\n"@1376..1377
+        WHITESPACE: "    "@1377..1381
+        TEXT_LINE: "is quite insensitive to this parameter."@1381..1420
+      }
+    }
+    NEWLINE: "\n"@1420..1421
+    ENTRY@1421..1471 {
+      NAME: "metric"@1421..1427
+      NEWLINE: "\n"@1427..1428
+      WHITESPACE: "    "@1428..1432
+      DESCRIPTION@1432..1471 {
+        TEXT_LINE: "Distance metric calculate neighbors on."@1432..1471
+      }
+    }
+    NEWLINE: "\n"@1471..1472
+    ENTRY@1472..1919 {
+      NAME: "early_exaggeration"@1472..1490
+      NEWLINE: "\n"@1490..1491
+      WHITESPACE: "    "@1491..1495
+      DESCRIPTION@1495..1919 {
+        TEXT_LINE: "Controls how tight natural clusters in the original space are in the"@1495..1563
+        NEWLINE: "\n"@1563..1564
+        WHITESPACE: "    "@1564..1568
+        TEXT_LINE: "embedded space and how much space will be between them. For larger"@1568..1634
+        NEWLINE: "\n"@1634..1635
+        WHITESPACE: "    "@1635..1639
+        TEXT_LINE: "values, the space between natural clusters will be larger in the"@1639..1703
+        NEWLINE: "\n"@1703..1704
+        WHITESPACE: "    "@1704..1708
+        TEXT_LINE: "embedded space. Again, the choice of this parameter is not very"@1708..1771
+        NEWLINE: "\n"@1771..1772
+        WHITESPACE: "    "@1772..1776
+        TEXT_LINE: "critical. If the cost function increases during initial optimization,"@1776..1845
+        NEWLINE: "\n"@1845..1846
+        WHITESPACE: "    "@1846..1850
+        TEXT_LINE: "the early exaggeration factor or the learning rate might be too high."@1850..1919
+      }
+    }
+    NEWLINE: "\n"@1919..1920
+    ENTRY@1920..2325 {
+      NAME: "learning_rate"@1920..1933
+      NEWLINE: "\n"@1933..1934
+      WHITESPACE: "    "@1934..1938
+      DESCRIPTION@1938..2325 {
+        TEXT_LINE: "Note that the R-package \"Rtsne\" uses a default of 200."@1938..1992
+        NEWLINE: "\n"@1992..1993
+        WHITESPACE: "    "@1993..1997
+        TEXT_LINE: "The learning rate can be a critical parameter. It should be"@1997..2056
+        NEWLINE: "\n"@2056..2057
+        WHITESPACE: "    "@2057..2061
+        TEXT_LINE: "between 100 and 1000. If the cost function increases during initial"@2061..2128
+        NEWLINE: "\n"@2128..2129
+        WHITESPACE: "    "@2129..2133
+        TEXT_LINE: "optimization, the early exaggeration factor or the learning rate"@2133..2197
+        NEWLINE: "\n"@2197..2198
+        WHITESPACE: "    "@2198..2202
+        TEXT_LINE: "might be too high. If the cost function gets stuck in a bad local"@2202..2267
+        NEWLINE: "\n"@2267..2268
+        WHITESPACE: "    "@2268..2272
+        TEXT_LINE: "minimum increasing the learning rate helps sometimes."@2272..2325
+      }
+    }
+    NEWLINE: "\n"@2325..2326
+    ENTRY@2326..2461 {
+      NAME: "random_state"@2326..2338
+      NEWLINE: "\n"@2338..2339
+      WHITESPACE: "    "@2339..2343
+      DESCRIPTION@2343..2461 {
+        TEXT_LINE: "Change this to use different intial states for the optimization."@2343..2407
+        NEWLINE: "\n"@2407..2408
+        WHITESPACE: "    "@2408..2412
+        TEXT_LINE: "If `None`, the initial state is not reproducible."@2412..2461
+      }
+    }
+    NEWLINE: "\n"@2461..2462
+    ENTRY@2462..2568 {
+      NAME: "n_jobs"@2462..2468
+      NEWLINE: "\n"@2468..2469
+      WHITESPACE: "    "@2469..2473
+      DESCRIPTION@2473..2568 {
+        TEXT_LINE: "Number of jobs for parallel computation."@2473..2513
+        NEWLINE: "\n"@2513..2514
+        WHITESPACE: "    "@2514..2518
+        TEXT_LINE: "`None` means using :attr:`scanpy.settings.n_jobs`."@2518..2568
+      }
+    }
+    NEWLINE: "\n"@2568..2569
+    ENTRY@2569..2920 {
+      NAME: "key_added"@2569..2578
+      NEWLINE: "\n"@2578..2579
+      WHITESPACE: "    "@2579..2583
+      DESCRIPTION@2583..2920 {
+        TEXT_LINE: "If not specified, the embedding is stored as"@2583..2627
+        NEWLINE: "\n"@2627..2628
+        WHITESPACE: "    "@2628..2632
+        TEXT_LINE: ":attr:`~anndata.AnnData.obsm`\\ `['X_tsne']` and the the parameters in"@2632..2701
+        NEWLINE: "\n"@2701..2702
+        WHITESPACE: "    "@2702..2706
+        TEXT_LINE: ":attr:`~anndata.AnnData.uns`\\ `['tsne']`."@2706..2747
+        NEWLINE: "\n"@2747..2748
+        WHITESPACE: "    "@2748..2752
+        TEXT_LINE: "If specified, the embedding is stored as"@2752..2792
+        NEWLINE: "\n"@2792..2793
+        WHITESPACE: "    "@2793..2797
+        TEXT_LINE: ":attr:`~anndata.AnnData.obsm`\\ ``[key_added]`` and the the parameters in"@2797..2869
+        NEWLINE: "\n"@2869..2870
+        WHITESPACE: "    "@2870..2874
+        TEXT_LINE: ":attr:`~anndata.AnnData.uns`\\ ``[key_added]``."@2874..2920
+      }
+    }
+    NEWLINE: "\n"@2920..2921
+    ENTRY@2921..2974 {
+      NAME: "copy"@2921..2925
+      NEWLINE: "\n"@2925..2926
+      WHITESPACE: "    "@2926..2930
+      DESCRIPTION@2930..2974 {
+        TEXT_LINE: "Return a copy instead of writing to `adata`."@2930..2974
+      }
+    }
+  }
+  NEWLINE: "\n"@2974..2975
+  BLANK_LINE: "\n"@2975..2976
+  SECTION@2976..3260 {
+    SECTION_HEADER@2976..2991 {
+      NAME: "Returns"@2976..2983
+      NEWLINE: "\n"@2983..2984
+      UNDERLINE: "-------"@2984..2991
+    }
+    NEWLINE: "\n"@2991..2992
+    ENTRY@2992..3084 {
+      TYPE: "Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:"@2992..3084
+    }
+    NEWLINE: "\n"@3084..3085
+    BLANK_LINE: "\n"@3085..3086
+    ENTRY@3086..3191 {
+      NAME: "`adata.obsm['X_tsne' | key_added]`"@3086..3120
+      WHITESPACE: " "@3120..3121
+      COLON: ":"@3121..3122
+      WHITESPACE: " "@3122..3123
+      TYPE: ":class:`numpy.ndarray` (dtype `float`)"@3123..3161
+      NEWLINE: "\n"@3161..3162
+      WHITESPACE: "    "@3162..3166
+      DESCRIPTION@3166..3191 {
+        TEXT_LINE: "tSNE coordinates of data."@3166..3191
+      }
+    }
+    NEWLINE: "\n"@3191..3192
+    ENTRY@3192..3260 {
+      NAME: "`adata.uns['tsne' | key_added]`"@3192..3223
+      WHITESPACE: " "@3223..3224
+      COLON: ":"@3224..3225
+      WHITESPACE: " "@3225..3226
+      TYPE: ":class:`dict`"@3226..3239
+      NEWLINE: "\n"@3239..3240
+      WHITESPACE: "    "@3240..3244
+      DESCRIPTION@3244..3260 {
+        TEXT_LINE: "tSNE parameters."@3244..3260
+      }
+    }
+  }
+}
+=== EMIT ===
+t-SNE :cite:p:`vanDerMaaten2008,Amir2013,Pedregosa2011`.
+
+t-distributed stochastic neighborhood embedding (tSNE, :cite:t:`vanDerMaaten2008`) was
+proposed for visualizating single-cell data by :cite:t:`Amir2013`. Here, by default,
+we use the implementation of *scikit-learn* :cite:p:`Pedregosa2011`. You can achieve
+a huge speedup and better convergence if you install Multicore-tSNE_
+by :cite:t:`Ulyanov2016`, which will be automatically detected by Scanpy.
+
+.. _multicore-tsne: https://github.com/DmitryUlyanov/Multicore-TSNE
+
+.. array-support:: tl.tsne
+
+Parameters
+----------
+adata
+    Annotated data matrix.
+n_pcs
+    Use this many PCs. If `n_pcs==0` use `.X` if `use_rep is None`.
+use_rep
+    Use the indicated representation. `'X'` or any key for `.obsm` is valid.
+    If `None`, the representation is chosen automatically:
+    For `.n_vars` < :attr:`~scanpy.settings.N_PCS` (default: 50), `.X` is used, otherwise 'X_pca' is used.
+    If 'X_pca' is not present, it’s computed with default parameters or `n_pcs` if present.
+n_components
+    The number of dimensions of the embedding.
+perplexity
+    The perplexity is related to the number of nearest neighbors that
+    is used in other manifold learning algorithms. Larger datasets
+    usually require a larger perplexity. Consider selecting a value
+    between 5 and 50. The choice is not extremely critical since t-SNE
+    is quite insensitive to this parameter.
+metric
+    Distance metric calculate neighbors on.
+early_exaggeration
+    Controls how tight natural clusters in the original space are in the
+    embedded space and how much space will be between them. For larger
+    values, the space between natural clusters will be larger in the
+    embedded space. Again, the choice of this parameter is not very
+    critical. If the cost function increases during initial optimization,
+    the early exaggeration factor or the learning rate might be too high.
+learning_rate
+    Note that the R-package "Rtsne" uses a default of 200.
+    The learning rate can be a critical parameter. It should be
+    between 100 and 1000. If the cost function increases during initial
+    optimization, the early exaggeration factor or the learning rate
+    might be too high. If the cost function gets stuck in a bad local
+    minimum increasing the learning rate helps sometimes.
+random_state
+    Change this to use different intial states for the optimization.
+    If `None`, the initial state is not reproducible.
+n_jobs
+    Number of jobs for parallel computation.
+    `None` means using :attr:`scanpy.settings.n_jobs`.
+key_added
+    If not specified, the embedding is stored as
+    :attr:`~anndata.AnnData.obsm`\ `['X_tsne']` and the the parameters in
+    :attr:`~anndata.AnnData.uns`\ `['tsne']`.
+    If specified, the embedding is stored as
+    :attr:`~anndata.AnnData.obsm`\ ``[key_added]`` and the the parameters in
+    :attr:`~anndata.AnnData.uns`\ ``[key_added]``.
+copy
+    Return a copy instead of writing to `adata`.
+
+Returns
+-------
+Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:
+`adata.obsm['X_tsne' | key_added]` : :class:`numpy.ndarray` (dtype `float`)
+    tSNE coordinates of data.
+`adata.uns['tsne' | key_added]` : :class:`dict`
+    tSNE parameters.

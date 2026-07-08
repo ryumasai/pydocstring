@@ -1,0 +1,486 @@
+=== CST ===
+DOCUMENT@0..5074 {
+  SUMMARY@0..109 {
+    TEXT_LINE: "Compute the nearest neighbors distance matrix and a neighborhood graph of observations :cite:p:`McInnes2018`."@0..109
+  }
+  NEWLINE: "\n"@109..110
+  BLANK_LINE: "\n"@110..111
+  EXTENDED_SUMMARY@111..560 {
+    TEXT_LINE: "The computation proceeds in two independent stages."@111..162
+    NEWLINE: "\n"@162..163
+    TEXT_LINE: "First, a k-nearest neighbor (kNN) search produces the distance matrix via the estimator passed as ``transformer``."@163..277
+    NEWLINE: "\n"@277..278
+    TEXT_LINE: "Second, connectivities are derived from the kNN search output by the kernel selected via ``method``."@278..378
+    NEWLINE: "\n"@378..379
+    TEXT_LINE: "The two stages are controlled by independent parameters:"@379..435
+    NEWLINE: "\n"@435..436
+    TEXT_LINE: "``transformer`` selects the kNN search backend,"@436..483
+    NEWLINE: "\n"@483..484
+    TEXT_LINE: "``method`` selects the connectivity kernel."@484..527
+    NEWLINE: "\n"@527..528
+    BLANK_LINE: "\n"@528..529
+    TEXT_LINE: ".. array-support:: pp.neighbors"@529..560
+  }
+  NEWLINE: "\n"@560..561
+  BLANK_LINE: "\n"@561..562
+  SECTION@562..3783 {
+    SECTION_HEADER@562..583 {
+      NAME: "Parameters"@562..572
+      NEWLINE: "\n"@572..573
+      UNDERLINE: "----------"@573..583
+    }
+    NEWLINE: "\n"@583..584
+    ENTRY@584..616 {
+      NAME: "adata"@584..589
+      NEWLINE: "\n"@589..590
+      WHITESPACE: "    "@590..594
+      DESCRIPTION@594..616 {
+        TEXT_LINE: "Annotated data matrix."@594..616
+      }
+    }
+    NEWLINE: "\n"@616..617
+    ENTRY@617..1155 {
+      NAME: "n_neighbors"@617..628
+      NEWLINE: "\n"@628..629
+      WHITESPACE: "    "@629..633
+      DESCRIPTION@633..1155 {
+        TEXT_LINE: "The size of local neighborhood (in terms of number of neighboring data"@633..703
+        NEWLINE: "\n"@703..704
+        WHITESPACE: "    "@704..708
+        TEXT_LINE: "points) used for manifold approximation. Larger values result in more"@708..777
+        NEWLINE: "\n"@777..778
+        WHITESPACE: "    "@778..782
+        TEXT_LINE: "global views of the manifold, while smaller values result in more local"@782..853
+        NEWLINE: "\n"@853..854
+        WHITESPACE: "    "@854..858
+        TEXT_LINE: "data being preserved. In general values should be in the range 2 to 100."@858..930
+        NEWLINE: "\n"@930..931
+        WHITESPACE: "    "@931..935
+        TEXT_LINE: "If `knn` is `True`, number of nearest neighbors to be searched. If `knn`"@935..1007
+        NEWLINE: "\n"@1007..1008
+        WHITESPACE: "    "@1008..1012
+        TEXT_LINE: "is `False`, a Gaussian kernel width is set to the distance of the"@1012..1077
+        NEWLINE: "\n"@1077..1078
+        WHITESPACE: "    "@1078..1082
+        TEXT_LINE: "`n_neighbors` neighbor."@1082..1105
+        NEWLINE: "\n"@1105..1106
+        BLANK_LINE: "\n"@1106..1107
+        WHITESPACE: "    "@1107..1111
+        TEXT_LINE: "*ignored if ``transformer`` is an instance.*"@1111..1155
+      }
+    }
+    NEWLINE: "\n"@1155..1156
+    ENTRY@1156..1229 {
+      NAME: "n_pcs"@1156..1161
+      NEWLINE: "\n"@1161..1162
+      WHITESPACE: "    "@1162..1166
+      DESCRIPTION@1166..1229 {
+        TEXT_LINE: "Use this many PCs. If `n_pcs==0` use `.X` if `use_rep is None`."@1166..1229
+      }
+    }
+    NEWLINE: "\n"@1229..1230
+    ENTRY@1230..1574 {
+      NAME: "use_rep"@1230..1237
+      NEWLINE: "\n"@1237..1238
+      WHITESPACE: "    "@1238..1242
+      DESCRIPTION@1242..1574 {
+        TEXT_LINE: "Use the indicated representation. `'X'` or any key for `.obsm` is valid."@1242..1314
+        NEWLINE: "\n"@1314..1315
+        WHITESPACE: "    "@1315..1319
+        TEXT_LINE: "If `None`, the representation is chosen automatically:"@1319..1373
+        NEWLINE: "\n"@1373..1374
+        WHITESPACE: "    "@1374..1378
+        TEXT_LINE: "For `.n_vars` < :attr:`~scanpy.settings.N_PCS` (default: 50), `.X` is used, otherwise 'X_pca' is used."@1378..1480
+        NEWLINE: "\n"@1480..1481
+        WHITESPACE: "    "@1481..1485
+        TEXT_LINE: "If 'X_pca' is not present, it’s computed with default parameters or `n_pcs` if present."@1485..1574
+      }
+    }
+    NEWLINE: "\n"@1574..1575
+    ENTRY@1575..1833 {
+      NAME: "knn"@1575..1578
+      NEWLINE: "\n"@1578..1579
+      WHITESPACE: "    "@1579..1583
+      DESCRIPTION@1583..1833 {
+        TEXT_LINE: "If `True`, use a hard threshold to restrict the number of neighbors to"@1583..1653
+        NEWLINE: "\n"@1653..1654
+        WHITESPACE: "    "@1654..1658
+        TEXT_LINE: "`n_neighbors`, that is, consider a knn graph. Otherwise, use a Gaussian"@1658..1729
+        NEWLINE: "\n"@1729..1730
+        WHITESPACE: "    "@1730..1734
+        TEXT_LINE: "Kernel to assign low weights to neighbors more distant than the"@1734..1797
+        NEWLINE: "\n"@1797..1798
+        WHITESPACE: "    "@1798..1802
+        TEXT_LINE: "`n_neighbors` nearest neighbor."@1802..1833
+      }
+    }
+    NEWLINE: "\n"@1833..1834
+    ENTRY@1834..2224 {
+      NAME: "method"@1834..1840
+      NEWLINE: "\n"@1840..1841
+      WHITESPACE: "    "@1841..1845
+      DESCRIPTION@1845..2224 {
+        TEXT_LINE: "Kernel that derives connectivities from the kNN search output."@1845..1907
+        NEWLINE: "\n"@1907..1908
+        WHITESPACE: "    "@1908..1912
+        TEXT_LINE: "The choice is independent of the kNN search backend,"@1912..1964
+        NEWLINE: "\n"@1964..1965
+        WHITESPACE: "    "@1965..1969
+        TEXT_LINE: "which is controlled by ``transformer``."@1969..2008
+        NEWLINE: "\n"@2008..2009
+        WHITESPACE: "    "@2009..2013
+        TEXT_LINE: "Use 'umap' :cite:p:`McInnes2018`,"@2013..2046
+        NEWLINE: "\n"@2046..2047
+        WHITESPACE: "    "@2047..2051
+        TEXT_LINE: "'gauss' (Gauss kernel following :cite:t:`Coifman2005` with adaptive width :cite:t:`Haghverdi2016`),"@2051..2150
+        NEWLINE: "\n"@2150..2151
+        WHITESPACE: "    "@2151..2155
+        TEXT_LINE: "or 'jaccard' (Jaccard kernel as in PhenoGraph, :cite:t:`Levine2015`)."@2155..2224
+      }
+    }
+    NEWLINE: "\n"@2224..2225
+    ENTRY@2225..2909 {
+      NAME: "transformer"@2225..2236
+      NEWLINE: "\n"@2236..2237
+      WHITESPACE: "    "@2237..2241
+      DESCRIPTION@2241..2909 {
+        TEXT_LINE: "kNN search backend following the API of"@2241..2280
+        NEWLINE: "\n"@2280..2281
+        WHITESPACE: "    "@2281..2285
+        TEXT_LINE: ":class:`~sklearn.neighbors.KNeighborsTransformer`."@2285..2335
+        NEWLINE: "\n"@2335..2336
+        WHITESPACE: "    "@2336..2340
+        TEXT_LINE: "See :doc:`/how-to/knn-transformers` for more details."@2340..2393
+        NEWLINE: "\n"@2393..2394
+        WHITESPACE: "    "@2394..2398
+        TEXT_LINE: "Also accepts the following known options:"@2398..2439
+        NEWLINE: "\n"@2439..2440
+        BLANK_LINE: "\n"@2440..2441
+        WHITESPACE: "    "@2441..2445
+        TEXT_LINE: "`None` (the default)"@2445..2465
+        NEWLINE: "\n"@2465..2466
+        WHITESPACE: "        "@2466..2474
+        TEXT_LINE: "Behavior depends on data size."@2474..2504
+        NEWLINE: "\n"@2504..2505
+        WHITESPACE: "        "@2505..2513
+        TEXT_LINE: "For small data, we will calculate exact kNN, otherwise we use"@2513..2574
+        NEWLINE: "\n"@2574..2575
+        WHITESPACE: "        "@2575..2583
+        TEXT_LINE: ":class:`~pynndescent.pynndescent_.PyNNDescentTransformer`"@2583..2640
+        NEWLINE: "\n"@2640..2641
+        WHITESPACE: "    "@2641..2645
+        TEXT_LINE: "`'pynndescent'`"@2645..2660
+        NEWLINE: "\n"@2660..2661
+        WHITESPACE: "        "@2661..2669
+        TEXT_LINE: ":class:`~pynndescent.pynndescent_.PyNNDescentTransformer`"@2669..2726
+        NEWLINE: "\n"@2726..2727
+        WHITESPACE: "    "@2727..2731
+        TEXT_LINE: "`'rapids'`"@2731..2741
+        NEWLINE: "\n"@2741..2742
+        WHITESPACE: "        "@2742..2750
+        TEXT_LINE: "A transformer based on :class:`cuml.neighbors.NearestNeighbors`."@2750..2814
+        NEWLINE: "\n"@2814..2815
+        BLANK_LINE: "\n"@2815..2816
+        WHITESPACE: "        "@2816..2824
+        TEXT_LINE: ".. deprecated:: 1.10.0"@2824..2846
+        NEWLINE: "\n"@2846..2847
+        WHITESPACE: "           "@2847..2858
+        TEXT_LINE: "Use :func:`rapids_singlecell.pp.neighbors` instead."@2858..2909
+      }
+    }
+    NEWLINE: "\n"@2909..2910
+    ENTRY@2910..3158 {
+      NAME: "metric"@2910..2916
+      NEWLINE: "\n"@2916..2917
+      WHITESPACE: "    "@2917..2921
+      DESCRIPTION@2921..3158 {
+        TEXT_LINE: "A known metric’s name or a callable that returns a distance."@2921..2983
+        NEWLINE: "\n"@2983..2984
+        WHITESPACE: "    "@2984..2988
+        TEXT_LINE: "If `distances` is given, this parameter is simply stored in `.uns` (see below),"@2988..3067
+        NEWLINE: "\n"@3067..3068
+        WHITESPACE: "    "@3068..3072
+        TEXT_LINE: "otherwise defaults to `'euclidean'`."@3072..3108
+        NEWLINE: "\n"@3108..3109
+        BLANK_LINE: "\n"@3109..3110
+        WHITESPACE: "    "@3110..3114
+        TEXT_LINE: "*ignored if ``transformer`` is an instance.*"@3114..3158
+      }
+    }
+    NEWLINE: "\n"@3158..3159
+    ENTRY@3159..3248 {
+      NAME: "metric_kwds"@3159..3170
+      NEWLINE: "\n"@3170..3171
+      WHITESPACE: "    "@3171..3175
+      DESCRIPTION@3175..3248 {
+        TEXT_LINE: "Options for the metric."@3175..3198
+        NEWLINE: "\n"@3198..3199
+        BLANK_LINE: "\n"@3199..3200
+        WHITESPACE: "    "@3200..3204
+        TEXT_LINE: "*ignored if ``transformer`` is an instance.*"@3204..3248
+      }
+    }
+    NEWLINE: "\n"@3248..3249
+    ENTRY@3249..3336 {
+      NAME: "random_state"@3249..3261
+      NEWLINE: "\n"@3261..3262
+      WHITESPACE: "    "@3262..3266
+      DESCRIPTION@3266..3336 {
+        TEXT_LINE: "A numpy random seed."@3266..3286
+        NEWLINE: "\n"@3286..3287
+        BLANK_LINE: "\n"@3287..3288
+        WHITESPACE: "    "@3288..3292
+        TEXT_LINE: "*ignored if ``transformer`` is an instance.*"@3292..3336
+      }
+    }
+    NEWLINE: "\n"@3336..3337
+    ENTRY@3337..3731 {
+      NAME: "key_added"@3337..3346
+      NEWLINE: "\n"@3346..3347
+      WHITESPACE: "    "@3347..3351
+      DESCRIPTION@3351..3731 {
+        TEXT_LINE: "If not specified, the neighbors data is stored in `.uns['neighbors']`,"@3351..3421
+        NEWLINE: "\n"@3421..3422
+        WHITESPACE: "    "@3422..3426
+        TEXT_LINE: "distances and connectivities are stored in `.obsp['distances']` and"@3426..3493
+        NEWLINE: "\n"@3493..3494
+        WHITESPACE: "    "@3494..3498
+        TEXT_LINE: "`.obsp['connectivities']` respectively."@3498..3537
+        NEWLINE: "\n"@3537..3538
+        WHITESPACE: "    "@3538..3542
+        TEXT_LINE: "If specified, the neighbors data is added to .uns[key_added],"@3542..3603
+        NEWLINE: "\n"@3603..3604
+        WHITESPACE: "    "@3604..3608
+        TEXT_LINE: "distances are stored in `.obsp[f'{key_added}_distances']` and"@3608..3669
+        NEWLINE: "\n"@3669..3670
+        WHITESPACE: "    "@3670..3674
+        TEXT_LINE: "connectivities in `.obsp[f'{key_added}_connectivities']`."@3674..3731
+      }
+    }
+    NEWLINE: "\n"@3731..3732
+    ENTRY@3732..3783 {
+      NAME: "copy"@3732..3736
+      NEWLINE: "\n"@3736..3737
+      WHITESPACE: "    "@3737..3741
+      DESCRIPTION@3741..3783 {
+        TEXT_LINE: "Return a copy instead of writing to adata."@3741..3783
+      }
+    }
+  }
+  NEWLINE: "\n"@3783..3784
+  BLANK_LINE: "\n"@3784..3785
+  SECTION@3785..4524 {
+    SECTION_HEADER@3785..3800 {
+      NAME: "Returns"@3785..3792
+      NEWLINE: "\n"@3792..3793
+      UNDERLINE: "-------"@3793..3800
+    }
+    NEWLINE: "\n"@3800..3801
+    ENTRY@3801..3893 {
+      TYPE: "Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:"@3801..3893
+    }
+    NEWLINE: "\n"@3893..3894
+    BLANK_LINE: "\n"@3894..3895
+    ENTRY@3895..4201 {
+      NAME: "`adata.obsp['distances' | f'{key_added}_distances']`"@3895..3947
+      WHITESPACE: " "@3947..3948
+      COLON: ":"@3948..3949
+      WHITESPACE: " "@3949..3950
+      TYPE: ":class:`scipy.sparse.csr_matrix` (dtype `float`)"@3950..3998
+      NEWLINE: "\n"@3998..3999
+      WHITESPACE: "    "@3999..4003
+      DESCRIPTION@4003..4201 {
+        TEXT_LINE: "Distance matrix of the nearest neighbors search. Each row (cell) has `n_neighbors`-1 non-zero entries. These are the distances to their `n_neighbors`-1 nearest neighbors (excluding the cell itself)."@4003..4201
+      }
+    }
+    NEWLINE: "\n"@4201..4202
+    ENTRY@4202..4445 {
+      NAME: "`adata.obsp['connectivities' | f'{key_added}_connectivities']`"@4202..4264
+      WHITESPACE: " "@4264..4265
+      COLON: ":"@4265..4266
+      WHITESPACE: " "@4266..4267
+      TYPE: ":class:`scipy.sparse._csr.csr_matrix` (dtype `float`)"@4267..4320
+      NEWLINE: "\n"@4320..4321
+      WHITESPACE: "    "@4321..4325
+      DESCRIPTION@4325..4445 {
+        TEXT_LINE: "Weighted adjacency matrix of the neighborhood graph of data"@4325..4384
+        NEWLINE: "\n"@4384..4385
+        WHITESPACE: "    "@4385..4389
+        TEXT_LINE: "points. Weights should be interpreted as connectivities."@4389..4445
+      }
+    }
+    NEWLINE: "\n"@4445..4446
+    ENTRY@4446..4524 {
+      NAME: "`adata.uns['neighbors' | key_added]`"@4446..4482
+      WHITESPACE: " "@4482..4483
+      COLON: ":"@4483..4484
+      WHITESPACE: " "@4484..4485
+      TYPE: ":class:`dict`"@4485..4498
+      NEWLINE: "\n"@4498..4499
+      WHITESPACE: "    "@4499..4503
+      DESCRIPTION@4503..4524 {
+        TEXT_LINE: "neighbors parameters."@4503..4524
+      }
+    }
+  }
+  NEWLINE: "\n"@4524..4525
+  BLANK_LINE: "\n"@4525..4526
+  SECTION@4526..5023 {
+    SECTION_HEADER@4526..4543 {
+      NAME: "Examples"@4526..4534
+      NEWLINE: "\n"@4534..4535
+      UNDERLINE: "--------"@4535..4543
+    }
+    NEWLINE: "\n"@4543..4544
+    DESCRIPTION@4544..5023 {
+      TEXT_LINE: ">>> import scanpy as sc"@4544..4567
+      NEWLINE: "\n"@4567..4568
+      TEXT_LINE: ">>> adata = sc.datasets.pbmc68k_reduced()"@4568..4609
+      NEWLINE: "\n"@4609..4610
+      TEXT_LINE: ">>> # Basic usage"@4610..4627
+      NEWLINE: "\n"@4627..4628
+      TEXT_LINE: ">>> sc.pp.neighbors(adata, 20, metric=\"cosine\")"@4628..4675
+      NEWLINE: "\n"@4675..4676
+      TEXT_LINE: ">>> # Provide your own transformer for more control and flexibility"@4676..4743
+      NEWLINE: "\n"@4743..4744
+      TEXT_LINE: ">>> from sklearn.neighbors import KNeighborsTransformer"@4744..4799
+      NEWLINE: "\n"@4799..4800
+      TEXT_LINE: ">>> transformer = KNeighborsTransformer("@4800..4840
+      NEWLINE: "\n"@4840..4841
+      TEXT_LINE: "...     n_neighbors=10, metric=\"manhattan\", algorithm=\"kd_tree\""@4841..4904
+      NEWLINE: "\n"@4904..4905
+      TEXT_LINE: "... )"@4905..4910
+      NEWLINE: "\n"@4910..4911
+      TEXT_LINE: ">>> sc.pp.neighbors(adata, transformer=transformer)"@4911..4962
+      NEWLINE: "\n"@4962..4963
+      TEXT_LINE: ">>> # now you can e.g. access the index: `transformer._tree`"@4963..5023
+    }
+  }
+  NEWLINE: "\n"@5023..5024
+  BLANK_LINE: "\n"@5024..5025
+  SECTION@5025..5074 {
+    SECTION_HEADER@5025..5042 {
+      NAME: "See Also"@5025..5033
+      NEWLINE: "\n"@5033..5034
+      UNDERLINE: "--------"@5034..5042
+    }
+    NEWLINE: "\n"@5042..5043
+    ENTRY@5043..5074 {
+      NAME: ":doc:`/how-to/knn-transformers`"@5043..5074
+    }
+  }
+}
+=== EMIT ===
+Compute the nearest neighbors distance matrix and a neighborhood graph of observations :cite:p:`McInnes2018`.
+
+The computation proceeds in two independent stages.
+First, a k-nearest neighbor (kNN) search produces the distance matrix via the estimator passed as ``transformer``.
+Second, connectivities are derived from the kNN search output by the kernel selected via ``method``.
+The two stages are controlled by independent parameters:
+``transformer`` selects the kNN search backend,
+``method`` selects the connectivity kernel.
+
+.. array-support:: pp.neighbors
+
+Parameters
+----------
+adata
+    Annotated data matrix.
+n_neighbors
+    The size of local neighborhood (in terms of number of neighboring data
+    points) used for manifold approximation. Larger values result in more
+    global views of the manifold, while smaller values result in more local
+    data being preserved. In general values should be in the range 2 to 100.
+    If `knn` is `True`, number of nearest neighbors to be searched. If `knn`
+    is `False`, a Gaussian kernel width is set to the distance of the
+    `n_neighbors` neighbor.
+
+    *ignored if ``transformer`` is an instance.*
+n_pcs
+    Use this many PCs. If `n_pcs==0` use `.X` if `use_rep is None`.
+use_rep
+    Use the indicated representation. `'X'` or any key for `.obsm` is valid.
+    If `None`, the representation is chosen automatically:
+    For `.n_vars` < :attr:`~scanpy.settings.N_PCS` (default: 50), `.X` is used, otherwise 'X_pca' is used.
+    If 'X_pca' is not present, it’s computed with default parameters or `n_pcs` if present.
+knn
+    If `True`, use a hard threshold to restrict the number of neighbors to
+    `n_neighbors`, that is, consider a knn graph. Otherwise, use a Gaussian
+    Kernel to assign low weights to neighbors more distant than the
+    `n_neighbors` nearest neighbor.
+method
+    Kernel that derives connectivities from the kNN search output.
+    The choice is independent of the kNN search backend,
+    which is controlled by ``transformer``.
+    Use 'umap' :cite:p:`McInnes2018`,
+    'gauss' (Gauss kernel following :cite:t:`Coifman2005` with adaptive width :cite:t:`Haghverdi2016`),
+    or 'jaccard' (Jaccard kernel as in PhenoGraph, :cite:t:`Levine2015`).
+transformer
+    kNN search backend following the API of
+    :class:`~sklearn.neighbors.KNeighborsTransformer`.
+    See :doc:`/how-to/knn-transformers` for more details.
+    Also accepts the following known options:
+
+    `None` (the default)
+        Behavior depends on data size.
+        For small data, we will calculate exact kNN, otherwise we use
+        :class:`~pynndescent.pynndescent_.PyNNDescentTransformer`
+    `'pynndescent'`
+        :class:`~pynndescent.pynndescent_.PyNNDescentTransformer`
+    `'rapids'`
+        A transformer based on :class:`cuml.neighbors.NearestNeighbors`.
+
+        .. deprecated:: 1.10.0
+           Use :func:`rapids_singlecell.pp.neighbors` instead.
+metric
+    A known metric’s name or a callable that returns a distance.
+    If `distances` is given, this parameter is simply stored in `.uns` (see below),
+    otherwise defaults to `'euclidean'`.
+
+    *ignored if ``transformer`` is an instance.*
+metric_kwds
+    Options for the metric.
+
+    *ignored if ``transformer`` is an instance.*
+random_state
+    A numpy random seed.
+
+    *ignored if ``transformer`` is an instance.*
+key_added
+    If not specified, the neighbors data is stored in `.uns['neighbors']`,
+    distances and connectivities are stored in `.obsp['distances']` and
+    `.obsp['connectivities']` respectively.
+    If specified, the neighbors data is added to .uns[key_added],
+    distances are stored in `.obsp[f'{key_added}_distances']` and
+    connectivities in `.obsp[f'{key_added}_connectivities']`.
+copy
+    Return a copy instead of writing to adata.
+
+Returns
+-------
+Returns `None` if `copy=False`, else returns an `AnnData` object. Sets the following fields:
+`adata.obsp['distances' | f'{key_added}_distances']` : :class:`scipy.sparse.csr_matrix` (dtype `float`)
+    Distance matrix of the nearest neighbors search. Each row (cell) has `n_neighbors`-1 non-zero entries. These are the distances to their `n_neighbors`-1 nearest neighbors (excluding the cell itself).
+`adata.obsp['connectivities' | f'{key_added}_connectivities']` : :class:`scipy.sparse._csr.csr_matrix` (dtype `float`)
+    Weighted adjacency matrix of the neighborhood graph of data
+    points. Weights should be interpreted as connectivities.
+`adata.uns['neighbors' | key_added]` : :class:`dict`
+    neighbors parameters.
+
+Examples
+--------
+>>> import scanpy as sc
+>>> adata = sc.datasets.pbmc68k_reduced()
+>>> # Basic usage
+>>> sc.pp.neighbors(adata, 20, metric="cosine")
+>>> # Provide your own transformer for more control and flexibility
+>>> from sklearn.neighbors import KNeighborsTransformer
+>>> transformer = KNeighborsTransformer(
+...     n_neighbors=10, metric="manhattan", algorithm="kd_tree"
+... )
+>>> sc.pp.neighbors(adata, transformer=transformer)
+>>> # now you can e.g. access the index: `transformer._tree`
+
+See Also
+--------
+:doc:`/how-to/knn-transformers`

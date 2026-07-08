@@ -1,0 +1,289 @@
+=== CST ===
+DOCUMENT@0..2097 {
+  SUMMARY@0..64 {
+    TEXT_LINE: "Construct an array by executing a function over each coordinate."@0..64
+  }
+  NEWLINE: "\n"@64..65
+  BLANK_LINE: "\n"@65..66
+  EXTENDED_SUMMARY@66..152 {
+    TEXT_LINE: "The resulting array therefore has a value ``fn(x, y, z)`` at"@66..126
+    NEWLINE: "\n"@126..127
+    TEXT_LINE: "coordinate ``(x, y, z)``."@127..152
+  }
+  NEWLINE: "\n"@152..153
+  BLANK_LINE: "\n"@153..154
+  SECTION@154..1172 {
+    SECTION_HEADER@154..175 {
+      NAME: "Parameters"@154..164
+      NEWLINE: "\n"@164..165
+      UNDERLINE: "----------"@165..175
+    }
+    NEWLINE: "\n"@175..176
+    ENTRY@176..507 {
+      NAME: "function"@176..184
+      WHITESPACE: " "@184..185
+      COLON: ":"@185..186
+      WHITESPACE: " "@186..187
+      TYPE: "callable"@187..195
+      NEWLINE: "\n"@195..196
+      WHITESPACE: "    "@196..200
+      DESCRIPTION@200..507 {
+        TEXT_LINE: "The function is called with N parameters, where N is the rank of"@200..264
+        NEWLINE: "\n"@264..265
+        WHITESPACE: "    "@265..269
+        TEXT_LINE: "`shape`.  Each parameter represents the coordinates of the array"@269..333
+        NEWLINE: "\n"@333..334
+        WHITESPACE: "    "@334..338
+        TEXT_LINE: "varying along a specific axis.  For example, if `shape`"@338..393
+        NEWLINE: "\n"@393..394
+        WHITESPACE: "    "@394..398
+        TEXT_LINE: "were ``(2, 2)``, then the parameters would be"@398..443
+        NEWLINE: "\n"@443..444
+        WHITESPACE: "    "@444..448
+        TEXT_LINE: "``array([[0, 0], [1, 1]])`` and ``array([[0, 1], [0, 1]])``"@448..507
+      }
+    }
+    NEWLINE: "\n"@507..508
+    ENTRY@508..648 {
+      NAME: "shape"@508..513
+      WHITESPACE: " "@513..514
+      COLON: ":"@514..515
+      WHITESPACE: " "@515..516
+      TYPE: "(N,) tuple of ints"@516..534
+      NEWLINE: "\n"@534..535
+      WHITESPACE: "    "@535..539
+      DESCRIPTION@539..648 {
+        TEXT_LINE: "Shape of the output array, which also determines the shape of"@539..600
+        NEWLINE: "\n"@600..601
+        WHITESPACE: "    "@601..605
+        TEXT_LINE: "the coordinate arrays passed to `function`."@605..648
+      }
+    }
+    NEWLINE: "\n"@648..649
+    ENTRY@649..771 {
+      NAME: "dtype"@649..654
+      WHITESPACE: " "@654..655
+      COLON: ":"@655..656
+      WHITESPACE: " "@656..657
+      TYPE: "data-type"@657..666
+      COMMA: ","@666..667
+      WHITESPACE: " "@667..668
+      OPTIONAL: "optional"@668..676
+      NEWLINE: "\n"@676..677
+      WHITESPACE: "    "@677..681
+      DESCRIPTION@681..771 {
+        TEXT_LINE: "Data-type of the coordinate arrays passed to `function`."@681..737
+        NEWLINE: "\n"@737..738
+        WHITESPACE: "    "@738..742
+        TEXT_LINE: "By default, `dtype` is float."@742..771
+      }
+    }
+    NEWLINE: "\n"@771..772
+    ENTRY@772..1172 {
+      NAME: "like"@772..776
+      WHITESPACE: " "@776..777
+      COLON: ":"@777..778
+      WHITESPACE: " "@778..779
+      TYPE: "array_like"@779..789
+      COMMA: ","@789..790
+      WHITESPACE: " "@790..791
+      OPTIONAL: "optional"@791..799
+      NEWLINE: "\n"@799..800
+      WHITESPACE: "        "@800..808
+      DESCRIPTION@808..1172 {
+        TEXT_LINE: "Reference object to allow the creation of arrays which are not"@808..870
+        NEWLINE: "\n"@870..871
+        WHITESPACE: "        "@871..879
+        TEXT_LINE: "NumPy arrays. If an array-like passed in as ``like`` supports"@879..940
+        NEWLINE: "\n"@940..941
+        WHITESPACE: "        "@941..949
+        TEXT_LINE: "the ``__array_function__`` protocol, the result will be defined"@949..1012
+        NEWLINE: "\n"@1012..1013
+        WHITESPACE: "        "@1013..1021
+        TEXT_LINE: "by it. In this case, it ensures the creation of an array object"@1021..1084
+        NEWLINE: "\n"@1084..1085
+        WHITESPACE: "        "@1085..1093
+        TEXT_LINE: "compatible with that passed in via this argument."@1093..1142
+        NEWLINE: "\n"@1142..1143
+        BLANK_LINE: "\n"@1143..1144
+        WHITESPACE: "    "@1144..1148
+        TEXT_LINE: ".. versionadded:: 1.20.0"@1148..1172
+      }
+    }
+  }
+  NEWLINE: "\n"@1172..1173
+  BLANK_LINE: "\n"@1173..1174
+  SECTION@1174..1470 {
+    SECTION_HEADER@1174..1189 {
+      NAME: "Returns"@1174..1181
+      NEWLINE: "\n"@1181..1182
+      UNDERLINE: "-------"@1182..1189
+    }
+    NEWLINE: "\n"@1189..1190
+    ENTRY@1190..1470 {
+      NAME: "fromfunction"@1190..1202
+      WHITESPACE: " "@1202..1203
+      COLON: ":"@1203..1204
+      WHITESPACE: " "@1204..1205
+      TYPE: "any"@1205..1208
+      NEWLINE: "\n"@1208..1209
+      WHITESPACE: "    "@1209..1213
+      DESCRIPTION@1213..1470 {
+        TEXT_LINE: "The result of the call to `function` is passed back directly."@1213..1274
+        NEWLINE: "\n"@1274..1275
+        WHITESPACE: "    "@1275..1279
+        TEXT_LINE: "Therefore the shape of `fromfunction` is completely determined by"@1279..1344
+        NEWLINE: "\n"@1344..1345
+        WHITESPACE: "    "@1345..1349
+        TEXT_LINE: "`function`.  If `function` returns a scalar value, the shape of"@1349..1412
+        NEWLINE: "\n"@1412..1413
+        WHITESPACE: "    "@1413..1417
+        TEXT_LINE: "`fromfunction` would not match the `shape` parameter."@1417..1470
+      }
+    }
+  }
+  NEWLINE: "\n"@1470..1471
+  BLANK_LINE: "\n"@1471..1472
+  SECTION@1472..1507 {
+    SECTION_HEADER@1472..1489 {
+      NAME: "See Also"@1472..1480
+      NEWLINE: "\n"@1480..1481
+      UNDERLINE: "--------"@1481..1489
+    }
+    NEWLINE: "\n"@1489..1490
+    ENTRY@1490..1507 {
+      NAME: "indices"@1490..1497
+      COMMA: ","@1497..1498
+      WHITESPACE: " "@1498..1499
+      NAME: "meshgrid"@1499..1507
+    }
+  }
+  NEWLINE: "\n"@1507..1508
+  BLANK_LINE: "\n"@1508..1509
+  SECTION@1509..1585 {
+    SECTION_HEADER@1509..1520 {
+      NAME: "Notes"@1509..1514
+      NEWLINE: "\n"@1514..1515
+      UNDERLINE: "-----"@1515..1520
+    }
+    NEWLINE: "\n"@1520..1521
+    DESCRIPTION@1521..1585 {
+      TEXT_LINE: "Keywords other than `dtype` and `like` are passed to `function`."@1521..1585
+    }
+  }
+  NEWLINE: "\n"@1585..1586
+  BLANK_LINE: "\n"@1586..1587
+  SECTION@1587..2097 {
+    SECTION_HEADER@1587..1604 {
+      NAME: "Examples"@1587..1595
+      NEWLINE: "\n"@1595..1596
+      UNDERLINE: "--------"@1596..1604
+    }
+    NEWLINE: "\n"@1604..1605
+    DESCRIPTION@1605..2097 {
+      TEXT_LINE: ">>> import numpy as np"@1605..1627
+      NEWLINE: "\n"@1627..1628
+      TEXT_LINE: ">>> np.fromfunction(lambda i, j: i, (2, 2), dtype=np.float64)"@1628..1689
+      NEWLINE: "\n"@1689..1690
+      TEXT_LINE: "array([[0., 0.],"@1690..1706
+      NEWLINE: "\n"@1706..1707
+      WHITESPACE: "       "@1707..1714
+      TEXT_LINE: "[1., 1.]])"@1714..1724
+      NEWLINE: "\n"@1724..1725
+      BLANK_LINE: "\n"@1725..1726
+      TEXT_LINE: ">>> np.fromfunction(lambda i, j: j, (2, 2), dtype=np.float64)"@1726..1787
+      NEWLINE: "\n"@1787..1788
+      TEXT_LINE: "array([[0., 1.],"@1788..1804
+      NEWLINE: "\n"@1804..1805
+      WHITESPACE: "       "@1805..1812
+      TEXT_LINE: "[0., 1.]])"@1812..1822
+      NEWLINE: "\n"@1822..1823
+      BLANK_LINE: "\n"@1823..1824
+      TEXT_LINE: ">>> np.fromfunction(lambda i, j: i == j, (3, 3), dtype=np.int_)"@1824..1887
+      NEWLINE: "\n"@1887..1888
+      TEXT_LINE: "array([[ True, False, False],"@1888..1917
+      NEWLINE: "\n"@1917..1918
+      WHITESPACE: "       "@1918..1925
+      TEXT_LINE: "[False,  True, False],"@1925..1947
+      NEWLINE: "\n"@1947..1948
+      WHITESPACE: "       "@1948..1955
+      TEXT_LINE: "[False, False,  True]])"@1955..1978
+      NEWLINE: "\n"@1978..1979
+      BLANK_LINE: "\n"@1979..1980
+      TEXT_LINE: ">>> np.fromfunction(lambda i, j: i + j, (3, 3), dtype=np.int_)"@1980..2042
+      NEWLINE: "\n"@2042..2043
+      TEXT_LINE: "array([[0, 1, 2],"@2043..2060
+      NEWLINE: "\n"@2060..2061
+      WHITESPACE: "       "@2061..2068
+      TEXT_LINE: "[1, 2, 3],"@2068..2078
+      NEWLINE: "\n"@2078..2079
+      WHITESPACE: "       "@2079..2086
+      TEXT_LINE: "[2, 3, 4]])"@2086..2097
+    }
+  }
+}
+=== EMIT ===
+Construct an array by executing a function over each coordinate.
+
+The resulting array therefore has a value ``fn(x, y, z)`` at
+coordinate ``(x, y, z)``.
+
+Parameters
+----------
+function : callable
+    The function is called with N parameters, where N is the rank of
+    `shape`.  Each parameter represents the coordinates of the array
+    varying along a specific axis.  For example, if `shape`
+    were ``(2, 2)``, then the parameters would be
+    ``array([[0, 0], [1, 1]])`` and ``array([[0, 1], [0, 1]])``
+shape : (N,) tuple of ints
+    Shape of the output array, which also determines the shape of
+    the coordinate arrays passed to `function`.
+dtype : data-type, optional
+    Data-type of the coordinate arrays passed to `function`.
+    By default, `dtype` is float.
+like : array_like, optional
+    Reference object to allow the creation of arrays which are not
+        NumPy arrays. If an array-like passed in as ``like`` supports
+        the ``__array_function__`` protocol, the result will be defined
+        by it. In this case, it ensures the creation of an array object
+        compatible with that passed in via this argument.
+
+    .. versionadded:: 1.20.0
+
+Returns
+-------
+fromfunction : any
+    The result of the call to `function` is passed back directly.
+    Therefore the shape of `fromfunction` is completely determined by
+    `function`.  If `function` returns a scalar value, the shape of
+    `fromfunction` would not match the `shape` parameter.
+
+See Also
+--------
+indices, meshgrid
+
+Notes
+-----
+Keywords other than `dtype` and `like` are passed to `function`.
+
+Examples
+--------
+>>> import numpy as np
+>>> np.fromfunction(lambda i, j: i, (2, 2), dtype=np.float64)
+array([[0., 0.],
+       [1., 1.]])
+
+>>> np.fromfunction(lambda i, j: j, (2, 2), dtype=np.float64)
+array([[0., 1.],
+       [0., 1.]])
+
+>>> np.fromfunction(lambda i, j: i == j, (3, 3), dtype=np.int_)
+array([[ True, False, False],
+       [False,  True, False],
+       [False, False,  True]])
+
+>>> np.fromfunction(lambda i, j: i + j, (3, 3), dtype=np.int_)
+array([[0, 1, 2],
+       [1, 2, 3],
+       [2, 3, 4]])

@@ -1,0 +1,119 @@
+=== CST ===
+DOCUMENT@0..1033 {
+  SUMMARY@0..54 {
+    TEXT_LINE: "Convert a dict of values into process call parameters."@0..54
+  }
+  NEWLINE: "\n"@54..55
+  BLANK_LINE: "\n"@55..56
+  EXTENDED_SUMMARY@56..183 {
+    TEXT_LINE: "This method is used to convert a dictionary into a sequence of parameters"@56..129
+    NEWLINE: "\n"@129..130
+    TEXT_LINE: "for a binary that parses arguments using this module."@130..183
+  }
+  NEWLINE: "\n"@183..184
+  BLANK_LINE: "\n"@184..185
+  SECTION@185..966 {
+    SECTION_HEADER@185..190 {
+      NAME: "Args"@185..189
+      COLON: ":"@189..190
+    }
+    NEWLINE: "\n"@190..191
+    WHITESPACE: "  "@191..193
+    ENTRY@193..877 {
+      NAME: "flag_map"@193..201
+      COLON: ":"@201..202
+      WHITESPACE: " "@202..203
+      DESCRIPTION@203..877 {
+        TEXT_LINE: "dict, a mapping where the keys are flag names (strings)."@203..259
+        NEWLINE: "\n"@259..260
+        WHITESPACE: "      "@260..266
+        TEXT_LINE: "values are treated according to their type:"@266..309
+        NEWLINE: "\n"@309..310
+        BLANK_LINE: "\n"@310..311
+        WHITESPACE: "      "@311..317
+        TEXT_LINE: "* If value is ``None``, then only the name is emitted."@317..371
+        NEWLINE: "\n"@371..372
+        WHITESPACE: "      "@372..378
+        TEXT_LINE: "* If value is ``True``, then only the name is emitted."@378..432
+        NEWLINE: "\n"@432..433
+        WHITESPACE: "      "@433..439
+        TEXT_LINE: "* If value is ``False``, then only the name prepended with 'no' is"@439..505
+        NEWLINE: "\n"@505..506
+        WHITESPACE: "        "@506..514
+        TEXT_LINE: "emitted."@514..522
+        NEWLINE: "\n"@522..523
+        WHITESPACE: "      "@523..529
+        TEXT_LINE: "* If value is a string then ``--name=value`` is emitted."@529..585
+        NEWLINE: "\n"@585..586
+        WHITESPACE: "      "@586..592
+        TEXT_LINE: "* If value is a collection, this will emit"@592..634
+        NEWLINE: "\n"@634..635
+        WHITESPACE: "        "@635..643
+        TEXT_LINE: "``--name=value1,value2,value3``, unless the flag name is in"@643..702
+        NEWLINE: "\n"@702..703
+        WHITESPACE: "        "@703..711
+        TEXT_LINE: "``multi_flags``, in which case this will emit"@711..756
+        NEWLINE: "\n"@756..757
+        WHITESPACE: "        "@757..765
+        TEXT_LINE: "``--name=value1 --name=value2 --name=value3``."@765..811
+        NEWLINE: "\n"@811..812
+        WHITESPACE: "      "@812..818
+        TEXT_LINE: "* Everything else is converted to string an passed as such."@818..877
+      }
+    }
+    NEWLINE: "\n"@877..878
+    BLANK_LINE: "\n"@878..879
+    WHITESPACE: "  "@879..881
+    ENTRY@881..966 {
+      NAME: "multi_flags"@881..892
+      COLON: ":"@892..893
+      WHITESPACE: " "@893..894
+      DESCRIPTION@894..966 {
+        TEXT_LINE: "set, names (strings) of flags that should be treated as"@894..949
+        NEWLINE: "\n"@949..950
+        WHITESPACE: "    "@950..954
+        TEXT_LINE: "multi-flags."@954..966
+      }
+    }
+  }
+  NEWLINE: "\n"@966..967
+  BLANK_LINE: "\n"@967..968
+  SECTION@968..1033 {
+    SECTION_HEADER@968..975 {
+      NAME: "Yields"@968..974
+      COLON: ":"@974..975
+    }
+    NEWLINE: "\n"@975..976
+    WHITESPACE: "  "@976..978
+    ENTRY@978..1033 {
+      DESCRIPTION@978..1033 {
+        TEXT_LINE: "sequence of string suitable for a subprocess execution."@978..1033
+      }
+    }
+  }
+}
+=== EMIT ===
+Convert a dict of values into process call parameters.
+
+This method is used to convert a dictionary into a sequence of parameters
+for a binary that parses arguments using this module.
+
+Args:
+    flag_map: dict, a mapping where the keys are flag names (strings).
+        values are treated according to their type:
+
+        * If value is ``None``, then only the name is emitted.
+        * If value is ``True``, then only the name is emitted.
+        * If value is ``False``, then only the name prepended with 'no' is
+          emitted.
+        * If value is a string then ``--name=value`` is emitted.
+        * If value is a collection, this will emit
+          ``--name=value1,value2,value3``, unless the flag name is in
+          ``multi_flags``, in which case this will emit
+          ``--name=value1 --name=value2 --name=value3``.
+        * Everything else is converted to string an passed as such.
+    multi_flags: set, names (strings) of flags that should be treated as
+        multi-flags.
+
+Yields:
+    sequence of string suitable for a subprocess execution.

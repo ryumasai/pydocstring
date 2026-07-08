@@ -1,0 +1,327 @@
+=== CST ===
+DOCUMENT@0..2678 {
+  SUMMARY@0..83 {
+    TEXT_LINE: "Returns a boolean array where two arrays are element-wise equal within a"@0..72
+    NEWLINE: "\n"@72..73
+    TEXT_LINE: "tolerance."@73..83
+  }
+  NEWLINE: "\n"@83..84
+  BLANK_LINE: "\n"@84..85
+  EXTENDED_SUMMARY@85..450 {
+    TEXT_LINE: "The tolerance values are positive, typically very small numbers.  The"@85..154
+    NEWLINE: "\n"@154..155
+    TEXT_LINE: "relative difference (`rtol` * abs(`b`)) and the absolute difference"@155..222
+    NEWLINE: "\n"@222..223
+    TEXT_LINE: "`atol` are added together to compare against the absolute difference"@223..291
+    NEWLINE: "\n"@291..292
+    TEXT_LINE: "between `a` and `b`."@292..312
+    NEWLINE: "\n"@312..313
+    BLANK_LINE: "\n"@313..314
+    TEXT_LINE: ".. warning:: The default `atol` is not appropriate for comparing numbers"@314..386
+    NEWLINE: "\n"@386..387
+    WHITESPACE: "             "@387..400
+    TEXT_LINE: "with magnitudes much smaller than one (see Notes)."@400..450
+  }
+  NEWLINE: "\n"@450..451
+  BLANK_LINE: "\n"@451..452
+  SECTION@452..801 {
+    SECTION_HEADER@452..473 {
+      NAME: "Parameters"@452..462
+      NEWLINE: "\n"@462..463
+      UNDERLINE: "----------"@463..473
+    }
+    NEWLINE: "\n"@473..474
+    ENTRY@474..520 {
+      NAME: "a"@474..475
+      COMMA: ","@475..476
+      WHITESPACE: " "@476..477
+      NAME: "b"@477..478
+      WHITESPACE: " "@478..479
+      COLON: ":"@479..480
+      WHITESPACE: " "@480..481
+      TYPE: "array_like"@481..491
+      NEWLINE: "\n"@491..492
+      WHITESPACE: "    "@492..496
+      DESCRIPTION@496..520 {
+        TEXT_LINE: "Input arrays to compare."@496..520
+      }
+    }
+    NEWLINE: "\n"@520..521
+    ENTRY@521..588 {
+      NAME: "rtol"@521..525
+      WHITESPACE: " "@525..526
+      COLON: ":"@526..527
+      WHITESPACE: " "@527..528
+      TYPE: "array_like"@528..538
+      NEWLINE: "\n"@538..539
+      WHITESPACE: "    "@539..543
+      DESCRIPTION@543..588 {
+        TEXT_LINE: "The relative tolerance parameter (see Notes)."@543..588
+      }
+    }
+    NEWLINE: "\n"@588..589
+    ENTRY@589..656 {
+      NAME: "atol"@589..593
+      WHITESPACE: " "@593..594
+      COLON: ":"@594..595
+      WHITESPACE: " "@595..596
+      TYPE: "array_like"@596..606
+      NEWLINE: "\n"@606..607
+      WHITESPACE: "    "@607..611
+      DESCRIPTION@611..656 {
+        TEXT_LINE: "The absolute tolerance parameter (see Notes)."@611..656
+      }
+    }
+    NEWLINE: "\n"@656..657
+    ENTRY@657..801 {
+      NAME: "equal_nan"@657..666
+      WHITESPACE: " "@666..667
+      COLON: ":"@667..668
+      WHITESPACE: " "@668..669
+      TYPE: "bool"@669..673
+      NEWLINE: "\n"@673..674
+      WHITESPACE: "    "@674..678
+      DESCRIPTION@678..801 {
+        TEXT_LINE: "Whether to compare NaN's as equal.  If True, NaN's in `a` will be"@678..743
+        NEWLINE: "\n"@743..744
+        WHITESPACE: "    "@744..748
+        TEXT_LINE: "considered equal to NaN's in `b` in the output array."@748..801
+      }
+    }
+  }
+  NEWLINE: "\n"@801..802
+  BLANK_LINE: "\n"@802..803
+  SECTION@803..993 {
+    SECTION_HEADER@803..818 {
+      NAME: "Returns"@803..810
+      NEWLINE: "\n"@810..811
+      UNDERLINE: "-------"@811..818
+    }
+    NEWLINE: "\n"@818..819
+    ENTRY@819..993 {
+      NAME: "y"@819..820
+      WHITESPACE: " "@820..821
+      COLON: ":"@821..822
+      WHITESPACE: " "@822..823
+      TYPE: "array_like"@823..833
+      NEWLINE: "\n"@833..834
+      WHITESPACE: "    "@834..838
+      DESCRIPTION@838..993 {
+        TEXT_LINE: "Returns a boolean array of where `a` and `b` are equal within the"@838..903
+        NEWLINE: "\n"@903..904
+        WHITESPACE: "    "@904..908
+        TEXT_LINE: "given tolerance. If both `a` and `b` are scalars, returns a single"@908..974
+        NEWLINE: "\n"@974..975
+        WHITESPACE: "    "@975..979
+        TEXT_LINE: "boolean value."@979..993
+      }
+    }
+  }
+  NEWLINE: "\n"@993..994
+  BLANK_LINE: "\n"@994..995
+  SECTION@995..1034 {
+    SECTION_HEADER@995..1012 {
+      NAME: "See Also"@995..1003
+      NEWLINE: "\n"@1003..1004
+      UNDERLINE: "--------"@1004..1012
+    }
+    NEWLINE: "\n"@1012..1013
+    ENTRY@1013..1021 {
+      NAME: "allclose"@1013..1021
+    }
+    NEWLINE: "\n"@1021..1022
+    ENTRY@1022..1034 {
+      NAME: "math.isclose"@1022..1034
+    }
+  }
+  NEWLINE: "\n"@1034..1035
+  BLANK_LINE: "\n"@1035..1036
+  SECTION@1036..1983 {
+    SECTION_HEADER@1036..1047 {
+      NAME: "Notes"@1036..1041
+      NEWLINE: "\n"@1041..1042
+      UNDERLINE: "-----"@1042..1047
+    }
+    NEWLINE: "\n"@1047..1048
+    DESCRIPTION@1048..1983 {
+      TEXT_LINE: "For finite values, isclose uses the following equation to test whether"@1048..1118
+      NEWLINE: "\n"@1118..1119
+      TEXT_LINE: "two floating point values are equivalent.::"@1119..1162
+      NEWLINE: "\n"@1162..1163
+      BLANK_LINE: "\n"@1163..1164
+      WHITESPACE: " "@1164..1165
+      TEXT_LINE: "absolute(a - b) <= (atol + rtol * absolute(b))"@1165..1211
+      NEWLINE: "\n"@1211..1212
+      BLANK_LINE: "\n"@1212..1213
+      TEXT_LINE: "Unlike the built-in `math.isclose`, the above equation is not symmetric"@1213..1284
+      NEWLINE: "\n"@1284..1285
+      TEXT_LINE: "in `a` and `b` -- it assumes `b` is the reference value -- so that"@1285..1351
+      NEWLINE: "\n"@1351..1352
+      TEXT_LINE: "`isclose(a, b)` might be different from `isclose(b, a)`."@1352..1408
+      NEWLINE: "\n"@1408..1409
+      BLANK_LINE: "\n"@1409..1410
+      TEXT_LINE: "The default value of `atol` is not appropriate when the reference value"@1410..1481
+      NEWLINE: "\n"@1481..1482
+      TEXT_LINE: "`b` has magnitude smaller than one. For example, it is unlikely that"@1482..1550
+      NEWLINE: "\n"@1550..1551
+      TEXT_LINE: "``a = 1e-9`` and ``b = 2e-9`` should be considered \"close\", yet"@1551..1614
+      NEWLINE: "\n"@1614..1615
+      TEXT_LINE: "``isclose(1e-9, 2e-9)`` is ``True`` with default settings. Be sure"@1615..1681
+      NEWLINE: "\n"@1681..1682
+      TEXT_LINE: "to select `atol` for the use case at hand, especially for defining the"@1682..1752
+      NEWLINE: "\n"@1752..1753
+      TEXT_LINE: "threshold below which a non-zero value in `a` will be considered \"close\""@1753..1825
+      NEWLINE: "\n"@1825..1826
+      TEXT_LINE: "to a very small or zero value in `b`."@1826..1863
+      NEWLINE: "\n"@1863..1864
+      BLANK_LINE: "\n"@1864..1865
+      TEXT_LINE: "`isclose` is not defined for non-numeric data types."@1865..1917
+      NEWLINE: "\n"@1917..1918
+      TEXT_LINE: ":class:`bool` is considered a numeric data-type for this purpose."@1918..1983
+    }
+  }
+  NEWLINE: "\n"@1983..1984
+  BLANK_LINE: "\n"@1984..1985
+  SECTION@1985..2678 {
+    SECTION_HEADER@1985..2002 {
+      NAME: "Examples"@1985..1993
+      NEWLINE: "\n"@1993..1994
+      UNDERLINE: "--------"@1994..2002
+    }
+    NEWLINE: "\n"@2002..2003
+    DESCRIPTION@2003..2678 {
+      TEXT_LINE: ">>> import numpy as np"@2003..2025
+      NEWLINE: "\n"@2025..2026
+      TEXT_LINE: ">>> np.isclose([1e10,1e-7], [1.00001e10,1e-8])"@2026..2072
+      NEWLINE: "\n"@2072..2073
+      TEXT_LINE: "array([ True, False])"@2073..2094
+      NEWLINE: "\n"@2094..2095
+      BLANK_LINE: "\n"@2095..2096
+      TEXT_LINE: ">>> np.isclose([1e10,1e-8], [1.00001e10,1e-9])"@2096..2142
+      NEWLINE: "\n"@2142..2143
+      TEXT_LINE: "array([ True, True])"@2143..2163
+      NEWLINE: "\n"@2163..2164
+      BLANK_LINE: "\n"@2164..2165
+      TEXT_LINE: ">>> np.isclose([1e10,1e-8], [1.0001e10,1e-9])"@2165..2210
+      NEWLINE: "\n"@2210..2211
+      TEXT_LINE: "array([False,  True])"@2211..2232
+      NEWLINE: "\n"@2232..2233
+      BLANK_LINE: "\n"@2233..2234
+      TEXT_LINE: ">>> np.isclose([1.0, np.nan], [1.0, np.nan])"@2234..2278
+      NEWLINE: "\n"@2278..2279
+      TEXT_LINE: "array([ True, False])"@2279..2300
+      NEWLINE: "\n"@2300..2301
+      BLANK_LINE: "\n"@2301..2302
+      TEXT_LINE: ">>> np.isclose([1.0, np.nan], [1.0, np.nan], equal_nan=True)"@2302..2362
+      NEWLINE: "\n"@2362..2363
+      TEXT_LINE: "array([ True, True])"@2363..2383
+      NEWLINE: "\n"@2383..2384
+      BLANK_LINE: "\n"@2384..2385
+      TEXT_LINE: ">>> np.isclose([1e-8, 1e-7], [0.0, 0.0])"@2385..2425
+      NEWLINE: "\n"@2425..2426
+      TEXT_LINE: "array([ True, False])"@2426..2447
+      NEWLINE: "\n"@2447..2448
+      BLANK_LINE: "\n"@2448..2449
+      TEXT_LINE: ">>> np.isclose([1e-100, 1e-7], [0.0, 0.0], atol=0.0)"@2449..2501
+      NEWLINE: "\n"@2501..2502
+      TEXT_LINE: "array([False, False])"@2502..2523
+      NEWLINE: "\n"@2523..2524
+      BLANK_LINE: "\n"@2524..2525
+      TEXT_LINE: ">>> np.isclose([1e-10, 1e-10], [1e-20, 0.0])"@2525..2569
+      NEWLINE: "\n"@2569..2570
+      TEXT_LINE: "array([ True,  True])"@2570..2591
+      NEWLINE: "\n"@2591..2592
+      BLANK_LINE: "\n"@2592..2593
+      TEXT_LINE: ">>> np.isclose([1e-10, 1e-10], [1e-20, 0.999999e-10], atol=0.0)"@2593..2656
+      NEWLINE: "\n"@2656..2657
+      TEXT_LINE: "array([False,  True])"@2657..2678
+    }
+  }
+}
+=== EMIT ===
+Returns a boolean array where two arrays are element-wise equal within a
+tolerance.
+
+The tolerance values are positive, typically very small numbers.  The
+relative difference (`rtol` * abs(`b`)) and the absolute difference
+`atol` are added together to compare against the absolute difference
+between `a` and `b`.
+
+.. warning:: The default `atol` is not appropriate for comparing numbers
+             with magnitudes much smaller than one (see Notes).
+
+Parameters
+----------
+a, b : array_like
+    Input arrays to compare.
+rtol : array_like
+    The relative tolerance parameter (see Notes).
+atol : array_like
+    The absolute tolerance parameter (see Notes).
+equal_nan : bool
+    Whether to compare NaN's as equal.  If True, NaN's in `a` will be
+    considered equal to NaN's in `b` in the output array.
+
+Returns
+-------
+y : array_like
+    Returns a boolean array of where `a` and `b` are equal within the
+    given tolerance. If both `a` and `b` are scalars, returns a single
+    boolean value.
+
+See Also
+--------
+allclose
+math.isclose
+
+Notes
+-----
+For finite values, isclose uses the following equation to test whether
+two floating point values are equivalent.::
+
+ absolute(a - b) <= (atol + rtol * absolute(b))
+
+Unlike the built-in `math.isclose`, the above equation is not symmetric
+in `a` and `b` -- it assumes `b` is the reference value -- so that
+`isclose(a, b)` might be different from `isclose(b, a)`.
+
+The default value of `atol` is not appropriate when the reference value
+`b` has magnitude smaller than one. For example, it is unlikely that
+``a = 1e-9`` and ``b = 2e-9`` should be considered "close", yet
+``isclose(1e-9, 2e-9)`` is ``True`` with default settings. Be sure
+to select `atol` for the use case at hand, especially for defining the
+threshold below which a non-zero value in `a` will be considered "close"
+to a very small or zero value in `b`.
+
+`isclose` is not defined for non-numeric data types.
+:class:`bool` is considered a numeric data-type for this purpose.
+
+Examples
+--------
+>>> import numpy as np
+>>> np.isclose([1e10,1e-7], [1.00001e10,1e-8])
+array([ True, False])
+
+>>> np.isclose([1e10,1e-8], [1.00001e10,1e-9])
+array([ True, True])
+
+>>> np.isclose([1e10,1e-8], [1.0001e10,1e-9])
+array([False,  True])
+
+>>> np.isclose([1.0, np.nan], [1.0, np.nan])
+array([ True, False])
+
+>>> np.isclose([1.0, np.nan], [1.0, np.nan], equal_nan=True)
+array([ True, True])
+
+>>> np.isclose([1e-8, 1e-7], [0.0, 0.0])
+array([ True, False])
+
+>>> np.isclose([1e-100, 1e-7], [0.0, 0.0], atol=0.0)
+array([False, False])
+
+>>> np.isclose([1e-10, 1e-10], [1e-20, 0.0])
+array([ True,  True])
+
+>>> np.isclose([1e-10, 1e-10], [1e-20, 0.999999e-10], atol=0.0)
+array([False,  True])

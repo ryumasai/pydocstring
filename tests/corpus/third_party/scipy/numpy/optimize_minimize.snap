@@ -1,0 +1,2064 @@
+=== CST ===
+DOCUMENT@0..24659 {
+  SUMMARY@0..57 {
+    TEXT_LINE: "Minimization of scalar function of one or more variables."@0..57
+  }
+  NEWLINE: "\n"@57..58
+  BLANK_LINE: "\n"@58..59
+  SECTION@59..7789 {
+    SECTION_HEADER@59..80 {
+      NAME: "Parameters"@59..69
+      NEWLINE: "\n"@69..70
+      UNDERLINE: "----------"@70..80
+    }
+    NEWLINE: "\n"@80..81
+    ENTRY@81..746 {
+      NAME: "fun"@81..84
+      WHITESPACE: " "@84..85
+      COLON: ":"@85..86
+      WHITESPACE: " "@86..87
+      TYPE: "callable"@87..95
+      NEWLINE: "\n"@95..96
+      WHITESPACE: "    "@96..100
+      DESCRIPTION@100..746 {
+        TEXT_LINE: "The objective function to be minimized::"@100..140
+        NEWLINE: "\n"@140..141
+        BLANK_LINE: "\n"@141..142
+        WHITESPACE: "        "@142..150
+        TEXT_LINE: "fun(x, *args) -> float"@150..172
+        NEWLINE: "\n"@172..173
+        BLANK_LINE: "\n"@173..174
+        WHITESPACE: "    "@174..178
+        TEXT_LINE: "where ``x`` is a 1-D array with shape (n,) and ``args``"@178..233
+        NEWLINE: "\n"@233..234
+        WHITESPACE: "    "@234..238
+        TEXT_LINE: "is a tuple of the fixed parameters needed to completely"@238..293
+        NEWLINE: "\n"@293..294
+        WHITESPACE: "    "@294..298
+        TEXT_LINE: "specify the function."@298..319
+        NEWLINE: "\n"@319..320
+        BLANK_LINE: "\n"@320..321
+        WHITESPACE: "    "@321..325
+        TEXT_LINE: "Suppose the callable has signature ``f0(x, *my_args, **my_kwargs)``, where"@325..399
+        NEWLINE: "\n"@399..400
+        WHITESPACE: "    "@400..404
+        TEXT_LINE: "``my_args`` and ``my_kwargs`` are required positional and keyword arguments."@404..480
+        NEWLINE: "\n"@480..481
+        WHITESPACE: "    "@481..485
+        TEXT_LINE: "Rather than passing ``f0`` as the callable, wrap it to accept"@485..546
+        NEWLINE: "\n"@546..547
+        WHITESPACE: "    "@547..551
+        TEXT_LINE: "only ``x``; e.g., pass ``fun=lambda x: f0(x, *my_args, **my_kwargs)`` as the"@551..627
+        NEWLINE: "\n"@627..628
+        WHITESPACE: "    "@628..632
+        TEXT_LINE: "callable, where ``my_args`` (tuple) and ``my_kwargs`` (dict) have been"@632..702
+        NEWLINE: "\n"@702..703
+        WHITESPACE: "    "@703..707
+        TEXT_LINE: "gathered before invoking this function."@707..746
+      }
+    }
+    NEWLINE: "\n"@746..747
+    ENTRY@747..883 {
+      NAME: "x0"@747..749
+      WHITESPACE: " "@749..750
+      COLON: ":"@750..751
+      WHITESPACE: " "@751..752
+      TYPE: "ndarray, shape (n,)"@752..771
+      NEWLINE: "\n"@771..772
+      WHITESPACE: "    "@772..776
+      DESCRIPTION@776..883 {
+        TEXT_LINE: "Initial guess. Array of real elements of size (n,),"@776..827
+        NEWLINE: "\n"@827..828
+        WHITESPACE: "    "@828..832
+        TEXT_LINE: "where ``n`` is the number of independent variables."@832..883
+      }
+    }
+    NEWLINE: "\n"@883..884
+    ENTRY@884..1020 {
+      NAME: "args"@884..888
+      WHITESPACE: " "@888..889
+      COLON: ":"@889..890
+      WHITESPACE: " "@890..891
+      TYPE: "tuple"@891..896
+      COMMA: ","@896..897
+      WHITESPACE: " "@897..898
+      OPTIONAL: "optional"@898..906
+      NEWLINE: "\n"@906..907
+      WHITESPACE: "    "@907..911
+      DESCRIPTION@911..1020 {
+        TEXT_LINE: "Extra arguments passed to the objective function and its"@911..967
+        NEWLINE: "\n"@967..968
+        WHITESPACE: "    "@968..972
+        TEXT_LINE: "derivatives (`fun`, `jac` and `hess` functions)."@972..1020
+      }
+    }
+    NEWLINE: "\n"@1020..1021
+    ENTRY@1021..2288 {
+      NAME: "method"@1021..1027
+      WHITESPACE: " "@1027..1028
+      COLON: ":"@1028..1029
+      WHITESPACE: " "@1029..1030
+      TYPE: "str or callable"@1030..1045
+      COMMA: ","@1045..1046
+      WHITESPACE: " "@1046..1047
+      OPTIONAL: "optional"@1047..1055
+      NEWLINE: "\n"@1055..1056
+      WHITESPACE: "    "@1056..1060
+      DESCRIPTION@1060..2288 {
+        TEXT_LINE: "Type of solver.  Should be one of"@1060..1093
+        NEWLINE: "\n"@1093..1094
+        BLANK_LINE: "\n"@1094..1095
+        WHITESPACE: "    "@1095..1099
+        TEXT_LINE: "- 'Nelder-Mead' :ref:`(see here) <optimize.minimize-neldermead>`"@1099..1163
+        NEWLINE: "\n"@1163..1164
+        WHITESPACE: "    "@1164..1168
+        TEXT_LINE: "- 'Powell'      :ref:`(see here) <optimize.minimize-powell>`"@1168..1228
+        NEWLINE: "\n"@1228..1229
+        WHITESPACE: "    "@1229..1233
+        TEXT_LINE: "- 'CG'          :ref:`(see here) <optimize.minimize-cg>`"@1233..1289
+        NEWLINE: "\n"@1289..1290
+        WHITESPACE: "    "@1290..1294
+        TEXT_LINE: "- 'BFGS'        :ref:`(see here) <optimize.minimize-bfgs>`"@1294..1352
+        NEWLINE: "\n"@1352..1353
+        WHITESPACE: "    "@1353..1357
+        TEXT_LINE: "- 'Newton-CG'   :ref:`(see here) <optimize.minimize-newtoncg>`"@1357..1419
+        NEWLINE: "\n"@1419..1420
+        WHITESPACE: "    "@1420..1424
+        TEXT_LINE: "- 'L-BFGS-B'    :ref:`(see here) <optimize.minimize-lbfgsb>`"@1424..1484
+        NEWLINE: "\n"@1484..1485
+        WHITESPACE: "    "@1485..1489
+        TEXT_LINE: "- 'TNC'         :ref:`(see here) <optimize.minimize-tnc>`"@1489..1546
+        NEWLINE: "\n"@1546..1547
+        WHITESPACE: "    "@1547..1551
+        TEXT_LINE: "- 'COBYLA'      :ref:`(see here) <optimize.minimize-cobyla>`"@1551..1611
+        NEWLINE: "\n"@1611..1612
+        WHITESPACE: "    "@1612..1616
+        TEXT_LINE: "- 'COBYQA'      :ref:`(see here) <optimize.minimize-cobyqa>`"@1616..1676
+        NEWLINE: "\n"@1676..1677
+        WHITESPACE: "    "@1677..1681
+        TEXT_LINE: "- 'SLSQP'       :ref:`(see here) <optimize.minimize-slsqp>`"@1681..1740
+        NEWLINE: "\n"@1740..1741
+        WHITESPACE: "    "@1741..1745
+        TEXT_LINE: "- 'trust-constr':ref:`(see here) <optimize.minimize-trustconstr>`"@1745..1810
+        NEWLINE: "\n"@1810..1811
+        WHITESPACE: "    "@1811..1815
+        TEXT_LINE: "- 'dogleg'      :ref:`(see here) <optimize.minimize-dogleg>`"@1815..1875
+        NEWLINE: "\n"@1875..1876
+        WHITESPACE: "    "@1876..1880
+        TEXT_LINE: "- 'trust-ncg'   :ref:`(see here) <optimize.minimize-trustncg>`"@1880..1942
+        NEWLINE: "\n"@1942..1943
+        WHITESPACE: "    "@1943..1947
+        TEXT_LINE: "- 'trust-exact' :ref:`(see here) <optimize.minimize-trustexact>`"@1947..2011
+        NEWLINE: "\n"@2011..2012
+        WHITESPACE: "    "@2012..2016
+        TEXT_LINE: "- 'trust-krylov' :ref:`(see here) <optimize.minimize-trustkrylov>`"@2016..2082
+        NEWLINE: "\n"@2082..2083
+        WHITESPACE: "    "@2083..2087
+        TEXT_LINE: "- custom - a callable object, see below for description."@2087..2143
+        NEWLINE: "\n"@2143..2144
+        BLANK_LINE: "\n"@2144..2145
+        WHITESPACE: "    "@2145..2149
+        TEXT_LINE: "If not given, chosen to be one of ``BFGS``, ``L-BFGS-B``, ``SLSQP``,"@2149..2217
+        NEWLINE: "\n"@2217..2218
+        WHITESPACE: "    "@2218..2222
+        TEXT_LINE: "depending on whether or not the problem has constraints or bounds."@2222..2288
+      }
+    }
+    NEWLINE: "\n"@2288..2289
+    ENTRY@2289..3460 {
+      NAME: "jac"@2289..2292
+      WHITESPACE: " "@2292..2293
+      COLON: ":"@2293..2294
+      WHITESPACE: " "@2294..2295
+      TYPE: "{callable,  '2-point', '3-point', 'cs', bool}"@2295..2340
+      COMMA: ","@2340..2341
+      WHITESPACE: " "@2341..2342
+      OPTIONAL: "optional"@2342..2350
+      NEWLINE: "\n"@2350..2351
+      WHITESPACE: "    "@2351..2355
+      DESCRIPTION@2355..3460 {
+        TEXT_LINE: "Method for computing the gradient vector. Only for CG, BFGS,"@2355..2415
+        NEWLINE: "\n"@2415..2416
+        WHITESPACE: "    "@2416..2420
+        TEXT_LINE: "Newton-CG, L-BFGS-B, TNC, SLSQP, dogleg, trust-ncg, trust-krylov,"@2420..2485
+        NEWLINE: "\n"@2485..2486
+        WHITESPACE: "    "@2486..2490
+        TEXT_LINE: "trust-exact and trust-constr."@2490..2519
+        NEWLINE: "\n"@2519..2520
+        WHITESPACE: "    "@2520..2524
+        TEXT_LINE: "If it is a callable, it should be a function that returns the gradient"@2524..2594
+        NEWLINE: "\n"@2594..2595
+        WHITESPACE: "    "@2595..2599
+        TEXT_LINE: "vector::"@2599..2607
+        NEWLINE: "\n"@2607..2608
+        BLANK_LINE: "\n"@2608..2609
+        WHITESPACE: "        "@2609..2617
+        TEXT_LINE: "jac(x, *args) -> array_like, shape (n,)"@2617..2656
+        NEWLINE: "\n"@2656..2657
+        BLANK_LINE: "\n"@2657..2658
+        WHITESPACE: "    "@2658..2662
+        TEXT_LINE: "where ``x`` is an array with shape (n,) and ``args`` is a tuple with"@2662..2730
+        NEWLINE: "\n"@2730..2731
+        WHITESPACE: "    "@2731..2735
+        TEXT_LINE: "the fixed parameters. If `jac` is a Boolean and is True, `fun` is"@2735..2800
+        NEWLINE: "\n"@2800..2801
+        WHITESPACE: "    "@2801..2805
+        TEXT_LINE: "assumed to return a tuple ``(f, g)`` containing the objective"@2805..2866
+        NEWLINE: "\n"@2866..2867
+        WHITESPACE: "    "@2867..2871
+        TEXT_LINE: "function and the gradient."@2871..2897
+        NEWLINE: "\n"@2897..2898
+        WHITESPACE: "    "@2898..2902
+        TEXT_LINE: "Methods 'Newton-CG', 'trust-ncg', 'dogleg', 'trust-exact', and"@2902..2964
+        NEWLINE: "\n"@2964..2965
+        WHITESPACE: "    "@2965..2969
+        TEXT_LINE: "'trust-krylov' require that either a callable be supplied, or that"@2969..3035
+        NEWLINE: "\n"@3035..3036
+        WHITESPACE: "    "@3036..3040
+        TEXT_LINE: "`fun` return the objective and gradient."@3040..3080
+        NEWLINE: "\n"@3080..3081
+        WHITESPACE: "    "@3081..3085
+        TEXT_LINE: "If None or False, the gradient will be estimated using 2-point finite"@3085..3154
+        NEWLINE: "\n"@3154..3155
+        WHITESPACE: "    "@3155..3159
+        TEXT_LINE: "difference estimation with an absolute step size."@3159..3208
+        NEWLINE: "\n"@3208..3209
+        WHITESPACE: "    "@3209..3213
+        TEXT_LINE: "Alternatively, the keywords  {'2-point', '3-point', 'cs'} can be used"@3213..3282
+        NEWLINE: "\n"@3282..3283
+        WHITESPACE: "    "@3283..3287
+        TEXT_LINE: "to select a finite difference scheme for numerical estimation of the"@3287..3355
+        NEWLINE: "\n"@3355..3356
+        WHITESPACE: "    "@3356..3360
+        TEXT_LINE: "gradient with a relative step size. These finite difference schemes"@3360..3427
+        NEWLINE: "\n"@3427..3428
+        WHITESPACE: "    "@3428..3432
+        TEXT_LINE: "obey any specified `bounds`."@3432..3460
+      }
+    }
+    NEWLINE: "\n"@3460..3461
+    ENTRY@3461..4360 {
+      NAME: "hess"@3461..3465
+      WHITESPACE: " "@3465..3466
+      COLON: ":"@3466..3467
+      WHITESPACE: " "@3467..3468
+      TYPE: "{callable, '2-point', '3-point', 'cs', HessianUpdateStrategy}"@3468..3529
+      COMMA: ","@3529..3530
+      WHITESPACE: " "@3530..3531
+      OPTIONAL: "optional"@3531..3539
+      NEWLINE: "\n"@3539..3540
+      WHITESPACE: "    "@3540..3544
+      DESCRIPTION@3544..4360 {
+        TEXT_LINE: "Method for computing the Hessian matrix. Only for Newton-CG, dogleg,"@3544..3612
+        NEWLINE: "\n"@3612..3613
+        WHITESPACE: "    "@3613..3617
+        TEXT_LINE: "trust-ncg, trust-krylov, trust-exact and trust-constr."@3617..3671
+        NEWLINE: "\n"@3671..3672
+        WHITESPACE: "    "@3672..3676
+        TEXT_LINE: "If it is callable, it should return the Hessian matrix::"@3676..3732
+        NEWLINE: "\n"@3732..3733
+        BLANK_LINE: "\n"@3733..3734
+        WHITESPACE: "        "@3734..3742
+        TEXT_LINE: "hess(x, *args) -> {LinearOperator, spmatrix, array}, (n, n)"@3742..3801
+        NEWLINE: "\n"@3801..3802
+        BLANK_LINE: "\n"@3802..3803
+        WHITESPACE: "    "@3803..3807
+        TEXT_LINE: "where ``x`` is a (n,) ndarray and ``args`` is a tuple with the fixed"@3807..3875
+        NEWLINE: "\n"@3875..3876
+        WHITESPACE: "    "@3876..3880
+        TEXT_LINE: "parameters."@3880..3891
+        NEWLINE: "\n"@3891..3892
+        WHITESPACE: "    "@3892..3896
+        TEXT_LINE: "The keywords {'2-point', '3-point', 'cs'} can also be used to select"@3896..3964
+        NEWLINE: "\n"@3964..3965
+        WHITESPACE: "    "@3965..3969
+        TEXT_LINE: "a finite difference scheme for numerical estimation of the hessian."@3969..4036
+        NEWLINE: "\n"@4036..4037
+        WHITESPACE: "    "@4037..4041
+        TEXT_LINE: "Alternatively, objects implementing the `HessianUpdateStrategy`"@4041..4104
+        NEWLINE: "\n"@4104..4105
+        WHITESPACE: "    "@4105..4109
+        TEXT_LINE: "interface can be used to approximate the Hessian. Available"@4109..4168
+        NEWLINE: "\n"@4168..4169
+        WHITESPACE: "    "@4169..4173
+        TEXT_LINE: "quasi-Newton methods implementing this interface are:"@4173..4226
+        NEWLINE: "\n"@4226..4227
+        BLANK_LINE: "\n"@4227..4228
+        WHITESPACE: "    "@4228..4232
+        TEXT_LINE: "- `BFGS`"@4232..4240
+        NEWLINE: "\n"@4240..4241
+        WHITESPACE: "    "@4241..4245
+        TEXT_LINE: "- `SR1`"@4245..4252
+        NEWLINE: "\n"@4252..4253
+        BLANK_LINE: "\n"@4253..4254
+        WHITESPACE: "    "@4254..4258
+        TEXT_LINE: "Not all of the options are available for each of the methods; for"@4258..4323
+        NEWLINE: "\n"@4323..4324
+        WHITESPACE: "    "@4324..4328
+        TEXT_LINE: "availability refer to the notes."@4328..4360
+      }
+    }
+    NEWLINE: "\n"@4360..4361
+    ENTRY@4361..4883 {
+      NAME: "hessp"@4361..4366
+      WHITESPACE: " "@4366..4367
+      COLON: ":"@4367..4368
+      WHITESPACE: " "@4368..4369
+      TYPE: "callable"@4369..4377
+      COMMA: ","@4377..4378
+      WHITESPACE: " "@4378..4379
+      OPTIONAL: "optional"@4379..4387
+      NEWLINE: "\n"@4387..4388
+      WHITESPACE: "    "@4388..4392
+      DESCRIPTION@4392..4883 {
+        TEXT_LINE: "Hessian of objective function times an arbitrary vector p. Only for"@4392..4459
+        NEWLINE: "\n"@4459..4460
+        WHITESPACE: "    "@4460..4464
+        TEXT_LINE: "Newton-CG, trust-ncg, trust-krylov, trust-constr."@4464..4513
+        NEWLINE: "\n"@4513..4514
+        WHITESPACE: "    "@4514..4518
+        TEXT_LINE: "Only one of `hessp` or `hess` needs to be given. If `hess` is"@4518..4579
+        NEWLINE: "\n"@4579..4580
+        WHITESPACE: "    "@4580..4584
+        TEXT_LINE: "provided, then `hessp` will be ignored. `hessp` must compute the"@4584..4648
+        NEWLINE: "\n"@4648..4649
+        WHITESPACE: "    "@4649..4653
+        TEXT_LINE: "Hessian times an arbitrary vector::"@4653..4688
+        NEWLINE: "\n"@4688..4689
+        BLANK_LINE: "\n"@4689..4690
+        WHITESPACE: "        "@4690..4698
+        TEXT_LINE: "hessp(x, p, *args) ->  ndarray shape (n,)"@4698..4739
+        NEWLINE: "\n"@4739..4740
+        BLANK_LINE: "\n"@4740..4741
+        WHITESPACE: "    "@4741..4745
+        TEXT_LINE: "where ``x`` is a (n,) ndarray, ``p`` is an arbitrary vector with"@4745..4809
+        NEWLINE: "\n"@4809..4810
+        WHITESPACE: "    "@4810..4814
+        TEXT_LINE: "dimension (n,) and ``args`` is a tuple with the fixed"@4814..4867
+        NEWLINE: "\n"@4867..4868
+        WHITESPACE: "    "@4868..4872
+        TEXT_LINE: "parameters."@4872..4883
+      }
+    }
+    NEWLINE: "\n"@4883..4884
+    ENTRY@4884..5228 {
+      NAME: "bounds"@4884..4890
+      WHITESPACE: " "@4890..4891
+      COLON: ":"@4891..4892
+      WHITESPACE: " "@4892..4893
+      TYPE: "sequence or `Bounds`"@4893..4913
+      COMMA: ","@4913..4914
+      WHITESPACE: " "@4914..4915
+      OPTIONAL: "optional"@4915..4923
+      NEWLINE: "\n"@4923..4924
+      WHITESPACE: "    "@4924..4928
+      DESCRIPTION@4928..5228 {
+        TEXT_LINE: "Bounds on variables for Nelder-Mead, L-BFGS-B, TNC, SLSQP, Powell,"@4928..4994
+        NEWLINE: "\n"@4994..4995
+        WHITESPACE: "    "@4995..4999
+        TEXT_LINE: "trust-constr, COBYLA, and COBYQA methods. There are two ways to specify"@4999..5070
+        NEWLINE: "\n"@5070..5071
+        WHITESPACE: "    "@5071..5075
+        TEXT_LINE: "the bounds:"@5075..5086
+        NEWLINE: "\n"@5086..5087
+        BLANK_LINE: "\n"@5087..5088
+        WHITESPACE: "    "@5088..5092
+        TEXT_LINE: "1. Instance of `Bounds` class."@5092..5122
+        NEWLINE: "\n"@5122..5123
+        WHITESPACE: "    "@5123..5127
+        TEXT_LINE: "2. Sequence of ``(min, max)`` pairs for each element in `x`. None"@5127..5192
+        NEWLINE: "\n"@5192..5193
+        WHITESPACE: "       "@5193..5200
+        TEXT_LINE: "is used to specify no bound."@5200..5228
+      }
+    }
+    NEWLINE: "\n"@5228..5229
+    BLANK_LINE: "\n"@5229..5230
+    ENTRY@5230..6202 {
+      NAME: "constraints"@5230..5241
+      WHITESPACE: " "@5241..5242
+      COLON: ":"@5242..5243
+      WHITESPACE: " "@5243..5244
+      TYPE: "{Constraint, dict} or List of {Constraint, dict}"@5244..5292
+      COMMA: ","@5292..5293
+      WHITESPACE: " "@5293..5294
+      OPTIONAL: "optional"@5294..5302
+      NEWLINE: "\n"@5302..5303
+      WHITESPACE: "    "@5303..5307
+      DESCRIPTION@5307..6202 {
+        TEXT_LINE: "Constraints definition. Only for COBYLA, COBYQA, SLSQP and trust-constr."@5307..5379
+        NEWLINE: "\n"@5379..5380
+        BLANK_LINE: "\n"@5380..5381
+        WHITESPACE: "    "@5381..5385
+        TEXT_LINE: "Constraints for 'trust-constr', 'cobyqa', and 'cobyla' are defined as a single"@5385..5463
+        NEWLINE: "\n"@5463..5464
+        WHITESPACE: "    "@5464..5468
+        TEXT_LINE: "object or a list of objects specifying constraints to the optimization problem."@5468..5547
+        NEWLINE: "\n"@5547..5548
+        WHITESPACE: "    "@5548..5552
+        TEXT_LINE: "Available constraints are:"@5552..5578
+        NEWLINE: "\n"@5578..5579
+        BLANK_LINE: "\n"@5579..5580
+        WHITESPACE: "    "@5580..5584
+        TEXT_LINE: "- `LinearConstraint`"@5584..5604
+        NEWLINE: "\n"@5604..5605
+        WHITESPACE: "    "@5605..5609
+        TEXT_LINE: "- `NonlinearConstraint`"@5609..5632
+        NEWLINE: "\n"@5632..5633
+        BLANK_LINE: "\n"@5633..5634
+        WHITESPACE: "    "@5634..5638
+        TEXT_LINE: "Constraints for COBYLA, SLSQP are defined as a list of dictionaries."@5638..5706
+        NEWLINE: "\n"@5706..5707
+        WHITESPACE: "    "@5707..5711
+        TEXT_LINE: "Each dictionary with fields:"@5711..5739
+        NEWLINE: "\n"@5739..5740
+        BLANK_LINE: "\n"@5740..5741
+        WHITESPACE: "    "@5741..5745
+        TEXT_LINE: "type : str"@5745..5755
+        NEWLINE: "\n"@5755..5756
+        WHITESPACE: "        "@5756..5764
+        TEXT_LINE: "Constraint type: 'eq' for equality, 'ineq' for inequality."@5764..5822
+        NEWLINE: "\n"@5822..5823
+        WHITESPACE: "    "@5823..5827
+        TEXT_LINE: "fun : callable"@5827..5841
+        NEWLINE: "\n"@5841..5842
+        WHITESPACE: "        "@5842..5850
+        TEXT_LINE: "The function defining the constraint."@5850..5887
+        NEWLINE: "\n"@5887..5888
+        WHITESPACE: "    "@5888..5892
+        TEXT_LINE: "jac : callable, optional"@5892..5916
+        NEWLINE: "\n"@5916..5917
+        WHITESPACE: "        "@5917..5925
+        TEXT_LINE: "The Jacobian of `fun` (only for SLSQP)."@5925..5964
+        NEWLINE: "\n"@5964..5965
+        WHITESPACE: "    "@5965..5969
+        TEXT_LINE: "args : sequence, optional"@5969..5994
+        NEWLINE: "\n"@5994..5995
+        WHITESPACE: "        "@5995..6003
+        TEXT_LINE: "Extra arguments to be passed to the function and Jacobian."@6003..6061
+        NEWLINE: "\n"@6061..6062
+        BLANK_LINE: "\n"@6062..6063
+        WHITESPACE: "    "@6063..6067
+        TEXT_LINE: "Equality constraint means that the constraint function result is to"@6067..6134
+        NEWLINE: "\n"@6134..6135
+        WHITESPACE: "    "@6135..6139
+        TEXT_LINE: "be zero whereas inequality means that it is to be non-negative."@6139..6202
+      }
+    }
+    NEWLINE: "\n"@6202..6203
+    BLANK_LINE: "\n"@6203..6204
+    ENTRY@6204..6444 {
+      NAME: "tol"@6204..6207
+      WHITESPACE: " "@6207..6208
+      COLON: ":"@6208..6209
+      WHITESPACE: " "@6209..6210
+      TYPE: "float"@6210..6215
+      COMMA: ","@6215..6216
+      WHITESPACE: " "@6216..6217
+      OPTIONAL: "optional"@6217..6225
+      NEWLINE: "\n"@6225..6226
+      WHITESPACE: "    "@6226..6230
+      DESCRIPTION@6230..6444 {
+        TEXT_LINE: "Tolerance for termination. When `tol` is specified, the selected"@6230..6294
+        NEWLINE: "\n"@6294..6295
+        WHITESPACE: "    "@6295..6299
+        TEXT_LINE: "minimization algorithm sets some relevant solver-specific tolerance(s)"@6299..6369
+        NEWLINE: "\n"@6369..6370
+        WHITESPACE: "    "@6370..6374
+        TEXT_LINE: "equal to `tol`. For detailed control, use solver-specific"@6374..6431
+        NEWLINE: "\n"@6431..6432
+        WHITESPACE: "    "@6432..6436
+        TEXT_LINE: "options."@6436..6444
+      }
+    }
+    NEWLINE: "\n"@6444..6445
+    ENTRY@6445..7325 {
+      NAME: "callback"@6445..6453
+      WHITESPACE: " "@6453..6454
+      COLON: ":"@6454..6455
+      WHITESPACE: " "@6455..6456
+      TYPE: "callable"@6456..6464
+      COMMA: ","@6464..6465
+      WHITESPACE: " "@6465..6466
+      OPTIONAL: "optional"@6466..6474
+      NEWLINE: "\n"@6474..6475
+      WHITESPACE: "    "@6475..6479
+      DESCRIPTION@6479..7325 {
+        TEXT_LINE: "A callable called after each iteration."@6479..6518
+        NEWLINE: "\n"@6518..6519
+        BLANK_LINE: "\n"@6519..6520
+        WHITESPACE: "    "@6520..6524
+        TEXT_LINE: "All methods except TNC support a callable with"@6524..6570
+        NEWLINE: "\n"@6570..6571
+        WHITESPACE: "    "@6571..6575
+        TEXT_LINE: "the signature::"@6575..6590
+        NEWLINE: "\n"@6590..6591
+        BLANK_LINE: "\n"@6591..6592
+        WHITESPACE: "        "@6592..6600
+        TEXT_LINE: "callback(intermediate_result: OptimizeResult)"@6600..6645
+        NEWLINE: "\n"@6645..6646
+        BLANK_LINE: "\n"@6646..6647
+        WHITESPACE: "    "@6647..6651
+        TEXT_LINE: "where ``intermediate_result`` is a keyword parameter containing an"@6651..6717
+        NEWLINE: "\n"@6717..6718
+        WHITESPACE: "    "@6718..6722
+        TEXT_LINE: "`OptimizeResult` with attributes ``x`` and ``fun``, the present values"@6722..6792
+        NEWLINE: "\n"@6792..6793
+        WHITESPACE: "    "@6793..6797
+        TEXT_LINE: "of the parameter vector and objective function. Not all attributes of"@6797..6866
+        NEWLINE: "\n"@6866..6867
+        WHITESPACE: "    "@6867..6871
+        TEXT_LINE: "`OptimizeResult` may be present. The name of the parameter must be"@6871..6937
+        NEWLINE: "\n"@6937..6938
+        WHITESPACE: "    "@6938..6942
+        TEXT_LINE: "``intermediate_result`` for the callback to be passed an `OptimizeResult`."@6942..7016
+        NEWLINE: "\n"@7016..7017
+        WHITESPACE: "    "@7017..7021
+        TEXT_LINE: "These methods will also terminate if the callback raises ``StopIteration``."@7021..7096
+        NEWLINE: "\n"@7096..7097
+        BLANK_LINE: "\n"@7097..7098
+        WHITESPACE: "    "@7098..7102
+        TEXT_LINE: "All methods except trust-constr (also) support a signature like::"@7102..7167
+        NEWLINE: "\n"@7167..7168
+        BLANK_LINE: "\n"@7168..7169
+        WHITESPACE: "        "@7169..7177
+        TEXT_LINE: "callback(xk)"@7177..7189
+        NEWLINE: "\n"@7189..7190
+        BLANK_LINE: "\n"@7190..7191
+        WHITESPACE: "    "@7191..7195
+        TEXT_LINE: "where ``xk`` is the current parameter vector."@7195..7240
+        NEWLINE: "\n"@7240..7241
+        BLANK_LINE: "\n"@7241..7242
+        WHITESPACE: "    "@7242..7246
+        TEXT_LINE: "Introspection is used to determine which of the signatures above to"@7246..7313
+        NEWLINE: "\n"@7313..7314
+        WHITESPACE: "    "@7314..7318
+        TEXT_LINE: "invoke."@7318..7325
+      }
+    }
+    NEWLINE: "\n"@7325..7326
+    ENTRY@7326..7789 {
+      NAME: "options"@7326..7333
+      WHITESPACE: " "@7333..7334
+      COLON: ":"@7334..7335
+      WHITESPACE: " "@7335..7336
+      TYPE: "dict"@7336..7340
+      COMMA: ","@7340..7341
+      WHITESPACE: " "@7341..7342
+      OPTIONAL: "optional"@7342..7350
+      NEWLINE: "\n"@7350..7351
+      WHITESPACE: "    "@7351..7355
+      DESCRIPTION@7355..7789 {
+        TEXT_LINE: "A dictionary of solver options. All methods except `TNC` accept the"@7355..7422
+        NEWLINE: "\n"@7422..7423
+        WHITESPACE: "    "@7423..7427
+        TEXT_LINE: "following generic options:"@7427..7453
+        NEWLINE: "\n"@7453..7454
+        BLANK_LINE: "\n"@7454..7455
+        WHITESPACE: "    "@7455..7459
+        TEXT_LINE: "maxiter : int"@7459..7472
+        NEWLINE: "\n"@7472..7473
+        WHITESPACE: "        "@7473..7481
+        TEXT_LINE: "Maximum number of iterations to perform. Depending on the"@7481..7538
+        NEWLINE: "\n"@7538..7539
+        WHITESPACE: "        "@7539..7547
+        TEXT_LINE: "method each iteration may use several function evaluations."@7547..7606
+        NEWLINE: "\n"@7606..7607
+        BLANK_LINE: "\n"@7607..7608
+        WHITESPACE: "        "@7608..7616
+        TEXT_LINE: "For `TNC` use `maxfun` instead of `maxiter`."@7616..7660
+        NEWLINE: "\n"@7660..7661
+        WHITESPACE: "    "@7661..7665
+        TEXT_LINE: "disp : bool"@7665..7676
+        NEWLINE: "\n"@7676..7677
+        WHITESPACE: "        "@7677..7685
+        TEXT_LINE: "Set to True to print convergence messages."@7685..7727
+        NEWLINE: "\n"@7727..7728
+        BLANK_LINE: "\n"@7728..7729
+        WHITESPACE: "    "@7729..7733
+        TEXT_LINE: "For method-specific options, see :func:`show_options()`."@7733..7789
+      }
+    }
+  }
+  NEWLINE: "\n"@7789..7790
+  BLANK_LINE: "\n"@7790..7791
+  SECTION@7791..8164 {
+    SECTION_HEADER@7791..7806 {
+      NAME: "Returns"@7791..7798
+      NEWLINE: "\n"@7798..7799
+      UNDERLINE: "-------"@7799..7806
+    }
+    NEWLINE: "\n"@7806..7807
+    ENTRY@7807..8164 {
+      NAME: "res"@7807..7810
+      WHITESPACE: " "@7810..7811
+      COLON: ":"@7811..7812
+      WHITESPACE: " "@7812..7813
+      TYPE: "OptimizeResult"@7813..7827
+      NEWLINE: "\n"@7827..7828
+      WHITESPACE: "    "@7828..7832
+      DESCRIPTION@7832..8164 {
+        TEXT_LINE: "The optimization result represented as a ``OptimizeResult`` object."@7832..7899
+        NEWLINE: "\n"@7899..7900
+        WHITESPACE: "    "@7900..7904
+        TEXT_LINE: "Important attributes are: ``x`` the solution array, ``success`` a"@7904..7969
+        NEWLINE: "\n"@7969..7970
+        WHITESPACE: "    "@7970..7974
+        TEXT_LINE: "Boolean flag indicating if the optimizer exited successfully and"@7974..8038
+        NEWLINE: "\n"@8038..8039
+        WHITESPACE: "    "@8039..8043
+        TEXT_LINE: "``message`` which describes the cause of the termination. See"@8043..8104
+        NEWLINE: "\n"@8104..8105
+        WHITESPACE: "    "@8105..8109
+        TEXT_LINE: "`OptimizeResult` for a description of other attributes."@8109..8164
+      }
+    }
+  }
+  NEWLINE: "\n"@8164..8165
+  BLANK_LINE: "\n"@8165..8166
+  SECTION@8166..8332 {
+    SECTION_HEADER@8166..8183 {
+      NAME: "See Also"@8166..8174
+      NEWLINE: "\n"@8174..8175
+      UNDERLINE: "--------"@8175..8183
+    }
+    NEWLINE: "\n"@8183..8184
+    ENTRY@8184..8274 {
+      NAME: "minimize_scalar"@8184..8199
+      WHITESPACE: " "@8199..8200
+      COLON: ":"@8200..8201
+      WHITESPACE: " "@8201..8202
+      DESCRIPTION@8202..8274 {
+        TEXT_LINE: "Interface to minimization algorithms for scalar"@8202..8249
+        NEWLINE: "\n"@8249..8250
+        WHITESPACE: "    "@8250..8254
+        TEXT_LINE: "univariate functions"@8254..8274
+      }
+    }
+    NEWLINE: "\n"@8274..8275
+    ENTRY@8275..8332 {
+      NAME: "show_options"@8275..8287
+      WHITESPACE: " "@8287..8288
+      COLON: ":"@8288..8289
+      WHITESPACE: " "@8289..8290
+      DESCRIPTION@8290..8332 {
+        TEXT_LINE: "Additional options accepted by the solvers"@8290..8332
+      }
+    }
+  }
+  NEWLINE: "\n"@8332..8333
+  BLANK_LINE: "\n"@8333..8334
+  SECTION@8334..17856 {
+    SECTION_HEADER@8334..8345 {
+      NAME: "Notes"@8334..8339
+      NEWLINE: "\n"@8339..8340
+      UNDERLINE: "-----"@8340..8345
+    }
+    NEWLINE: "\n"@8345..8346
+    DESCRIPTION@8346..17856 {
+      TEXT_LINE: "This section describes the available solvers that can be selected by the"@8346..8418
+      NEWLINE: "\n"@8418..8419
+      TEXT_LINE: "'method' parameter. The default method is *BFGS*."@8419..8468
+      NEWLINE: "\n"@8468..8469
+      BLANK_LINE: "\n"@8469..8470
+      TEXT_LINE: "**Unconstrained minimization**"@8470..8500
+      NEWLINE: "\n"@8500..8501
+      BLANK_LINE: "\n"@8501..8502
+      TEXT_LINE: "Method :ref:`CG <optimize.minimize-cg>` uses a nonlinear conjugate"@8502..8568
+      NEWLINE: "\n"@8568..8569
+      TEXT_LINE: "gradient algorithm by Polak and Ribiere, a variant of the"@8569..8626
+      NEWLINE: "\n"@8626..8627
+      TEXT_LINE: "Fletcher-Reeves method described in [5]_ pp.120-122. Only the"@8627..8688
+      NEWLINE: "\n"@8688..8689
+      TEXT_LINE: "first derivatives are used."@8689..8716
+      NEWLINE: "\n"@8716..8717
+      BLANK_LINE: "\n"@8717..8718
+      TEXT_LINE: "Method :ref:`BFGS <optimize.minimize-bfgs>` uses the quasi-Newton"@8718..8783
+      NEWLINE: "\n"@8783..8784
+      TEXT_LINE: "method of Broyden, Fletcher, Goldfarb, and Shanno (BFGS) [5]_"@8784..8845
+      NEWLINE: "\n"@8845..8846
+      TEXT_LINE: "pp. 136. It uses the first derivatives only. BFGS has proven good"@8846..8911
+      NEWLINE: "\n"@8911..8912
+      TEXT_LINE: "performance even for non-smooth optimizations. This method also"@8912..8975
+      NEWLINE: "\n"@8975..8976
+      TEXT_LINE: "returns an approximation of the Hessian inverse, stored as"@8976..9034
+      NEWLINE: "\n"@9034..9035
+      TEXT_LINE: "`hess_inv` in the OptimizeResult object."@9035..9075
+      NEWLINE: "\n"@9075..9076
+      BLANK_LINE: "\n"@9076..9077
+      TEXT_LINE: "Method :ref:`Newton-CG <optimize.minimize-newtoncg>` uses a"@9077..9136
+      NEWLINE: "\n"@9136..9137
+      TEXT_LINE: "Newton-CG algorithm [5]_ pp. 168 (also known as the truncated"@9137..9198
+      NEWLINE: "\n"@9198..9199
+      TEXT_LINE: "Newton method). It uses a CG method to the compute the search"@9199..9260
+      NEWLINE: "\n"@9260..9261
+      TEXT_LINE: "direction. See also *TNC* method for a box-constrained"@9261..9315
+      NEWLINE: "\n"@9315..9316
+      TEXT_LINE: "minimization with a similar algorithm. Suitable for large-scale"@9316..9379
+      NEWLINE: "\n"@9379..9380
+      TEXT_LINE: "problems."@9380..9389
+      NEWLINE: "\n"@9389..9390
+      BLANK_LINE: "\n"@9390..9391
+      TEXT_LINE: "Method :ref:`dogleg <optimize.minimize-dogleg>` uses the dog-leg"@9391..9455
+      NEWLINE: "\n"@9455..9456
+      TEXT_LINE: "trust-region algorithm [5]_ for unconstrained minimization. This"@9456..9520
+      NEWLINE: "\n"@9520..9521
+      TEXT_LINE: "algorithm requires the gradient and Hessian; furthermore the"@9521..9581
+      NEWLINE: "\n"@9581..9582
+      TEXT_LINE: "Hessian is required to be positive definite."@9582..9626
+      NEWLINE: "\n"@9626..9627
+      BLANK_LINE: "\n"@9627..9628
+      TEXT_LINE: "Method :ref:`trust-ncg <optimize.minimize-trustncg>` uses the"@9628..9689
+      NEWLINE: "\n"@9689..9690
+      TEXT_LINE: "Newton conjugate gradient trust-region algorithm [5]_ for"@9690..9747
+      NEWLINE: "\n"@9747..9748
+      TEXT_LINE: "unconstrained minimization. This algorithm requires the gradient"@9748..9812
+      NEWLINE: "\n"@9812..9813
+      TEXT_LINE: "and either the Hessian or a function that computes the product of"@9813..9878
+      NEWLINE: "\n"@9878..9879
+      TEXT_LINE: "the Hessian with a given vector. Suitable for large-scale problems."@9879..9946
+      NEWLINE: "\n"@9946..9947
+      BLANK_LINE: "\n"@9947..9948
+      TEXT_LINE: "Method :ref:`trust-krylov <optimize.minimize-trustkrylov>` uses"@9948..10011
+      NEWLINE: "\n"@10011..10012
+      TEXT_LINE: "the Newton GLTR trust-region algorithm [14]_, [15]_ for unconstrained"@10012..10081
+      NEWLINE: "\n"@10081..10082
+      TEXT_LINE: "minimization. This algorithm requires the gradient"@10082..10132
+      NEWLINE: "\n"@10132..10133
+      TEXT_LINE: "and either the Hessian or a function that computes the product of"@10133..10198
+      NEWLINE: "\n"@10198..10199
+      TEXT_LINE: "the Hessian with a given vector. Suitable for large-scale problems."@10199..10266
+      NEWLINE: "\n"@10266..10267
+      TEXT_LINE: "On indefinite problems it requires usually less iterations than the"@10267..10334
+      NEWLINE: "\n"@10334..10335
+      TEXT_LINE: "`trust-ncg` method and is recommended for medium and large-scale problems."@10335..10409
+      NEWLINE: "\n"@10409..10410
+      BLANK_LINE: "\n"@10410..10411
+      TEXT_LINE: "Method :ref:`trust-exact <optimize.minimize-trustexact>`"@10411..10467
+      NEWLINE: "\n"@10467..10468
+      TEXT_LINE: "is a trust-region method for unconstrained minimization in which"@10468..10532
+      NEWLINE: "\n"@10532..10533
+      TEXT_LINE: "quadratic subproblems are solved almost exactly [13]_. This"@10533..10592
+      NEWLINE: "\n"@10592..10593
+      TEXT_LINE: "algorithm requires the gradient and the Hessian (which is"@10593..10650
+      NEWLINE: "\n"@10650..10651
+      TEXT_LINE: "*not* required to be positive definite). It is, in many"@10651..10706
+      NEWLINE: "\n"@10706..10707
+      TEXT_LINE: "situations, the Newton method to converge in fewer iterations"@10707..10768
+      NEWLINE: "\n"@10768..10769
+      TEXT_LINE: "and the most recommended for small and medium-size problems."@10769..10829
+      NEWLINE: "\n"@10829..10830
+      BLANK_LINE: "\n"@10830..10831
+      TEXT_LINE: "**Bound-Constrained minimization**"@10831..10865
+      NEWLINE: "\n"@10865..10866
+      BLANK_LINE: "\n"@10866..10867
+      TEXT_LINE: "Method :ref:`Nelder-Mead <optimize.minimize-neldermead>` uses the"@10867..10932
+      NEWLINE: "\n"@10932..10933
+      TEXT_LINE: "Simplex algorithm [1]_, [2]_. This algorithm is robust in many"@10933..10995
+      NEWLINE: "\n"@10995..10996
+      TEXT_LINE: "applications. However, if numerical computation of derivative can be"@10996..11064
+      NEWLINE: "\n"@11064..11065
+      TEXT_LINE: "trusted, other algorithms using the first and/or second derivatives"@11065..11132
+      NEWLINE: "\n"@11132..11133
+      TEXT_LINE: "information might be preferred for their better performance in"@11133..11195
+      NEWLINE: "\n"@11195..11196
+      TEXT_LINE: "general."@11196..11204
+      NEWLINE: "\n"@11204..11205
+      BLANK_LINE: "\n"@11205..11206
+      TEXT_LINE: "Method :ref:`L-BFGS-B <optimize.minimize-lbfgsb>` uses the L-BFGS-B"@11206..11273
+      NEWLINE: "\n"@11273..11274
+      TEXT_LINE: "algorithm [6]_, [7]_ for bound constrained minimization."@11274..11330
+      NEWLINE: "\n"@11330..11331
+      BLANK_LINE: "\n"@11331..11332
+      TEXT_LINE: "Method :ref:`Powell <optimize.minimize-powell>` is a modification"@11332..11397
+      NEWLINE: "\n"@11397..11398
+      TEXT_LINE: "of Powell's method [3]_, [4]_ which is a conjugate direction"@11398..11458
+      NEWLINE: "\n"@11458..11459
+      TEXT_LINE: "method. It performs sequential one-dimensional minimizations along"@11459..11525
+      NEWLINE: "\n"@11525..11526
+      TEXT_LINE: "each vector of the directions set (`direc` field in `options` and"@11526..11591
+      NEWLINE: "\n"@11591..11592
+      TEXT_LINE: "`info`), which is updated at each iteration of the main"@11592..11647
+      NEWLINE: "\n"@11647..11648
+      TEXT_LINE: "minimization loop. The function need not be differentiable, and no"@11648..11714
+      NEWLINE: "\n"@11714..11715
+      TEXT_LINE: "derivatives are taken. If bounds are not provided, then an"@11715..11773
+      NEWLINE: "\n"@11773..11774
+      TEXT_LINE: "unbounded line search will be used. If bounds are provided and"@11774..11836
+      NEWLINE: "\n"@11836..11837
+      TEXT_LINE: "the initial guess is within the bounds, then every function"@11837..11896
+      NEWLINE: "\n"@11896..11897
+      TEXT_LINE: "evaluation throughout the minimization procedure will be within"@11897..11960
+      NEWLINE: "\n"@11960..11961
+      TEXT_LINE: "the bounds. If bounds are provided, the initial guess is outside"@11961..12025
+      NEWLINE: "\n"@12025..12026
+      TEXT_LINE: "the bounds, and `direc` is full rank (default has full rank), then"@12026..12092
+      NEWLINE: "\n"@12092..12093
+      TEXT_LINE: "some function evaluations during the first iteration may be"@12093..12152
+      NEWLINE: "\n"@12152..12153
+      TEXT_LINE: "outside the bounds, but every function evaluation after the first"@12153..12218
+      NEWLINE: "\n"@12218..12219
+      TEXT_LINE: "iteration will be within the bounds. If `direc` is not full rank,"@12219..12284
+      NEWLINE: "\n"@12284..12285
+      TEXT_LINE: "then some parameters may not be optimized and the solution is not"@12285..12350
+      NEWLINE: "\n"@12350..12351
+      TEXT_LINE: "guaranteed to be within the bounds."@12351..12386
+      NEWLINE: "\n"@12386..12387
+      BLANK_LINE: "\n"@12387..12388
+      TEXT_LINE: "Method :ref:`TNC <optimize.minimize-tnc>` uses a truncated Newton"@12388..12453
+      NEWLINE: "\n"@12453..12454
+      TEXT_LINE: "algorithm [5]_, [8]_ to minimize a function with variables subject"@12454..12520
+      NEWLINE: "\n"@12520..12521
+      TEXT_LINE: "to bounds. This algorithm uses gradient information; it is also"@12521..12584
+      NEWLINE: "\n"@12584..12585
+      TEXT_LINE: "called Newton Conjugate-Gradient. It differs from the *Newton-CG*"@12585..12650
+      NEWLINE: "\n"@12650..12651
+      TEXT_LINE: "method described above as it wraps a C implementation and allows"@12651..12715
+      NEWLINE: "\n"@12715..12716
+      TEXT_LINE: "each variable to be given upper and lower bounds."@12716..12765
+      NEWLINE: "\n"@12765..12766
+      BLANK_LINE: "\n"@12766..12767
+      TEXT_LINE: "**Constrained Minimization**"@12767..12795
+      NEWLINE: "\n"@12795..12796
+      BLANK_LINE: "\n"@12796..12797
+      TEXT_LINE: "Method :ref:`COBYLA <optimize.minimize-cobyla>` uses the PRIMA"@12797..12859
+      NEWLINE: "\n"@12859..12860
+      TEXT_LINE: "implementation [19]_ of the"@12860..12887
+      NEWLINE: "\n"@12887..12888
+      TEXT_LINE: "Constrained Optimization BY Linear Approximation (COBYLA) method"@12888..12952
+      NEWLINE: "\n"@12952..12953
+      TEXT_LINE: "[9]_, [10]_, [11]_. The algorithm is based on linear"@12953..13005
+      NEWLINE: "\n"@13005..13006
+      TEXT_LINE: "approximations to the objective function and each constraint."@13006..13067
+      NEWLINE: "\n"@13067..13068
+      BLANK_LINE: "\n"@13068..13069
+      TEXT_LINE: "Method :ref:`COBYQA <optimize.minimize-cobyqa>` uses the Constrained"@13069..13137
+      NEWLINE: "\n"@13137..13138
+      TEXT_LINE: "Optimization BY Quadratic Approximations (COBYQA) method [18]_. The"@13138..13205
+      NEWLINE: "\n"@13205..13206
+      TEXT_LINE: "algorithm is a derivative-free trust-region SQP method based on quadratic"@13206..13279
+      NEWLINE: "\n"@13279..13280
+      TEXT_LINE: "approximations to the objective function and each nonlinear constraint. The"@13280..13355
+      NEWLINE: "\n"@13355..13356
+      TEXT_LINE: "bounds are treated as unrelaxable constraints, in the sense that the"@13356..13424
+      NEWLINE: "\n"@13424..13425
+      TEXT_LINE: "algorithm always respects them throughout the optimization process."@13425..13492
+      NEWLINE: "\n"@13492..13493
+      BLANK_LINE: "\n"@13493..13494
+      TEXT_LINE: "Method :ref:`SLSQP <optimize.minimize-slsqp>` uses Sequential"@13494..13555
+      NEWLINE: "\n"@13555..13556
+      TEXT_LINE: "Least SQuares Programming to minimize a function of several"@13556..13615
+      NEWLINE: "\n"@13615..13616
+      TEXT_LINE: "variables with any combination of bounds, equality and inequality"@13616..13681
+      NEWLINE: "\n"@13681..13682
+      TEXT_LINE: "constraints. The method wraps the SLSQP Optimization subroutine"@13682..13745
+      NEWLINE: "\n"@13745..13746
+      TEXT_LINE: "originally implemented by Dieter Kraft [12]_. Note that the"@13746..13805
+      NEWLINE: "\n"@13805..13806
+      TEXT_LINE: "wrapper handles infinite values in bounds by converting them into"@13806..13871
+      NEWLINE: "\n"@13871..13872
+      TEXT_LINE: "large floating values."@13872..13894
+      NEWLINE: "\n"@13894..13895
+      BLANK_LINE: "\n"@13895..13896
+      TEXT_LINE: "Method :ref:`trust-constr <optimize.minimize-trustconstr>` is a"@13896..13959
+      NEWLINE: "\n"@13959..13960
+      TEXT_LINE: "trust-region algorithm for constrained optimization. It switches"@13960..14024
+      NEWLINE: "\n"@14024..14025
+      TEXT_LINE: "between two implementations depending on the problem definition."@14025..14089
+      NEWLINE: "\n"@14089..14090
+      TEXT_LINE: "It is the most versatile constrained minimization algorithm"@14090..14149
+      NEWLINE: "\n"@14149..14150
+      TEXT_LINE: "implemented in SciPy and the most appropriate for large-scale problems."@14150..14221
+      NEWLINE: "\n"@14221..14222
+      TEXT_LINE: "For equality constrained problems it is an implementation of Byrd-Omojokun"@14222..14296
+      NEWLINE: "\n"@14296..14297
+      TEXT_LINE: "Trust-Region SQP method described in [17]_ and in [5]_, p. 549. When"@14297..14365
+      NEWLINE: "\n"@14365..14366
+      TEXT_LINE: "inequality constraints are imposed as well, it switches to the trust-region"@14366..14441
+      NEWLINE: "\n"@14441..14442
+      TEXT_LINE: "interior point method described in [16]_. This interior point algorithm,"@14442..14514
+      NEWLINE: "\n"@14514..14515
+      TEXT_LINE: "in turn, solves inequality constraints by introducing slack variables"@14515..14584
+      NEWLINE: "\n"@14584..14585
+      TEXT_LINE: "and solving a sequence of equality-constrained barrier problems"@14585..14648
+      NEWLINE: "\n"@14648..14649
+      TEXT_LINE: "for progressively smaller values of the barrier parameter."@14649..14707
+      NEWLINE: "\n"@14707..14708
+      TEXT_LINE: "The previously described equality constrained SQP method is"@14708..14767
+      NEWLINE: "\n"@14767..14768
+      TEXT_LINE: "used to solve the subproblems with increasing levels of accuracy"@14768..14832
+      NEWLINE: "\n"@14832..14833
+      TEXT_LINE: "as the iterate gets closer to a solution."@14833..14874
+      NEWLINE: "\n"@14874..14875
+      BLANK_LINE: "\n"@14875..14876
+      TEXT_LINE: "**Finite-Difference Options**"@14876..14905
+      NEWLINE: "\n"@14905..14906
+      BLANK_LINE: "\n"@14906..14907
+      TEXT_LINE: "For Method :ref:`trust-constr <optimize.minimize-trustconstr>`"@14907..14969
+      NEWLINE: "\n"@14969..14970
+      TEXT_LINE: "the gradient and the Hessian may be approximated using"@14970..15024
+      NEWLINE: "\n"@15024..15025
+      TEXT_LINE: "three finite-difference schemes: {'2-point', '3-point', 'cs'}."@15025..15087
+      NEWLINE: "\n"@15087..15088
+      TEXT_LINE: "The scheme 'cs' is, potentially, the most accurate but it"@15088..15145
+      NEWLINE: "\n"@15145..15146
+      TEXT_LINE: "requires the function to correctly handle complex inputs and to"@15146..15209
+      NEWLINE: "\n"@15209..15210
+      TEXT_LINE: "be differentiable in the complex plane. The scheme '3-point' is more"@15210..15278
+      NEWLINE: "\n"@15278..15279
+      TEXT_LINE: "accurate than '2-point' but requires twice as many operations. If the"@15279..15348
+      NEWLINE: "\n"@15348..15349
+      TEXT_LINE: "gradient is estimated via finite-differences the Hessian must be"@15349..15413
+      NEWLINE: "\n"@15413..15414
+      TEXT_LINE: "estimated using one of the quasi-Newton strategies."@15414..15465
+      NEWLINE: "\n"@15465..15466
+      BLANK_LINE: "\n"@15466..15467
+      TEXT_LINE: "**Method specific options for the** `hess` **keyword**"@15467..15521
+      NEWLINE: "\n"@15521..15522
+      BLANK_LINE: "\n"@15522..15523
+      TEXT_LINE: "+--------------+------+----------+-------------------------+-----+"@15523..15589
+      NEWLINE: "\n"@15589..15590
+      TEXT_LINE: "| method/Hess  | None | callable | '2-point/'3-point'/'cs' | HUS |"@15590..15656
+      NEWLINE: "\n"@15656..15657
+      TEXT_LINE: "+==============+======+==========+=========================+=====+"@15657..15723
+      NEWLINE: "\n"@15723..15724
+      TEXT_LINE: "| Newton-CG    | x    | (n, n)   | x                       | x   |"@15724..15790
+      NEWLINE: "\n"@15790..15791
+      TEXT_LINE: "|              |      | LO       |                         |     |"@15791..15857
+      NEWLINE: "\n"@15857..15858
+      TEXT_LINE: "+--------------+------+----------+-------------------------+-----+"@15858..15924
+      NEWLINE: "\n"@15924..15925
+      TEXT_LINE: "| dogleg       |      | (n, n)   |                         |     |"@15925..15991
+      NEWLINE: "\n"@15991..15992
+      TEXT_LINE: "+--------------+------+----------+-------------------------+-----+"@15992..16058
+      NEWLINE: "\n"@16058..16059
+      TEXT_LINE: "| trust-ncg    |      | (n, n)   | x                       | x   |"@16059..16125
+      NEWLINE: "\n"@16125..16126
+      TEXT_LINE: "+--------------+------+----------+-------------------------+-----+"@16126..16192
+      NEWLINE: "\n"@16192..16193
+      TEXT_LINE: "| trust-krylov |      | (n, n)   | x                       | x   |"@16193..16259
+      NEWLINE: "\n"@16259..16260
+      TEXT_LINE: "+--------------+------+----------+-------------------------+-----+"@16260..16326
+      NEWLINE: "\n"@16326..16327
+      TEXT_LINE: "| trust-exact  |      | (n, n)   |                         |     |"@16327..16393
+      NEWLINE: "\n"@16393..16394
+      TEXT_LINE: "+--------------+------+----------+-------------------------+-----+"@16394..16460
+      NEWLINE: "\n"@16460..16461
+      TEXT_LINE: "| trust-constr | x    | (n, n)   |  x                      | x   |"@16461..16527
+      NEWLINE: "\n"@16527..16528
+      TEXT_LINE: "|              |      | LO       |                         |     |"@16528..16594
+      NEWLINE: "\n"@16594..16595
+      TEXT_LINE: "|              |      | sp       |                         |     |"@16595..16661
+      NEWLINE: "\n"@16661..16662
+      TEXT_LINE: "+--------------+------+----------+-------------------------+-----+"@16662..16728
+      NEWLINE: "\n"@16728..16729
+      BLANK_LINE: "\n"@16729..16730
+      TEXT_LINE: "where LO=LinearOperator, sp=Sparse matrix, HUS=HessianUpdateStrategy"@16730..16798
+      NEWLINE: "\n"@16798..16799
+      BLANK_LINE: "\n"@16799..16800
+      TEXT_LINE: "**Custom minimizers**"@16800..16821
+      NEWLINE: "\n"@16821..16822
+      BLANK_LINE: "\n"@16822..16823
+      TEXT_LINE: "It may be useful to pass a custom minimization method, for example"@16823..16889
+      NEWLINE: "\n"@16889..16890
+      TEXT_LINE: "when using a frontend to this method such as `scipy.optimize.basinhopping`"@16890..16964
+      NEWLINE: "\n"@16964..16965
+      TEXT_LINE: "or a different library.  You can simply pass a callable as the ``method``"@16965..17038
+      NEWLINE: "\n"@17038..17039
+      TEXT_LINE: "parameter."@17039..17049
+      NEWLINE: "\n"@17049..17050
+      BLANK_LINE: "\n"@17050..17051
+      TEXT_LINE: "The callable is called as ``method(fun, x0, args, **kwargs, **options)``"@17051..17123
+      NEWLINE: "\n"@17123..17124
+      TEXT_LINE: "where ``kwargs`` corresponds to any other parameters passed to `minimize`"@17124..17197
+      NEWLINE: "\n"@17197..17198
+      TEXT_LINE: "(such as `callback`, `hess`, etc.), except the `options` dict, which has"@17198..17270
+      NEWLINE: "\n"@17270..17271
+      TEXT_LINE: "its contents also passed as `method` parameters pair by pair.  Also, if"@17271..17342
+      NEWLINE: "\n"@17342..17343
+      TEXT_LINE: "`jac` has been passed as a bool type, `jac` and `fun` are mangled so that"@17343..17416
+      NEWLINE: "\n"@17416..17417
+      TEXT_LINE: "`fun` returns just the function values and `jac` is converted to a function"@17417..17492
+      NEWLINE: "\n"@17492..17493
+      TEXT_LINE: "returning the Jacobian.  The method shall return an `OptimizeResult`"@17493..17561
+      NEWLINE: "\n"@17561..17562
+      TEXT_LINE: "object."@17562..17569
+      NEWLINE: "\n"@17569..17570
+      BLANK_LINE: "\n"@17570..17571
+      TEXT_LINE: "The provided `method` callable must be able to accept (and possibly ignore)"@17571..17646
+      NEWLINE: "\n"@17646..17647
+      TEXT_LINE: "arbitrary parameters; the set of parameters accepted by `minimize` may"@17647..17717
+      NEWLINE: "\n"@17717..17718
+      TEXT_LINE: "expand in future versions and then these parameters will be passed to"@17718..17787
+      NEWLINE: "\n"@17787..17788
+      TEXT_LINE: "the method.  You can find an example in the scipy.optimize tutorial."@17788..17856
+    }
+  }
+  NEWLINE: "\n"@17856..17857
+  BLANK_LINE: "\n"@17857..17858
+  SECTION@17858..21304 {
+    SECTION_HEADER@17858..17879 {
+      NAME: "References"@17858..17868
+      NEWLINE: "\n"@17868..17869
+      UNDERLINE: "----------"@17869..17879
+    }
+    NEWLINE: "\n"@17879..17880
+    CITATION@17880..17997 {
+      DIRECTIVE_MARKER: ".."@17880..17882
+      WHITESPACE: " "@17882..17883
+      OPEN_BRACKET: "["@17883..17884
+      LABEL: "1"@17884..17885
+      CLOSE_BRACKET: "]"@17885..17886
+      WHITESPACE: " "@17886..17887
+      DESCRIPTION@17887..17997 {
+        TEXT_LINE: "Nelder, J A, and R Mead. 1965. A Simplex Method for Function"@17887..17947
+        NEWLINE: "\n"@17947..17948
+        WHITESPACE: "    "@17948..17952
+        TEXT_LINE: "Minimization. The Computer Journal 7: 308-13."@17952..17997
+      }
+    }
+    NEWLINE: "\n"@17997..17998
+    CITATION@17998..18275 {
+      DIRECTIVE_MARKER: ".."@17998..18000
+      WHITESPACE: " "@18000..18001
+      OPEN_BRACKET: "["@18001..18002
+      LABEL: "2"@18002..18003
+      CLOSE_BRACKET: "]"@18003..18004
+      WHITESPACE: " "@18004..18005
+      DESCRIPTION@18005..18275 {
+        TEXT_LINE: "Wright M H. 1996. Direct search methods: Once scorned, now"@18005..18063
+        NEWLINE: "\n"@18063..18064
+        WHITESPACE: "    "@18064..18068
+        TEXT_LINE: "respectable, in Numerical Analysis 1995: Proceedings of the 1995"@18068..18132
+        NEWLINE: "\n"@18132..18133
+        WHITESPACE: "    "@18133..18137
+        TEXT_LINE: "Dundee Biennial Conference in Numerical Analysis (Eds. D F"@18137..18195
+        NEWLINE: "\n"@18195..18196
+        WHITESPACE: "    "@18196..18200
+        TEXT_LINE: "Griffiths and G A Watson). Addison Wesley Longman, Harlow, UK."@18200..18262
+        NEWLINE: "\n"@18262..18263
+        WHITESPACE: "    "@18263..18267
+        TEXT_LINE: "191-208."@18267..18275
+      }
+    }
+    NEWLINE: "\n"@18275..18276
+    CITATION@18276..18454 {
+      DIRECTIVE_MARKER: ".."@18276..18278
+      WHITESPACE: " "@18278..18279
+      OPEN_BRACKET: "["@18279..18280
+      LABEL: "3"@18280..18281
+      CLOSE_BRACKET: "]"@18281..18282
+      WHITESPACE: " "@18282..18283
+      DESCRIPTION@18283..18454 {
+        TEXT_LINE: "Powell, M J D. 1964. An efficient method for finding the minimum of"@18283..18350
+        NEWLINE: "\n"@18350..18351
+        WHITESPACE: "   "@18351..18354
+        TEXT_LINE: "a function of several variables without calculating derivatives. The"@18354..18422
+        NEWLINE: "\n"@18422..18423
+        WHITESPACE: "   "@18423..18426
+        TEXT_LINE: "Computer Journal 7: 155-162."@18426..18454
+      }
+    }
+    NEWLINE: "\n"@18454..18455
+    CITATION@18455..18582 {
+      DIRECTIVE_MARKER: ".."@18455..18457
+      WHITESPACE: " "@18457..18458
+      OPEN_BRACKET: "["@18458..18459
+      LABEL: "4"@18459..18460
+      CLOSE_BRACKET: "]"@18460..18461
+      WHITESPACE: " "@18461..18462
+      DESCRIPTION@18462..18582 {
+        TEXT_LINE: "Press W, S A Teukolsky, W T Vetterling and B P Flannery."@18462..18518
+        NEWLINE: "\n"@18518..18519
+        WHITESPACE: "   "@18519..18522
+        TEXT_LINE: "Numerical Recipes (any edition), Cambridge University Press."@18522..18582
+      }
+    }
+    NEWLINE: "\n"@18582..18583
+    CITATION@18583..18669 {
+      DIRECTIVE_MARKER: ".."@18583..18585
+      WHITESPACE: " "@18585..18586
+      OPEN_BRACKET: "["@18586..18587
+      LABEL: "5"@18587..18588
+      CLOSE_BRACKET: "]"@18588..18589
+      WHITESPACE: " "@18589..18590
+      DESCRIPTION@18590..18669 {
+        TEXT_LINE: "Nocedal, J, and S J Wright. 2006. Numerical Optimization."@18590..18647
+        NEWLINE: "\n"@18647..18648
+        WHITESPACE: "   "@18648..18651
+        TEXT_LINE: "Springer New York."@18651..18669
+      }
+    }
+    NEWLINE: "\n"@18669..18670
+    CITATION@18670..18858 {
+      DIRECTIVE_MARKER: ".."@18670..18672
+      WHITESPACE: " "@18672..18673
+      OPEN_BRACKET: "["@18673..18674
+      LABEL: "6"@18674..18675
+      CLOSE_BRACKET: "]"@18675..18676
+      WHITESPACE: " "@18676..18677
+      DESCRIPTION@18677..18858 {
+        TEXT_LINE: "Byrd, R H and P Lu and J. Nocedal. 1995. A Limited Memory"@18677..18734
+        NEWLINE: "\n"@18734..18735
+        WHITESPACE: "   "@18735..18738
+        TEXT_LINE: "Algorithm for Bound Constrained Optimization. SIAM Journal on"@18738..18799
+        NEWLINE: "\n"@18799..18800
+        WHITESPACE: "   "@18800..18803
+        TEXT_LINE: "Scientific and Statistical Computing 16 (5): 1190-1208."@18803..18858
+      }
+    }
+    NEWLINE: "\n"@18858..18859
+    CITATION@18859..19074 {
+      DIRECTIVE_MARKER: ".."@18859..18861
+      WHITESPACE: " "@18861..18862
+      OPEN_BRACKET: "["@18862..18863
+      LABEL: "7"@18863..18864
+      CLOSE_BRACKET: "]"@18864..18865
+      WHITESPACE: " "@18865..18866
+      DESCRIPTION@18866..19074 {
+        TEXT_LINE: "Zhu, C and R H Byrd and J Nocedal. 1997. L-BFGS-B: Algorithm"@18866..18926
+        NEWLINE: "\n"@18926..18927
+        WHITESPACE: "   "@18927..18930
+        TEXT_LINE: "778: L-BFGS-B, FORTRAN routines for large scale bound constrained"@18930..18995
+        NEWLINE: "\n"@18995..18996
+        WHITESPACE: "   "@18996..18999
+        TEXT_LINE: "optimization. ACM Transactions on Mathematical Software 23 (4):"@18999..19062
+        NEWLINE: "\n"@19062..19063
+        WHITESPACE: "   "@19063..19066
+        TEXT_LINE: "550-560."@19066..19074
+      }
+    }
+    NEWLINE: "\n"@19074..19075
+    CITATION@19075..19198 {
+      DIRECTIVE_MARKER: ".."@19075..19077
+      WHITESPACE: " "@19077..19078
+      OPEN_BRACKET: "["@19078..19079
+      LABEL: "8"@19079..19080
+      CLOSE_BRACKET: "]"@19080..19081
+      WHITESPACE: " "@19081..19082
+      DESCRIPTION@19082..19198 {
+        TEXT_LINE: "Nash, S G. Newton-Type Minimization Via the Lanczos Method."@19082..19141
+        NEWLINE: "\n"@19141..19142
+        WHITESPACE: "   "@19142..19145
+        TEXT_LINE: "1984. SIAM Journal of Numerical Analysis 21: 770-778."@19145..19198
+      }
+    }
+    NEWLINE: "\n"@19198..19199
+    CITATION@19199..19463 {
+      DIRECTIVE_MARKER: ".."@19199..19201
+      WHITESPACE: " "@19201..19202
+      OPEN_BRACKET: "["@19202..19203
+      LABEL: "9"@19203..19204
+      CLOSE_BRACKET: "]"@19204..19205
+      WHITESPACE: " "@19205..19206
+      DESCRIPTION@19206..19463 {
+        TEXT_LINE: "Powell, M J D. A direct search optimization method that models"@19206..19268
+        NEWLINE: "\n"@19268..19269
+        WHITESPACE: "   "@19269..19272
+        TEXT_LINE: "the objective and constraint functions by linear interpolation."@19272..19335
+        NEWLINE: "\n"@19335..19336
+        WHITESPACE: "   "@19336..19339
+        TEXT_LINE: "1994. Advances in Optimization and Numerical Analysis, eds. S. Gomez"@19339..19407
+        NEWLINE: "\n"@19407..19408
+        WHITESPACE: "   "@19408..19411
+        TEXT_LINE: "and J-P Hennart, Kluwer Academic (Dordrecht), 51-67."@19411..19463
+      }
+    }
+    NEWLINE: "\n"@19463..19464
+    CITATION@19464..19576 {
+      DIRECTIVE_MARKER: ".."@19464..19466
+      WHITESPACE: " "@19466..19467
+      OPEN_BRACKET: "["@19467..19468
+      LABEL: "10"@19468..19470
+      CLOSE_BRACKET: "]"@19470..19471
+      WHITESPACE: " "@19471..19472
+      DESCRIPTION@19472..19576 {
+        TEXT_LINE: "Powell M J D. Direct search algorithms for optimization"@19472..19527
+        NEWLINE: "\n"@19527..19528
+        WHITESPACE: "   "@19528..19531
+        TEXT_LINE: "calculations. 1998. Acta Numerica 7: 287-336."@19531..19576
+      }
+    }
+    NEWLINE: "\n"@19576..19577
+    CITATION@19577..19722 {
+      DIRECTIVE_MARKER: ".."@19577..19579
+      WHITESPACE: " "@19579..19580
+      OPEN_BRACKET: "["@19580..19581
+      LABEL: "11"@19581..19583
+      CLOSE_BRACKET: "]"@19583..19584
+      WHITESPACE: " "@19584..19585
+      DESCRIPTION@19585..19722 {
+        TEXT_LINE: "Powell M J D. A view of algorithms for optimization without"@19585..19644
+        NEWLINE: "\n"@19644..19645
+        WHITESPACE: "   "@19645..19648
+        TEXT_LINE: "derivatives. 2007.Cambridge University Technical Report DAMTP"@19648..19709
+        NEWLINE: "\n"@19709..19710
+        WHITESPACE: "   "@19710..19713
+        TEXT_LINE: "2007/NA03"@19713..19722
+      }
+    }
+    NEWLINE: "\n"@19722..19723
+    CITATION@19723..19914 {
+      DIRECTIVE_MARKER: ".."@19723..19725
+      WHITESPACE: " "@19725..19726
+      OPEN_BRACKET: "["@19726..19727
+      LABEL: "12"@19727..19729
+      CLOSE_BRACKET: "]"@19729..19730
+      WHITESPACE: " "@19730..19731
+      DESCRIPTION@19731..19914 {
+        TEXT_LINE: "Kraft, D. A software package for sequential quadratic"@19731..19784
+        NEWLINE: "\n"@19784..19785
+        WHITESPACE: "   "@19785..19788
+        TEXT_LINE: "programming. 1988. Tech. Rep. DFVLR-FB 88-28, DLR German Aerospace"@19788..19854
+        NEWLINE: "\n"@19854..19855
+        WHITESPACE: "   "@19855..19858
+        TEXT_LINE: "Center -- Institute for Flight Mechanics, Koln, Germany."@19858..19914
+      }
+    }
+    NEWLINE: "\n"@19914..19915
+    CITATION@19915..20016 {
+      DIRECTIVE_MARKER: ".."@19915..19917
+      WHITESPACE: " "@19917..19918
+      OPEN_BRACKET: "["@19918..19919
+      LABEL: "13"@19919..19921
+      CLOSE_BRACKET: "]"@19921..19922
+      WHITESPACE: " "@19922..19923
+      DESCRIPTION@19923..20016 {
+        TEXT_LINE: "Conn, A. R., Gould, N. I., and Toint, P. L."@19923..19966
+        NEWLINE: "\n"@19966..19967
+        WHITESPACE: "   "@19967..19970
+        TEXT_LINE: "Trust region methods. 2000. Siam. pp. 169-200."@19970..20016
+      }
+    }
+    NEWLINE: "\n"@20016..20017
+    CITATION@20017..20196 {
+      DIRECTIVE_MARKER: ".."@20017..20019
+      WHITESPACE: " "@20019..20020
+      OPEN_BRACKET: "["@20020..20021
+      LABEL: "14"@20021..20023
+      CLOSE_BRACKET: "]"@20023..20024
+      WHITESPACE: " "@20024..20025
+      DESCRIPTION@20025..20196 {
+        TEXT_LINE: "F. Lenders, C. Kirches, A. Potschka: \"trlib: A vector-free"@20025..20083
+        NEWLINE: "\n"@20083..20084
+        WHITESPACE: "   "@20084..20087
+        TEXT_LINE: "implementation of the GLTR method for iterative solution of"@20087..20146
+        NEWLINE: "\n"@20146..20147
+        WHITESPACE: "   "@20147..20150
+        TEXT_LINE: "the trust region problem\", :arxiv:`1611.04718`"@20150..20196
+      }
+    }
+    NEWLINE: "\n"@20196..20197
+    CITATION@20197..20354 {
+      DIRECTIVE_MARKER: ".."@20197..20199
+      WHITESPACE: " "@20199..20200
+      OPEN_BRACKET: "["@20200..20201
+      LABEL: "15"@20201..20203
+      CLOSE_BRACKET: "]"@20203..20204
+      WHITESPACE: " "@20204..20205
+      DESCRIPTION@20205..20354 {
+        TEXT_LINE: "N. Gould, S. Lucidi, M. Roma, P. Toint: \"Solving the"@20205..20257
+        NEWLINE: "\n"@20257..20258
+        WHITESPACE: "   "@20258..20261
+        TEXT_LINE: "Trust-Region Subproblem using the Lanczos Method\","@20261..20311
+        NEWLINE: "\n"@20311..20312
+        WHITESPACE: "   "@20312..20315
+        TEXT_LINE: "SIAM J. Optim., 9(2), 504--525, (1999)."@20315..20354
+      }
+    }
+    NEWLINE: "\n"@20354..20355
+    CITATION@20355..20540 {
+      DIRECTIVE_MARKER: ".."@20355..20357
+      WHITESPACE: " "@20357..20358
+      OPEN_BRACKET: "["@20358..20359
+      LABEL: "16"@20359..20361
+      CLOSE_BRACKET: "]"@20361..20362
+      WHITESPACE: " "@20362..20363
+      DESCRIPTION@20363..20540 {
+        TEXT_LINE: "Byrd, Richard H., Mary E. Hribar, and Jorge Nocedal. 1999."@20363..20421
+        NEWLINE: "\n"@20421..20422
+        WHITESPACE: "    "@20422..20426
+        TEXT_LINE: "An interior point algorithm for large-scale nonlinear  programming."@20426..20493
+        NEWLINE: "\n"@20493..20494
+        WHITESPACE: "    "@20494..20498
+        TEXT_LINE: "SIAM Journal on Optimization 9.4: 877-900."@20498..20540
+      }
+    }
+    NEWLINE: "\n"@20540..20541
+    CITATION@20541..20745 {
+      DIRECTIVE_MARKER: ".."@20541..20543
+      WHITESPACE: " "@20543..20544
+      OPEN_BRACKET: "["@20544..20545
+      LABEL: "17"@20545..20547
+      CLOSE_BRACKET: "]"@20547..20548
+      WHITESPACE: " "@20548..20549
+      DESCRIPTION@20549..20745 {
+        TEXT_LINE: "Lalee, Marucha, Jorge Nocedal, and Todd Plantenga. 1998. On the"@20549..20612
+        NEWLINE: "\n"@20612..20613
+        WHITESPACE: "    "@20613..20617
+        TEXT_LINE: "implementation of an algorithm for large-scale equality constrained"@20617..20684
+        NEWLINE: "\n"@20684..20685
+        WHITESPACE: "    "@20685..20689
+        TEXT_LINE: "optimization. SIAM Journal on Optimization 8.3: 682-706."@20689..20745
+      }
+    }
+    NEWLINE: "\n"@20745..20746
+    CITATION@20746..21011 {
+      DIRECTIVE_MARKER: ".."@20746..20748
+      WHITESPACE: " "@20748..20749
+      OPEN_BRACKET: "["@20749..20750
+      LABEL: "18"@20750..20752
+      CLOSE_BRACKET: "]"@20752..20753
+      WHITESPACE: " "@20753..20754
+      DESCRIPTION@20754..21011 {
+        TEXT_LINE: "Ragonneau, T. M. *Model-Based Derivative-Free Optimization Methods"@20754..20820
+        NEWLINE: "\n"@20820..20821
+        WHITESPACE: "    "@20821..20825
+        TEXT_LINE: "and Software*. PhD thesis, Department of Applied Mathematics, The Hong"@20825..20895
+        NEWLINE: "\n"@20895..20896
+        WHITESPACE: "    "@20896..20900
+        TEXT_LINE: "Kong Polytechnic University, Hong Kong, China, 2022. URL:"@20900..20957
+        NEWLINE: "\n"@20957..20958
+        WHITESPACE: "    "@20958..20962
+        TEXT_LINE: "https://theses.lib.polyu.edu.hk/handle/200/12294."@20962..21011
+      }
+    }
+    NEWLINE: "\n"@21011..21012
+    CITATION@21012..21185 {
+      DIRECTIVE_MARKER: ".."@21012..21014
+      WHITESPACE: " "@21014..21015
+      OPEN_BRACKET: "["@21015..21016
+      LABEL: "19"@21016..21018
+      CLOSE_BRACKET: "]"@21018..21019
+      WHITESPACE: " "@21019..21020
+      DESCRIPTION@21020..21185 {
+        TEXT_LINE: "Zhang, Z. \"PRIMA: Reference Implementation for Powell's Methods with"@21020..21088
+        NEWLINE: "\n"@21088..21089
+        WHITESPACE: "    "@21089..21093
+        TEXT_LINE: "Modernization and Amelioration\", https://www.libprima.net,"@21093..21151
+        NEWLINE: "\n"@21151..21152
+        WHITESPACE: "    "@21152..21156
+        TEXT_LINE: ":doi:`10.5281/zenodo.8052654`"@21156..21185
+      }
+    }
+    NEWLINE: "\n"@21185..21186
+    CITATION@21186..21304 {
+      DIRECTIVE_MARKER: ".."@21186..21188
+      WHITESPACE: " "@21188..21189
+      OPEN_BRACKET: "["@21189..21190
+      LABEL: "20"@21190..21192
+      CLOSE_BRACKET: "]"@21192..21193
+      WHITESPACE: " "@21193..21194
+      DESCRIPTION@21194..21304 {
+        TEXT_LINE: "Karush-Kuhn-Tucker conditions,"@21194..21224
+        NEWLINE: "\n"@21224..21225
+        WHITESPACE: "    "@21225..21229
+        TEXT_LINE: "https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions"@21229..21304
+      }
+    }
+  }
+  NEWLINE: "\n"@21304..21305
+  BLANK_LINE: "\n"@21305..21306
+  SECTION@21306..24659 {
+    SECTION_HEADER@21306..21323 {
+      NAME: "Examples"@21306..21314
+      NEWLINE: "\n"@21314..21315
+      UNDERLINE: "--------"@21315..21323
+    }
+    NEWLINE: "\n"@21323..21324
+    DESCRIPTION@21324..24659 {
+      TEXT_LINE: "Let us consider the problem of minimizing the Rosenbrock function. This"@21324..21395
+      NEWLINE: "\n"@21395..21396
+      TEXT_LINE: "function (and its respective derivatives) is implemented in `rosen`"@21396..21463
+      NEWLINE: "\n"@21463..21464
+      TEXT_LINE: "(resp. `rosen_der`, `rosen_hess`) in the `scipy.optimize`."@21464..21522
+      NEWLINE: "\n"@21522..21523
+      BLANK_LINE: "\n"@21523..21524
+      TEXT_LINE: ">>> from scipy.optimize import minimize, rosen, rosen_der"@21524..21581
+      NEWLINE: "\n"@21581..21582
+      BLANK_LINE: "\n"@21582..21583
+      TEXT_LINE: "A simple application of the *Nelder-Mead* method is:"@21583..21635
+      NEWLINE: "\n"@21635..21636
+      BLANK_LINE: "\n"@21636..21637
+      TEXT_LINE: ">>> x0 = [1.3, 0.7, 0.8, 1.9, 1.2]"@21637..21671
+      NEWLINE: "\n"@21671..21672
+      TEXT_LINE: ">>> res = minimize(rosen, x0, method='Nelder-Mead', tol=1e-6)"@21672..21733
+      NEWLINE: "\n"@21733..21734
+      TEXT_LINE: ">>> res.x"@21734..21743
+      NEWLINE: "\n"@21743..21744
+      TEXT_LINE: "array([ 1.,  1.,  1.,  1.,  1.])"@21744..21776
+      NEWLINE: "\n"@21776..21777
+      BLANK_LINE: "\n"@21777..21778
+      TEXT_LINE: "Now using the *BFGS* algorithm, using the first derivative and a few"@21778..21846
+      NEWLINE: "\n"@21846..21847
+      TEXT_LINE: "options:"@21847..21855
+      NEWLINE: "\n"@21855..21856
+      BLANK_LINE: "\n"@21856..21857
+      TEXT_LINE: ">>> res = minimize(rosen, x0, method='BFGS', jac=rosen_der,"@21857..21916
+      NEWLINE: "\n"@21916..21917
+      TEXT_LINE: "...                options={'gtol': 1e-6, 'disp': True})"@21917..21973
+      NEWLINE: "\n"@21973..21974
+      TEXT_LINE: "Optimization terminated successfully."@21974..22011
+      NEWLINE: "\n"@22011..22012
+      WHITESPACE: "         "@22012..22021
+      TEXT_LINE: "Current function value: 0.000000"@22021..22053
+      NEWLINE: "\n"@22053..22054
+      WHITESPACE: "         "@22054..22063
+      TEXT_LINE: "Iterations: 26"@22063..22077
+      NEWLINE: "\n"@22077..22078
+      WHITESPACE: "         "@22078..22087
+      TEXT_LINE: "Function evaluations: 31"@22087..22111
+      NEWLINE: "\n"@22111..22112
+      WHITESPACE: "         "@22112..22121
+      TEXT_LINE: "Gradient evaluations: 31"@22121..22145
+      NEWLINE: "\n"@22145..22146
+      TEXT_LINE: ">>> res.x"@22146..22155
+      NEWLINE: "\n"@22155..22156
+      TEXT_LINE: "array([ 1.,  1.,  1.,  1.,  1.])"@22156..22188
+      NEWLINE: "\n"@22188..22189
+      TEXT_LINE: ">>> print(res.message)"@22189..22211
+      NEWLINE: "\n"@22211..22212
+      TEXT_LINE: "Optimization terminated successfully."@22212..22249
+      NEWLINE: "\n"@22249..22250
+      TEXT_LINE: ">>> res.hess_inv"@22250..22266
+      NEWLINE: "\n"@22266..22267
+      TEXT_LINE: "array(["@22267..22274
+      NEWLINE: "\n"@22274..22275
+      WHITESPACE: "    "@22275..22279
+      TEXT_LINE: "[ 0.00749589,  0.01255155,  0.02396251,  0.04750988,  0.09495377],  # may vary"@22279..22357
+      NEWLINE: "\n"@22357..22358
+      WHITESPACE: "    "@22358..22362
+      TEXT_LINE: "[ 0.01255155,  0.02510441,  0.04794055,  0.09502834,  0.18996269],"@22362..22428
+      NEWLINE: "\n"@22428..22429
+      WHITESPACE: "    "@22429..22433
+      TEXT_LINE: "[ 0.02396251,  0.04794055,  0.09631614,  0.19092151,  0.38165151],"@22433..22499
+      NEWLINE: "\n"@22499..22500
+      WHITESPACE: "    "@22500..22504
+      TEXT_LINE: "[ 0.04750988,  0.09502834,  0.19092151,  0.38341252,  0.7664427 ],"@22504..22570
+      NEWLINE: "\n"@22570..22571
+      WHITESPACE: "    "@22571..22575
+      TEXT_LINE: "[ 0.09495377,  0.18996269,  0.38165151,  0.7664427,   1.53713523]"@22575..22640
+      NEWLINE: "\n"@22640..22641
+      TEXT_LINE: "])"@22641..22643
+      NEWLINE: "\n"@22643..22644
+      BLANK_LINE: "\n"@22644..22645
+      TEXT_LINE: "Next, consider a minimization problem with several constraints (namely"@22645..22715
+      NEWLINE: "\n"@22715..22716
+      TEXT_LINE: "Example 16.4 from [5]_). The objective function is:"@22716..22767
+      NEWLINE: "\n"@22767..22768
+      BLANK_LINE: "\n"@22768..22769
+      TEXT_LINE: ">>> fun = lambda x: (x[0] - 1)**2 + (x[1] - 2.5)**2"@22769..22820
+      NEWLINE: "\n"@22820..22821
+      BLANK_LINE: "\n"@22821..22822
+      TEXT_LINE: "There are three constraints defined as:"@22822..22861
+      NEWLINE: "\n"@22861..22862
+      BLANK_LINE: "\n"@22862..22863
+      TEXT_LINE: ">>> cons = ({'type': 'ineq', 'fun': lambda x:  x[0] - 2 * x[1] + 2},"@22863..22931
+      NEWLINE: "\n"@22931..22932
+      TEXT_LINE: "...         {'type': 'ineq', 'fun': lambda x: -x[0] - 2 * x[1] + 6},"@22932..23000
+      NEWLINE: "\n"@23000..23001
+      TEXT_LINE: "...         {'type': 'ineq', 'fun': lambda x: -x[0] + 2 * x[1] + 2})"@23001..23069
+      NEWLINE: "\n"@23069..23070
+      BLANK_LINE: "\n"@23070..23071
+      TEXT_LINE: "And variables must be positive, hence the following bounds:"@23071..23130
+      NEWLINE: "\n"@23130..23131
+      BLANK_LINE: "\n"@23131..23132
+      TEXT_LINE: ">>> bnds = ((0, None), (0, None))"@23132..23165
+      NEWLINE: "\n"@23165..23166
+      BLANK_LINE: "\n"@23166..23167
+      TEXT_LINE: "The optimization problem is solved using the SLSQP method as:"@23167..23228
+      NEWLINE: "\n"@23228..23229
+      BLANK_LINE: "\n"@23229..23230
+      TEXT_LINE: ">>> res = minimize(fun, (2, 0), method='SLSQP', bounds=bnds, constraints=cons)"@23230..23308
+      NEWLINE: "\n"@23308..23309
+      BLANK_LINE: "\n"@23309..23310
+      TEXT_LINE: "It should converge to the theoretical solution ``[1.4 ,1.7]``. *SLSQP* also"@23310..23385
+      NEWLINE: "\n"@23385..23386
+      TEXT_LINE: "returns the multipliers that are used in the solution of the problem. These"@23386..23461
+      NEWLINE: "\n"@23461..23462
+      TEXT_LINE: "multipliers, when the problem constraints are linear, can be thought of as the"@23462..23540
+      NEWLINE: "\n"@23540..23541
+      TEXT_LINE: "Karush-Kuhn-Tucker (KKT) multipliers, which are a generalization"@23541..23605
+      NEWLINE: "\n"@23605..23606
+      TEXT_LINE: "of Lagrange multipliers to inequality-constrained optimization problems ([20]_)."@23606..23686
+      NEWLINE: "\n"@23686..23687
+      BLANK_LINE: "\n"@23687..23688
+      TEXT_LINE: "Notice that at the solution, the first constraint is active. Let's evaluate the"@23688..23767
+      NEWLINE: "\n"@23767..23768
+      TEXT_LINE: "function at solution:"@23768..23789
+      NEWLINE: "\n"@23789..23790
+      BLANK_LINE: "\n"@23790..23791
+      TEXT_LINE: ">>> cons[0]['fun'](res.x)"@23791..23816
+      NEWLINE: "\n"@23816..23817
+      TEXT_LINE: "np.float64(1.4901224698604665e-09)"@23817..23851
+      NEWLINE: "\n"@23851..23852
+      BLANK_LINE: "\n"@23852..23853
+      TEXT_LINE: "Also, notice that at optimality there is a non-zero multiplier:"@23853..23916
+      NEWLINE: "\n"@23916..23917
+      BLANK_LINE: "\n"@23917..23918
+      TEXT_LINE: ">>> res.multipliers"@23918..23937
+      NEWLINE: "\n"@23937..23938
+      TEXT_LINE: "array([0.8, 0. , 0. ])"@23938..23960
+      NEWLINE: "\n"@23960..23961
+      BLANK_LINE: "\n"@23961..23962
+      TEXT_LINE: "This can be understood as the local sensitivity of the optimal value of the"@23962..24037
+      NEWLINE: "\n"@24037..24038
+      TEXT_LINE: "objective function with respect to changes in the first constraint. If we"@24038..24111
+      NEWLINE: "\n"@24111..24112
+      TEXT_LINE: "tighten the constraint by a small amount ``eps``:"@24112..24161
+      NEWLINE: "\n"@24161..24162
+      BLANK_LINE: "\n"@24162..24163
+      TEXT_LINE: ">>> eps = 0.01"@24163..24177
+      NEWLINE: "\n"@24177..24178
+      TEXT_LINE: ">>> cons[0]['fun'] = lambda x: x[0] - 2 * x[1] + 2 - eps"@24178..24234
+      NEWLINE: "\n"@24234..24235
+      BLANK_LINE: "\n"@24235..24236
+      TEXT_LINE: "we expect the optimal value of the objective function to increase by"@24236..24304
+      NEWLINE: "\n"@24304..24305
+      TEXT_LINE: "approximately ``eps * res.multipliers[0]``:"@24305..24348
+      NEWLINE: "\n"@24348..24349
+      BLANK_LINE: "\n"@24349..24350
+      TEXT_LINE: ">>> eps * res.multipliers[0]  # Expected change in f0"@24350..24403
+      NEWLINE: "\n"@24403..24404
+      TEXT_LINE: "np.float64(0.008000000027153205)"@24404..24436
+      NEWLINE: "\n"@24436..24437
+      TEXT_LINE: ">>> f0 = res.fun  # Keep track of the previous optimal value"@24437..24497
+      NEWLINE: "\n"@24497..24498
+      TEXT_LINE: ">>> res = minimize(fun, (2, 0), method='SLSQP', bounds=bnds, constraints=cons)"@24498..24576
+      NEWLINE: "\n"@24576..24577
+      TEXT_LINE: ">>> f1 = res.fun  # New optimal value"@24577..24614
+      NEWLINE: "\n"@24614..24615
+      TEXT_LINE: ">>> f1 - f0"@24615..24626
+      NEWLINE: "\n"@24626..24627
+      TEXT_LINE: "np.float64(0.008019998807885509)"@24627..24659
+    }
+  }
+}
+=== EMIT ===
+Minimization of scalar function of one or more variables.
+
+Parameters
+----------
+fun : callable
+    The objective function to be minimized::
+
+        fun(x, *args) -> float
+
+    where ``x`` is a 1-D array with shape (n,) and ``args``
+    is a tuple of the fixed parameters needed to completely
+    specify the function.
+
+    Suppose the callable has signature ``f0(x, *my_args, **my_kwargs)``, where
+    ``my_args`` and ``my_kwargs`` are required positional and keyword arguments.
+    Rather than passing ``f0`` as the callable, wrap it to accept
+    only ``x``; e.g., pass ``fun=lambda x: f0(x, *my_args, **my_kwargs)`` as the
+    callable, where ``my_args`` (tuple) and ``my_kwargs`` (dict) have been
+    gathered before invoking this function.
+x0 : ndarray, shape (n,)
+    Initial guess. Array of real elements of size (n,),
+    where ``n`` is the number of independent variables.
+args : tuple, optional
+    Extra arguments passed to the objective function and its
+    derivatives (`fun`, `jac` and `hess` functions).
+method : str or callable, optional
+    Type of solver.  Should be one of
+
+    - 'Nelder-Mead' :ref:`(see here) <optimize.minimize-neldermead>`
+    - 'Powell'      :ref:`(see here) <optimize.minimize-powell>`
+    - 'CG'          :ref:`(see here) <optimize.minimize-cg>`
+    - 'BFGS'        :ref:`(see here) <optimize.minimize-bfgs>`
+    - 'Newton-CG'   :ref:`(see here) <optimize.minimize-newtoncg>`
+    - 'L-BFGS-B'    :ref:`(see here) <optimize.minimize-lbfgsb>`
+    - 'TNC'         :ref:`(see here) <optimize.minimize-tnc>`
+    - 'COBYLA'      :ref:`(see here) <optimize.minimize-cobyla>`
+    - 'COBYQA'      :ref:`(see here) <optimize.minimize-cobyqa>`
+    - 'SLSQP'       :ref:`(see here) <optimize.minimize-slsqp>`
+    - 'trust-constr':ref:`(see here) <optimize.minimize-trustconstr>`
+    - 'dogleg'      :ref:`(see here) <optimize.minimize-dogleg>`
+    - 'trust-ncg'   :ref:`(see here) <optimize.minimize-trustncg>`
+    - 'trust-exact' :ref:`(see here) <optimize.minimize-trustexact>`
+    - 'trust-krylov' :ref:`(see here) <optimize.minimize-trustkrylov>`
+    - custom - a callable object, see below for description.
+
+    If not given, chosen to be one of ``BFGS``, ``L-BFGS-B``, ``SLSQP``,
+    depending on whether or not the problem has constraints or bounds.
+jac : {callable,  '2-point', '3-point', 'cs', bool}, optional
+    Method for computing the gradient vector. Only for CG, BFGS,
+    Newton-CG, L-BFGS-B, TNC, SLSQP, dogleg, trust-ncg, trust-krylov,
+    trust-exact and trust-constr.
+    If it is a callable, it should be a function that returns the gradient
+    vector::
+
+        jac(x, *args) -> array_like, shape (n,)
+
+    where ``x`` is an array with shape (n,) and ``args`` is a tuple with
+    the fixed parameters. If `jac` is a Boolean and is True, `fun` is
+    assumed to return a tuple ``(f, g)`` containing the objective
+    function and the gradient.
+    Methods 'Newton-CG', 'trust-ncg', 'dogleg', 'trust-exact', and
+    'trust-krylov' require that either a callable be supplied, or that
+    `fun` return the objective and gradient.
+    If None or False, the gradient will be estimated using 2-point finite
+    difference estimation with an absolute step size.
+    Alternatively, the keywords  {'2-point', '3-point', 'cs'} can be used
+    to select a finite difference scheme for numerical estimation of the
+    gradient with a relative step size. These finite difference schemes
+    obey any specified `bounds`.
+hess : {callable, '2-point', '3-point', 'cs', HessianUpdateStrategy}, optional
+    Method for computing the Hessian matrix. Only for Newton-CG, dogleg,
+    trust-ncg, trust-krylov, trust-exact and trust-constr.
+    If it is callable, it should return the Hessian matrix::
+
+        hess(x, *args) -> {LinearOperator, spmatrix, array}, (n, n)
+
+    where ``x`` is a (n,) ndarray and ``args`` is a tuple with the fixed
+    parameters.
+    The keywords {'2-point', '3-point', 'cs'} can also be used to select
+    a finite difference scheme for numerical estimation of the hessian.
+    Alternatively, objects implementing the `HessianUpdateStrategy`
+    interface can be used to approximate the Hessian. Available
+    quasi-Newton methods implementing this interface are:
+
+    - `BFGS`
+    - `SR1`
+
+    Not all of the options are available for each of the methods; for
+    availability refer to the notes.
+hessp : callable, optional
+    Hessian of objective function times an arbitrary vector p. Only for
+    Newton-CG, trust-ncg, trust-krylov, trust-constr.
+    Only one of `hessp` or `hess` needs to be given. If `hess` is
+    provided, then `hessp` will be ignored. `hessp` must compute the
+    Hessian times an arbitrary vector::
+
+        hessp(x, p, *args) ->  ndarray shape (n,)
+
+    where ``x`` is a (n,) ndarray, ``p`` is an arbitrary vector with
+    dimension (n,) and ``args`` is a tuple with the fixed
+    parameters.
+bounds : sequence or `Bounds`, optional
+    Bounds on variables for Nelder-Mead, L-BFGS-B, TNC, SLSQP, Powell,
+    trust-constr, COBYLA, and COBYQA methods. There are two ways to specify
+    the bounds:
+
+    1. Instance of `Bounds` class.
+    2. Sequence of ``(min, max)`` pairs for each element in `x`. None
+       is used to specify no bound.
+constraints : {Constraint, dict} or List of {Constraint, dict}, optional
+    Constraints definition. Only for COBYLA, COBYQA, SLSQP and trust-constr.
+
+    Constraints for 'trust-constr', 'cobyqa', and 'cobyla' are defined as a single
+    object or a list of objects specifying constraints to the optimization problem.
+    Available constraints are:
+
+    - `LinearConstraint`
+    - `NonlinearConstraint`
+
+    Constraints for COBYLA, SLSQP are defined as a list of dictionaries.
+    Each dictionary with fields:
+
+    type : str
+        Constraint type: 'eq' for equality, 'ineq' for inequality.
+    fun : callable
+        The function defining the constraint.
+    jac : callable, optional
+        The Jacobian of `fun` (only for SLSQP).
+    args : sequence, optional
+        Extra arguments to be passed to the function and Jacobian.
+
+    Equality constraint means that the constraint function result is to
+    be zero whereas inequality means that it is to be non-negative.
+tol : float, optional
+    Tolerance for termination. When `tol` is specified, the selected
+    minimization algorithm sets some relevant solver-specific tolerance(s)
+    equal to `tol`. For detailed control, use solver-specific
+    options.
+callback : callable, optional
+    A callable called after each iteration.
+
+    All methods except TNC support a callable with
+    the signature::
+
+        callback(intermediate_result: OptimizeResult)
+
+    where ``intermediate_result`` is a keyword parameter containing an
+    `OptimizeResult` with attributes ``x`` and ``fun``, the present values
+    of the parameter vector and objective function. Not all attributes of
+    `OptimizeResult` may be present. The name of the parameter must be
+    ``intermediate_result`` for the callback to be passed an `OptimizeResult`.
+    These methods will also terminate if the callback raises ``StopIteration``.
+
+    All methods except trust-constr (also) support a signature like::
+
+        callback(xk)
+
+    where ``xk`` is the current parameter vector.
+
+    Introspection is used to determine which of the signatures above to
+    invoke.
+options : dict, optional
+    A dictionary of solver options. All methods except `TNC` accept the
+    following generic options:
+
+    maxiter : int
+        Maximum number of iterations to perform. Depending on the
+        method each iteration may use several function evaluations.
+
+        For `TNC` use `maxfun` instead of `maxiter`.
+    disp : bool
+        Set to True to print convergence messages.
+
+    For method-specific options, see :func:`show_options()`.
+
+Returns
+-------
+res : OptimizeResult
+    The optimization result represented as a ``OptimizeResult`` object.
+    Important attributes are: ``x`` the solution array, ``success`` a
+    Boolean flag indicating if the optimizer exited successfully and
+    ``message`` which describes the cause of the termination. See
+    `OptimizeResult` for a description of other attributes.
+
+See Also
+--------
+minimize_scalar : Interface to minimization algorithms for scalar
+univariate functions
+show_options : Additional options accepted by the solvers
+
+Notes
+-----
+This section describes the available solvers that can be selected by the
+'method' parameter. The default method is *BFGS*.
+
+**Unconstrained minimization**
+
+Method :ref:`CG <optimize.minimize-cg>` uses a nonlinear conjugate
+gradient algorithm by Polak and Ribiere, a variant of the
+Fletcher-Reeves method described in [5]_ pp.120-122. Only the
+first derivatives are used.
+
+Method :ref:`BFGS <optimize.minimize-bfgs>` uses the quasi-Newton
+method of Broyden, Fletcher, Goldfarb, and Shanno (BFGS) [5]_
+pp. 136. It uses the first derivatives only. BFGS has proven good
+performance even for non-smooth optimizations. This method also
+returns an approximation of the Hessian inverse, stored as
+`hess_inv` in the OptimizeResult object.
+
+Method :ref:`Newton-CG <optimize.minimize-newtoncg>` uses a
+Newton-CG algorithm [5]_ pp. 168 (also known as the truncated
+Newton method). It uses a CG method to the compute the search
+direction. See also *TNC* method for a box-constrained
+minimization with a similar algorithm. Suitable for large-scale
+problems.
+
+Method :ref:`dogleg <optimize.minimize-dogleg>` uses the dog-leg
+trust-region algorithm [5]_ for unconstrained minimization. This
+algorithm requires the gradient and Hessian; furthermore the
+Hessian is required to be positive definite.
+
+Method :ref:`trust-ncg <optimize.minimize-trustncg>` uses the
+Newton conjugate gradient trust-region algorithm [5]_ for
+unconstrained minimization. This algorithm requires the gradient
+and either the Hessian or a function that computes the product of
+the Hessian with a given vector. Suitable for large-scale problems.
+
+Method :ref:`trust-krylov <optimize.minimize-trustkrylov>` uses
+the Newton GLTR trust-region algorithm [14]_, [15]_ for unconstrained
+minimization. This algorithm requires the gradient
+and either the Hessian or a function that computes the product of
+the Hessian with a given vector. Suitable for large-scale problems.
+On indefinite problems it requires usually less iterations than the
+`trust-ncg` method and is recommended for medium and large-scale problems.
+
+Method :ref:`trust-exact <optimize.minimize-trustexact>`
+is a trust-region method for unconstrained minimization in which
+quadratic subproblems are solved almost exactly [13]_. This
+algorithm requires the gradient and the Hessian (which is
+*not* required to be positive definite). It is, in many
+situations, the Newton method to converge in fewer iterations
+and the most recommended for small and medium-size problems.
+
+**Bound-Constrained minimization**
+
+Method :ref:`Nelder-Mead <optimize.minimize-neldermead>` uses the
+Simplex algorithm [1]_, [2]_. This algorithm is robust in many
+applications. However, if numerical computation of derivative can be
+trusted, other algorithms using the first and/or second derivatives
+information might be preferred for their better performance in
+general.
+
+Method :ref:`L-BFGS-B <optimize.minimize-lbfgsb>` uses the L-BFGS-B
+algorithm [6]_, [7]_ for bound constrained minimization.
+
+Method :ref:`Powell <optimize.minimize-powell>` is a modification
+of Powell's method [3]_, [4]_ which is a conjugate direction
+method. It performs sequential one-dimensional minimizations along
+each vector of the directions set (`direc` field in `options` and
+`info`), which is updated at each iteration of the main
+minimization loop. The function need not be differentiable, and no
+derivatives are taken. If bounds are not provided, then an
+unbounded line search will be used. If bounds are provided and
+the initial guess is within the bounds, then every function
+evaluation throughout the minimization procedure will be within
+the bounds. If bounds are provided, the initial guess is outside
+the bounds, and `direc` is full rank (default has full rank), then
+some function evaluations during the first iteration may be
+outside the bounds, but every function evaluation after the first
+iteration will be within the bounds. If `direc` is not full rank,
+then some parameters may not be optimized and the solution is not
+guaranteed to be within the bounds.
+
+Method :ref:`TNC <optimize.minimize-tnc>` uses a truncated Newton
+algorithm [5]_, [8]_ to minimize a function with variables subject
+to bounds. This algorithm uses gradient information; it is also
+called Newton Conjugate-Gradient. It differs from the *Newton-CG*
+method described above as it wraps a C implementation and allows
+each variable to be given upper and lower bounds.
+
+**Constrained Minimization**
+
+Method :ref:`COBYLA <optimize.minimize-cobyla>` uses the PRIMA
+implementation [19]_ of the
+Constrained Optimization BY Linear Approximation (COBYLA) method
+[9]_, [10]_, [11]_. The algorithm is based on linear
+approximations to the objective function and each constraint.
+
+Method :ref:`COBYQA <optimize.minimize-cobyqa>` uses the Constrained
+Optimization BY Quadratic Approximations (COBYQA) method [18]_. The
+algorithm is a derivative-free trust-region SQP method based on quadratic
+approximations to the objective function and each nonlinear constraint. The
+bounds are treated as unrelaxable constraints, in the sense that the
+algorithm always respects them throughout the optimization process.
+
+Method :ref:`SLSQP <optimize.minimize-slsqp>` uses Sequential
+Least SQuares Programming to minimize a function of several
+variables with any combination of bounds, equality and inequality
+constraints. The method wraps the SLSQP Optimization subroutine
+originally implemented by Dieter Kraft [12]_. Note that the
+wrapper handles infinite values in bounds by converting them into
+large floating values.
+
+Method :ref:`trust-constr <optimize.minimize-trustconstr>` is a
+trust-region algorithm for constrained optimization. It switches
+between two implementations depending on the problem definition.
+It is the most versatile constrained minimization algorithm
+implemented in SciPy and the most appropriate for large-scale problems.
+For equality constrained problems it is an implementation of Byrd-Omojokun
+Trust-Region SQP method described in [17]_ and in [5]_, p. 549. When
+inequality constraints are imposed as well, it switches to the trust-region
+interior point method described in [16]_. This interior point algorithm,
+in turn, solves inequality constraints by introducing slack variables
+and solving a sequence of equality-constrained barrier problems
+for progressively smaller values of the barrier parameter.
+The previously described equality constrained SQP method is
+used to solve the subproblems with increasing levels of accuracy
+as the iterate gets closer to a solution.
+
+**Finite-Difference Options**
+
+For Method :ref:`trust-constr <optimize.minimize-trustconstr>`
+the gradient and the Hessian may be approximated using
+three finite-difference schemes: {'2-point', '3-point', 'cs'}.
+The scheme 'cs' is, potentially, the most accurate but it
+requires the function to correctly handle complex inputs and to
+be differentiable in the complex plane. The scheme '3-point' is more
+accurate than '2-point' but requires twice as many operations. If the
+gradient is estimated via finite-differences the Hessian must be
+estimated using one of the quasi-Newton strategies.
+
+**Method specific options for the** `hess` **keyword**
+
++--------------+------+----------+-------------------------+-----+
+| method/Hess  | None | callable | '2-point/'3-point'/'cs' | HUS |
++==============+======+==========+=========================+=====+
+| Newton-CG    | x    | (n, n)   | x                       | x   |
+|              |      | LO       |                         |     |
++--------------+------+----------+-------------------------+-----+
+| dogleg       |      | (n, n)   |                         |     |
++--------------+------+----------+-------------------------+-----+
+| trust-ncg    |      | (n, n)   | x                       | x   |
++--------------+------+----------+-------------------------+-----+
+| trust-krylov |      | (n, n)   | x                       | x   |
++--------------+------+----------+-------------------------+-----+
+| trust-exact  |      | (n, n)   |                         |     |
++--------------+------+----------+-------------------------+-----+
+| trust-constr | x    | (n, n)   |  x                      | x   |
+|              |      | LO       |                         |     |
+|              |      | sp       |                         |     |
++--------------+------+----------+-------------------------+-----+
+
+where LO=LinearOperator, sp=Sparse matrix, HUS=HessianUpdateStrategy
+
+**Custom minimizers**
+
+It may be useful to pass a custom minimization method, for example
+when using a frontend to this method such as `scipy.optimize.basinhopping`
+or a different library.  You can simply pass a callable as the ``method``
+parameter.
+
+The callable is called as ``method(fun, x0, args, **kwargs, **options)``
+where ``kwargs`` corresponds to any other parameters passed to `minimize`
+(such as `callback`, `hess`, etc.), except the `options` dict, which has
+its contents also passed as `method` parameters pair by pair.  Also, if
+`jac` has been passed as a bool type, `jac` and `fun` are mangled so that
+`fun` returns just the function values and `jac` is converted to a function
+returning the Jacobian.  The method shall return an `OptimizeResult`
+object.
+
+The provided `method` callable must be able to accept (and possibly ignore)
+arbitrary parameters; the set of parameters accepted by `minimize` may
+expand in future versions and then these parameters will be passed to
+the method.  You can find an example in the scipy.optimize tutorial.
+
+References
+----------
+.. [1] Nelder, J A, and R Mead. 1965. A Simplex Method for Function
+    Minimization. The Computer Journal 7: 308-13.
+.. [2] Wright M H. 1996. Direct search methods: Once scorned, now
+    respectable, in Numerical Analysis 1995: Proceedings of the 1995
+    Dundee Biennial Conference in Numerical Analysis (Eds. D F
+    Griffiths and G A Watson). Addison Wesley Longman, Harlow, UK.
+    191-208.
+.. [3] Powell, M J D. 1964. An efficient method for finding the minimum of
+    a function of several variables without calculating derivatives. The
+    Computer Journal 7: 155-162.
+.. [4] Press W, S A Teukolsky, W T Vetterling and B P Flannery.
+    Numerical Recipes (any edition), Cambridge University Press.
+.. [5] Nocedal, J, and S J Wright. 2006. Numerical Optimization.
+    Springer New York.
+.. [6] Byrd, R H and P Lu and J. Nocedal. 1995. A Limited Memory
+    Algorithm for Bound Constrained Optimization. SIAM Journal on
+    Scientific and Statistical Computing 16 (5): 1190-1208.
+.. [7] Zhu, C and R H Byrd and J Nocedal. 1997. L-BFGS-B: Algorithm
+    778: L-BFGS-B, FORTRAN routines for large scale bound constrained
+    optimization. ACM Transactions on Mathematical Software 23 (4):
+    550-560.
+.. [8] Nash, S G. Newton-Type Minimization Via the Lanczos Method.
+    1984. SIAM Journal of Numerical Analysis 21: 770-778.
+.. [9] Powell, M J D. A direct search optimization method that models
+    the objective and constraint functions by linear interpolation.
+    1994. Advances in Optimization and Numerical Analysis, eds. S. Gomez
+    and J-P Hennart, Kluwer Academic (Dordrecht), 51-67.
+.. [10] Powell M J D. Direct search algorithms for optimization
+    calculations. 1998. Acta Numerica 7: 287-336.
+.. [11] Powell M J D. A view of algorithms for optimization without
+    derivatives. 2007.Cambridge University Technical Report DAMTP
+    2007/NA03
+.. [12] Kraft, D. A software package for sequential quadratic
+    programming. 1988. Tech. Rep. DFVLR-FB 88-28, DLR German Aerospace
+    Center -- Institute for Flight Mechanics, Koln, Germany.
+.. [13] Conn, A. R., Gould, N. I., and Toint, P. L.
+    Trust region methods. 2000. Siam. pp. 169-200.
+.. [14] F. Lenders, C. Kirches, A. Potschka: "trlib: A vector-free
+    implementation of the GLTR method for iterative solution of
+    the trust region problem", :arxiv:`1611.04718`
+.. [15] N. Gould, S. Lucidi, M. Roma, P. Toint: "Solving the
+    Trust-Region Subproblem using the Lanczos Method",
+    SIAM J. Optim., 9(2), 504--525, (1999).
+.. [16] Byrd, Richard H., Mary E. Hribar, and Jorge Nocedal. 1999.
+    An interior point algorithm for large-scale nonlinear  programming.
+    SIAM Journal on Optimization 9.4: 877-900.
+.. [17] Lalee, Marucha, Jorge Nocedal, and Todd Plantenga. 1998. On the
+    implementation of an algorithm for large-scale equality constrained
+    optimization. SIAM Journal on Optimization 8.3: 682-706.
+.. [18] Ragonneau, T. M. *Model-Based Derivative-Free Optimization Methods
+    and Software*. PhD thesis, Department of Applied Mathematics, The Hong
+    Kong Polytechnic University, Hong Kong, China, 2022. URL:
+    https://theses.lib.polyu.edu.hk/handle/200/12294.
+.. [19] Zhang, Z. "PRIMA: Reference Implementation for Powell's Methods with
+    Modernization and Amelioration", https://www.libprima.net,
+    :doi:`10.5281/zenodo.8052654`
+.. [20] Karush-Kuhn-Tucker conditions,
+    https://en.wikipedia.org/wiki/Karush%E2%80%93Kuhn%E2%80%93Tucker_conditions
+
+Examples
+--------
+Let us consider the problem of minimizing the Rosenbrock function. This
+function (and its respective derivatives) is implemented in `rosen`
+(resp. `rosen_der`, `rosen_hess`) in the `scipy.optimize`.
+
+>>> from scipy.optimize import minimize, rosen, rosen_der
+
+A simple application of the *Nelder-Mead* method is:
+
+>>> x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
+>>> res = minimize(rosen, x0, method='Nelder-Mead', tol=1e-6)
+>>> res.x
+array([ 1.,  1.,  1.,  1.,  1.])
+
+Now using the *BFGS* algorithm, using the first derivative and a few
+options:
+
+>>> res = minimize(rosen, x0, method='BFGS', jac=rosen_der,
+...                options={'gtol': 1e-6, 'disp': True})
+Optimization terminated successfully.
+         Current function value: 0.000000
+         Iterations: 26
+         Function evaluations: 31
+         Gradient evaluations: 31
+>>> res.x
+array([ 1.,  1.,  1.,  1.,  1.])
+>>> print(res.message)
+Optimization terminated successfully.
+>>> res.hess_inv
+array([
+    [ 0.00749589,  0.01255155,  0.02396251,  0.04750988,  0.09495377],  # may vary
+    [ 0.01255155,  0.02510441,  0.04794055,  0.09502834,  0.18996269],
+    [ 0.02396251,  0.04794055,  0.09631614,  0.19092151,  0.38165151],
+    [ 0.04750988,  0.09502834,  0.19092151,  0.38341252,  0.7664427 ],
+    [ 0.09495377,  0.18996269,  0.38165151,  0.7664427,   1.53713523]
+])
+
+Next, consider a minimization problem with several constraints (namely
+Example 16.4 from [5]_). The objective function is:
+
+>>> fun = lambda x: (x[0] - 1)**2 + (x[1] - 2.5)**2
+
+There are three constraints defined as:
+
+>>> cons = ({'type': 'ineq', 'fun': lambda x:  x[0] - 2 * x[1] + 2},
+...         {'type': 'ineq', 'fun': lambda x: -x[0] - 2 * x[1] + 6},
+...         {'type': 'ineq', 'fun': lambda x: -x[0] + 2 * x[1] + 2})
+
+And variables must be positive, hence the following bounds:
+
+>>> bnds = ((0, None), (0, None))
+
+The optimization problem is solved using the SLSQP method as:
+
+>>> res = minimize(fun, (2, 0), method='SLSQP', bounds=bnds, constraints=cons)
+
+It should converge to the theoretical solution ``[1.4 ,1.7]``. *SLSQP* also
+returns the multipliers that are used in the solution of the problem. These
+multipliers, when the problem constraints are linear, can be thought of as the
+Karush-Kuhn-Tucker (KKT) multipliers, which are a generalization
+of Lagrange multipliers to inequality-constrained optimization problems ([20]_).
+
+Notice that at the solution, the first constraint is active. Let's evaluate the
+function at solution:
+
+>>> cons[0]['fun'](res.x)
+np.float64(1.4901224698604665e-09)
+
+Also, notice that at optimality there is a non-zero multiplier:
+
+>>> res.multipliers
+array([0.8, 0. , 0. ])
+
+This can be understood as the local sensitivity of the optimal value of the
+objective function with respect to changes in the first constraint. If we
+tighten the constraint by a small amount ``eps``:
+
+>>> eps = 0.01
+>>> cons[0]['fun'] = lambda x: x[0] - 2 * x[1] + 2 - eps
+
+we expect the optimal value of the objective function to increase by
+approximately ``eps * res.multipliers[0]``:
+
+>>> eps * res.multipliers[0]  # Expected change in f0
+np.float64(0.008000000027153205)
+>>> f0 = res.fun  # Keep track of the previous optimal value
+>>> res = minimize(fun, (2, 0), method='SLSQP', bounds=bnds, constraints=cons)
+>>> f1 = res.fun  # New optimal value
+>>> f1 - f0
+np.float64(0.008019998807885509)

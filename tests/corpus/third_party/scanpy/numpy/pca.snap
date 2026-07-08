@@ -1,0 +1,614 @@
+=== CST ===
+DOCUMENT@0..6468 {
+  SUMMARY@0..53 {
+    TEXT_LINE: "Principal component analysis :cite:p:`Pedregosa2011`."@0..53
+  }
+  NEWLINE: "\n"@53..54
+  BLANK_LINE: "\n"@54..55
+  EXTENDED_SUMMARY@55..1425 {
+    TEXT_LINE: "Computes PCA coordinates, loadings and variance decomposition."@55..117
+    NEWLINE: "\n"@117..118
+    TEXT_LINE: "Uses the following implementations (and defaults for `svd_solver`):"@118..185
+    NEWLINE: "\n"@185..186
+    BLANK_LINE: "\n"@186..187
+    TEXT_LINE: ".. list-table::"@187..202
+    NEWLINE: "\n"@202..203
+    WHITESPACE: "   "@203..206
+    TEXT_LINE: ":header-rows: 1"@206..221
+    NEWLINE: "\n"@221..222
+    WHITESPACE: "   "@222..225
+    TEXT_LINE: ":stub-columns: 1"@225..241
+    NEWLINE: "\n"@241..242
+    BLANK_LINE: "\n"@242..243
+    WHITESPACE: "   "@243..246
+    TEXT_LINE: "- -"@246..249
+    NEWLINE: "\n"@249..250
+    WHITESPACE: "     "@250..255
+    TEXT_LINE: "- :class:`~numpy.ndarray`, :class:`~scipy.sparse.spmatrix`, or :class:`~scipy.sparse.sparray`"@255..348
+    NEWLINE: "\n"@348..349
+    WHITESPACE: "     "@349..354
+    TEXT_LINE: "- :class:`dask.array.Array`"@354..381
+    NEWLINE: "\n"@381..382
+    WHITESPACE: "   "@382..385
+    TEXT_LINE: "- - `chunked=False`, `zero_center=True`"@385..424
+    NEWLINE: "\n"@424..425
+    WHITESPACE: "     "@425..430
+    TEXT_LINE: "- sklearn :class:`~sklearn.decomposition.PCA` (`'arpack'`)"@430..488
+    NEWLINE: "\n"@488..489
+    WHITESPACE: "     "@489..494
+    TEXT_LINE: "- - *dense*: dask-ml :class:`~dask_ml.decomposition.PCA`\\ [#high-mem]_ (`'auto'`)"@494..575
+    NEWLINE: "\n"@575..576
+    WHITESPACE: "       "@576..583
+    TEXT_LINE: "- *sparse* or `svd_solver='covariance_eigh'`: custom implementation (`'covariance_eigh'`)"@583..672
+    NEWLINE: "\n"@672..673
+    WHITESPACE: "   "@673..676
+    TEXT_LINE: "- - `chunked=False`, `zero_center=False`"@676..716
+    NEWLINE: "\n"@716..717
+    WHITESPACE: "     "@717..722
+    TEXT_LINE: "- sklearn :class:`~sklearn.decomposition.TruncatedSVD` (`'randomized'`)"@722..793
+    NEWLINE: "\n"@793..794
+    WHITESPACE: "     "@794..799
+    TEXT_LINE: "- dask-ml :class:`~dask_ml.decomposition.TruncatedSVD`\\ [#dense-only]_ (`'tsqr'`)"@799..880
+    NEWLINE: "\n"@880..881
+    WHITESPACE: "   "@881..884
+    TEXT_LINE: "- - `chunked=True` (`zero_center` ignored)"@884..926
+    NEWLINE: "\n"@926..927
+    WHITESPACE: "     "@927..932
+    TEXT_LINE: "- sklearn :class:`~sklearn.decomposition.IncrementalPCA` (`'auto'`)"@932..999
+    NEWLINE: "\n"@999..1000
+    WHITESPACE: "     "@1000..1005
+    TEXT_LINE: "- dask-ml :class:`~dask_ml.decomposition.IncrementalPCA`\\ [#densifies]_ (`'auto'`)"@1005..1087
+    NEWLINE: "\n"@1087..1088
+    BLANK_LINE: "\n"@1088..1089
+    TEXT_LINE: ".. [#high-mem] Consider `svd_solver='covariance_eigh'` to reduce memory usage (see :issue:`dask/dask-ml#985`)."@1089..1199
+    NEWLINE: "\n"@1199..1200
+    TEXT_LINE: ".. [#dense-only] This implementation can not handle sparse chunks, try manually densifying them."@1200..1296
+    NEWLINE: "\n"@1296..1297
+    TEXT_LINE: ".. [#densifies] This implementation densifies sparse chunks and therefore has increased memory usage."@1297..1398
+    NEWLINE: "\n"@1398..1399
+    BLANK_LINE: "\n"@1399..1400
+    TEXT_LINE: ".. array-support:: pp.pca"@1400..1425
+  }
+  NEWLINE: "\n"@1425..1426
+  BLANK_LINE: "\n"@1426..1427
+  SECTION@1427..5346 {
+    SECTION_HEADER@1427..1448 {
+      NAME: "Parameters"@1427..1437
+      NEWLINE: "\n"@1437..1438
+      UNDERLINE: "----------"@1438..1448
+    }
+    NEWLINE: "\n"@1448..1449
+    ENTRY@1449..1566 {
+      NAME: "data"@1449..1453
+      NEWLINE: "\n"@1453..1454
+      WHITESPACE: "    "@1454..1458
+      DESCRIPTION@1458..1566 {
+        TEXT_LINE: "The (annotated) data matrix of shape `n_obs` × `n_vars`."@1458..1515
+        NEWLINE: "\n"@1515..1516
+        WHITESPACE: "    "@1516..1520
+        TEXT_LINE: "Rows correspond to cells and columns to genes."@1520..1566
+      }
+    }
+    NEWLINE: "\n"@1566..1567
+    ENTRY@1567..1699 {
+      NAME: "n_comps"@1567..1574
+      NEWLINE: "\n"@1574..1575
+      WHITESPACE: "    "@1575..1579
+      DESCRIPTION@1579..1699 {
+        TEXT_LINE: "Number of principal components to compute. Defaults to 50,"@1579..1637
+        NEWLINE: "\n"@1637..1638
+        WHITESPACE: "    "@1638..1642
+        TEXT_LINE: "or 1 - minimum dimension size of selected representation."@1642..1699
+      }
+    }
+    NEWLINE: "\n"@1699..1700
+    ENTRY@1700..1802 {
+      NAME: "layer"@1700..1705
+      NEWLINE: "\n"@1705..1706
+      WHITESPACE: "    "@1706..1710
+      DESCRIPTION@1710..1802 {
+        TEXT_LINE: "If provided, which element of :attr:`~anndata.AnnData.layers` to use for PCA instead of `X`."@1710..1802
+      }
+    }
+    NEWLINE: "\n"@1802..1803
+    ENTRY@1803..1902 {
+      NAME: "obsm"@1803..1807
+      NEWLINE: "\n"@1807..1808
+      WHITESPACE: "    "@1808..1812
+      DESCRIPTION@1812..1902 {
+        TEXT_LINE: "If provided, which element of :attr:`~anndata.AnnData.obsm` to use for PCA instead of `X`."@1812..1902
+      }
+    }
+    NEWLINE: "\n"@1902..1903
+    ENTRY@1903..2179 {
+      NAME: "zero_center"@1903..1914
+      NEWLINE: "\n"@1914..1915
+      WHITESPACE: "    "@1915..1919
+      DESCRIPTION@1919..2179 {
+        TEXT_LINE: "If `True`, compute (or approximate) PCA from covariance matrix."@1919..1982
+        NEWLINE: "\n"@1982..1983
+        WHITESPACE: "    "@1983..1987
+        TEXT_LINE: "If `False`, performa a truncated SVD instead of PCA."@1987..2039
+        NEWLINE: "\n"@2039..2040
+        BLANK_LINE: "\n"@2040..2041
+        WHITESPACE: "    "@2041..2045
+        TEXT_LINE: "Our default PCA algorithms (see `svd_solver`) support implicit zero-centering,"@2045..2123
+        NEWLINE: "\n"@2123..2124
+        WHITESPACE: "    "@2124..2128
+        TEXT_LINE: "and therefore efficiently operating on sparse data."@2128..2179
+      }
+    }
+    NEWLINE: "\n"@2179..2180
+    ENTRY@2180..3563 {
+      NAME: "svd_solver"@2180..2190
+      NEWLINE: "\n"@2190..2191
+      WHITESPACE: "    "@2191..2195
+      DESCRIPTION@2195..3563 {
+        TEXT_LINE: "SVD solver to use."@2195..2213
+        NEWLINE: "\n"@2213..2214
+        WHITESPACE: "    "@2214..2218
+        TEXT_LINE: "See table above to see which solver class is used based on `chunked` and `zero_center`,"@2218..2305
+        NEWLINE: "\n"@2305..2306
+        WHITESPACE: "    "@2306..2310
+        TEXT_LINE: "as well as the default solver for each class when `svd_solver=None`."@2310..2378
+        NEWLINE: "\n"@2378..2379
+        BLANK_LINE: "\n"@2379..2380
+        WHITESPACE: "    "@2380..2384
+        TEXT_LINE: "Efficient computation of the principal components of a sparse matrix"@2384..2452
+        NEWLINE: "\n"@2452..2453
+        WHITESPACE: "    "@2453..2457
+        TEXT_LINE: "currently only works with the `'arpack`' or `'covariance_eigh`' solver."@2457..2528
+        NEWLINE: "\n"@2528..2529
+        BLANK_LINE: "\n"@2529..2530
+        WHITESPACE: "    "@2530..2534
+        TEXT_LINE: "`None`"@2534..2540
+        NEWLINE: "\n"@2540..2541
+        WHITESPACE: "        "@2541..2549
+        TEXT_LINE: "Choose automatically based on solver class (see table above)."@2549..2610
+        NEWLINE: "\n"@2610..2611
+        WHITESPACE: "    "@2611..2615
+        TEXT_LINE: "`'arpack'`"@2615..2625
+        NEWLINE: "\n"@2625..2626
+        WHITESPACE: "        "@2626..2634
+        TEXT_LINE: "ARPACK wrapper in SciPy (:func:`~scipy.sparse.linalg.svds`)."@2634..2694
+        NEWLINE: "\n"@2694..2695
+        WHITESPACE: "        "@2695..2703
+        TEXT_LINE: "Not available for *dask* arrays."@2703..2735
+        NEWLINE: "\n"@2735..2736
+        WHITESPACE: "    "@2736..2740
+        TEXT_LINE: "`'covariance_eigh'`"@2740..2759
+        NEWLINE: "\n"@2759..2760
+        WHITESPACE: "        "@2760..2768
+        TEXT_LINE: "Classic eigendecomposition of the covariance matrix, suited for tall-and-skinny matrices."@2768..2857
+        NEWLINE: "\n"@2857..2858
+        WHITESPACE: "        "@2858..2866
+        TEXT_LINE: "With dask, array must be CSR or dense and chunked as `(N, adata.shape[1])`."@2866..2941
+        NEWLINE: "\n"@2941..2942
+        WHITESPACE: "    "@2942..2946
+        TEXT_LINE: "`'randomized'`"@2946..2960
+        NEWLINE: "\n"@2960..2961
+        WHITESPACE: "        "@2961..2969
+        TEXT_LINE: "Randomized algorithm from :cite:t:`Halko2009`."@2969..3015
+        NEWLINE: "\n"@3015..3016
+        WHITESPACE: "        "@3016..3024
+        TEXT_LINE: "For *dask* arrays, this will use :func:`~dask.array.linalg.svd_compressed`."@3024..3099
+        NEWLINE: "\n"@3099..3100
+        WHITESPACE: "    "@3100..3104
+        TEXT_LINE: "`'auto'`"@3104..3112
+        NEWLINE: "\n"@3112..3113
+        WHITESPACE: "        "@3113..3121
+        TEXT_LINE: "Choose automatically depending on the size of the problem:"@3121..3179
+        NEWLINE: "\n"@3179..3180
+        WHITESPACE: "        "@3180..3188
+        TEXT_LINE: "Will use `'full'` for small shapes and `'randomized'` for large shapes."@3188..3259
+        NEWLINE: "\n"@3259..3260
+        WHITESPACE: "    "@3260..3264
+        TEXT_LINE: "`'tsqr'`"@3264..3272
+        NEWLINE: "\n"@3272..3273
+        WHITESPACE: "        "@3273..3281
+        TEXT_LINE: "“tall-and-skinny QR” algorithm from :cite:t:`Benson2013`."@3281..3342
+        NEWLINE: "\n"@3342..3343
+        WHITESPACE: "        "@3343..3351
+        TEXT_LINE: "Only available for dense *dask* arrays."@3351..3390
+        NEWLINE: "\n"@3390..3391
+        BLANK_LINE: "\n"@3391..3392
+        WHITESPACE: "    "@3392..3396
+        TEXT_LINE: ".. versionchanged:: 1.9.3"@3396..3421
+        NEWLINE: "\n"@3421..3422
+        WHITESPACE: "       "@3422..3429
+        TEXT_LINE: "Default value changed from `'arpack'` to None."@3429..3475
+        NEWLINE: "\n"@3475..3476
+        WHITESPACE: "    "@3476..3480
+        TEXT_LINE: ".. versionchanged:: 1.4.5"@3480..3505
+        NEWLINE: "\n"@3505..3506
+        WHITESPACE: "       "@3506..3513
+        TEXT_LINE: "Default value changed from `'auto'` to `'arpack'`."@3513..3563
+      }
+    }
+    NEWLINE: "\n"@3563..3564
+    ENTRY@3564..3883 {
+      NAME: "chunked"@3564..3571
+      NEWLINE: "\n"@3571..3572
+      WHITESPACE: "    "@3572..3576
+      DESCRIPTION@3576..3883 {
+        TEXT_LINE: "If `True`, perform an incremental PCA on segments of `chunk_size`."@3576..3642
+        NEWLINE: "\n"@3642..3643
+        WHITESPACE: "    "@3643..3647
+        TEXT_LINE: "Automatically zero centers and ignores settings of `zero_center`, `random_seed` and `svd_solver`."@3647..3744
+        NEWLINE: "\n"@3744..3745
+        WHITESPACE: "    "@3745..3749
+        TEXT_LINE: "If `False`, perform a full PCA/truncated SVD (see `svd_solver` and `zero_center`)."@3749..3831
+        NEWLINE: "\n"@3831..3832
+        WHITESPACE: "    "@3832..3836
+        TEXT_LINE: "See table above for which solver class is used."@3836..3883
+      }
+    }
+    NEWLINE: "\n"@3883..3884
+    ENTRY@3884..3990 {
+      NAME: "chunk_size"@3884..3894
+      NEWLINE: "\n"@3894..3895
+      WHITESPACE: "    "@3895..3899
+      DESCRIPTION@3899..3990 {
+        TEXT_LINE: "Number of observations to include in each chunk."@3899..3947
+        NEWLINE: "\n"@3947..3948
+        WHITESPACE: "    "@3948..3952
+        TEXT_LINE: "Required if `chunked=True` was passed."@3952..3990
+      }
+    }
+    NEWLINE: "\n"@3990..3991
+    ENTRY@3991..4068 {
+      NAME: "random_state"@3991..4003
+      NEWLINE: "\n"@4003..4004
+      WHITESPACE: "    "@4004..4008
+      DESCRIPTION@4008..4068 {
+        TEXT_LINE: "Change to use different initial states for the optimization."@4008..4068
+      }
+    }
+    NEWLINE: "\n"@4068..4069
+    ENTRY@4069..4168 {
+      NAME: "return_info"@4069..4080
+      NEWLINE: "\n"@4080..4081
+      WHITESPACE: "    "@4081..4085
+      DESCRIPTION@4085..4168 {
+        TEXT_LINE: "Only relevant when not passing an :class:`~anndata.AnnData`:"@4085..4145
+        NEWLINE: "\n"@4145..4146
+        WHITESPACE: "    "@4146..4150
+        TEXT_LINE: "see “Returns”."@4150..4168
+      }
+    }
+    NEWLINE: "\n"@4168..4169
+    ENTRY@4169..4393 {
+      NAME: "mask_var"@4169..4177
+      NEWLINE: "\n"@4177..4178
+      WHITESPACE: "    "@4178..4182
+      DESCRIPTION@4182..4393 {
+        TEXT_LINE: "To run only on a certain set of genes given by a boolean array"@4182..4244
+        NEWLINE: "\n"@4244..4245
+        WHITESPACE: "    "@4245..4249
+        TEXT_LINE: "or a string referring to an array in :attr:`~anndata.AnnData.var`."@4249..4315
+        NEWLINE: "\n"@4315..4316
+        WHITESPACE: "    "@4316..4320
+        TEXT_LINE: "By default, uses `.var['highly_variable']` if available, else everything."@4320..4393
+      }
+    }
+    NEWLINE: "\n"@4393..4394
+    ENTRY@4394..4625 {
+      NAME: "use_highly_variable"@4394..4413
+      NEWLINE: "\n"@4413..4414
+      WHITESPACE: "    "@4414..4418
+      DESCRIPTION@4418..4625 {
+        TEXT_LINE: "Whether to use highly variable genes only, stored in"@4418..4470
+        NEWLINE: "\n"@4470..4471
+        WHITESPACE: "    "@4471..4475
+        TEXT_LINE: "`.var['highly_variable']`."@4475..4501
+        NEWLINE: "\n"@4501..4502
+        WHITESPACE: "    "@4502..4506
+        TEXT_LINE: "By default uses them if they have been determined beforehand."@4506..4567
+        NEWLINE: "\n"@4567..4568
+        BLANK_LINE: "\n"@4568..4569
+        WHITESPACE: "    "@4569..4573
+        TEXT_LINE: ".. deprecated:: 1.10.0"@4573..4595
+        NEWLINE: "\n"@4595..4596
+        WHITESPACE: "       "@4596..4603
+        TEXT_LINE: "Use `mask_var` instead"@4603..4625
+      }
+    }
+    NEWLINE: "\n"@4625..4626
+    BLANK_LINE: "\n"@4626..4627
+    ENTRY@4627..4682 {
+      NAME: "layer"@4627..4632
+      NEWLINE: "\n"@4632..4633
+      WHITESPACE: "    "@4633..4637
+      DESCRIPTION@4637..4682 {
+        TEXT_LINE: "Layer of `adata` to use as expression values."@4637..4682
+      }
+    }
+    NEWLINE: "\n"@4682..4683
+    ENTRY@4683..4747 {
+      NAME: "dtype"@4683..4688
+      NEWLINE: "\n"@4688..4689
+      WHITESPACE: "    "@4689..4693
+      DESCRIPTION@4693..4747 {
+        TEXT_LINE: "Numpy data type string to which to convert the result."@4693..4747
+      }
+    }
+    NEWLINE: "\n"@4747..4748
+    ENTRY@4748..5229 {
+      NAME: "key_added"@4748..4757
+      NEWLINE: "\n"@4757..4758
+      WHITESPACE: "    "@4758..4762
+      DESCRIPTION@4762..5229 {
+        TEXT_LINE: "If not specified, the embedding is stored as"@4762..4806
+        NEWLINE: "\n"@4806..4807
+        WHITESPACE: "    "@4807..4811
+        TEXT_LINE: ":attr:`~anndata.AnnData.obsm`\\ `['X_pca']`, the loadings as"@4811..4870
+        NEWLINE: "\n"@4870..4871
+        WHITESPACE: "    "@4871..4875
+        TEXT_LINE: ":attr:`~anndata.AnnData.varm`\\ `['PCs']`, and the the parameters in"@4875..4942
+        NEWLINE: "\n"@4942..4943
+        WHITESPACE: "    "@4943..4947
+        TEXT_LINE: ":attr:`~anndata.AnnData.uns`\\ `['pca']`."@4947..4987
+        NEWLINE: "\n"@4987..4988
+        WHITESPACE: "    "@4988..4992
+        TEXT_LINE: "If specified, the embedding is stored as"@4992..5032
+        NEWLINE: "\n"@5032..5033
+        WHITESPACE: "    "@5033..5037
+        TEXT_LINE: ":attr:`~anndata.AnnData.obsm`\\ ``[key_added]``, the loadings as"@5037..5100
+        NEWLINE: "\n"@5100..5101
+        WHITESPACE: "    "@5101..5105
+        TEXT_LINE: ":attr:`~anndata.AnnData.varm`\\ ``[key_added]``, and the the parameters in"@5105..5178
+        NEWLINE: "\n"@5178..5179
+        WHITESPACE: "    "@5179..5183
+        TEXT_LINE: ":attr:`~anndata.AnnData.uns`\\ ``[key_added]``."@5183..5229
+      }
+    }
+    NEWLINE: "\n"@5229..5230
+    ENTRY@5230..5346 {
+      NAME: "copy"@5230..5234
+      NEWLINE: "\n"@5234..5235
+      WHITESPACE: "    "@5235..5239
+      DESCRIPTION@5239..5346 {
+        TEXT_LINE: "If an :class:`~anndata.AnnData` is passed, determines whether a copy"@5239..5307
+        NEWLINE: "\n"@5307..5308
+        WHITESPACE: "    "@5308..5312
+        TEXT_LINE: "is returned. Is ignored otherwise."@5312..5346
+      }
+    }
+  }
+  NEWLINE: "\n"@5346..5347
+  BLANK_LINE: "\n"@5347..5348
+  SECTION@5348..6468 {
+    SECTION_HEADER@5348..5363 {
+      NAME: "Returns"@5348..5355
+      NEWLINE: "\n"@5355..5356
+      UNDERLINE: "-------"@5356..5363
+    }
+    NEWLINE: "\n"@5363..5364
+    ENTRY@5364..5423 {
+      TYPE: "If `data` is array-like and `return_info=False` was passed,"@5364..5423
+    }
+    NEWLINE: "\n"@5423..5424
+    ENTRY@5424..5484 {
+      TYPE: "this function returns the PCA representation of `data` as an"@5424..5484
+    }
+    NEWLINE: "\n"@5484..5485
+    ENTRY@5485..5527 {
+      TYPE: "array of the same type as the input array."@5485..5527
+    }
+    NEWLINE: "\n"@5527..5528
+    BLANK_LINE: "\n"@5528..5529
+    ENTRY@5529..5608 {
+      TYPE: "Otherwise, it returns `None` if `copy=False`, else an updated `AnnData` object."@5529..5608
+    }
+    NEWLINE: "\n"@5608..5609
+    ENTRY@5609..5635 {
+      TYPE: "Sets the following fields:"@5609..5635
+    }
+    NEWLINE: "\n"@5635..5636
+    BLANK_LINE: "\n"@5636..5637
+    ENTRY@5637..5828 {
+      NAME: "`.obsm['X_pca' | key_added]`"@5637..5665
+      WHITESPACE: " "@5665..5666
+      COLON: ":"@5666..5667
+      WHITESPACE: " "@5667..5668
+      TYPE: ":class:`~scipy.sparse.csr_matrix` | :class:`~scipy.sparse.csc_matrix` | :class:`~numpy.ndarray` (shape `(adata.n_obs, n_comps)`)"@5668..5796
+      NEWLINE: "\n"@5796..5797
+      WHITESPACE: "    "@5797..5801
+      DESCRIPTION@5801..5828 {
+        TEXT_LINE: "PCA representation of data."@5801..5828
+      }
+    }
+    NEWLINE: "\n"@5828..5829
+    ENTRY@5829..5988 {
+      NAME: "`.varm['PCs' | key_added]`"@5829..5855
+      WHITESPACE: " "@5855..5856
+      COLON: ":"@5856..5857
+      WHITESPACE: " "@5857..5858
+      TYPE: ":class:`~numpy.ndarray` (shape `(adata.n_vars, n_comps)`)"@5858..5915
+      NEWLINE: "\n"@5915..5916
+      WHITESPACE: "    "@5916..5920
+      DESCRIPTION@5920..5988 {
+        TEXT_LINE: "The principal components containing the loadings *when `obsm=None`*."@5920..5988
+      }
+    }
+    NEWLINE: "\n"@5988..5989
+    ENTRY@5989..6175 {
+      NAME: "`.uns['pca' | key_added]['components']`"@5989..6028
+      WHITESPACE: " "@6028..6029
+      COLON: ":"@6029..6030
+      WHITESPACE: " "@6030..6031
+      TYPE: ":class:`~numpy.ndarray` (shape `(adata.obsm[obsm].shape[1], n_comps)`)"@6031..6101
+      NEWLINE: "\n"@6101..6102
+      WHITESPACE: "    "@6102..6106
+      DESCRIPTION@6106..6175 {
+        TEXT_LINE: "The principal components containing the loadings *when `obsm=\"...\"`*."@6106..6175
+      }
+    }
+    NEWLINE: "\n"@6175..6176
+    ENTRY@6176..6299 {
+      NAME: "`.uns['pca' | key_added]['variance_ratio']`"@6176..6219
+      WHITESPACE: " "@6219..6220
+      COLON: ":"@6220..6221
+      WHITESPACE: " "@6221..6222
+      TYPE: ":class:`~numpy.ndarray` (shape `(n_comps,)`)"@6222..6266
+      NEWLINE: "\n"@6266..6267
+      WHITESPACE: "    "@6267..6271
+      DESCRIPTION@6271..6299 {
+        TEXT_LINE: "Ratio of explained variance."@6271..6299
+      }
+    }
+    NEWLINE: "\n"@6299..6300
+    ENTRY@6300..6468 {
+      NAME: "`.uns['pca' | key_added]['variance']`"@6300..6337
+      WHITESPACE: " "@6337..6338
+      COLON: ":"@6338..6339
+      WHITESPACE: " "@6339..6340
+      TYPE: ":class:`~numpy.ndarray` (shape `(n_comps,)`)"@6340..6384
+      NEWLINE: "\n"@6384..6385
+      WHITESPACE: "    "@6385..6389
+      DESCRIPTION@6389..6468 {
+        TEXT_LINE: "Explained variance, equivalent to the eigenvalues of the"@6389..6445
+        NEWLINE: "\n"@6445..6446
+        WHITESPACE: "    "@6446..6450
+        TEXT_LINE: "covariance matrix."@6450..6468
+      }
+    }
+  }
+}
+=== EMIT ===
+Principal component analysis :cite:p:`Pedregosa2011`.
+
+Computes PCA coordinates, loadings and variance decomposition.
+Uses the following implementations (and defaults for `svd_solver`):
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   - -
+     - :class:`~numpy.ndarray`, :class:`~scipy.sparse.spmatrix`, or :class:`~scipy.sparse.sparray`
+     - :class:`dask.array.Array`
+   - - `chunked=False`, `zero_center=True`
+     - sklearn :class:`~sklearn.decomposition.PCA` (`'arpack'`)
+     - - *dense*: dask-ml :class:`~dask_ml.decomposition.PCA`\ [#high-mem]_ (`'auto'`)
+       - *sparse* or `svd_solver='covariance_eigh'`: custom implementation (`'covariance_eigh'`)
+   - - `chunked=False`, `zero_center=False`
+     - sklearn :class:`~sklearn.decomposition.TruncatedSVD` (`'randomized'`)
+     - dask-ml :class:`~dask_ml.decomposition.TruncatedSVD`\ [#dense-only]_ (`'tsqr'`)
+   - - `chunked=True` (`zero_center` ignored)
+     - sklearn :class:`~sklearn.decomposition.IncrementalPCA` (`'auto'`)
+     - dask-ml :class:`~dask_ml.decomposition.IncrementalPCA`\ [#densifies]_ (`'auto'`)
+
+.. [#high-mem] Consider `svd_solver='covariance_eigh'` to reduce memory usage (see :issue:`dask/dask-ml#985`).
+.. [#dense-only] This implementation can not handle sparse chunks, try manually densifying them.
+.. [#densifies] This implementation densifies sparse chunks and therefore has increased memory usage.
+
+.. array-support:: pp.pca
+
+Parameters
+----------
+data
+    The (annotated) data matrix of shape `n_obs` × `n_vars`.
+    Rows correspond to cells and columns to genes.
+n_comps
+    Number of principal components to compute. Defaults to 50,
+    or 1 - minimum dimension size of selected representation.
+layer
+    If provided, which element of :attr:`~anndata.AnnData.layers` to use for PCA instead of `X`.
+obsm
+    If provided, which element of :attr:`~anndata.AnnData.obsm` to use for PCA instead of `X`.
+zero_center
+    If `True`, compute (or approximate) PCA from covariance matrix.
+    If `False`, performa a truncated SVD instead of PCA.
+
+    Our default PCA algorithms (see `svd_solver`) support implicit zero-centering,
+    and therefore efficiently operating on sparse data.
+svd_solver
+    SVD solver to use.
+    See table above to see which solver class is used based on `chunked` and `zero_center`,
+    as well as the default solver for each class when `svd_solver=None`.
+
+    Efficient computation of the principal components of a sparse matrix
+    currently only works with the `'arpack`' or `'covariance_eigh`' solver.
+
+    `None`
+        Choose automatically based on solver class (see table above).
+    `'arpack'`
+        ARPACK wrapper in SciPy (:func:`~scipy.sparse.linalg.svds`).
+        Not available for *dask* arrays.
+    `'covariance_eigh'`
+        Classic eigendecomposition of the covariance matrix, suited for tall-and-skinny matrices.
+        With dask, array must be CSR or dense and chunked as `(N, adata.shape[1])`.
+    `'randomized'`
+        Randomized algorithm from :cite:t:`Halko2009`.
+        For *dask* arrays, this will use :func:`~dask.array.linalg.svd_compressed`.
+    `'auto'`
+        Choose automatically depending on the size of the problem:
+        Will use `'full'` for small shapes and `'randomized'` for large shapes.
+    `'tsqr'`
+        “tall-and-skinny QR” algorithm from :cite:t:`Benson2013`.
+        Only available for dense *dask* arrays.
+
+    .. versionchanged:: 1.9.3
+       Default value changed from `'arpack'` to None.
+    .. versionchanged:: 1.4.5
+       Default value changed from `'auto'` to `'arpack'`.
+chunked
+    If `True`, perform an incremental PCA on segments of `chunk_size`.
+    Automatically zero centers and ignores settings of `zero_center`, `random_seed` and `svd_solver`.
+    If `False`, perform a full PCA/truncated SVD (see `svd_solver` and `zero_center`).
+    See table above for which solver class is used.
+chunk_size
+    Number of observations to include in each chunk.
+    Required if `chunked=True` was passed.
+random_state
+    Change to use different initial states for the optimization.
+return_info
+    Only relevant when not passing an :class:`~anndata.AnnData`:
+    see “Returns”.
+mask_var
+    To run only on a certain set of genes given by a boolean array
+    or a string referring to an array in :attr:`~anndata.AnnData.var`.
+    By default, uses `.var['highly_variable']` if available, else everything.
+use_highly_variable
+    Whether to use highly variable genes only, stored in
+    `.var['highly_variable']`.
+    By default uses them if they have been determined beforehand.
+
+    .. deprecated:: 1.10.0
+       Use `mask_var` instead
+layer
+    Layer of `adata` to use as expression values.
+dtype
+    Numpy data type string to which to convert the result.
+key_added
+    If not specified, the embedding is stored as
+    :attr:`~anndata.AnnData.obsm`\ `['X_pca']`, the loadings as
+    :attr:`~anndata.AnnData.varm`\ `['PCs']`, and the the parameters in
+    :attr:`~anndata.AnnData.uns`\ `['pca']`.
+    If specified, the embedding is stored as
+    :attr:`~anndata.AnnData.obsm`\ ``[key_added]``, the loadings as
+    :attr:`~anndata.AnnData.varm`\ ``[key_added]``, and the the parameters in
+    :attr:`~anndata.AnnData.uns`\ ``[key_added]``.
+copy
+    If an :class:`~anndata.AnnData` is passed, determines whether a copy
+    is returned. Is ignored otherwise.
+
+Returns
+-------
+If `data` is array-like and `return_info=False` was passed,
+this function returns the PCA representation of `data` as an
+array of the same type as the input array.
+Otherwise, it returns `None` if `copy=False`, else an updated `AnnData` object.
+Sets the following fields:
+`.obsm['X_pca' | key_added]` : :class:`~scipy.sparse.csr_matrix` | :class:`~scipy.sparse.csc_matrix` | :class:`~numpy.ndarray` (shape `(adata.n_obs, n_comps)`)
+    PCA representation of data.
+`.varm['PCs' | key_added]` : :class:`~numpy.ndarray` (shape `(adata.n_vars, n_comps)`)
+    The principal components containing the loadings *when `obsm=None`*.
+`.uns['pca' | key_added]['components']` : :class:`~numpy.ndarray` (shape `(adata.obsm[obsm].shape[1], n_comps)`)
+    The principal components containing the loadings *when `obsm="..."`*.
+`.uns['pca' | key_added]['variance_ratio']` : :class:`~numpy.ndarray` (shape `(n_comps,)`)
+    Ratio of explained variance.
+`.uns['pca' | key_added]['variance']` : :class:`~numpy.ndarray` (shape `(n_comps,)`)
+    Explained variance, equivalent to the eigenvalues of the
+    covariance matrix.

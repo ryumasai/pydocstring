@@ -1,0 +1,54 @@
+fromiter(iter, dtype, count=-1, *, like=None)
+
+Create a new 1-dimensional array from an iterable object.
+
+Parameters
+----------
+iter : iterable object
+    An iterable object providing data for the array.
+dtype : data-type
+    The data-type of the returned array.
+
+    .. versionchanged:: 1.23
+        Object and subarray dtypes are now supported (note that the final
+        result is not 1-D for a subarray dtype).
+
+count : int, optional
+    The number of items to read from *iterable*.  The default is -1,
+    which means all data is read.
+like : array_like, optional
+    Reference object to allow the creation of arrays which are not
+    NumPy arrays. If an array-like passed in as ``like`` supports
+    the ``__array_function__`` protocol, the result will be defined
+    by it. In this case, it ensures the creation of an array object
+    compatible with that passed in via this argument.
+
+    .. versionadded:: 1.20.0
+
+Returns
+-------
+out : ndarray
+    The output array.
+
+Notes
+-----
+Specify `count` to improve performance.  It allows ``fromiter`` to
+pre-allocate the output array, instead of resizing it on demand.
+
+Examples
+--------
+>>> import numpy as np
+>>> iterable = (x*x for x in range(5))
+>>> np.fromiter(iterable, float)
+array([  0.,   1.,   4.,   9.,  16.])
+
+A carefully constructed subarray dtype will lead to higher dimensional
+results:
+
+>>> iterable = ((x+1, x+2) for x in range(5))
+>>> np.fromiter(iterable, dtype=np.dtype((int, 2)))
+array([[1, 2],
+       [2, 3],
+       [3, 4],
+       [4, 5],
+       [5, 6]])

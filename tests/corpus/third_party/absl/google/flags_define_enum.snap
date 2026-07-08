@@ -1,0 +1,150 @@
+=== CST ===
+DOCUMENT@0..888 {
+  SUMMARY@0..64 {
+    TEXT_LINE: "Registers a flag whose value can be any string from enum_values."@0..64
+  }
+  NEWLINE: "\n"@64..65
+  BLANK_LINE: "\n"@65..66
+  EXTENDED_SUMMARY@66..174 {
+    TEXT_LINE: "Instead of a string enum, prefer `DEFINE_enum_class`, which allows"@66..132
+    NEWLINE: "\n"@132..133
+    TEXT_LINE: "defining enums from an `enum.Enum` class."@133..174
+  }
+  NEWLINE: "\n"@174..175
+  BLANK_LINE: "\n"@175..176
+  SECTION@176..850 {
+    SECTION_HEADER@176..181 {
+      NAME: "Args"@176..180
+      COLON: ":"@180..181
+    }
+    NEWLINE: "\n"@181..182
+    WHITESPACE: "  "@182..184
+    ENTRY@184..209 {
+      NAME: "name"@184..188
+      COLON: ":"@188..189
+      WHITESPACE: " "@189..190
+      DESCRIPTION@190..209 {
+        TEXT_LINE: "str, the flag name."@190..209
+      }
+    }
+    NEWLINE: "\n"@209..210
+    WHITESPACE: "  "@210..212
+    ENTRY@212..261 {
+      NAME: "default"@212..219
+      COLON: ":"@219..220
+      WHITESPACE: " "@220..221
+      DESCRIPTION@221..261 {
+        TEXT_LINE: "str|None, the default value of the flag."@221..261
+      }
+    }
+    NEWLINE: "\n"@261..262
+    WHITESPACE: "  "@262..264
+    ENTRY@264..354 {
+      NAME: "enum_values"@264..275
+      COLON: ":"@275..276
+      WHITESPACE: " "@276..277
+      DESCRIPTION@277..354 {
+        TEXT_LINE: "[str], a non-empty list of strings with the possible values for"@277..340
+        NEWLINE: "\n"@340..341
+        WHITESPACE: "    "@341..345
+        TEXT_LINE: "the flag."@345..354
+      }
+    }
+    NEWLINE: "\n"@354..355
+    WHITESPACE: "  "@355..357
+    ENTRY@357..385 {
+      NAME: "help"@357..361
+      COLON: ":"@361..362
+      WHITESPACE: " "@362..363
+      DESCRIPTION@363..385 {
+        TEXT_LINE: "str, the help message."@363..385
+      }
+    }
+    NEWLINE: "\n"@385..386
+    WHITESPACE: "  "@386..388
+    ENTRY@388..537 {
+      NAME: "flag_values"@388..399
+      COLON: ":"@399..400
+      WHITESPACE: " "@400..401
+      DESCRIPTION@401..537 {
+        TEXT_LINE: ":class:`FlagValues`, the FlagValues instance with which the"@401..460
+        NEWLINE: "\n"@460..461
+        WHITESPACE: "    "@461..465
+        TEXT_LINE: "flag will be registered. This should almost never need to be overridden."@465..537
+      }
+    }
+    NEWLINE: "\n"@537..538
+    WHITESPACE: "  "@538..540
+    ENTRY@540..685 {
+      NAME: "module_name"@540..551
+      COLON: ":"@551..552
+      WHITESPACE: " "@552..553
+      DESCRIPTION@553..685 {
+        TEXT_LINE: "str, the name of the Python module declaring this flag. If not"@553..615
+        NEWLINE: "\n"@615..616
+        WHITESPACE: "    "@616..620
+        TEXT_LINE: "provided, it will be computed using the stack trace of this call."@620..685
+      }
+    }
+    NEWLINE: "\n"@685..686
+    WHITESPACE: "  "@686..688
+    ENTRY@688..773 {
+      NAME: "required"@688..696
+      COLON: ":"@696..697
+      WHITESPACE: " "@697..698
+      DESCRIPTION@698..773 {
+        TEXT_LINE: "bool, is this a required flag. This must be used as a keyword"@698..759
+        NEWLINE: "\n"@759..760
+        WHITESPACE: "    "@760..764
+        TEXT_LINE: "argument."@764..773
+      }
+    }
+    NEWLINE: "\n"@773..774
+    WHITESPACE: "  "@774..776
+    ENTRY@776..850 {
+      NAME: "**args"@776..782
+      COLON: ":"@782..783
+      WHITESPACE: " "@783..784
+      DESCRIPTION@784..850 {
+        TEXT_LINE: "dict, the extra keyword args that are passed to ``Flag.__init__``."@784..850
+      }
+    }
+  }
+  NEWLINE: "\n"@850..851
+  BLANK_LINE: "\n"@851..852
+  SECTION@852..888 {
+    SECTION_HEADER@852..860 {
+      NAME: "Returns"@852..859
+      COLON: ":"@859..860
+    }
+    NEWLINE: "\n"@860..861
+    WHITESPACE: "  "@861..863
+    ENTRY@863..888 {
+      DESCRIPTION@863..888 {
+        TEXT_LINE: "a handle to defined flag."@863..888
+      }
+    }
+  }
+}
+=== EMIT ===
+Registers a flag whose value can be any string from enum_values.
+
+Instead of a string enum, prefer `DEFINE_enum_class`, which allows
+defining enums from an `enum.Enum` class.
+
+Args:
+    name: str, the flag name.
+    default: str|None, the default value of the flag.
+    enum_values: [str], a non-empty list of strings with the possible values for
+        the flag.
+    help: str, the help message.
+    flag_values: :class:`FlagValues`, the FlagValues instance with which the
+        flag will be registered. This should almost never need to be overridden.
+    module_name: str, the name of the Python module declaring this flag. If not
+        provided, it will be computed using the stack trace of this call.
+    required: bool, is this a required flag. This must be used as a keyword
+        argument.
+    **args: dict, the extra keyword args that are passed to ``Flag.__init__``.
+
+Returns:
+    a handle to defined flag.

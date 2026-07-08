@@ -1,0 +1,362 @@
+=== CST ===
+DOCUMENT@0..3011 {
+  SUMMARY@0..49 {
+    TEXT_LINE: "Returns a reshaped ndarray without changing data."@0..49
+  }
+  NEWLINE: "\n"@49..50
+  BLANK_LINE: "\n"@50..51
+  SECTION@51..1421 {
+    SECTION_HEADER@51..72 {
+      NAME: "Parameters"@51..61
+      NEWLINE: "\n"@61..62
+      UNDERLINE: "----------"@62..72
+    }
+    NEWLINE: "\n"@72..73
+    ENTRY@73..113 {
+      NAME: "a"@73..74
+      WHITESPACE: " "@74..75
+      COLON: ":"@75..76
+      WHITESPACE: " "@76..77
+      TYPE: "array_like"@77..87
+      NEWLINE: "\n"@87..88
+      WHITESPACE: "    "@88..92
+      DESCRIPTION@92..113 {
+        TEXT_LINE: "Array to be reshaped."@92..113
+      }
+    }
+    NEWLINE: "\n"@113..114
+    ENTRY@114..407 {
+      NAME: "shape"@114..119
+      WHITESPACE: " "@119..120
+      COLON: ":"@120..121
+      WHITESPACE: " "@121..122
+      TYPE: "int or tuple of ints"@122..142
+      NEWLINE: "\n"@142..143
+      WHITESPACE: "    "@143..147
+      DESCRIPTION@147..407 {
+        TEXT_LINE: "The new shape should be compatible with the original shape. If"@147..209
+        NEWLINE: "\n"@209..210
+        WHITESPACE: "    "@210..214
+        TEXT_LINE: "an integer, then the result will be a 1-D array of that length."@214..277
+        NEWLINE: "\n"@277..278
+        WHITESPACE: "    "@278..282
+        TEXT_LINE: "One shape dimension can be -1. In this case, the value is"@282..339
+        NEWLINE: "\n"@339..340
+        WHITESPACE: "    "@340..344
+        TEXT_LINE: "inferred from the length of the array and remaining dimensions."@344..407
+      }
+    }
+    NEWLINE: "\n"@407..408
+    ENTRY@408..1185 {
+      NAME: "order"@408..413
+      WHITESPACE: " "@413..414
+      COLON: ":"@414..415
+      WHITESPACE: " "@415..416
+      TYPE: "{'C', 'F', 'A'}"@416..431
+      COMMA: ","@431..432
+      WHITESPACE: " "@432..433
+      OPTIONAL: "optional"@433..441
+      NEWLINE: "\n"@441..442
+      WHITESPACE: "    "@442..446
+      DESCRIPTION@446..1185 {
+        TEXT_LINE: "Read the elements of ``a`` using this index order, and place the"@446..510
+        NEWLINE: "\n"@510..511
+        WHITESPACE: "    "@511..515
+        TEXT_LINE: "elements into the reshaped array using this index order. 'C'"@515..575
+        NEWLINE: "\n"@575..576
+        WHITESPACE: "    "@576..580
+        TEXT_LINE: "means to read / write the elements using C-like index order,"@580..640
+        NEWLINE: "\n"@640..641
+        WHITESPACE: "    "@641..645
+        TEXT_LINE: "with the last axis index changing fastest, back to the first"@645..705
+        NEWLINE: "\n"@705..706
+        WHITESPACE: "    "@706..710
+        TEXT_LINE: "axis index changing slowest. 'F' means to read / write the"@710..768
+        NEWLINE: "\n"@768..769
+        WHITESPACE: "    "@769..773
+        TEXT_LINE: "elements using Fortran-like index order, with the first index"@773..834
+        NEWLINE: "\n"@834..835
+        WHITESPACE: "    "@835..839
+        TEXT_LINE: "changing fastest, and the last index changing slowest. Note that"@839..903
+        NEWLINE: "\n"@903..904
+        WHITESPACE: "    "@904..908
+        TEXT_LINE: "the 'C' and 'F' options take no account of the memory layout of"@908..971
+        NEWLINE: "\n"@971..972
+        WHITESPACE: "    "@972..976
+        TEXT_LINE: "the underlying array, and only refer to the order of indexing."@976..1038
+        NEWLINE: "\n"@1038..1039
+        WHITESPACE: "    "@1039..1043
+        TEXT_LINE: "'A' means to read / write the elements in Fortran-like index"@1043..1103
+        NEWLINE: "\n"@1103..1104
+        WHITESPACE: "    "@1104..1108
+        TEXT_LINE: "order if ``a`` is Fortran *contiguous* in memory, C-like order"@1108..1170
+        NEWLINE: "\n"@1170..1171
+        WHITESPACE: "    "@1171..1175
+        TEXT_LINE: "otherwise."@1175..1185
+      }
+    }
+    NEWLINE: "\n"@1185..1186
+    ENTRY@1186..1421 {
+      NAME: "copy"@1186..1190
+      WHITESPACE: " "@1190..1191
+      COLON: ":"@1191..1192
+      WHITESPACE: " "@1192..1193
+      TYPE: "bool"@1193..1197
+      COMMA: ","@1197..1198
+      WHITESPACE: " "@1198..1199
+      OPTIONAL: "optional"@1199..1207
+      NEWLINE: "\n"@1207..1208
+      WHITESPACE: "    "@1208..1212
+      DESCRIPTION@1212..1421 {
+        TEXT_LINE: "If ``True``, then the array data is copied. If ``None``, a copy will"@1212..1280
+        NEWLINE: "\n"@1280..1281
+        WHITESPACE: "    "@1281..1285
+        TEXT_LINE: "only be made if it's required by ``order``. For ``False`` it raises"@1285..1352
+        NEWLINE: "\n"@1352..1353
+        WHITESPACE: "    "@1353..1357
+        TEXT_LINE: "a ``ValueError`` if a copy cannot be avoided. Default: ``None``."@1357..1421
+      }
+    }
+  }
+  NEWLINE: "\n"@1421..1422
+  BLANK_LINE: "\n"@1422..1423
+  SECTION@1423..1651 {
+    SECTION_HEADER@1423..1438 {
+      NAME: "Returns"@1423..1430
+      NEWLINE: "\n"@1430..1431
+      UNDERLINE: "-------"@1431..1438
+    }
+    NEWLINE: "\n"@1438..1439
+    ENTRY@1439..1651 {
+      NAME: "reshaped_array"@1439..1453
+      WHITESPACE: " "@1453..1454
+      COLON: ":"@1454..1455
+      WHITESPACE: " "@1455..1456
+      TYPE: "ndarray"@1456..1463
+      NEWLINE: "\n"@1463..1464
+      WHITESPACE: "    "@1464..1468
+      DESCRIPTION@1468..1651 {
+        TEXT_LINE: "This will be a new view object if possible; otherwise, it will"@1468..1530
+        NEWLINE: "\n"@1530..1531
+        WHITESPACE: "    "@1531..1535
+        TEXT_LINE: "be a copy.  Note there is no guarantee of the *memory layout* (C- or"@1535..1603
+        NEWLINE: "\n"@1603..1604
+        WHITESPACE: "    "@1604..1608
+        TEXT_LINE: "Fortran- contiguous) of the returned array."@1608..1651
+      }
+    }
+  }
+  NEWLINE: "\n"@1651..1652
+  BLANK_LINE: "\n"@1652..1653
+  SECTION@1653..1707 {
+    SECTION_HEADER@1653..1670 {
+      NAME: "See Also"@1653..1661
+      NEWLINE: "\n"@1661..1662
+      UNDERLINE: "--------"@1662..1670
+    }
+    NEWLINE: "\n"@1670..1671
+    ENTRY@1671..1707 {
+      NAME: "ndarray.reshape"@1671..1686
+      WHITESPACE: " "@1686..1687
+      COLON: ":"@1687..1688
+      WHITESPACE: " "@1688..1689
+      DESCRIPTION@1689..1707 {
+        TEXT_LINE: "Equivalent method."@1689..1707
+      }
+    }
+  }
+  NEWLINE: "\n"@1707..1708
+  BLANK_LINE: "\n"@1708..1709
+  SECTION@1709..2704 {
+    SECTION_HEADER@1709..1720 {
+      NAME: "Notes"@1709..1714
+      NEWLINE: "\n"@1714..1715
+      UNDERLINE: "-----"@1715..1720
+    }
+    NEWLINE: "\n"@1720..1721
+    DESCRIPTION@1721..2704 {
+      TEXT_LINE: "It is not always possible to change the shape of an array without copying"@1721..1794
+      NEWLINE: "\n"@1794..1795
+      TEXT_LINE: "the data."@1795..1804
+      NEWLINE: "\n"@1804..1805
+      BLANK_LINE: "\n"@1805..1806
+      TEXT_LINE: "The ``order`` keyword gives the index ordering both for *fetching*"@1806..1872
+      NEWLINE: "\n"@1872..1873
+      TEXT_LINE: "the values from ``a``, and then *placing* the values into the output"@1873..1941
+      NEWLINE: "\n"@1941..1942
+      TEXT_LINE: "array. For example, let's say you have an array:"@1942..1990
+      NEWLINE: "\n"@1990..1991
+      BLANK_LINE: "\n"@1991..1992
+      TEXT_LINE: ">>> a = np.arange(6).reshape((3, 2))"@1992..2028
+      NEWLINE: "\n"@2028..2029
+      TEXT_LINE: ">>> a"@2029..2034
+      NEWLINE: "\n"@2034..2035
+      TEXT_LINE: "array([[0, 1],"@2035..2049
+      NEWLINE: "\n"@2049..2050
+      WHITESPACE: "       "@2050..2057
+      TEXT_LINE: "[2, 3],"@2057..2064
+      NEWLINE: "\n"@2064..2065
+      WHITESPACE: "       "@2065..2072
+      TEXT_LINE: "[4, 5]])"@2072..2080
+      NEWLINE: "\n"@2080..2081
+      BLANK_LINE: "\n"@2081..2082
+      TEXT_LINE: "You can think of reshaping as first raveling the array (using the given"@2082..2153
+      NEWLINE: "\n"@2153..2154
+      TEXT_LINE: "index order), then inserting the elements from the raveled array into the"@2154..2227
+      NEWLINE: "\n"@2227..2228
+      TEXT_LINE: "new array using the same kind of index ordering as was used for the"@2228..2295
+      NEWLINE: "\n"@2295..2296
+      TEXT_LINE: "raveling."@2296..2305
+      NEWLINE: "\n"@2305..2306
+      BLANK_LINE: "\n"@2306..2307
+      TEXT_LINE: ">>> np.reshape(a, (2, 3)) # C-like index ordering"@2307..2356
+      NEWLINE: "\n"@2356..2357
+      TEXT_LINE: "array([[0, 1, 2],"@2357..2374
+      NEWLINE: "\n"@2374..2375
+      WHITESPACE: "       "@2375..2382
+      TEXT_LINE: "[3, 4, 5]])"@2382..2393
+      NEWLINE: "\n"@2393..2394
+      TEXT_LINE: ">>> np.reshape(np.ravel(a), (2, 3)) # equivalent to C ravel then C reshape"@2394..2468
+      NEWLINE: "\n"@2468..2469
+      TEXT_LINE: "array([[0, 1, 2],"@2469..2486
+      NEWLINE: "\n"@2486..2487
+      WHITESPACE: "       "@2487..2494
+      TEXT_LINE: "[3, 4, 5]])"@2494..2505
+      NEWLINE: "\n"@2505..2506
+      TEXT_LINE: ">>> np.reshape(a, (2, 3), order='F') # Fortran-like index ordering"@2506..2572
+      NEWLINE: "\n"@2572..2573
+      TEXT_LINE: "array([[0, 4, 3],"@2573..2590
+      NEWLINE: "\n"@2590..2591
+      WHITESPACE: "       "@2591..2598
+      TEXT_LINE: "[2, 1, 5]])"@2598..2609
+      NEWLINE: "\n"@2609..2610
+      TEXT_LINE: ">>> np.reshape(np.ravel(a, order='F'), (2, 3), order='F')"@2610..2667
+      NEWLINE: "\n"@2667..2668
+      TEXT_LINE: "array([[0, 4, 3],"@2668..2685
+      NEWLINE: "\n"@2685..2686
+      WHITESPACE: "       "@2686..2693
+      TEXT_LINE: "[2, 1, 5]])"@2693..2704
+    }
+  }
+  NEWLINE: "\n"@2704..2705
+  BLANK_LINE: "\n"@2705..2706
+  SECTION@2706..3011 {
+    SECTION_HEADER@2706..2723 {
+      NAME: "Examples"@2706..2714
+      NEWLINE: "\n"@2714..2715
+      UNDERLINE: "--------"@2715..2723
+    }
+    NEWLINE: "\n"@2723..2724
+    DESCRIPTION@2724..3011 {
+      TEXT_LINE: ">>> import numpy as np"@2724..2746
+      NEWLINE: "\n"@2746..2747
+      TEXT_LINE: ">>> a = np.array([[1,2,3], [4,5,6]])"@2747..2783
+      NEWLINE: "\n"@2783..2784
+      TEXT_LINE: ">>> np.reshape(a, 6)"@2784..2804
+      NEWLINE: "\n"@2804..2805
+      TEXT_LINE: "array([1, 2, 3, 4, 5, 6])"@2805..2830
+      NEWLINE: "\n"@2830..2831
+      TEXT_LINE: ">>> np.reshape(a, 6, order='F')"@2831..2862
+      NEWLINE: "\n"@2862..2863
+      TEXT_LINE: "array([1, 4, 2, 5, 3, 6])"@2863..2888
+      NEWLINE: "\n"@2888..2889
+      BLANK_LINE: "\n"@2889..2890
+      TEXT_LINE: ">>> np.reshape(a, (3,-1))       # the unspecified value is inferred to be 2"@2890..2965
+      NEWLINE: "\n"@2965..2966
+      TEXT_LINE: "array([[1, 2],"@2966..2980
+      NEWLINE: "\n"@2980..2981
+      WHITESPACE: "       "@2981..2988
+      TEXT_LINE: "[3, 4],"@2988..2995
+      NEWLINE: "\n"@2995..2996
+      WHITESPACE: "       "@2996..3003
+      TEXT_LINE: "[5, 6]])"@3003..3011
+    }
+  }
+}
+=== EMIT ===
+Returns a reshaped ndarray without changing data.
+
+Parameters
+----------
+a : array_like
+    Array to be reshaped.
+shape : int or tuple of ints
+    The new shape should be compatible with the original shape. If
+    an integer, then the result will be a 1-D array of that length.
+    One shape dimension can be -1. In this case, the value is
+    inferred from the length of the array and remaining dimensions.
+order : {'C', 'F', 'A'}, optional
+    Read the elements of ``a`` using this index order, and place the
+    elements into the reshaped array using this index order. 'C'
+    means to read / write the elements using C-like index order,
+    with the last axis index changing fastest, back to the first
+    axis index changing slowest. 'F' means to read / write the
+    elements using Fortran-like index order, with the first index
+    changing fastest, and the last index changing slowest. Note that
+    the 'C' and 'F' options take no account of the memory layout of
+    the underlying array, and only refer to the order of indexing.
+    'A' means to read / write the elements in Fortran-like index
+    order if ``a`` is Fortran *contiguous* in memory, C-like order
+    otherwise.
+copy : bool, optional
+    If ``True``, then the array data is copied. If ``None``, a copy will
+    only be made if it's required by ``order``. For ``False`` it raises
+    a ``ValueError`` if a copy cannot be avoided. Default: ``None``.
+
+Returns
+-------
+reshaped_array : ndarray
+    This will be a new view object if possible; otherwise, it will
+    be a copy.  Note there is no guarantee of the *memory layout* (C- or
+    Fortran- contiguous) of the returned array.
+
+See Also
+--------
+ndarray.reshape : Equivalent method.
+
+Notes
+-----
+It is not always possible to change the shape of an array without copying
+the data.
+
+The ``order`` keyword gives the index ordering both for *fetching*
+the values from ``a``, and then *placing* the values into the output
+array. For example, let's say you have an array:
+
+>>> a = np.arange(6).reshape((3, 2))
+>>> a
+array([[0, 1],
+       [2, 3],
+       [4, 5]])
+
+You can think of reshaping as first raveling the array (using the given
+index order), then inserting the elements from the raveled array into the
+new array using the same kind of index ordering as was used for the
+raveling.
+
+>>> np.reshape(a, (2, 3)) # C-like index ordering
+array([[0, 1, 2],
+       [3, 4, 5]])
+>>> np.reshape(np.ravel(a), (2, 3)) # equivalent to C ravel then C reshape
+array([[0, 1, 2],
+       [3, 4, 5]])
+>>> np.reshape(a, (2, 3), order='F') # Fortran-like index ordering
+array([[0, 4, 3],
+       [2, 1, 5]])
+>>> np.reshape(np.ravel(a, order='F'), (2, 3), order='F')
+array([[0, 4, 3],
+       [2, 1, 5]])
+
+Examples
+--------
+>>> import numpy as np
+>>> a = np.array([[1,2,3], [4,5,6]])
+>>> np.reshape(a, 6)
+array([1, 2, 3, 4, 5, 6])
+>>> np.reshape(a, 6, order='F')
+array([1, 4, 2, 5, 3, 6])
+
+>>> np.reshape(a, (3,-1))       # the unspecified value is inferred to be 2
+array([[1, 2],
+       [3, 4],
+       [5, 6]])

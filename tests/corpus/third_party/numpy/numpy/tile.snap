@@ -1,0 +1,259 @@
+=== CST ===
+DOCUMENT@0..1622 {
+  SUMMARY@0..68 {
+    TEXT_LINE: "Construct an array by repeating A the number of times given by reps."@0..68
+  }
+  NEWLINE: "\n"@68..69
+  BLANK_LINE: "\n"@69..70
+  EXTENDED_SUMMARY@70..735 {
+    TEXT_LINE: "If `reps` has length ``d``, the result will have dimension of"@70..131
+    NEWLINE: "\n"@131..132
+    TEXT_LINE: "``max(d, A.ndim)``."@132..151
+    NEWLINE: "\n"@151..152
+    BLANK_LINE: "\n"@152..153
+    TEXT_LINE: "If ``A.ndim < d``, `A` is promoted to be d-dimensional by prepending new"@153..225
+    NEWLINE: "\n"@225..226
+    TEXT_LINE: "axes. So a shape (3,) array is promoted to (1, 3) for 2-D replication,"@226..296
+    NEWLINE: "\n"@296..297
+    TEXT_LINE: "or shape (1, 1, 3) for 3-D replication. If this is not the desired"@297..363
+    NEWLINE: "\n"@363..364
+    TEXT_LINE: "behavior, promote `A` to d-dimensions manually before calling this"@364..430
+    NEWLINE: "\n"@430..431
+    TEXT_LINE: "function."@431..440
+    NEWLINE: "\n"@440..441
+    BLANK_LINE: "\n"@441..442
+    TEXT_LINE: "If ``A.ndim > d``, `reps` is promoted to `A`.ndim by prepending 1's to it."@442..516
+    NEWLINE: "\n"@516..517
+    TEXT_LINE: "Thus for an `A` of shape (2, 3, 4, 5), a `reps` of (2, 2) is treated as"@517..588
+    NEWLINE: "\n"@588..589
+    TEXT_LINE: "(1, 1, 2, 2)."@589..602
+    NEWLINE: "\n"@602..603
+    BLANK_LINE: "\n"@603..604
+    TEXT_LINE: "Note : Although tile may be used for broadcasting, it is strongly"@604..669
+    NEWLINE: "\n"@669..670
+    TEXT_LINE: "recommended to use numpy's broadcasting operations and functions."@670..735
+  }
+  NEWLINE: "\n"@735..736
+  BLANK_LINE: "\n"@736..737
+  SECTION@737..866 {
+    SECTION_HEADER@737..758 {
+      NAME: "Parameters"@737..747
+      NEWLINE: "\n"@747..748
+      UNDERLINE: "----------"@748..758
+    }
+    NEWLINE: "\n"@758..759
+    ENTRY@759..794 {
+      NAME: "A"@759..760
+      WHITESPACE: " "@760..761
+      COLON: ":"@761..762
+      WHITESPACE: " "@762..763
+      TYPE: "array_like"@763..773
+      NEWLINE: "\n"@773..774
+      WHITESPACE: "    "@774..778
+      DESCRIPTION@778..794 {
+        TEXT_LINE: "The input array."@778..794
+      }
+    }
+    NEWLINE: "\n"@794..795
+    ENTRY@795..866 {
+      NAME: "reps"@795..799
+      WHITESPACE: " "@799..800
+      COLON: ":"@800..801
+      WHITESPACE: " "@801..802
+      TYPE: "array_like"@802..812
+      NEWLINE: "\n"@812..813
+      WHITESPACE: "    "@813..817
+      DESCRIPTION@817..866 {
+        TEXT_LINE: "The number of repetitions of `A` along each axis."@817..866
+      }
+    }
+  }
+  NEWLINE: "\n"@866..867
+  BLANK_LINE: "\n"@867..868
+  SECTION@868..923 {
+    SECTION_HEADER@868..883 {
+      NAME: "Returns"@868..875
+      NEWLINE: "\n"@875..876
+      UNDERLINE: "-------"@876..883
+    }
+    NEWLINE: "\n"@883..884
+    ENTRY@884..923 {
+      NAME: "c"@884..885
+      WHITESPACE: " "@885..886
+      COLON: ":"@886..887
+      WHITESPACE: " "@887..888
+      TYPE: "ndarray"@888..895
+      NEWLINE: "\n"@895..896
+      WHITESPACE: "    "@896..900
+      DESCRIPTION@900..923 {
+        TEXT_LINE: "The tiled output array."@900..923
+      }
+    }
+  }
+  NEWLINE: "\n"@923..924
+  BLANK_LINE: "\n"@924..925
+  SECTION@925..1029 {
+    SECTION_HEADER@925..942 {
+      NAME: "See Also"@925..933
+      NEWLINE: "\n"@933..934
+      UNDERLINE: "--------"@934..942
+    }
+    NEWLINE: "\n"@942..943
+    ENTRY@943..980 {
+      NAME: "repeat"@943..949
+      WHITESPACE: " "@949..950
+      COLON: ":"@950..951
+      WHITESPACE: " "@951..952
+      DESCRIPTION@952..980 {
+        TEXT_LINE: "Repeat elements of an array."@952..980
+      }
+    }
+    NEWLINE: "\n"@980..981
+    ENTRY@981..1029 {
+      NAME: "broadcast_to"@981..993
+      WHITESPACE: " "@993..994
+      COLON: ":"@994..995
+      WHITESPACE: " "@995..996
+      DESCRIPTION@996..1029 {
+        TEXT_LINE: "Broadcast an array to a new shape"@996..1029
+      }
+    }
+  }
+  NEWLINE: "\n"@1029..1030
+  BLANK_LINE: "\n"@1030..1031
+  SECTION@1031..1622 {
+    SECTION_HEADER@1031..1048 {
+      NAME: "Examples"@1031..1039
+      NEWLINE: "\n"@1039..1040
+      UNDERLINE: "--------"@1040..1048
+    }
+    NEWLINE: "\n"@1048..1049
+    DESCRIPTION@1049..1622 {
+      TEXT_LINE: ">>> import numpy as np"@1049..1071
+      NEWLINE: "\n"@1071..1072
+      TEXT_LINE: ">>> a = np.array([0, 1, 2])"@1072..1099
+      NEWLINE: "\n"@1099..1100
+      TEXT_LINE: ">>> np.tile(a, 2)"@1100..1117
+      NEWLINE: "\n"@1117..1118
+      TEXT_LINE: "array([0, 1, 2, 0, 1, 2])"@1118..1143
+      NEWLINE: "\n"@1143..1144
+      TEXT_LINE: ">>> np.tile(a, (2, 2))"@1144..1166
+      NEWLINE: "\n"@1166..1167
+      TEXT_LINE: "array([[0, 1, 2, 0, 1, 2],"@1167..1193
+      NEWLINE: "\n"@1193..1194
+      WHITESPACE: "       "@1194..1201
+      TEXT_LINE: "[0, 1, 2, 0, 1, 2]])"@1201..1221
+      NEWLINE: "\n"@1221..1222
+      TEXT_LINE: ">>> np.tile(a, (2, 1, 2))"@1222..1247
+      NEWLINE: "\n"@1247..1248
+      TEXT_LINE: "array([[[0, 1, 2, 0, 1, 2]],"@1248..1276
+      NEWLINE: "\n"@1276..1277
+      WHITESPACE: "       "@1277..1284
+      TEXT_LINE: "[[0, 1, 2, 0, 1, 2]]])"@1284..1306
+      NEWLINE: "\n"@1306..1307
+      BLANK_LINE: "\n"@1307..1308
+      TEXT_LINE: ">>> b = np.array([[1, 2], [3, 4]])"@1308..1342
+      NEWLINE: "\n"@1342..1343
+      TEXT_LINE: ">>> np.tile(b, 2)"@1343..1360
+      NEWLINE: "\n"@1360..1361
+      TEXT_LINE: "array([[1, 2, 1, 2],"@1361..1381
+      NEWLINE: "\n"@1381..1382
+      WHITESPACE: "       "@1382..1389
+      TEXT_LINE: "[3, 4, 3, 4]])"@1389..1403
+      NEWLINE: "\n"@1403..1404
+      TEXT_LINE: ">>> np.tile(b, (2, 1))"@1404..1426
+      NEWLINE: "\n"@1426..1427
+      TEXT_LINE: "array([[1, 2],"@1427..1441
+      NEWLINE: "\n"@1441..1442
+      WHITESPACE: "       "@1442..1449
+      TEXT_LINE: "[3, 4],"@1449..1456
+      NEWLINE: "\n"@1456..1457
+      WHITESPACE: "       "@1457..1464
+      TEXT_LINE: "[1, 2],"@1464..1471
+      NEWLINE: "\n"@1471..1472
+      WHITESPACE: "       "@1472..1479
+      TEXT_LINE: "[3, 4]])"@1479..1487
+      NEWLINE: "\n"@1487..1488
+      BLANK_LINE: "\n"@1488..1489
+      TEXT_LINE: ">>> c = np.array([1,2,3,4])"@1489..1516
+      NEWLINE: "\n"@1516..1517
+      TEXT_LINE: ">>> np.tile(c,(4,1))"@1517..1537
+      NEWLINE: "\n"@1537..1538
+      TEXT_LINE: "array([[1, 2, 3, 4],"@1538..1558
+      NEWLINE: "\n"@1558..1559
+      WHITESPACE: "       "@1559..1566
+      TEXT_LINE: "[1, 2, 3, 4],"@1566..1579
+      NEWLINE: "\n"@1579..1580
+      WHITESPACE: "       "@1580..1587
+      TEXT_LINE: "[1, 2, 3, 4],"@1587..1600
+      NEWLINE: "\n"@1600..1601
+      WHITESPACE: "       "@1601..1608
+      TEXT_LINE: "[1, 2, 3, 4]])"@1608..1622
+    }
+  }
+}
+=== EMIT ===
+Construct an array by repeating A the number of times given by reps.
+
+If `reps` has length ``d``, the result will have dimension of
+``max(d, A.ndim)``.
+
+If ``A.ndim < d``, `A` is promoted to be d-dimensional by prepending new
+axes. So a shape (3,) array is promoted to (1, 3) for 2-D replication,
+or shape (1, 1, 3) for 3-D replication. If this is not the desired
+behavior, promote `A` to d-dimensions manually before calling this
+function.
+
+If ``A.ndim > d``, `reps` is promoted to `A`.ndim by prepending 1's to it.
+Thus for an `A` of shape (2, 3, 4, 5), a `reps` of (2, 2) is treated as
+(1, 1, 2, 2).
+
+Note : Although tile may be used for broadcasting, it is strongly
+recommended to use numpy's broadcasting operations and functions.
+
+Parameters
+----------
+A : array_like
+    The input array.
+reps : array_like
+    The number of repetitions of `A` along each axis.
+
+Returns
+-------
+c : ndarray
+    The tiled output array.
+
+See Also
+--------
+repeat : Repeat elements of an array.
+broadcast_to : Broadcast an array to a new shape
+
+Examples
+--------
+>>> import numpy as np
+>>> a = np.array([0, 1, 2])
+>>> np.tile(a, 2)
+array([0, 1, 2, 0, 1, 2])
+>>> np.tile(a, (2, 2))
+array([[0, 1, 2, 0, 1, 2],
+       [0, 1, 2, 0, 1, 2]])
+>>> np.tile(a, (2, 1, 2))
+array([[[0, 1, 2, 0, 1, 2]],
+       [[0, 1, 2, 0, 1, 2]]])
+
+>>> b = np.array([[1, 2], [3, 4]])
+>>> np.tile(b, 2)
+array([[1, 2, 1, 2],
+       [3, 4, 3, 4]])
+>>> np.tile(b, (2, 1))
+array([[1, 2],
+       [3, 4],
+       [1, 2],
+       [3, 4]])
+
+>>> c = np.array([1,2,3,4])
+>>> np.tile(c,(4,1))
+array([[1, 2, 3, 4],
+       [1, 2, 3, 4],
+       [1, 2, 3, 4],
+       [1, 2, 3, 4]])

@@ -1,0 +1,90 @@
+Integrate y(x) using samples along the given axis and the composite
+Simpson's rule. If x is None, spacing of dx is assumed.
+
+Parameters
+----------
+y : array_like
+    Array to be integrated.
+x : array_like, optional
+    If given, the points at which `y` is sampled.
+dx : float, optional
+    Spacing of integration points along axis of `x`. Only used when
+    `x` is None. Default is 1.
+axis : int, optional
+    Axis along which to integrate. Default is the last axis.
+
+Returns
+-------
+float
+    The estimated integral computed with the composite Simpson's rule.
+
+See Also
+--------
+
+:func:`quad`
+    adaptive quadrature using QUADPACK
+:func:`fixed_quad`
+    fixed-order Gaussian quadrature
+:func:`dblquad`
+    double integrals
+:func:`tplquad`
+    triple integrals
+:func:`romb`
+    integrators for sampled data
+:func:`cumulative_trapezoid`
+    cumulative integration for sampled data
+:func:`cumulative_simpson`
+    cumulative integration using Simpson's 1/3 rule
+
+
+Notes
+-----
+For an odd number of samples that are equally spaced the result is
+exact if the function is a polynomial of order 3 or less. If
+the samples are not equally spaced, then the result is exact only
+if the function is a polynomial of order 2 or less.
+
+**Array API Standard Support**
+
+`simpson` has experimental support for Python Array API Standard compatible
+backends in addition to NumPy. Please consider testing these features
+by setting an environment variable ``SCIPY_ARRAY_API=1`` and providing
+CuPy, PyTorch, JAX, or Dask arrays as array arguments. The following
+combinations of backend and device (or other capability) are supported.
+
+====================  ====================  ====================
+Library               CPU                   GPU
+====================  ====================  ====================
+NumPy                 ✅                     n/a                 
+CuPy                  n/a                   ✅                   
+PyTorch               ✅                     ✅                   
+JAX                   ✅                     ✅                   
+Dask                  ✅                     n/a                 
+====================  ====================  ====================
+
+
+
+See :ref:`dev-arrayapi` for more information.
+
+
+References
+----------
+.. [1] Cartwright, Kenneth V. Simpson's Rule Cumulative Integration with
+       MS Excel and Irregularly-spaced Data. Journal of Mathematical
+       Sciences and Mathematics Education. 12 (2): 1-9
+
+Examples
+--------
+>>> from scipy import integrate
+>>> import numpy as np
+>>> x = np.arange(0, 10)
+>>> y = np.arange(0, 10)
+
+>>> integrate.simpson(y, x=x)
+40.5
+
+>>> y = np.power(x, 3)
+>>> integrate.simpson(y, x=x)
+1640.5
+>>> integrate.quad(lambda x: x**3, 0, 9)[0]
+1640.25

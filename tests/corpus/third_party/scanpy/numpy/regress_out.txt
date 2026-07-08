@@ -1,0 +1,28 @@
+Regress out (mostly) unwanted sources of variation.
+
+Uses simple linear regression. This is inspired by Seurat's `regressOut`
+function in R :cite:p:`Satija2015`. Note that this function tends to overcorrect
+in certain circumstances as described in :issue:`526`.
+
+.. array-support:: pp.regress_out
+
+Parameters
+----------
+adata
+    The annotated data matrix.
+keys
+    Keys for observation annotation on which to regress on.
+layer
+    If provided, which element of layers to regress on.
+n_jobs
+    Number of jobs for parallel computation.
+    `None` means using :attr:`scanpy.settings.n_jobs`.
+copy
+    Determines whether a copy of `adata` is returned.
+
+Returns
+-------
+Returns `None` if `copy=False`, else returns an updated `AnnData` object. Sets the following fields:
+
+`adata.X` | `adata.layers[layer]` : :class:`numpy.ndarray` | :class:`scipy.sparse.csr_matrix` (dtype `float`)
+    Corrected count data matrix.

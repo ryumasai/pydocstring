@@ -1,0 +1,320 @@
+=== CST ===
+DOCUMENT@0..2363 {
+  SUMMARY@0..65 {
+    TEXT_LINE: "Find indices where elements should be inserted to maintain order."@0..65
+  }
+  NEWLINE: "\n"@65..66
+  BLANK_LINE: "\n"@66..67
+  EXTENDED_SUMMARY@67..467 {
+    TEXT_LINE: "Find the indices into a sorted array `a` such that, if the"@67..125
+    NEWLINE: "\n"@125..126
+    TEXT_LINE: "corresponding elements in `v` were inserted before the indices, the"@126..193
+    NEWLINE: "\n"@193..194
+    TEXT_LINE: "order of `a` would be preserved."@194..226
+    NEWLINE: "\n"@226..227
+    BLANK_LINE: "\n"@227..228
+    TEXT_LINE: "Assuming that `a` is sorted:"@228..256
+    NEWLINE: "\n"@256..257
+    BLANK_LINE: "\n"@257..258
+    TEXT_LINE: "======  ============================"@258..294
+    NEWLINE: "\n"@294..295
+    TEXT_LINE: "`side`  returned index `i` satisfies"@295..331
+    NEWLINE: "\n"@331..332
+    TEXT_LINE: "======  ============================"@332..368
+    NEWLINE: "\n"@368..369
+    TEXT_LINE: "left    ``a[i-1] < v <= a[i]``"@369..399
+    NEWLINE: "\n"@399..400
+    TEXT_LINE: "right   ``a[i-1] <= v < a[i]``"@400..430
+    NEWLINE: "\n"@430..431
+    TEXT_LINE: "======  ============================"@431..467
+  }
+  NEWLINE: "\n"@467..468
+  BLANK_LINE: "\n"@468..469
+  SECTION@469..1103 {
+    SECTION_HEADER@469..490 {
+      NAME: "Parameters"@469..479
+      NEWLINE: "\n"@479..480
+      UNDERLINE: "----------"@480..490
+    }
+    NEWLINE: "\n"@490..491
+    ENTRY@491..659 {
+      NAME: "a"@491..492
+      WHITESPACE: " "@492..493
+      COLON: ":"@493..494
+      WHITESPACE: " "@494..495
+      TYPE: "1-D array_like"@495..509
+      NEWLINE: "\n"@509..510
+      WHITESPACE: "    "@510..514
+      DESCRIPTION@514..659 {
+        TEXT_LINE: "Input array. If `sorter` is None, then it must be sorted in"@514..573
+        NEWLINE: "\n"@573..574
+        WHITESPACE: "    "@574..578
+        TEXT_LINE: "ascending order, otherwise `sorter` must be an array of indices"@578..641
+        NEWLINE: "\n"@641..642
+        WHITESPACE: "    "@642..646
+        TEXT_LINE: "that sort it."@646..659
+      }
+    }
+    NEWLINE: "\n"@659..660
+    ENTRY@660..705 {
+      NAME: "v"@660..661
+      WHITESPACE: " "@661..662
+      COLON: ":"@662..663
+      WHITESPACE: " "@663..664
+      TYPE: "array_like"@664..674
+      NEWLINE: "\n"@674..675
+      WHITESPACE: "    "@675..679
+      DESCRIPTION@679..705 {
+        TEXT_LINE: "Values to insert into `a`."@679..705
+      }
+    }
+    NEWLINE: "\n"@705..706
+    ENTRY@706..945 {
+      NAME: "side"@706..710
+      WHITESPACE: " "@710..711
+      COLON: ":"@711..712
+      WHITESPACE: " "@712..713
+      TYPE: "{'left', 'right'}"@713..730
+      COMMA: ","@730..731
+      WHITESPACE: " "@731..732
+      OPTIONAL: "optional"@732..740
+      NEWLINE: "\n"@740..741
+      WHITESPACE: "    "@741..745
+      DESCRIPTION@745..945 {
+        TEXT_LINE: "If 'left', the index of the first suitable location found is given."@745..812
+        NEWLINE: "\n"@812..813
+        WHITESPACE: "    "@813..817
+        TEXT_LINE: "If 'right', return the last such index.  If there is no suitable"@817..881
+        NEWLINE: "\n"@881..882
+        WHITESPACE: "    "@882..886
+        TEXT_LINE: "index, return either 0 or N (where N is the length of `a`)."@886..945
+      }
+    }
+    NEWLINE: "\n"@945..946
+    ENTRY@946..1103 {
+      NAME: "sorter"@946..952
+      WHITESPACE: " "@952..953
+      COLON: ":"@953..954
+      WHITESPACE: " "@954..955
+      TYPE: "1-D array_like"@955..969
+      COMMA: ","@969..970
+      WHITESPACE: " "@970..971
+      OPTIONAL: "optional"@971..979
+      NEWLINE: "\n"@979..980
+      WHITESPACE: "    "@980..984
+      DESCRIPTION@984..1103 {
+        TEXT_LINE: "Optional array of integer indices that sort array a into ascending"@984..1050
+        NEWLINE: "\n"@1050..1051
+        WHITESPACE: "    "@1051..1055
+        TEXT_LINE: "order. They are typically the result of argsort."@1055..1103
+      }
+    }
+  }
+  NEWLINE: "\n"@1103..1104
+  BLANK_LINE: "\n"@1104..1105
+  SECTION@1105..1247 {
+    SECTION_HEADER@1105..1120 {
+      NAME: "Returns"@1105..1112
+      NEWLINE: "\n"@1112..1113
+      UNDERLINE: "-------"@1113..1120
+    }
+    NEWLINE: "\n"@1120..1121
+    ENTRY@1121..1247 {
+      NAME: "indices"@1121..1128
+      WHITESPACE: " "@1128..1129
+      COLON: ":"@1129..1130
+      WHITESPACE: " "@1130..1131
+      TYPE: "int or array of ints"@1131..1151
+      NEWLINE: "\n"@1151..1152
+      WHITESPACE: "    "@1152..1156
+      DESCRIPTION@1156..1247 {
+        TEXT_LINE: "Array of insertion points with the same shape as `v`,"@1156..1209
+        NEWLINE: "\n"@1209..1210
+        WHITESPACE: "    "@1210..1214
+        TEXT_LINE: "or an integer if `v` is a scalar."@1214..1247
+      }
+    }
+  }
+  NEWLINE: "\n"@1247..1248
+  BLANK_LINE: "\n"@1248..1249
+  SECTION@1249..1352 {
+    SECTION_HEADER@1249..1266 {
+      NAME: "See Also"@1249..1257
+      NEWLINE: "\n"@1257..1258
+      UNDERLINE: "--------"@1258..1266
+    }
+    NEWLINE: "\n"@1266..1267
+    ENTRY@1267..1307 {
+      NAME: "sort"@1267..1271
+      WHITESPACE: " "@1271..1272
+      COLON: ":"@1272..1273
+      WHITESPACE: " "@1273..1274
+      DESCRIPTION@1274..1307 {
+        TEXT_LINE: "Return a sorted copy of an array."@1274..1307
+      }
+    }
+    NEWLINE: "\n"@1307..1308
+    ENTRY@1308..1352 {
+      NAME: "histogram"@1308..1317
+      WHITESPACE: " "@1317..1318
+      COLON: ":"@1318..1319
+      WHITESPACE: " "@1319..1320
+      DESCRIPTION@1320..1352 {
+        TEXT_LINE: "Produce histogram from 1-D data."@1320..1352
+      }
+    }
+  }
+  NEWLINE: "\n"@1352..1353
+  BLANK_LINE: "\n"@1353..1354
+  SECTION@1354..1767 {
+    SECTION_HEADER@1354..1365 {
+      NAME: "Notes"@1354..1359
+      NEWLINE: "\n"@1359..1360
+      UNDERLINE: "-----"@1360..1365
+    }
+    NEWLINE: "\n"@1365..1366
+    DESCRIPTION@1366..1767 {
+      TEXT_LINE: "Binary search is used to find the required insertion points."@1366..1426
+      NEWLINE: "\n"@1426..1427
+      BLANK_LINE: "\n"@1427..1428
+      TEXT_LINE: "As of NumPy 1.4.0 `searchsorted` works with real/complex arrays containing"@1428..1502
+      NEWLINE: "\n"@1502..1503
+      TEXT_LINE: "`nan` values. The enhanced sort order is documented in `sort`."@1503..1565
+      NEWLINE: "\n"@1565..1566
+      BLANK_LINE: "\n"@1566..1567
+      TEXT_LINE: "This function uses the same algorithm as the builtin python"@1567..1626
+      NEWLINE: "\n"@1626..1627
+      TEXT_LINE: "`bisect.bisect_left` (``side='left'``) and `bisect.bisect_right`"@1627..1691
+      NEWLINE: "\n"@1691..1692
+      TEXT_LINE: "(``side='right'``) functions, which is also vectorized"@1692..1746
+      NEWLINE: "\n"@1746..1747
+      TEXT_LINE: "in the `v` argument."@1747..1767
+    }
+  }
+  NEWLINE: "\n"@1767..1768
+  BLANK_LINE: "\n"@1768..1769
+  SECTION@1769..2363 {
+    SECTION_HEADER@1769..1786 {
+      NAME: "Examples"@1769..1777
+      NEWLINE: "\n"@1777..1778
+      UNDERLINE: "--------"@1778..1786
+    }
+    NEWLINE: "\n"@1786..1787
+    DESCRIPTION@1787..2363 {
+      TEXT_LINE: ">>> import numpy as np"@1787..1809
+      NEWLINE: "\n"@1809..1810
+      TEXT_LINE: ">>> np.searchsorted([11,12,13,14,15], 13)"@1810..1851
+      NEWLINE: "\n"@1851..1852
+      TEXT_LINE: "2"@1852..1853
+      NEWLINE: "\n"@1853..1854
+      TEXT_LINE: ">>> np.searchsorted([11,12,13,14,15], 13, side='right')"@1854..1909
+      NEWLINE: "\n"@1909..1910
+      TEXT_LINE: "3"@1910..1911
+      NEWLINE: "\n"@1911..1912
+      TEXT_LINE: ">>> np.searchsorted([11,12,13,14,15], [-10, 20, 12, 13])"@1912..1968
+      NEWLINE: "\n"@1968..1969
+      TEXT_LINE: "array([0, 5, 1, 2])"@1969..1988
+      NEWLINE: "\n"@1988..1989
+      BLANK_LINE: "\n"@1989..1990
+      TEXT_LINE: "When `sorter` is used, the returned indices refer to the sorted"@1990..2053
+      NEWLINE: "\n"@2053..2054
+      TEXT_LINE: "array of `a` and not `a` itself:"@2054..2086
+      NEWLINE: "\n"@2086..2087
+      BLANK_LINE: "\n"@2087..2088
+      TEXT_LINE: ">>> a = np.array([40, 10, 20, 30])"@2088..2122
+      NEWLINE: "\n"@2122..2123
+      TEXT_LINE: ">>> sorter = np.argsort(a)"@2123..2149
+      NEWLINE: "\n"@2149..2150
+      TEXT_LINE: ">>> sorter"@2150..2160
+      NEWLINE: "\n"@2160..2161
+      TEXT_LINE: "array([1, 2, 3, 0])  # Indices that would sort the array 'a'"@2161..2221
+      NEWLINE: "\n"@2221..2222
+      TEXT_LINE: ">>> result = np.searchsorted(a, 25, sorter=sorter)"@2222..2272
+      NEWLINE: "\n"@2272..2273
+      TEXT_LINE: ">>> result"@2273..2283
+      NEWLINE: "\n"@2283..2284
+      TEXT_LINE: "2"@2284..2285
+      NEWLINE: "\n"@2285..2286
+      TEXT_LINE: ">>> a[sorter[result]]"@2286..2307
+      NEWLINE: "\n"@2307..2308
+      TEXT_LINE: "30  # The element at index 2 of the sorted array is 30."@2308..2363
+    }
+  }
+}
+=== EMIT ===
+Find indices where elements should be inserted to maintain order.
+
+Find the indices into a sorted array `a` such that, if the
+corresponding elements in `v` were inserted before the indices, the
+order of `a` would be preserved.
+
+Assuming that `a` is sorted:
+
+======  ============================
+`side`  returned index `i` satisfies
+======  ============================
+left    ``a[i-1] < v <= a[i]``
+right   ``a[i-1] <= v < a[i]``
+======  ============================
+
+Parameters
+----------
+a : 1-D array_like
+    Input array. If `sorter` is None, then it must be sorted in
+    ascending order, otherwise `sorter` must be an array of indices
+    that sort it.
+v : array_like
+    Values to insert into `a`.
+side : {'left', 'right'}, optional
+    If 'left', the index of the first suitable location found is given.
+    If 'right', return the last such index.  If there is no suitable
+    index, return either 0 or N (where N is the length of `a`).
+sorter : 1-D array_like, optional
+    Optional array of integer indices that sort array a into ascending
+    order. They are typically the result of argsort.
+
+Returns
+-------
+indices : int or array of ints
+    Array of insertion points with the same shape as `v`,
+    or an integer if `v` is a scalar.
+
+See Also
+--------
+sort : Return a sorted copy of an array.
+histogram : Produce histogram from 1-D data.
+
+Notes
+-----
+Binary search is used to find the required insertion points.
+
+As of NumPy 1.4.0 `searchsorted` works with real/complex arrays containing
+`nan` values. The enhanced sort order is documented in `sort`.
+
+This function uses the same algorithm as the builtin python
+`bisect.bisect_left` (``side='left'``) and `bisect.bisect_right`
+(``side='right'``) functions, which is also vectorized
+in the `v` argument.
+
+Examples
+--------
+>>> import numpy as np
+>>> np.searchsorted([11,12,13,14,15], 13)
+2
+>>> np.searchsorted([11,12,13,14,15], 13, side='right')
+3
+>>> np.searchsorted([11,12,13,14,15], [-10, 20, 12, 13])
+array([0, 5, 1, 2])
+
+When `sorter` is used, the returned indices refer to the sorted
+array of `a` and not `a` itself:
+
+>>> a = np.array([40, 10, 20, 30])
+>>> sorter = np.argsort(a)
+>>> sorter
+array([1, 2, 3, 0])  # Indices that would sort the array 'a'
+>>> result = np.searchsorted(a, 25, sorter=sorter)
+>>> result
+2
+>>> a[sorter[result]]
+30  # The element at index 2 of the sorted array is 30.

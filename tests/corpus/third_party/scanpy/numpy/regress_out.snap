@@ -1,0 +1,130 @@
+=== CST ===
+DOCUMENT@0..911 {
+  SUMMARY@0..51 {
+    TEXT_LINE: "Regress out (mostly) unwanted sources of variation."@0..51
+  }
+  NEWLINE: "\n"@51..52
+  BLANK_LINE: "\n"@52..53
+  EXTENDED_SUMMARY@53..296 {
+    TEXT_LINE: "Uses simple linear regression. This is inspired by Seurat's `regressOut`"@53..125
+    NEWLINE: "\n"@125..126
+    TEXT_LINE: "function in R :cite:p:`Satija2015`. Note that this function tends to overcorrect"@126..206
+    NEWLINE: "\n"@206..207
+    TEXT_LINE: "in certain circumstances as described in :issue:`526`."@207..261
+    NEWLINE: "\n"@261..262
+    BLANK_LINE: "\n"@262..263
+    TEXT_LINE: ".. array-support:: pp.regress_out"@263..296
+  }
+  NEWLINE: "\n"@296..297
+  BLANK_LINE: "\n"@297..298
+  SECTION@298..649 {
+    SECTION_HEADER@298..319 {
+      NAME: "Parameters"@298..308
+      NEWLINE: "\n"@308..309
+      UNDERLINE: "----------"@309..319
+    }
+    NEWLINE: "\n"@319..320
+    ENTRY@320..356 {
+      NAME: "adata"@320..325
+      NEWLINE: "\n"@325..326
+      WHITESPACE: "    "@326..330
+      DESCRIPTION@330..356 {
+        TEXT_LINE: "The annotated data matrix."@330..356
+      }
+    }
+    NEWLINE: "\n"@356..357
+    ENTRY@357..421 {
+      NAME: "keys"@357..361
+      NEWLINE: "\n"@361..362
+      WHITESPACE: "    "@362..366
+      DESCRIPTION@366..421 {
+        TEXT_LINE: "Keys for observation annotation on which to regress on."@366..421
+      }
+    }
+    NEWLINE: "\n"@421..422
+    ENTRY@422..483 {
+      NAME: "layer"@422..427
+      NEWLINE: "\n"@427..428
+      WHITESPACE: "    "@428..432
+      DESCRIPTION@432..483 {
+        TEXT_LINE: "If provided, which element of layers to regress on."@432..483
+      }
+    }
+    NEWLINE: "\n"@483..484
+    ENTRY@484..590 {
+      NAME: "n_jobs"@484..490
+      NEWLINE: "\n"@490..491
+      WHITESPACE: "    "@491..495
+      DESCRIPTION@495..590 {
+        TEXT_LINE: "Number of jobs for parallel computation."@495..535
+        NEWLINE: "\n"@535..536
+        WHITESPACE: "    "@536..540
+        TEXT_LINE: "`None` means using :attr:`scanpy.settings.n_jobs`."@540..590
+      }
+    }
+    NEWLINE: "\n"@590..591
+    ENTRY@591..649 {
+      NAME: "copy"@591..595
+      NEWLINE: "\n"@595..596
+      WHITESPACE: "    "@596..600
+      DESCRIPTION@600..649 {
+        TEXT_LINE: "Determines whether a copy of `adata` is returned."@600..649
+      }
+    }
+  }
+  NEWLINE: "\n"@649..650
+  BLANK_LINE: "\n"@650..651
+  SECTION@651..911 {
+    SECTION_HEADER@651..666 {
+      NAME: "Returns"@651..658
+      NEWLINE: "\n"@658..659
+      UNDERLINE: "-------"@659..666
+    }
+    NEWLINE: "\n"@666..667
+    ENTRY@667..767 {
+      TYPE: "Returns `None` if `copy=False`, else returns an updated `AnnData` object. Sets the following fields:"@667..767
+    }
+    NEWLINE: "\n"@767..768
+    BLANK_LINE: "\n"@768..769
+    ENTRY@769..911 {
+      NAME: "`adata.X` | `adata.layers[layer]`"@769..802
+      WHITESPACE: " "@802..803
+      COLON: ":"@803..804
+      WHITESPACE: " "@804..805
+      TYPE: ":class:`numpy.ndarray` | :class:`scipy.sparse.csr_matrix` (dtype `float`)"@805..878
+      NEWLINE: "\n"@878..879
+      WHITESPACE: "    "@879..883
+      DESCRIPTION@883..911 {
+        TEXT_LINE: "Corrected count data matrix."@883..911
+      }
+    }
+  }
+}
+=== EMIT ===
+Regress out (mostly) unwanted sources of variation.
+
+Uses simple linear regression. This is inspired by Seurat's `regressOut`
+function in R :cite:p:`Satija2015`. Note that this function tends to overcorrect
+in certain circumstances as described in :issue:`526`.
+
+.. array-support:: pp.regress_out
+
+Parameters
+----------
+adata
+    The annotated data matrix.
+keys
+    Keys for observation annotation on which to regress on.
+layer
+    If provided, which element of layers to regress on.
+n_jobs
+    Number of jobs for parallel computation.
+    `None` means using :attr:`scanpy.settings.n_jobs`.
+copy
+    Determines whether a copy of `adata` is returned.
+
+Returns
+-------
+Returns `None` if `copy=False`, else returns an updated `AnnData` object. Sets the following fields:
+`adata.X` | `adata.layers[layer]` : :class:`numpy.ndarray` | :class:`scipy.sparse.csr_matrix` (dtype `float`)
+    Corrected count data matrix.

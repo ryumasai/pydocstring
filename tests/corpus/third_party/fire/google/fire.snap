@@ -1,0 +1,180 @@
+=== CST ===
+DOCUMENT@0..1657 {
+  SUMMARY@0..60 {
+    TEXT_LINE: "This function, Fire, is the main entrypoint for Python Fire."@0..60
+  }
+  NEWLINE: "\n"@60..61
+  BLANK_LINE: "\n"@61..62
+  EXTENDED_SUMMARY@62..355 {
+    TEXT_LINE: "Executes a command either from the `command` argument or from sys.argv by"@62..135
+    NEWLINE: "\n"@135..136
+    TEXT_LINE: "recursively traversing the target object `component`'s members consuming"@136..208
+    NEWLINE: "\n"@208..209
+    TEXT_LINE: "arguments, evaluating functions, and instantiating classes as it goes."@209..279
+    NEWLINE: "\n"@279..280
+    BLANK_LINE: "\n"@280..281
+    TEXT_LINE: "When building a CLI with Fire, your main method should call this function."@281..355
+  }
+  NEWLINE: "\n"@355..356
+  BLANK_LINE: "\n"@356..357
+  SECTION@357..873 {
+    SECTION_HEADER@357..362 {
+      NAME: "Args"@357..361
+      COLON: ":"@361..362
+    }
+    NEWLINE: "\n"@362..363
+    WHITESPACE: "  "@363..365
+    ENTRY@365..405 {
+      NAME: "component"@365..374
+      COLON: ":"@374..375
+      WHITESPACE: " "@375..376
+      DESCRIPTION@376..405 {
+        TEXT_LINE: "The initial target component."@376..405
+      }
+    }
+    NEWLINE: "\n"@405..406
+    WHITESPACE: "  "@406..408
+    ENTRY@408..622 {
+      NAME: "command"@408..415
+      COLON: ":"@415..416
+      WHITESPACE: " "@416..417
+      DESCRIPTION@417..622 {
+        TEXT_LINE: "Optional. If supplied, this is the command executed. If not"@417..476
+        NEWLINE: "\n"@476..477
+        WHITESPACE: "      "@477..483
+        TEXT_LINE: "supplied, then the command is taken from sys.argv instead. This can be"@483..553
+        NEWLINE: "\n"@553..554
+        WHITESPACE: "      "@554..560
+        TEXT_LINE: "a string or a list of strings; a list of strings is preferred."@560..622
+      }
+    }
+    NEWLINE: "\n"@622..623
+    WHITESPACE: "  "@623..625
+    ENTRY@625..769 {
+      NAME: "name"@625..629
+      COLON: ":"@629..630
+      WHITESPACE: " "@630..631
+      DESCRIPTION@631..769 {
+        TEXT_LINE: "Optional. The name of the command as entered at the command line."@631..696
+        NEWLINE: "\n"@696..697
+        WHITESPACE: "      "@697..703
+        TEXT_LINE: "Used in interactive mode and for generating the completion script."@703..769
+      }
+    }
+    NEWLINE: "\n"@769..770
+    WHITESPACE: "  "@770..772
+    ENTRY@772..873 {
+      NAME: "serialize"@772..781
+      COLON: ":"@781..782
+      WHITESPACE: " "@782..783
+      DESCRIPTION@783..873 {
+        TEXT_LINE: "Optional. If supplied, all objects are serialized to text via"@783..844
+        NEWLINE: "\n"@844..845
+        WHITESPACE: "      "@845..851
+        TEXT_LINE: "the provided callable."@851..873
+      }
+    }
+  }
+  NEWLINE: "\n"@873..874
+  SECTION@874..1355 {
+    SECTION_HEADER@874..882 {
+      NAME: "Returns"@874..881
+      COLON: ":"@881..882
+    }
+    NEWLINE: "\n"@882..883
+    WHITESPACE: "  "@883..885
+    ENTRY@885..1355 {
+      DESCRIPTION@885..1355 {
+        TEXT_LINE: "The result of executing the Fire command. Execution begins with the initial"@885..960
+        NEWLINE: "\n"@960..961
+        WHITESPACE: "  "@961..963
+        TEXT_LINE: "target component. The component is updated by using the command arguments"@963..1036
+        NEWLINE: "\n"@1036..1037
+        WHITESPACE: "  "@1037..1039
+        TEXT_LINE: "to either access a member of the current component, call the current"@1039..1107
+        NEWLINE: "\n"@1107..1108
+        WHITESPACE: "  "@1108..1110
+        TEXT_LINE: "component (if it's a function), or instantiate the current component (if"@1110..1182
+        NEWLINE: "\n"@1182..1183
+        WHITESPACE: "  "@1183..1185
+        TEXT_LINE: "it's a class). When all arguments are consumed and there's no function left"@1185..1260
+        NEWLINE: "\n"@1260..1261
+        WHITESPACE: "  "@1261..1263
+        TEXT_LINE: "to call or class left to instantiate, the resulting current component is"@1263..1335
+        NEWLINE: "\n"@1335..1336
+        WHITESPACE: "  "@1336..1338
+        TEXT_LINE: "the final result."@1338..1355
+      }
+    }
+  }
+  NEWLINE: "\n"@1355..1356
+  SECTION@1356..1657 {
+    SECTION_HEADER@1356..1363 {
+      NAME: "Raises"@1356..1362
+      COLON: ":"@1362..1363
+    }
+    NEWLINE: "\n"@1363..1364
+    WHITESPACE: "  "@1364..1366
+    ENTRY@1366..1465 {
+      TYPE: "ValueError"@1366..1376
+      COLON: ":"@1376..1377
+      WHITESPACE: " "@1377..1378
+      DESCRIPTION@1378..1465 {
+        TEXT_LINE: "If the command argument is supplied, but not a string or a"@1378..1436
+        NEWLINE: "\n"@1436..1437
+        WHITESPACE: "      "@1437..1443
+        TEXT_LINE: "sequence of arguments."@1443..1465
+      }
+    }
+    NEWLINE: "\n"@1465..1466
+    WHITESPACE: "  "@1466..1468
+    ENTRY@1468..1657 {
+      TYPE: "FireExit"@1468..1476
+      COLON: ":"@1476..1477
+      WHITESPACE: " "@1477..1478
+      DESCRIPTION@1478..1657 {
+        TEXT_LINE: "When Fire encounters a FireError, Fire will raise a FireExit with"@1478..1543
+        NEWLINE: "\n"@1543..1544
+        WHITESPACE: "      "@1544..1550
+        TEXT_LINE: "code 2. When used with the help or trace flags, Fire will raise a"@1550..1615
+        NEWLINE: "\n"@1615..1616
+        WHITESPACE: "      "@1616..1622
+        TEXT_LINE: "FireExit with code 0 if successful."@1622..1657
+      }
+    }
+  }
+}
+=== EMIT ===
+This function, Fire, is the main entrypoint for Python Fire.
+
+Executes a command either from the `command` argument or from sys.argv by
+recursively traversing the target object `component`'s members consuming
+arguments, evaluating functions, and instantiating classes as it goes.
+
+When building a CLI with Fire, your main method should call this function.
+
+Args:
+    component: The initial target component.
+    command: Optional. If supplied, this is the command executed. If not
+        supplied, then the command is taken from sys.argv instead. This can be
+        a string or a list of strings; a list of strings is preferred.
+    name: Optional. The name of the command as entered at the command line.
+        Used in interactive mode and for generating the completion script.
+    serialize: Optional. If supplied, all objects are serialized to text via
+        the provided callable.
+
+Returns:
+    The result of executing the Fire command. Execution begins with the initial
+target component. The component is updated by using the command arguments
+to either access a member of the current component, call the current
+component (if it's a function), or instantiate the current component (if
+it's a class). When all arguments are consumed and there's no function left
+to call or class left to instantiate, the resulting current component is
+the final result.
+
+Raises:
+    ValueError: If the command argument is supplied, but not a string or a
+        sequence of arguments.
+    FireExit: When Fire encounters a FireError, Fire will raise a FireExit with
+        code 2. When used with the help or trace flags, Fire will raise a
+        FireExit with code 0 if successful.
