@@ -28,6 +28,15 @@ build:
 test:
     cargo test
 
+# Rust line-coverage summary (runs the full test suite incl. corpus/law tests).
+# Report-only: never gates CI and enforces no thresholds.
+coverage:
+    cargo llvm-cov --all-targets --summary-only
+
+# Rust coverage as a browsable HTML report (written to target/llvm-cov/html)
+coverage-html:
+    cargo llvm-cov --all-targets --html
+
 # ---- Python bindings (uv + maturin) ------------------------------------------
 
 # Create/refresh the Python dev environment
@@ -55,6 +64,15 @@ py-lint:
 py-fix:
     cd {{py_dir}} && uv run ruff format
     cd {{py_dir}} && uv run ruff check --fix
+
+# Python test coverage (report-only, no thresholds). Only the pure-Python
+# files (__init__.py, _visitor.py) are measured: the extension itself is
+# compiled Rust, which pytest-cov cannot see. The bindings' Rust code is a
+# known coverage gap — `just coverage` only covers the root crate's tests,
+# while the bindings crate is exercised via pytest outside llvm-cov. Revisit
+# via cargo-llvm-cov --include-ffi / maturin integration if it ever matters.
+py-coverage: py-dev
+    cd {{py_dir}} && uv run pytest tests/ --cov=pydocstring --cov-report=term-missing
 
 # Type-check Python sources (ty); needs the native extension built
 py-typecheck: py-dev
