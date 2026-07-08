@@ -16,7 +16,7 @@ DOCUMENT@0..40 {
       NAME: "x"@20..21
       WHITESPACE: " "@21..22
       OPEN_BRACKET: "("@22..23
-      TYPE: ""@23..23
+      TYPE: <missing>@23..23
       OPTIONAL: "optional"@23..31
       CLOSE_BRACKET: ")"@31..32
       COLON: ":"@32..33

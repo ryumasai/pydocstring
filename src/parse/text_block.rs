@@ -1,7 +1,8 @@
 //! Typed wrapper for multi-line text block nodes.
 //!
-//! Three [`SyntaxKind`]s carry free-form text content: [`SyntaxKind::SUMMARY`],
-//! [`SyntaxKind::EXTENDED_SUMMARY`], and [`SyntaxKind::DESCRIPTION`]. Each is a node
+//! Four [`SyntaxKind`]s carry free-form text content: [`SyntaxKind::SUMMARY`],
+//! [`SyntaxKind::EXTENDED_SUMMARY`], [`SyntaxKind::DESCRIPTION`], and
+//! [`SyntaxKind::PARAGRAPH`]. Each is a node
 //! that wraps one [`SyntaxKind::TEXT_LINE`] token per content line; the
 //! interior layout bytes (indentation, newlines, paragraph-break blank
 //! lines) are filled in as trivia tokens by the post-parse trivia pass.
@@ -16,8 +17,8 @@ use crate::text::TextRange;
 
 /// Typed wrapper for a multi-line text block node.
 ///
-/// Covers the three text-content kinds: `SUMMARY`, `EXTENDED_SUMMARY`,
-/// and `DESCRIPTION`. A single-line block still
+/// Covers the four text-content kinds: `SUMMARY`, `EXTENDED_SUMMARY`,
+/// `DESCRIPTION`, and `PARAGRAPH`. A single-line block still
 /// wraps exactly one [`SyntaxKind::TEXT_LINE`] token (uniformity).
 #[derive(Debug)]
 pub struct TextBlock<'a>(pub(crate) &'a SyntaxNode);
@@ -27,7 +28,7 @@ impl<'a> TextBlock<'a> {
     pub const fn can_cast(kind: SyntaxKind) -> bool {
         matches!(
             kind,
-            SyntaxKind::SUMMARY | SyntaxKind::EXTENDED_SUMMARY | SyntaxKind::DESCRIPTION
+            SyntaxKind::SUMMARY | SyntaxKind::EXTENDED_SUMMARY | SyntaxKind::DESCRIPTION | SyntaxKind::PARAGRAPH
         )
     }
 

@@ -52,6 +52,22 @@ pub(crate) fn missing_text_block(kind: SyntaxKind, pos: crate::text::TextSize) -
     SyntaxNode::new(kind, TextRange::new(pos, pos), Vec::new())
 }
 
+/// Build a `PARAGRAPH` text block node for a run of stray prose lines from
+/// line `first` to line `last` (inclusive), spanning from the start of the
+/// first line's trimmed content to the end of the last line's trimmed
+/// content.
+///
+/// The run must contain no blank line: a blank line splits paragraphs (reST
+/// semantics), so the parsers flush the pending run before skipping one.
+pub(crate) fn build_paragraph(cursor: &LineCursor, first: usize, last: usize) -> SyntaxNode {
+    let first_line = cursor.line_text(first);
+    let first_col = indent_len(first_line);
+    let last_line = cursor.line_text(last);
+    let last_col = indent_len(last_line) + last_line.trim().len();
+    let range = cursor.make_range(first, first_col, last, last_col);
+    build_text_block(SyntaxKind::PARAGRAPH, range, cursor.source())
+}
+
 /// Append a continuation line to an existing text block node: push a
 /// `TEXT_LINE` token covering `cont` (a trimmed single-line span) and extend
 /// the node's range to include it.
@@ -96,7 +112,7 @@ pub(crate) fn collect_description(cursor: &mut LineCursor, entry_indent_cols: us
 
 /// Try to parse an rST `.. deprecated:: <version>` directive at `cursor.line`.
 ///
-/// On success, builds a `DIRECTIVE` node with `DIRECTIVE_MARKER`, `KEYWORD`,
+/// On success, builds a `DIRECTIVE` node with `DIRECTIVE_MARKER`, `DIRECTIVE_NAME`,
 /// `DOUBLE_COLON`, `ARGUMENT` (the version), and an optional `DESCRIPTION`
 /// collected from the following more-indented lines, and advances the cursor
 /// past the directive. Returns `None` (without advancing) if the current
@@ -124,7 +140,7 @@ pub(crate) fn try_parse_deprecation_directive(cursor: &mut LineCursor) -> Option
     )));
     // `deprecated` at col+3..col+13
     dep_children.push(SyntaxElement::Token(SyntaxToken::new(
-        SyntaxKind::KEYWORD,
+        SyntaxKind::DIRECTIVE_NAME,
         cursor.make_line_range(cursor.line, col + 3, 10),
     )));
     // `::` at col+13..col+15

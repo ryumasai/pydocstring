@@ -10,7 +10,7 @@ DOCUMENT@0..127 {
   DIRECTIVE@18..69 {
     DIRECTIVE_MARKER: ".."@18..20
     WHITESPACE: " "@20..21
-    KEYWORD: "deprecated"@21..31
+    DIRECTIVE_NAME: "deprecated"@21..31
     DOUBLE_COLON: "::"@31..33
     WHITESPACE: " "@33..34
     ARGUMENT: "2.0.0"@34..39

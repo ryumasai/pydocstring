@@ -6,6 +6,7 @@
 use crate::cursor::LineCursor;
 use crate::cursor::indent_len;
 use crate::parse::google::kind::GoogleSectionKind;
+use crate::parse::utils::build_paragraph;
 use crate::parse::utils::build_text_block;
 use crate::parse::utils::extend_text_block;
 use crate::parse::utils::find_colon_ignoring_parens;
@@ -815,6 +816,11 @@ pub fn parse_google(input: &str) -> Parsed {
     let mut entry_indent: Option<usize> = None;
     let mut body_is_deeper: Option<bool> = None;
 
+    // Pending run of stray prose lines (first line, last line): flushed as
+    // one PARAGRAPH node at a blank line, a section header, or EOF.
+    let mut para_first: Option<usize> = None;
+    let mut para_last: usize = 0;
+
     while !line_cursor.is_eof() {
         // --- Blank lines ---
         if line_cursor.current_trimmed().is_empty() {
@@ -825,6 +831,10 @@ pub fn parse_google(input: &str) -> Parsed {
                     input,
                 )));
                 summary_done = true;
+            }
+            // A blank line splits stray-line paragraphs (reST semantics).
+            if let Some(first) = para_first.take() {
+                root_children.push(SyntaxElement::Node(build_paragraph(&line_cursor, first, para_last)));
             }
             line_cursor.advance();
             continue;
@@ -888,6 +898,12 @@ pub fn parse_google(input: &str) -> Parsed {
                 );
             }
 
+            // Flush a pending stray-line paragraph (a header line right
+            // after a stray run, with no blank line in between).
+            if let Some(first) = para_first.take() {
+                root_children.push(SyntaxElement::Node(build_paragraph(&line_cursor, first, para_last)));
+            }
+
             // Start new section
             current_body = Some(SectionBody::new(header_info.kind));
             current_header = Some(header_info);
@@ -944,10 +960,13 @@ pub fn parse_google(input: &str) -> Parsed {
             }
             ext_last = line_cursor.line;
         } else {
-            root_children.push(SyntaxElement::Token(SyntaxToken::new(
-                SyntaxKind::STRAY_LINE,
-                line_cursor.current_trimmed_range(),
-            )));
+            // Stray prose line: accumulate into the pending paragraph run
+            // (consecutive lines separated only by a newline form one
+            // PARAGRAPH).
+            if para_first.is_none() {
+                para_first = Some(line_cursor.line);
+            }
+            para_last = line_cursor.line;
         }
 
         line_cursor.advance();
@@ -956,6 +975,11 @@ pub fn parse_google(input: &str) -> Parsed {
     // Flush final section
     if let Some(header) = current_header.take() {
         flush_section(&line_cursor, &mut root_children, header, current_body.take().unwrap());
+    }
+
+    // Flush a pending stray-line paragraph at EOF
+    if let Some(first) = para_first.take() {
+        root_children.push(SyntaxElement::Node(build_paragraph(&line_cursor, first, para_last)));
     }
 
     // Finalise at EOF

@@ -118,6 +118,12 @@ impl<'a> Document<'a> {
             .nodes(SyntaxKind::SECTION)
             .map(move |node| Section { node, style })
     }
+
+    /// Iterate over stray-prose paragraph blocks (`PARAGRAPH` nodes) between
+    /// sections, in source order.
+    pub fn paragraphs(&self) -> impl Iterator<Item = TextBlock<'a>> {
+        self.root.nodes(SyntaxKind::PARAGRAPH).filter_map(TextBlock::cast)
+    }
 }
 
 // =============================================================================
@@ -325,7 +331,7 @@ impl<'a> Directive<'a> {
 
     /// The directive name token (e.g. `deprecated`).
     pub fn name(&self) -> &'a SyntaxToken {
-        self.0.required_token(SyntaxKind::KEYWORD)
+        self.0.required_token(SyntaxKind::DIRECTIVE_NAME)
     }
 
     /// The directive argument token (e.g. the version of a

@@ -6,6 +6,7 @@
 use crate::cursor::LineCursor;
 use crate::cursor::indent_len;
 use crate::parse::numpy::kind::NumPySectionKind;
+use crate::parse::utils::build_paragraph;
 use crate::parse::utils::build_text_block;
 use crate::parse::utils::extend_text_block;
 use crate::parse::utils::find_term_colon;
@@ -1009,8 +1010,17 @@ pub fn parse_numpy(input: &str) -> Parsed {
     let mut current_body: Option<SectionBody> = None;
     let mut entry_indent: Option<usize> = None;
 
+    // Pending run of stray prose lines (first line, last line): flushed as
+    // one PARAGRAPH node at a blank line, a section header, or EOF.
+    let mut para_first: Option<usize> = None;
+    let mut para_last: usize = 0;
+
     while !cursor.is_eof() {
         if cursor.current_trimmed().is_empty() {
+            // A blank line splits stray-line paragraphs (reST semantics).
+            if let Some(first) = para_first.take() {
+                root_children.push(SyntaxElement::Node(build_paragraph(&cursor, first, para_last)));
+            }
             cursor.advance();
             continue;
         }
@@ -1020,6 +1030,12 @@ pub fn parse_numpy(input: &str) -> Parsed {
             if let Some(prev_header) = current_header.take() {
                 let section_node = flush_section(&cursor, prev_header, current_body.take().unwrap());
                 root_children.push(SyntaxElement::Node(section_node));
+            }
+
+            // Flush a pending stray-line paragraph (a header line right
+            // after a stray run, with no blank line in between).
+            if let Some(first) = para_first.take() {
+                root_children.push(SyntaxElement::Node(build_paragraph(&cursor, first, para_last)));
             }
 
             current_body = Some(SectionBody::new(header_info.kind));
@@ -1035,11 +1051,13 @@ pub fn parse_numpy(input: &str) -> Parsed {
         if let Some(ref mut body) = current_body {
             body.process_line(&cursor, &mut entry_indent);
         } else {
-            // Stray line
-            root_children.push(SyntaxElement::Token(SyntaxToken::new(
-                SyntaxKind::STRAY_LINE,
-                cursor.current_trimmed_range(),
-            )));
+            // Stray prose line: accumulate into the pending paragraph run
+            // (consecutive lines separated only by a newline form one
+            // PARAGRAPH).
+            if para_first.is_none() {
+                para_first = Some(cursor.line);
+            }
+            para_last = cursor.line;
         }
 
         cursor.advance();
@@ -1049,6 +1067,11 @@ pub fn parse_numpy(input: &str) -> Parsed {
     if let Some(header) = current_header.take() {
         let section_node = flush_section(&cursor, header, current_body.take().unwrap());
         root_children.push(SyntaxElement::Node(section_node));
+    }
+
+    // Flush a pending stray-line paragraph at EOF
+    if let Some(first) = para_first.take() {
+        root_children.push(SyntaxElement::Node(build_paragraph(&cursor, first, para_last)));
     }
 
     let mut root = SyntaxNode::new(SyntaxKind::DOCUMENT, cursor.full_range(), root_children);
