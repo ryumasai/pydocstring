@@ -30,7 +30,11 @@ def _ensure_trailing_newline(text: str) -> str:
 def corpus_cases():
     cases = []
     for txt in sorted(CORPUS.rglob("*.txt")):
-        style = txt.relative_to(CORPUS).parts[0]
+        parts = txt.relative_to(CORPUS).parts
+        # Two layouts: plain first-party style dirs (``<style>/...``) and the
+        # third-party subtree (``third_party/<lib>/<style>/...``), where the
+        # style is the directory one level below the library.
+        style = parts[2] if parts[0] == "third_party" else parts[0]
         cases.append(pytest.param(txt, style, id=str(txt.relative_to(CORPUS))))
     assert cases, f"no corpus inputs found under {CORPUS}"
     return cases
