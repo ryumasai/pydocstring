@@ -343,7 +343,7 @@ fn push_comma_separated_names(children: &mut Vec<SyntaxElement>, name: TextRange
 enum ArgRole {
     /// Args-like entry: comma-separated names, bracketed type.
     Arg,
-    /// Attributes entry: whole name, bracketed type.
+    /// Attributes entry: comma-separated names, bracketed type.
     Attribute,
     /// Methods entry: whole name, no type parsing.
     Method,

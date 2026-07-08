@@ -349,17 +349,7 @@ fn admonition_name(kind: &FreeSectionKind) -> &str {
 
 /// Emit `text`, indenting every continuation line (after the first) by `indent`.
 fn emit_multiline(out: &mut String, text: &str, indent: usize) {
-    let mut lines = text.lines();
-    if let Some(first) = lines.next() {
-        out.push_str(first);
-        for line in lines {
-            out.push('\n');
-            if !line.is_empty() {
-                out.push_str(&" ".repeat(indent));
-                out.push_str(line);
-            }
-        }
-    }
+    super::emit_multiline_with_indentation(out, text, indent);
 }
 
 /// Emit `body` with every non-empty line indented by `indent` spaces.

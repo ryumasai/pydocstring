@@ -41,6 +41,26 @@ impl EmitOptions {
     }
 }
 
+/// Emit `text`, indenting every non-empty continuation line (after the
+/// first) by `indent` spaces. Shared by all three emitters.
+pub(crate) fn emit_multiline_with_indentation(out: &mut String, text: &str, indent: usize) {
+    if indent == 0 {
+        out.push_str(text);
+        return;
+    }
+    let mut lines = text.lines();
+    if let Some(first) = lines.next() {
+        out.push_str(first);
+        for line in lines {
+            out.push('\n');
+            if !line.is_empty() {
+                out.push_str(&" ".repeat(indent));
+                out.push_str(line);
+            }
+        }
+    }
+}
+
 /// Render an rST directive: `.. name:: argument\n    Description.`
 /// (e.g. `.. deprecated:: 1.6.0`). Shared by the Google and NumPy emitters —
 /// the directive form is identical in both styles.

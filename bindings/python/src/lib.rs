@@ -790,7 +790,7 @@ impl PyGoogleArg {
         self.nr.first_default_value(py, self.view().defaults())
     }
     fn __repr__(&self) -> String {
-        format!("GoogleArg({:?})", self.view().name().text())
+        format!("GoogleArg({:?})", self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", "))
     }
 }
 
@@ -1010,7 +1010,7 @@ impl PyGoogleAttribute {
             .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
     fn __repr__(&self) -> String {
-        format!("GoogleAttribute({:?})", self.view().name().text())
+        format!("GoogleAttribute({:?})", self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", "))
     }
 }
 
@@ -1270,13 +1270,8 @@ impl PyNumPyParameter {
         self.nr.first_default_value(py, self.view().defaults())
     }
     fn __repr__(&self) -> String {
-        let first = self
-            .view()
-            .names()
-            .next()
-            .map(|n| n.text().to_owned())
-            .unwrap_or_default();
-        format!("NumPyParameter({:?})", first)
+        let names = self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", ");
+        format!("NumPyParameter({:?})", names)
     }
 }
 
@@ -1495,7 +1490,7 @@ impl PyNumPyAttribute {
             .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
     fn __repr__(&self) -> String {
-        format!("NumPyAttribute({:?})", self.view().name().text())
+        format!("NumPyAttribute({:?})", self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", "))
     }
 }
 

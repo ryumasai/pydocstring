@@ -76,21 +76,7 @@ pub fn emit_google(doc: &Docstring, options: &EmitOptions) -> String {
 }
 
 fn emit_multiline_with_indentation(out: &mut String, text: &str, indent_level: usize) {
-    if indent_level == 0 {
-        out.push_str(text);
-    } else {
-        let mut lines = text.lines();
-        if let Some(first_line) = lines.next() {
-            out.push_str(first_line);
-            for line in lines {
-                out.push('\n');
-                if !line.is_empty() {
-                    out.push_str(&" ".repeat(indent_level));
-                    out.push_str(line);
-                }
-            }
-        }
-    }
+    super::emit_multiline_with_indentation(out, text, indent_level);
 }
 
 /// Section header name for Google style.

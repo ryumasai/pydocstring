@@ -559,6 +559,11 @@ class TestModelTypes:
         with pytest.raises(TypeError):
             pydocstring.Parameter([1, 2])  # ty: ignore[invalid-argument-type]
 
+    def test_attribute_names_setter_validates(self):
+        a = pydocstring.Attribute(names=["x"])
+        with pytest.raises(TypeError):
+            a.names = [1]  # ty: ignore[invalid-assignment]
+
     def test_parameter_names_setter_validates(self):
         p = pydocstring.Parameter(["x"])
         with pytest.raises(TypeError):
