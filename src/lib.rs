@@ -68,10 +68,13 @@
 //! - Accurate source spans (byte offsets) on every AST node
 //! - NumPy style: fully supported
 //! - Google style: fully supported
+//! - Anchored splice edits ([`Parsed::edit`](syntax::Parsed::edit), see
+//!   [`edit`]): everything an edit does not touch is preserved byte-for-byte
 //! - Emit to Google, NumPy, and Sphinx (reStructuredText) styles (Sphinx is
 //!   emit-only; see [`emit::sphinx`])
 
 pub(crate) mod cursor;
+pub mod edit;
 pub mod emit;
 pub mod model;
 pub mod parse;
