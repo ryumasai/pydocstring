@@ -329,12 +329,15 @@ fn multi_standalone_line_lands_as_entry() {
             vec![("ENTRIES".to_owned(), true, SyntaxKind::ENTRY, SyntaxKind::SECTION, true)],
             "role {kind:?} in {style}"
         );
-        // The site is the fragment root itself.
-        assert_eq!(p.metavars()[0].site().path(), {
-            let frag_range = *p.fragment().range();
-            assert_eq!(p.metavars()[0].site().range(), frag_range);
-            p.metavars()[0].site().path()
-        });
+        // The site is the fragment root itself: the path resolves to the
+        // very node fragment() returns (pointer identity), not merely a
+        // node with the same range.
+        let site = p.metavars()[0].site();
+        assert_eq!(site.range(), *p.fragment().range());
+        match element_at(p.parsed().root(), site.path()) {
+            SyntaxElement::Node(n) => assert!(std::ptr::eq::<SyntaxNode>(n, p.fragment())),
+            SyntaxElement::Token(_) => panic!("fragment site must be a node"),
+        }
     }
 }
 
