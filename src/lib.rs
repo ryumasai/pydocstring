@@ -73,12 +73,18 @@
 //! - Pattern fragments with `$X` / `$$$X` metavariables
 //!   ([`Pattern`](pattern::Pattern), see [`pattern`]) — the input side of the
 //!   match/rewrite engine
+//! - Anchor-based structural matching
+//!   ([`Pattern::matches`](pattern::Pattern::matches) /
+//!   [`Pattern::matches_in`](pattern::Pattern::matches_in), see [`matcher`]):
+//!   trivia-skipping, indentation-relative unification whose captures expose
+//!   the original target bytes
 //! - Emit to Google, NumPy, and Sphinx (reStructuredText) styles (Sphinx is
 //!   emit-only; see [`emit::sphinx`])
 
 pub(crate) mod cursor;
 pub mod edit;
 pub mod emit;
+pub mod matcher;
 pub mod model;
 pub mod parse;
 pub mod pattern;
