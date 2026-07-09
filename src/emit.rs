@@ -44,17 +44,18 @@ impl EmitOptions {
 /// Emit `text`, indenting every non-empty continuation line (after the
 /// first) by `indent` spaces. Shared by all three emitters.
 pub(crate) fn emit_multiline_with_indentation(out: &mut String, text: &str, indent: usize) {
-    if indent == 0 {
-        out.push_str(text);
-        return;
-    }
+    // One code path for every indent so a trailing newline in the input is
+    // handled identically: `lines()` drops the final terminator regardless
+    // of indent (model texts are stored without trailing newlines; callers
+    // append their own terminator).
+    let prefix = " ".repeat(indent);
     let mut lines = text.lines();
     if let Some(first) = lines.next() {
         out.push_str(first);
         for line in lines {
             out.push('\n');
             if !line.is_empty() {
-                out.push_str(&" ".repeat(indent));
+                out.push_str(&prefix);
                 out.push_str(line);
             }
         }
