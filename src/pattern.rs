@@ -60,13 +60,13 @@
 //!    the style's grammar recognises — the pattern is a section fragment.
 //!    Note that Google's grammar accepts *any* `Word:` line as a header, so
 //!    a one-line pattern like `$NAME:` is read as a section pattern; use
-//!    [`Pattern::in_section`] to force the entry reading.
+//!    [`PatternContext::InSection`] to force the entry reading.
 //! 2. **Entry**: otherwise, if the text is a **single contiguous block**
 //!    (its document parse has exactly one content child — no blank-line
 //!    separated blocks, no summary-plus-section structure), it is tried as
 //!    a lone entry of every structured section kind (`References` is
 //!    excluded because nearly any text parses as a plain-text citation, but
-//!    it can be forced with [`Pattern::in_section`]). Candidates are ranked
+//!    it can be forced with [`PatternContext::InSection`]). Candidates are ranked
 //!    by how many metavariables landed exactly on a token/node (fewest
 //!    inexact landings win): a role that realises every metavariable as a
 //!    bindable structural site beats a role that lumps them into prose.
@@ -79,6 +79,23 @@
 //!    `Yields` grammar folds *any* prose block into one entry: without it,
 //!    every multi-block pattern would be swallowed by a Returns entry trial
 //!    and document patterns would be unreachable.
+//!
+//! # Forcing a context — parent framing
+//!
+//! [`Pattern::new_with`] takes [`PatternOptions`]: `strict` switches the
+//! ambiguity policy (next section) and [`PatternContext`] forces a reading
+//! instead of inferring one. The section context is spelled
+//! **semantically** — [`PatternContext::InSection`]`(kind)` means "the
+//! text is body content living under a section of this kind" — because
+//! post-#77 the syntactic parent kind carries no disambiguating
+//! information (every section is a `SECTION` node; the role lives in the
+//! header text). The parent framing generalises naturally to free-text
+//! bodies, where "the fragment is an entry" was a false constraint: for
+//! structured roles the fragment is the `ENTRY` (a `CITATION` for
+//! `References`), while for free-text roles (Notes, Examples, …) it is the
+//! `DESCRIPTION` body block ([`FragmentKind::Body`]). `Section` and
+//! `Document` stay as fragment-kind names because pure parent framing
+//! cannot distinguish them — both live directly under `DOCUMENT`.
 //!
 //! # Ambiguity is resolved by a documented priority
 //!
@@ -106,8 +123,8 @@
 //! **Stability promise**: this table is part of the crate's contract —
 //! changing the order is a breaking change (it is spec-pinned in
 //! `tests/pattern.rs`). The resolved reading is observable via
-//! [`Pattern::section_kind`]; [`Pattern::in_section`] is the explicit
-//! override; and [`Pattern::new_strict`] restores fail-fast behaviour,
+//! [`Pattern::section_kind`]; [`PatternContext::InSection`] is the explicit
+//! override; and [`PatternOptions::strict`] restores fail-fast behaviour,
 //! returning [`PatternError::Ambiguous`] (candidates listed in priority
 //! order) when differently-shaped best-ranked candidates tie.
 //! Identically-shaped candidates are indistinguishable, so for them the
@@ -134,7 +151,7 @@
 //! `$NAME: $DESC` (Google) and `$NAME : $TYPE` (NumPy) are genuinely
 //! ambiguous between the parameter family and the returns/raises readings:
 //! [`Pattern::new`] resolves them to `Parameters` by priority, and
-//! [`Pattern::new_strict`] reports them as [`PatternError::Ambiguous`].
+//! [`PatternOptions::strict`] reports them as [`PatternError::Ambiguous`].
 //!
 //! # Standalone `$$$X` lines — discovered mapping
 //!
@@ -159,6 +176,7 @@
 
 use core::fmt;
 
+use crate::model::FreeSectionKind;
 use crate::model::SectionKind;
 use crate::parse::Style;
 use crate::parse::google::parse_google;
@@ -182,8 +200,12 @@ use crate::text::TextRange;
 pub enum FragmentKind {
     /// A single section-body entry (the fragment root is an `ENTRY` node —
     /// or a `CITATION` node for `References` patterns forced with
-    /// [`Pattern::in_section`]).
+    /// [`PatternContext::InSection`]).
     Entry,
+    /// A free-text section body (the fragment root is a `DESCRIPTION`
+    /// node), produced by [`PatternContext::InSection`] with a free-text
+    /// section kind (Notes, Examples, …).
+    Body,
     /// A complete section, header included (the fragment root is a
     /// `SECTION` node).
     Section,
@@ -275,9 +297,9 @@ impl MetaVarSite {
 #[non_exhaustive]
 pub enum PatternError {
     /// The text parses as an entry of several section roles with different
-    /// resulting shapes. Only produced by [`Pattern::new_strict`]
+    /// resulting shapes. Only produced with [`PatternOptions::strict`]
     /// ([`Pattern::new`] resolves such ties by the documented priority);
-    /// use [`Pattern::in_section`] to pick a role explicitly.
+    /// use [`PatternContext::InSection`] to pick a role explicitly.
     #[non_exhaustive]
     Ambiguous {
         /// The section kinds whose entry grammars all accept the text
@@ -308,7 +330,7 @@ impl fmt::Display for PatternError {
                     }
                     write!(f, "{kind:?}")?;
                 }
-                write!(f, "); disambiguate with Pattern::in_section")
+                write!(f, "); disambiguate with PatternContext::InSection")
             }
             PatternError::Unparsable { message } => write!(f, "unparsable pattern: {message}"),
         }
@@ -316,6 +338,81 @@ impl fmt::Display for PatternError {
 }
 
 impl std::error::Error for PatternError {}
+
+/// Which reading of the pattern text to use (see [`PatternOptions`]).
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[non_exhaustive]
+pub enum PatternContext {
+    /// Infer the fragment kind: section, then entry trials, then document
+    /// (the [module docs](self#resolution-order-of-patternnew) resolution
+    /// order). The default.
+    #[default]
+    Auto,
+    /// Force the text to be read as **body content living under a section
+    /// of the given kind**, bypassing inference and priority resolution —
+    /// the explicit override for ambiguous entry patterns (and for texts
+    /// `Auto` would read as a section, like Google `x:`). The fragment is
+    /// whatever that section's grammar produces for its body: an `ENTRY`
+    /// for structured roles, a `CITATION` for [`SectionKind::References`],
+    /// and the `DESCRIPTION` body block for free-text roles (Notes,
+    /// Examples, …).
+    InSection(SectionKind),
+    /// Force the section reading: the text must parse as exactly one
+    /// section (header + body) and nothing else.
+    Section,
+    /// Force the document reading: any non-empty text parses as a document
+    /// fragment, entry/section inference skipped.
+    Document,
+}
+
+/// Options controlling pattern parsing, on two orthogonal axes: which
+/// reading to use ([`PatternContext`]) and the ambiguity policy (`strict`).
+///
+/// This struct is `#[non_exhaustive]`: new options may be added in minor
+/// releases. Construct it via [`Default`] and adjust fields, or use the
+/// [`with_context`](PatternOptions::with_context) /
+/// [`with_strict`](PatternOptions::with_strict) builders:
+///
+/// ```rust
+/// use pydocstring::model::SectionKind;
+/// use pydocstring::parse::Style;
+/// use pydocstring::pattern::Pattern;
+/// use pydocstring::pattern::PatternContext;
+/// use pydocstring::pattern::PatternOptions;
+///
+/// let options = PatternOptions::default().with_context(PatternContext::InSection(SectionKind::Parameters));
+/// let pattern = Pattern::new_with(Style::Google, "$NAME: $DESC", &options).unwrap();
+/// assert_eq!(pattern.section_kind(), Some(&SectionKind::Parameters));
+/// ```
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[non_exhaustive]
+pub struct PatternOptions {
+    /// Which reading of the pattern text to use. Defaults to
+    /// [`PatternContext::Auto`].
+    pub context: PatternContext,
+    /// Fail fast on ambiguity: with [`PatternContext::Auto`], return
+    /// [`PatternError::Ambiguous`] when differently-shaped best-ranked
+    /// entry candidates tie instead of resolving by the documented
+    /// priority. Defaults to `false`. A no-op for the forced contexts
+    /// (there is nothing to resolve).
+    pub strict: bool,
+}
+
+impl PatternOptions {
+    /// Returns these options with `context` replaced.
+    #[must_use]
+    pub fn with_context(mut self, context: PatternContext) -> Self {
+        self.context = context;
+        self
+    }
+
+    /// Returns these options with `strict` replaced.
+    #[must_use]
+    pub fn with_strict(mut self, strict: bool) -> Self {
+        self.strict = strict;
+        self
+    }
+}
 
 /// A parsed docstring pattern fragment with metavariables.
 ///
@@ -340,22 +437,42 @@ impl Pattern {
     /// single-block texts, then document fragment. Ambiguity between entry
     /// roles is resolved by the documented [role priority
     /// table](self#ambiguity-is-resolved-by-a-documented-priority); the
-    /// resolved reading is reported by [`Pattern::section_kind`]. Use
-    /// [`Pattern::new_strict`] to fail fast on ambiguity instead, or
-    /// [`Pattern::in_section`] to force a role.
+    /// resolved reading is reported by [`Pattern::section_kind`].
+    ///
+    /// Equivalent to [`Pattern::new_with`] with default [`PatternOptions`].
+    /// Use options to fail fast on ambiguity ([`PatternOptions::strict`]) or
+    /// to force a reading ([`PatternContext`]).
     pub fn new(style: Style, text: &str) -> Result<Pattern, PatternError> {
-        Self::build(style, text, false)
+        Self::new_with(style, text, &PatternOptions::default())
     }
 
-    /// Like [`Pattern::new`], but fails fast on ambiguity: when the
-    /// best-ranked entry candidates differ in shape, returns
-    /// [`PatternError::Ambiguous`] (candidates in priority order) instead of
-    /// resolving by priority.
-    pub fn new_strict(style: Style, text: &str) -> Result<Pattern, PatternError> {
-        Self::build(style, text, true)
+    /// Parse a pattern with explicit [`PatternOptions`]:
+    ///
+    /// - [`PatternContext::Auto`] + `strict: false` (the default, also
+    ///   [`Pattern::new`]): infer the fragment kind, resolving entry-role
+    ///   ambiguity by the documented priority;
+    /// - [`PatternContext::Auto`] + `strict: true`: as above, but return
+    ///   [`PatternError::Ambiguous`] (candidates in priority order) when
+    ///   differently-shaped best-ranked entry candidates tie;
+    /// - [`PatternContext::InSection`]: force the body-content reading
+    ///   under the given section kind — the fragment is an `ENTRY` for
+    ///   structured roles, a `CITATION` for `References`, the `DESCRIPTION`
+    ///   body block for free-text roles (`strict` is a no-op — there is
+    ///   nothing to resolve);
+    /// - [`PatternContext::Section`] / [`PatternContext::Document`]: force
+    ///   those readings, [`PatternError::Unparsable`] if the text cannot be
+    ///   read that way (`strict` is a no-op).
+    pub fn new_with(style: Style, text: &str, options: &PatternOptions) -> Result<Pattern, PatternError> {
+        match &options.context {
+            PatternContext::InSection(kind) => Self::build_in_section(style, text, kind),
+            PatternContext::Section => Self::build_section(style, text),
+            PatternContext::Document => Self::build_document(style, text),
+            _ => Self::build_auto(style, text, options.strict),
+        }
     }
 
-    fn build(style: Style, text: &str, strict: bool) -> Result<Pattern, PatternError> {
+    /// The `Auto` context: section, then entry trials, then document.
+    fn build_auto(style: Style, text: &str, strict: bool) -> Result<Pattern, PatternError> {
         let (substituted, occurrences) = substitute_metavars(text);
 
         // 1. Parse as a document once; this decides section-vs-rest and
@@ -369,23 +486,9 @@ impl Pattern {
         }
 
         // 2. Section fragment: exactly one SECTION and nothing else.
-        if content.len() == 1 {
-            if let SyntaxElement::Node(node) = &doc_parsed.root().children()[content[0]] {
-                if node.kind() == SyntaxKind::SECTION {
-                    let fragment_path = vec![content[0]];
-                    check_coverage(&doc_parsed).map_err(unparsable)?;
-                    let metavars = locate_metavars(&doc_parsed, &occurrences, &fragment_path).map_err(unparsable)?;
-                    let section_kind = Section::cast(&doc_parsed, node).map(|s| s.kind());
-                    return Ok(Pattern {
-                        style,
-                        text: text.to_owned(),
-                        parsed: doc_parsed,
-                        fragment_kind: FragmentKind::Section,
-                        fragment_path,
-                        section_kind,
-                        metavars,
-                    });
-                }
+        if let [index] = content[..] {
+            if doc_parsed.root().children()[index].kind() == SyntaxKind::SECTION {
+                return Self::finish_section(style, text, doc_parsed, index, &occurrences);
             }
         }
 
@@ -397,10 +500,10 @@ impl Pattern {
         //    multi-block pattern.
         if content.len() == 1 && matches!(style, Style::Google | Style::NumPy) {
             // Collect the best-ranked candidates, in priority order.
-            let mut best: Vec<(SectionKind, EntryAnalysis)> = Vec::new();
+            let mut best: Vec<(SectionKind, InSectionAnalysis)> = Vec::new();
             let mut best_rank = usize::MAX;
             for kind in ENTRY_ROLE_PRIORITY {
-                if let Ok(analysis) = analyze_entry(style, kind, &substituted, &occurrences) {
+                if let Ok(analysis) = analyze_in_section(style, kind, &substituted, &occurrences) {
                     match analysis.rank.cmp(&best_rank) {
                         core::cmp::Ordering::Less => {
                             best_rank = analysis.rank;
@@ -429,8 +532,100 @@ impl Pattern {
         }
 
         // 4. Document fragment.
+        Self::finish_document(style, text, doc_parsed, &occurrences)
+    }
+
+    /// The `InSection(kind)` context: parse the text as body content under
+    /// a section of the given kind. Structured roles produce an `ENTRY`
+    /// fragment, [`SectionKind::References`] a `CITATION`, and free-text
+    /// roles the `DESCRIPTION` body block.
+    fn build_in_section(style: Style, text: &str, kind: &SectionKind) -> Result<Pattern, PatternError> {
+        if !matches!(style, Style::Google | Style::NumPy) {
+            return Err(PatternError::Unparsable {
+                message: format!("style `{style}` has no sections: section-body patterns require google or numpy"),
+            });
+        }
+        if header_name(style, kind).is_none() {
+            return Err(PatternError::Unparsable {
+                message: format!("section kind {kind:?} has no usable header name in style `{style}`"),
+            });
+        }
+        let (substituted, occurrences) = substitute_metavars(text);
+        let analysis = analyze_in_section(style, kind, &substituted, &occurrences).map_err(|message| {
+            PatternError::Unparsable {
+                message: format!("pattern does not parse as {kind:?} section body content: {message}"),
+            }
+        })?;
+        Ok(analysis.into_pattern(style, text, kind.clone()))
+    }
+
+    /// The `Section` context: the text must read as exactly one section.
+    fn build_section(style: Style, text: &str) -> Result<Pattern, PatternError> {
+        let (substituted, occurrences) = substitute_metavars(text);
+        let doc_parsed = parse_for(style, &substituted);
+        let content = content_child_indices(doc_parsed.root());
+        if let [index] = content[..] {
+            if doc_parsed.root().children()[index].kind() == SyntaxKind::SECTION {
+                return Self::finish_section(style, text, doc_parsed, index, &occurrences);
+            }
+        }
+        Err(PatternError::Unparsable {
+            message: format!(
+                "pattern does not parse as a single section (expected one section header and its body, found {} \
+                 non-section top-level item(s))",
+                content.len()
+            ),
+        })
+    }
+
+    /// The `Document` context: any non-empty text reads as a document.
+    fn build_document(style: Style, text: &str) -> Result<Pattern, PatternError> {
+        let (substituted, occurrences) = substitute_metavars(text);
+        let doc_parsed = parse_for(style, &substituted);
+        if content_child_indices(doc_parsed.root()).is_empty() {
+            return Err(PatternError::Unparsable {
+                message: "empty pattern: no content to match".to_owned(),
+            });
+        }
+        Self::finish_document(style, text, doc_parsed, &occurrences)
+    }
+
+    /// Assemble a section pattern from a document parse whose only content
+    /// child is the SECTION at `index`.
+    fn finish_section(
+        style: Style,
+        text: &str,
+        doc_parsed: Parsed,
+        index: usize,
+        occurrences: &[Occurrence],
+    ) -> Result<Pattern, PatternError> {
+        let fragment_path = vec![index];
         check_coverage(&doc_parsed).map_err(unparsable)?;
-        let metavars = locate_metavars(&doc_parsed, &occurrences, &[]).map_err(unparsable)?;
+        let metavars = locate_metavars(&doc_parsed, occurrences, &fragment_path).map_err(unparsable)?;
+        let section_kind = match &doc_parsed.root().children()[index] {
+            SyntaxElement::Node(node) => Section::cast(&doc_parsed, node).map(|s| s.kind()),
+            SyntaxElement::Token(_) => None,
+        };
+        Ok(Pattern {
+            style,
+            text: text.to_owned(),
+            parsed: doc_parsed,
+            fragment_kind: FragmentKind::Section,
+            fragment_path,
+            section_kind,
+            metavars,
+        })
+    }
+
+    /// Assemble a document pattern from a document parse.
+    fn finish_document(
+        style: Style,
+        text: &str,
+        doc_parsed: Parsed,
+        occurrences: &[Occurrence],
+    ) -> Result<Pattern, PatternError> {
+        check_coverage(&doc_parsed).map_err(unparsable)?;
+        let metavars = locate_metavars(&doc_parsed, occurrences, &[]).map_err(unparsable)?;
         Ok(Pattern {
             style,
             text: text.to_owned(),
@@ -440,32 +635,6 @@ impl Pattern {
             section_kind: None,
             metavars,
         })
-    }
-
-    /// Parse a pattern as a lone entry of the given structured section kind,
-    /// bypassing [`Pattern::new`]'s inference (and its priority-based
-    /// ambiguity resolution) — the explicit override.
-    ///
-    /// `kind` must be a structured section kind for the style; free-text
-    /// kinds (Notes, Examples, …) have no entries and are rejected. For
-    /// [`SectionKind::References`] the fragment root is a `CITATION` node.
-    pub fn in_section(style: Style, kind: SectionKind, text: &str) -> Result<Pattern, PatternError> {
-        if !matches!(style, Style::Google | Style::NumPy) {
-            return Err(PatternError::Unparsable {
-                message: format!("style `{style}` has no sections: entry patterns require google or numpy"),
-            });
-        }
-        if header_name(style, &kind).is_none() {
-            return Err(PatternError::Unparsable {
-                message: format!("section kind {kind:?} has no structured entry grammar"),
-            });
-        }
-        let (substituted, occurrences) = substitute_metavars(text);
-        let analysis =
-            analyze_entry(style, &kind, &substituted, &occurrences).map_err(|message| PatternError::Unparsable {
-                message: format!("pattern does not parse as a single {kind:?} entry: {message}"),
-            })?;
-        Ok(analysis.into_pattern(style, text, kind))
     }
 
     /// The docstring style the pattern is parsed against.
@@ -486,7 +655,7 @@ impl Pattern {
     /// The section context of the fragment: for an entry pattern this is
     /// the **resolved reading** — the role picked by the [priority
     /// table](self#ambiguity-is-resolved-by-a-documented-priority) (or
-    /// forced via [`Pattern::in_section`]) — making the ambiguity
+    /// forced via [`PatternContext::InSection`]) — making the ambiguity
     /// resolution observable; for a section pattern it is the section's own
     /// kind; `None` for a document pattern.
     pub fn section_kind(&self) -> Option<&SectionKind> {
@@ -611,31 +780,59 @@ const ENTRY_ROLE_PRIORITY: &[SectionKind] = &[
     SectionKind::SeeAlso,
 ];
 
-/// The synthetic section header name for wrapping an entry fragment of
-/// `kind` in `style`, or `None` when the kind has no structured entry
-/// grammar in that style.
-fn header_name(style: Style, kind: &SectionKind) -> Option<&'static str> {
-    match (style, kind) {
-        (Style::Google, SectionKind::Parameters) => Some("Args"),
-        (Style::Google, SectionKind::KeywordParameters) => Some("Keyword Args"),
-        (Style::NumPy, SectionKind::Parameters) => Some("Parameters"),
-        (Style::NumPy, SectionKind::KeywordParameters) => Some("Keyword Parameters"),
-        (Style::Google | Style::NumPy, SectionKind::OtherParameters) => Some("Other Parameters"),
-        (Style::Google | Style::NumPy, SectionKind::Receives) => Some("Receives"),
-        (Style::Google | Style::NumPy, SectionKind::Returns) => Some("Returns"),
-        (Style::Google | Style::NumPy, SectionKind::Yields) => Some("Yields"),
-        (Style::Google | Style::NumPy, SectionKind::Raises) => Some("Raises"),
-        (Style::Google | Style::NumPy, SectionKind::Warns) => Some("Warns"),
-        (Style::Google | Style::NumPy, SectionKind::Attributes) => Some("Attributes"),
-        (Style::Google | Style::NumPy, SectionKind::Methods) => Some("Methods"),
-        (Style::Google | Style::NumPy, SectionKind::SeeAlso) => Some("See Also"),
-        (Style::Google | Style::NumPy, SectionKind::References) => Some("References"),
-        _ => None,
-    }
+/// The synthetic section header name for wrapping a section-body fragment
+/// of `kind` in `style`, or `None` when the kind cannot be spelled as a
+/// header in that style.
+fn header_name(style: Style, kind: &SectionKind) -> Option<String> {
+    let name = match (style, kind) {
+        (Style::Google, SectionKind::Parameters) => "Args",
+        (Style::Google, SectionKind::KeywordParameters) => "Keyword Args",
+        (Style::NumPy, SectionKind::Parameters) => "Parameters",
+        (Style::NumPy, SectionKind::KeywordParameters) => "Keyword Parameters",
+        (Style::Google | Style::NumPy, SectionKind::OtherParameters) => "Other Parameters",
+        (Style::Google | Style::NumPy, SectionKind::Receives) => "Receives",
+        (Style::Google | Style::NumPy, SectionKind::Returns) => "Returns",
+        (Style::Google | Style::NumPy, SectionKind::Yields) => "Yields",
+        (Style::Google | Style::NumPy, SectionKind::Raises) => "Raises",
+        (Style::Google | Style::NumPy, SectionKind::Warns) => "Warns",
+        (Style::Google | Style::NumPy, SectionKind::Attributes) => "Attributes",
+        (Style::Google | Style::NumPy, SectionKind::Methods) => "Methods",
+        (Style::Google | Style::NumPy, SectionKind::SeeAlso) => "See Also",
+        (Style::Google | Style::NumPy, SectionKind::References) => "References",
+        (Style::Google | Style::NumPy, SectionKind::FreeText(free)) => return free_header_name(free),
+        _ => return None,
+    };
+    Some(name.to_owned())
 }
 
-/// Wrap a (substituted) entry fragment as the body of a synthetic section.
-fn wrap_entry(style: Style, header: &str, fragment: &str) -> String {
+/// The header name for a free-text section kind. Both style grammars
+/// recognise these names (and read any unknown header as a free-text
+/// section, so `Unknown` names work too, as long as they can appear on a
+/// header line).
+fn free_header_name(kind: &FreeSectionKind) -> Option<String> {
+    let name = match kind {
+        FreeSectionKind::Notes => "Notes",
+        FreeSectionKind::Examples => "Examples",
+        FreeSectionKind::Warnings => "Warnings",
+        FreeSectionKind::Todo => "Todo",
+        FreeSectionKind::Attention => "Attention",
+        FreeSectionKind::Caution => "Caution",
+        FreeSectionKind::Danger => "Danger",
+        FreeSectionKind::Error => "Error",
+        FreeSectionKind::Hint => "Hint",
+        FreeSectionKind::Important => "Important",
+        FreeSectionKind::Tip => "Tip",
+        FreeSectionKind::Unknown(name) => {
+            let trimmed = name.trim();
+            return (!trimmed.is_empty() && !trimmed.contains('\n')).then(|| trimmed.to_owned());
+        }
+    };
+    Some(name.to_owned())
+}
+
+/// Wrap a (substituted) section-body fragment under a synthetic section
+/// header.
+fn wrap_section_body(style: Style, header: &str, fragment: &str) -> String {
     let fragment = fragment.strip_suffix('\n').unwrap_or(fragment);
     let mut out = String::new();
     match style {
@@ -857,9 +1054,11 @@ fn check_coverage(parsed: &Parsed) -> Result<(), String> {
     Ok(())
 }
 
-/// A validated entry-fragment candidate parse.
-struct EntryAnalysis {
+/// A validated section-body candidate parse (an entry, a citation, or a
+/// free-text body block, per the section kind's grammar).
+struct InSectionAnalysis {
     parsed: Parsed,
+    fragment_kind: FragmentKind,
     fragment_path: Vec<usize>,
     metavars: Vec<MetaVar>,
     /// Number of inexact metavariable landings (0 = every metavariable is a
@@ -867,13 +1066,13 @@ struct EntryAnalysis {
     rank: usize,
 }
 
-impl EntryAnalysis {
+impl InSectionAnalysis {
     fn into_pattern(self, style: Style, text: &str, kind: SectionKind) -> Pattern {
         Pattern {
             style,
             text: text.to_owned(),
             parsed: self.parsed,
-            fragment_kind: FragmentKind::Entry,
+            fragment_kind: self.fragment_kind,
             fragment_path: self.fragment_path,
             section_kind: Some(kind),
             metavars: self.metavars,
@@ -881,15 +1080,18 @@ impl EntryAnalysis {
     }
 }
 
-/// Try to parse the (substituted) fragment as a lone entry of `kind`.
-fn analyze_entry(
+/// Try to parse the (substituted) fragment as the body content of one
+/// `kind` section: exactly one `ENTRY` for structured roles, one `CITATION`
+/// for `References`, or the `DESCRIPTION` body block for free-text roles.
+fn analyze_in_section(
     style: Style,
     kind: &SectionKind,
     substituted: &str,
     occurrences: &[Occurrence],
-) -> Result<EntryAnalysis, String> {
-    let header = header_name(style, kind).ok_or_else(|| format!("section kind {kind:?} is not structured"))?;
-    let wrapped = wrap_entry(style, header, substituted);
+) -> Result<InSectionAnalysis, String> {
+    let header =
+        header_name(style, kind).ok_or_else(|| format!("section kind {kind:?} cannot be spelled as a header"))?;
+    let wrapped = wrap_section_body(style, &header, substituted);
     let parsed = parse_for(style, &wrapped);
     check_coverage(&parsed)?;
 
@@ -907,15 +1109,15 @@ fn analyze_entry(
         return Err(format!("expected a SECTION, found {}", section.kind()));
     }
 
-    let expected_body_kind = if *kind == SectionKind::References {
-        SyntaxKind::CITATION
-    } else {
-        SyntaxKind::ENTRY
+    let expected_body_kind = match kind {
+        SectionKind::References => SyntaxKind::CITATION,
+        SectionKind::FreeText(_) => SyntaxKind::DESCRIPTION,
+        _ => SyntaxKind::ENTRY,
     };
     let section_content = content_child_indices(section);
     if section_content.len() != 2 {
         return Err(format!(
-            "expected exactly one entry in the section body, found {}",
+            "expected exactly one {expected_body_kind} in the section body, found {}",
             section_content.len().saturating_sub(1)
         ));
     }
@@ -933,8 +1135,14 @@ fn analyze_entry(
     let fragment_path = vec![section_index, body_index];
     let metavars = locate_metavars(&parsed, occurrences, &fragment_path)?;
     let rank = metavars.iter().filter(|m| !m.site.exact).count();
-    Ok(EntryAnalysis {
+    let fragment_kind = if expected_body_kind == SyntaxKind::DESCRIPTION {
+        FragmentKind::Body
+    } else {
+        FragmentKind::Entry
+    };
+    Ok(InSectionAnalysis {
         parsed,
+        fragment_kind,
         fragment_path,
         metavars,
         rank,
@@ -969,7 +1177,7 @@ struct VarShape {
     rel_path: Vec<usize>,
 }
 
-fn shape_of(analysis: &EntryAnalysis) -> Shape {
+fn shape_of(analysis: &InSectionAnalysis) -> Shape {
     fn dfs(node: &SyntaxNode, base: u32, out: &mut Vec<(SyntaxKind, bool, u32, u32)>) {
         out.push((
             node.kind(),
@@ -1057,14 +1265,14 @@ mod tests {
     }
 
     #[test]
-    fn test_wrap_entry_google_indents_and_keeps_blank_lines() {
-        let wrapped = wrap_entry(Style::Google, "Args", "x: d\n\n    more\n");
+    fn test_wrap_section_body_google_indents_and_keeps_blank_lines() {
+        let wrapped = wrap_section_body(Style::Google, "Args", "x: d\n\n    more\n");
         assert_eq!(wrapped, "Args:\n    x: d\n\n        more\n");
     }
 
     #[test]
-    fn test_wrap_entry_numpy_underline_matches_header() {
-        let wrapped = wrap_entry(Style::NumPy, "Keyword Parameters", "x : int");
+    fn test_wrap_section_body_numpy_underline_matches_header() {
+        let wrapped = wrap_section_body(Style::NumPy, "Keyword Parameters", "x : int");
         assert_eq!(wrapped, "Keyword Parameters\n------------------\nx : int\n");
     }
 }
