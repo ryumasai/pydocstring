@@ -225,9 +225,10 @@ impl<'a> Edits<'a> {
         let bytes = source.as_bytes();
         let mut start = usize::from(node.range().start());
         let mut end = usize::from(node.range().end());
-        if start > end || end > bytes.len() {
-            // Foreign/corrupt range: record it as-is and let apply() report
-            // OutOfBounds instead of panicking here.
+        if start > end || end > bytes.len() || !source.is_char_boundary(start) || !source.is_char_boundary(end) {
+            // Foreign/corrupt range (out of bounds, inverted, or splitting a
+            // multi-byte character in a user-built tree): record it as-is and
+            // let apply() report OutOfBounds instead of panicking here.
             return self.delete(*node.range());
         }
 

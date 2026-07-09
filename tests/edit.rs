@@ -412,3 +412,29 @@ fn apply_reparsed_preserves_style() {
     assert_eq!(reparsed.source(), "Summary.\n\n");
     assert_eq!(reparsed.style(), Style::Google);
 }
+
+/// SPEC: a user-built node whose range splits a multi-byte character must
+/// surface as EditError::OutOfBounds from apply(), never a panic during
+/// extent computation (SyntaxNode::new / TextRange::new are public).
+#[test]
+fn remove_lines_non_char_boundary_range_is_rejected_not_panicking() {
+    use pydocstring::syntax::SyntaxKind;
+    use pydocstring::syntax::SyntaxNode;
+    use pydocstring::text::TextRange;
+    use pydocstring::text::TextSize;
+
+    let parsed = pydocstring::parse::google::parse_google("Summary é.\n\nArgs:\n    x: D.\n");
+    // Offset 9 lands inside the two-byte 'é' (bytes 8..10).
+    let bogus = SyntaxNode::new(
+        SyntaxKind::ENTRY,
+        TextRange::new(TextSize::from(9usize), TextSize::from(12usize)),
+        Vec::new(),
+    );
+    let mut edits = parsed.edit();
+    edits.remove_lines(&bogus);
+    let err = edits.apply().unwrap_err();
+    assert!(
+        matches!(err, pydocstring::edit::EditError::OutOfBounds { .. }),
+        "got {err:?}"
+    );
+}
