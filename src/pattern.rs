@@ -64,20 +64,14 @@
 //! 2. **Entry**: otherwise, if the text is a **single contiguous block**
 //!    (its document parse has exactly one content child — no blank-line
 //!    separated blocks, no summary-plus-section structure), it is tried as
-//!    a lone entry of every structured section kind (`Parameters`,
-//!    `KeywordParameters`,
-//!    `OtherParameters`, `Receives`, `Attributes`, `Methods`, `Returns`,
-//!    `Yields`, `Raises`, `Warns`, `SeeAlso` — `References` is excluded
-//!    because nearly any text parses as a plain-text citation, but it can be
-//!    forced with [`Pattern::in_section`]). Candidates are ranked by how
-//!    many metavariables landed exactly on a token/node (fewest inexact
-//!    landings win): a role that realises every metavariable as a bindable
-//!    structural site beats a role that lumps them into prose. If the
-//!    best-ranked candidates all have the **same shape** (identical fragment
-//!    subtree and metavariable sites, relative to the fragment), they
-//!    collapse into one pattern; if they differ the pattern is
-//!    [`PatternError::Ambiguous`] and [`Pattern::in_section`] must pick the
-//!    role.
+//!    a lone entry of every structured section kind (`References` is
+//!    excluded because nearly any text parses as a plain-text citation, but
+//!    it can be forced with [`Pattern::in_section`]). Candidates are ranked
+//!    by how many metavariables landed exactly on a token/node (fewest
+//!    inexact landings win): a role that realises every metavariable as a
+//!    bindable structural site beats a role that lumps them into prose.
+//!    Remaining ties are resolved by the [role priority
+//!    table](self#ambiguity-is-resolved-by-a-documented-priority).
 //! 3. **Document**: otherwise the document parse from step 1 is the pattern
 //!    (multi-block texts: several sections, summary + sections, blank-line
 //!    separated prose — and single blocks no entry role accepts). The
@@ -85,6 +79,39 @@
 //!    `Yields` grammar folds *any* prose block into one entry: without it,
 //!    every multi-block pattern would be swallowed by a Returns entry trial
 //!    and document patterns would be unreachable.
+//!
+//! # Ambiguity is resolved by a documented priority
+//!
+//! When the best-ranked entry candidates differ in shape, [`Pattern::new`]
+//! does **not** error: it picks the reading of the highest-priority role.
+//! Ambiguity is a static property of pattern text + style, but grammar
+//! evolution across library upgrades could flip a formerly-unique pattern
+//! to ambiguous and break CI pipelines — a spec-pinned priority makes the
+//! reading deterministic and observable instead.
+//!
+//! | priority | role                |
+//! |---------:|---------------------|
+//! |        1 | `Parameters`        |
+//! |        2 | `KeywordParameters` |
+//! |        3 | `OtherParameters`   |
+//! |        4 | `Receives`          |
+//! |        5 | `Returns`           |
+//! |        6 | `Yields`            |
+//! |        7 | `Raises`            |
+//! |        8 | `Warns`             |
+//! |        9 | `Attributes`        |
+//! |       10 | `Methods`           |
+//! |       11 | `SeeAlso`           |
+//!
+//! **Stability promise**: this table is part of the crate's contract —
+//! changing the order is a breaking change (it is spec-pinned in
+//! `tests/pattern.rs`). The resolved reading is observable via
+//! [`Pattern::section_kind`]; [`Pattern::in_section`] is the explicit
+//! override; and [`Pattern::new_strict`] restores fail-fast behaviour,
+//! returning [`PatternError::Ambiguous`] (candidates listed in priority
+//! order) when differently-shaped best-ranked candidates tie.
+//! Identically-shaped candidates are indistinguishable, so for them the
+//! priority pick only decides which role [`Pattern::section_kind`] reports.
 //!
 //! # Finding: entry roles still shape the parse
 //!
@@ -105,7 +132,9 @@
 //! Consequently `$NAME ($TYPE): $DESC` (Google) is unambiguous — only the
 //! parameter family realises all three metavariables exactly — while
 //! `$NAME: $DESC` (Google) and `$NAME : $TYPE` (NumPy) are genuinely
-//! ambiguous between the parameter family and the returns/raises readings.
+//! ambiguous between the parameter family and the returns/raises readings:
+//! [`Pattern::new`] resolves them to `Parameters` by priority, and
+//! [`Pattern::new_strict`] reports them as [`PatternError::Ambiguous`].
 //!
 //! # Standalone `$$$X` lines — discovered mapping
 //!
@@ -246,11 +275,14 @@ impl MetaVarSite {
 #[non_exhaustive]
 pub enum PatternError {
     /// The text parses as an entry of several section roles with different
-    /// resulting shapes. Use [`Pattern::in_section`] to pick one.
+    /// resulting shapes. Only produced by [`Pattern::new_strict`]
+    /// ([`Pattern::new`] resolves such ties by the documented priority);
+    /// use [`Pattern::in_section`] to pick a role explicitly.
     #[non_exhaustive]
     Ambiguous {
         /// The section kinds whose entry grammars all accept the text
-        /// (equally well ranked, but with differing shapes).
+        /// (equally well ranked, but with differing shapes), in priority
+        /// order.
         candidates: Vec<SectionKind>,
     },
     /// The text does not parse as any valid fragment of the requested (or
@@ -305,10 +337,25 @@ impl Pattern {
     ///
     /// Tries, in order: section fragment (text starting with a recognisable
     /// section header), entry fragment in each structured section role for
-    /// single-block texts (identically-shaped candidates collapse;
-    /// differently-shaped ones are [`PatternError::Ambiguous`]), then
-    /// document fragment. See the [module docs](self) for the precise rules.
+    /// single-block texts, then document fragment. Ambiguity between entry
+    /// roles is resolved by the documented [role priority
+    /// table](self#ambiguity-is-resolved-by-a-documented-priority); the
+    /// resolved reading is reported by [`Pattern::section_kind`]. Use
+    /// [`Pattern::new_strict`] to fail fast on ambiguity instead, or
+    /// [`Pattern::in_section`] to force a role.
     pub fn new(style: Style, text: &str) -> Result<Pattern, PatternError> {
+        Self::build(style, text, false)
+    }
+
+    /// Like [`Pattern::new`], but fails fast on ambiguity: when the
+    /// best-ranked entry candidates differ in shape, returns
+    /// [`PatternError::Ambiguous`] (candidates in priority order) instead of
+    /// resolving by priority.
+    pub fn new_strict(style: Style, text: &str) -> Result<Pattern, PatternError> {
+        Self::build(style, text, true)
+    }
+
+    fn build(style: Style, text: &str, strict: bool) -> Result<Pattern, PatternError> {
         let (substituted, occurrences) = substitute_metavars(text);
 
         // 1. Parse as a document once; this decides section-vs-rest and
@@ -349,9 +396,10 @@ impl Pattern {
         //    which accepts ANY prose block as one entry, would swallow every
         //    multi-block pattern.
         if content.len() == 1 && matches!(style, Style::Google | Style::NumPy) {
+            // Collect the best-ranked candidates, in priority order.
             let mut best: Vec<(SectionKind, EntryAnalysis)> = Vec::new();
             let mut best_rank = usize::MAX;
-            for kind in ENTRY_TRIAL_KINDS {
+            for kind in ENTRY_ROLE_PRIORITY {
                 if let Ok(analysis) = analyze_entry(style, kind, &substituted, &occurrences) {
                     match analysis.rank.cmp(&best_rank) {
                         core::cmp::Ordering::Less => {
@@ -364,14 +412,19 @@ impl Pattern {
                 }
             }
             if !best.is_empty() {
-                let first_shape = shape_of(&best[0].1);
-                if best.iter().skip(1).all(|(_, a)| shape_of(a) == first_shape) {
-                    let (kind, analysis) = best.swap_remove(0);
-                    return Ok(analysis.into_pattern(style, text, kind));
+                if strict {
+                    let first_shape = shape_of(&best[0].1);
+                    if !best.iter().skip(1).all(|(_, a)| shape_of(a) == first_shape) {
+                        return Err(PatternError::Ambiguous {
+                            candidates: best.into_iter().map(|(kind, _)| kind).collect(),
+                        });
+                    }
                 }
-                return Err(PatternError::Ambiguous {
-                    candidates: best.into_iter().map(|(kind, _)| kind).collect(),
-                });
+                // Priority resolution: the highest-priority best-ranked
+                // candidate wins (identically-shaped candidates are
+                // indistinguishable anyway).
+                let (kind, analysis) = best.swap_remove(0);
+                return Ok(analysis.into_pattern(style, text, kind));
             }
         }
 
@@ -390,7 +443,8 @@ impl Pattern {
     }
 
     /// Parse a pattern as a lone entry of the given structured section kind,
-    /// bypassing [`Pattern::new`]'s inference (and its ambiguity check).
+    /// bypassing [`Pattern::new`]'s inference (and its priority-based
+    /// ambiguity resolution) — the explicit override.
     ///
     /// `kind` must be a structured section kind for the style; free-text
     /// kinds (Notes, Examples, …) have no entries and are rejected. For
@@ -429,9 +483,12 @@ impl Pattern {
         self.fragment_kind
     }
 
-    /// The section context of the fragment: the tried/forced role for an
-    /// entry pattern, the section's own kind for a section pattern, `None`
-    /// for a document pattern.
+    /// The section context of the fragment: for an entry pattern this is
+    /// the **resolved reading** — the role picked by the [priority
+    /// table](self#ambiguity-is-resolved-by-a-documented-priority) (or
+    /// forced via [`Pattern::in_section`]) — making the ambiguity
+    /// resolution observable; for a section pattern it is the section's own
+    /// kind; `None` for a document pattern.
     pub fn section_kind(&self) -> Option<&SectionKind> {
         self.section_kind.as_ref()
     }
@@ -535,19 +592,22 @@ fn substitute_metavars(text: &str) -> (String, Vec<Occurrence>) {
 // Sub-grammar wrapping
 // =============================================================================
 
-/// The structured section kinds tried by [`Pattern::new`], in trial order.
+/// The structured section kinds tried by [`Pattern::new`], in **priority
+/// order** — this order is the documented ambiguity-resolution table (see
+/// the [module docs](self#ambiguity-is-resolved-by-a-documented-priority));
+/// changing it is a breaking change, spec-pinned in `tests/pattern.rs`.
 /// `References` is deliberately excluded (see the module docs).
-const ENTRY_TRIAL_KINDS: &[SectionKind] = &[
+const ENTRY_ROLE_PRIORITY: &[SectionKind] = &[
     SectionKind::Parameters,
     SectionKind::KeywordParameters,
     SectionKind::OtherParameters,
     SectionKind::Receives,
-    SectionKind::Attributes,
-    SectionKind::Methods,
     SectionKind::Returns,
     SectionKind::Yields,
     SectionKind::Raises,
     SectionKind::Warns,
+    SectionKind::Attributes,
+    SectionKind::Methods,
     SectionKind::SeeAlso,
 ];
 

@@ -115,11 +115,17 @@ fn google_bracket_entry_pattern() {
     );
 }
 
-/// `$NAME: $DESC` (Google) is genuinely ambiguous: the parameter family
-/// reads NAME while Returns/Raises read TYPE — different shapes.
+/// `$NAME: $DESC` (Google) is genuinely ambiguous (the parameter family
+/// reads NAME while Returns/Raises read TYPE — different shapes): `new`
+/// resolves it to Parameters by priority; `new_strict` fails fast.
 #[test]
-fn google_colon_entry_is_ambiguous() {
-    let err = Pattern::new(Style::Google, "$NAME: $DESC").unwrap_err();
+fn google_colon_entry_resolves_by_priority() {
+    let p = Pattern::new(Style::Google, "$NAME: $DESC").unwrap();
+    assert_eq!(p.fragment_kind(), FragmentKind::Entry);
+    assert_eq!(p.section_kind(), Some(&SectionKind::Parameters));
+    assert_eq!(var_summaries(&p)[0].2, SyntaxKind::NAME);
+
+    let err = Pattern::new_strict(Style::Google, "$NAME: $DESC").unwrap_err();
     let PatternError::Ambiguous { candidates, .. } = &err else {
         panic!("expected Ambiguous, got {err:?}");
     };
@@ -129,11 +135,15 @@ fn google_colon_entry_is_ambiguous() {
 }
 
 /// `$NAME : $TYPE` (NumPy) is ambiguous (parameters/returns vs raises vs
-/// methods read the two slots differently); in_section resolves it, and the
-/// description line lands as a TEXT_LINE inside the entry's DESCRIPTION.
+/// methods read the two slots differently): `new` resolves it to Parameters
+/// by priority, `new_strict` reports the tie, and in_section forces a role
+/// (the description line lands as a TEXT_LINE inside the DESCRIPTION).
 #[test]
-fn numpy_entry_pattern_ambiguous_then_forced() {
-    let err = Pattern::new(Style::NumPy, "$NAME : $TYPE").unwrap_err();
+fn numpy_entry_pattern_priority_strict_and_forced() {
+    let p = Pattern::new(Style::NumPy, "$NAME : $TYPE").unwrap();
+    assert_eq!(p.section_kind(), Some(&SectionKind::Parameters));
+
+    let err = Pattern::new_strict(Style::NumPy, "$NAME : $TYPE").unwrap_err();
     let PatternError::Ambiguous { candidates, .. } = err else {
         panic!("expected Ambiguous");
     };
@@ -372,12 +382,21 @@ fn multi_standalone_line_in_freetext_and_document() {
     );
 }
 
-/// A bare `$$$X` via `new` is ambiguous (it is a valid lone entry of several
-/// roles with different shapes) — the documented behaviour.
+/// A bare `$$$X` is a valid lone entry of several roles with different
+/// shapes: `new` resolves it to Parameters by priority; `new_strict` keeps
+/// the fail-fast Ambiguous error.
 #[test]
-fn multi_bare_line_new_is_ambiguous() {
+fn multi_bare_line_resolves_to_parameters() {
+    let p = Pattern::new(Style::Google, "$$$X").unwrap();
+    assert_eq!(p.fragment_kind(), FragmentKind::Entry);
+    assert_eq!(p.section_kind(), Some(&SectionKind::Parameters));
+    assert_eq!(
+        var_summaries(&p),
+        vec![("X".to_owned(), true, SyntaxKind::ENTRY, SyntaxKind::SECTION, true)]
+    );
+
     assert!(matches!(
-        Pattern::new(Style::Google, "$$$X"),
+        Pattern::new_strict(Style::Google, "$$$X"),
         Err(PatternError::Ambiguous { .. })
     ));
 }
@@ -391,6 +410,74 @@ fn multi_in_description_slot_binds_description_node() {
 
     let single = Pattern::in_section(Style::Google, SectionKind::Parameters, "$NAME ($TYPE): $DESC").unwrap();
     assert_eq!(var_summaries(&single)[2].2, SyntaxKind::TEXT_LINE);
+}
+
+// =============================================================================
+// SPEC: the ambiguity-resolution priority table (upgrade-stability pin)
+// =============================================================================
+
+/// SPEC: the full role priority table, pinned end-to-end. `$NAME: $DESC`
+/// (Google) and `$NAME : $TYPE` (NumPy) are accepted by every trialled role
+/// at equal rank, so `new_strict`'s candidate list *is* the priority table —
+/// changing the order is a breaking change and must fail this test.
+#[test]
+fn spec_priority_table_order() {
+    let full_table = vec![
+        SectionKind::Parameters,
+        SectionKind::KeywordParameters,
+        SectionKind::OtherParameters,
+        SectionKind::Receives,
+        SectionKind::Returns,
+        SectionKind::Yields,
+        SectionKind::Raises,
+        SectionKind::Warns,
+        SectionKind::Attributes,
+        SectionKind::Methods,
+        SectionKind::SeeAlso,
+    ];
+    for (style, text) in [(Style::Google, "$NAME: $DESC"), (Style::NumPy, "$NAME : $TYPE")] {
+        let err = Pattern::new_strict(style, text).unwrap_err();
+        let PatternError::Ambiguous { candidates, .. } = err else {
+            panic!("expected Ambiguous for {text:?} in {style}");
+        };
+        assert_eq!(candidates, full_table, "priority table changed for {text:?} in {style}");
+    }
+}
+
+/// SPEC: deliberately-ambiguous patterns resolve to the documented pick.
+/// This is the upgrade-stability pin: these resolutions may only change in
+/// a breaking release.
+#[test]
+fn spec_priority_resolutions() {
+    let cases: [(Style, &str, SectionKind); 5] = [
+        // Every role accepts these; tier 1 (Parameters) wins.
+        (Style::Google, "$NAME: $DESC", SectionKind::Parameters),
+        (Style::NumPy, "$NAME : $TYPE", SectionKind::Parameters),
+        (Style::Google, "$$$X", SectionKind::Parameters),
+        (Style::Google, "just some literal words", SectionKind::Parameters),
+        // The parameter family (and Raises/Methods/SeeAlso) lump `$X` into a
+        // structural token here — invalid — so the prose-reading tier wins,
+        // and within it Returns outranks Yields.
+        (Style::Google, "words with $X inside", SectionKind::Returns),
+    ];
+    for (style, text, expected) in cases {
+        let p = Pattern::new(style, text).unwrap();
+        assert_eq!(
+            p.fragment_kind(),
+            FragmentKind::Entry,
+            "expected entry pattern for {text:?} in {style}"
+        );
+        assert_eq!(
+            p.section_kind(),
+            Some(&expected),
+            "resolution changed for {text:?} in {style}"
+        );
+    }
+
+    // Returns and Yields read the prose case identically (same shape), so
+    // even new_strict resolves it — strictness only guards *shape* ties.
+    let strict = Pattern::new_strict(Style::Google, "words with $X inside").unwrap();
+    assert_eq!(strict.section_kind(), Some(&SectionKind::Returns));
 }
 
 // =============================================================================
@@ -409,11 +496,17 @@ fn empty_pattern_is_unparsable() {
     ));
 }
 
-/// Garbage never panics; it comes back as an error (here: ambiguous literal
-/// text, since a bare line is a valid entry of several roles).
+/// Garbage never panics. `new` resolves it (a bare line is a valid entry of
+/// several roles, so priority picks one); `new_strict` reports the tie as
+/// an error; a whitespace-only entry context is unparsable.
 #[test]
 fn garbage_is_an_error_not_a_panic() {
-    assert!(Pattern::new(Style::Google, "\u{0}\u{1}%%%???").is_err());
+    let resolved = Pattern::new(Style::Google, "\u{0}\u{1}%%%???").unwrap();
+    assert_eq!(resolved.section_kind(), Some(&SectionKind::Parameters));
+    assert!(matches!(
+        Pattern::new_strict(Style::Google, "\u{0}\u{1}%%%???"),
+        Err(PatternError::Ambiguous { .. })
+    ));
     assert!(Pattern::in_section(Style::NumPy, SectionKind::Parameters, "\n\n\n").is_err());
 }
 
