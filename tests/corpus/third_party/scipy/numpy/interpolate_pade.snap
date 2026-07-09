@@ -166,7 +166,7 @@ Return Pade approximation to a polynomial as the ratio of two polynomials.
 
 .. deprecated:: 1.18.0
     This function is deprecated and will be removed in SciPy 1.20.0. Use
-        `mpmath.pade` instead.
+    `mpmath.pade` instead.
 
 Parameters
 ----------

@@ -82,7 +82,9 @@ DOCUMENT@0..1408 {
     NEWLINE: "\n"@426..427
     ENTRY@427..625 {
       NAME: "jac"@427..430
+      COMMA: ","@430..431
       WHITESPACE: " "@431..432
+      NAME: "hess"@432..436
       WHITESPACE: " "@436..437
       COLON: ":"@437..438
       WHITESPACE: " "@438..439
@@ -121,8 +123,12 @@ DOCUMENT@0..1408 {
     NEWLINE: "\n"@847..848
     ENTRY@848..960 {
       NAME: "nfev"@848..852
+      COMMA: ","@852..853
       WHITESPACE: " "@853..854
+      NAME: "njev"@854..858
+      COMMA: ","@858..859
       WHITESPACE: " "@859..860
+      NAME: "nhev"@860..864
       WHITESPACE: " "@864..865
       COLON: ":"@865..866
       WHITESPACE: " "@866..867
@@ -201,7 +207,7 @@ message : str
     Description of the cause of the termination.
 fun : float
     Value of objective function at `x`.
-jac : ndarray
+jac, hess : ndarray
     Values of objective function's Jacobian and its Hessian at `x` (if
     available). The Hessian may be an approximation, see the documentation
     of the function in question.
@@ -209,7 +215,7 @@ hess_inv : object
     Inverse of the objective function's Hessian; may be an approximation.
     Not available for all solvers. The type of this attribute may be
     either np.ndarray or scipy.sparse.linalg.LinearOperator.
-nfev : int
+nfev, njev, nhev : int
     Number of evaluations of the objective functions and of its
     Jacobian and Hessian.
 nit : int

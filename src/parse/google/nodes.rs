@@ -589,8 +589,19 @@ define_node!(GoogleAttribute, ENTRY);
 
 impl<'a> GoogleAttribute<'a> {
     /// Attribute name token.
+    ///
+    /// When the entry declares several comma-separated names, this returns
+    /// the first one; use [`GoogleAttribute::names`] to access all of them.
     pub fn name(&self) -> TokenRef<'a> {
         self.token_ref(self.node.required_token(SyntaxKind::NAME))
+    }
+
+    /// All attribute name tokens (can be multiple, e.g. `jac, hess`).
+    pub fn names(&self) -> impl Iterator<Item = TokenRef<'a>> {
+        let parsed = self.parsed;
+        self.node
+            .tokens(SyntaxKind::NAME)
+            .map(move |t| TokenRef::new(parsed, t))
     }
 
     /// Opening bracket token (e.g. `(`), if present.

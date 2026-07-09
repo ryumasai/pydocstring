@@ -23,7 +23,10 @@ pub(crate) fn convert_directives(parsed: &Parsed) -> Vec<crate::model::Directive
         .map(|d| crate::model::Directive {
             name: d.name().text().to_owned(),
             argument: d.argument().map(|t| t.text().to_owned()),
-            description: d.description().map(|t| t.text().to_owned()),
+            // Dedent the body: the model holds logical text and the emitter
+            // re-indents exactly once. Storing the raw source indent made
+            // the indentation grow by four spaces per emit/parse cycle (#92).
+            description: d.description().map(|t| convert_multiline_with_indentation(t.text())),
         })
         .collect()
 }

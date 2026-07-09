@@ -432,8 +432,10 @@ LinAlgError
 
 See Also
 --------
-scipy.linalg.svd : Similar function in SciPy.
-scipy.linalg.svdvals : Compute singular values of a matrix.
+scipy.linalg.svd
+    Similar function in SciPy.
+scipy.linalg.svdvals
+    Compute singular values of a matrix.
 
 Notes
 -----

@@ -362,16 +362,26 @@ result : MaskedArray
 
 See Also
 --------
-masked_values : Mask using floating point equality.
-masked_equal : Mask where equal to a given value.
-masked_not_equal : Mask where *not* equal to a given value.
-masked_less_equal : Mask where less than or equal to a given value.
-masked_greater_equal : Mask where greater than or equal to a given value.
-masked_less : Mask where less than a given value.
-masked_greater : Mask where greater than a given value.
-masked_inside : Mask inside a given interval.
-masked_outside : Mask outside a given interval.
-masked_invalid : Mask invalid values (NaNs or infs).
+masked_values
+    Mask using floating point equality.
+masked_equal
+    Mask where equal to a given value.
+masked_not_equal
+    Mask where *not* equal to a given value.
+masked_less_equal
+    Mask where less than or equal to a given value.
+masked_greater_equal
+    Mask where greater than or equal to a given value.
+masked_less
+    Mask where less than a given value.
+masked_greater
+    Mask where greater than a given value.
+masked_inside
+    Mask inside a given interval.
+masked_outside
+    Mask outside a given interval.
+masked_invalid
+    Mask invalid values (NaNs or infs).
 
 Examples
 --------

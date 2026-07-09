@@ -465,9 +465,12 @@ __call__
 
 See Also
 --------
-:func:`splrep`, :func:`splev` : Spline interpolation/smoothing based on FITPACK.
-:func:`UnivariateSpline` : An object-oriented wrapper of the FITPACK routines.
-:func:`interp2d` : 2-D interpolation
+:func:`splrep`, :func:`splev`
+    Spline interpolation/smoothing based on FITPACK.
+:func:`UnivariateSpline`
+    An object-oriented wrapper of the FITPACK routines.
+:func:`interp2d`
+    2-D interpolation
 
 Notes
 -----

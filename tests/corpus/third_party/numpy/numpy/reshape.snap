@@ -312,7 +312,8 @@ reshaped_array : ndarray
 
 See Also
 --------
-ndarray.reshape : Equivalent method.
+ndarray.reshape
+    Equivalent method.
 
 Notes
 -----

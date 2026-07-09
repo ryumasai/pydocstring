@@ -236,7 +236,8 @@ out : ndarray
 See Also
 --------
 choose
-nonzero : The function that is called when x and y are omitted
+nonzero
+    The function that is called when x and y are omitted
 
 Notes
 -----

@@ -24,62 +24,13 @@ use common::corpus_name;
 use common::diff;
 use pydocstring::model::Docstring;
 
-// Real bugs flushed out by the realworld corpus ingest — each entry below is
-// an emit/parse disagreement, NOT a representational limit. Clusters:
-//
-// (SA-indent) numpy emit_see_also writes a multi-line description raw
-// (src/emit/numpy.rs), so continuation lines land at entry indent and
-// re-parse as new name-only SeeAlso entries.
-//
-// (SA-role) emitters collapse `name` + description to one line `name : desc`
-// (numpy) / `name: desc` (google); when the name starts with an rST role
-// (`:func:`x``), find_term_colon's leading-colon guard (src/parse/utils.rs)
-// rejects the whole line, so the re-parse keeps it as a single name (and
-// comma-splits the description into extra names).
-//
-// (DEP-indent) the `.. deprecated::` body is stored with its continuation
-// indent NOT dedented, and numpy emit re-indents by 4 on top — the indent
-// grows by 4 each emit/parse cycle.
-//
-// (RET-flat) google emit_return writes a description-only Return's
-// continuation lines raw at column 0 (src/emit/google.rs), dedenting them
-// out of the Returns section; the re-parse silently drops every line after
-// the first.
-const KNOWN_IDEMPOTENCE_FAILURES: &[&str] = &[
-    // (RET-flat)
-    "third_party/fire/google/fire.txt",
-    // (SA-indent) — the comma-split names lose their trailing comma.
-    "third_party/numpy/numpy/einsum.txt",
-    // (DEP-indent)
-    "third_party/scipy/numpy/interpolate_pade.txt",
-];
-const KNOWN_MODEL_STABILITY_FAILURES: &[&str] = &[
-    // (RET-flat)
-    "third_party/fire/google/fire.txt",
-    // (SA-indent)
-    "third_party/numpy/numpy/convolve.txt",
-    "third_party/numpy/numpy/einsum.txt",
-    "third_party/numpy/numpy/linspace.txt",
-    "third_party/numpy/numpy/ndarray.txt",
-    "third_party/numpy/numpy/outer.txt",
-    "third_party/numpy/numpy/packbits.txt",
-    "third_party/numpy/numpy/roll.txt",
-    "third_party/numpy/numpy/split.txt",
-    "third_party/scipy/numpy/optimize_curve_fit.txt",
-    "third_party/scipy/numpy/optimize_minimize.txt",
-    // (SA-role)
-    "third_party/scipy/numpy/integrate_simpson.txt",
-    "third_party/scipy/numpy/interpolate_cubicspline.txt",
-    "third_party/scipy/numpy/interpolate_interp1d.txt",
-    "third_party/scipy/numpy/ndimage_label.txt",
-    "third_party/scipy/numpy/signal_butter.txt",
-    "third_party/scipy/numpy/signal_hilbert.txt",
-    "third_party/scipy/numpy/signal_medfilt.txt",
-    "third_party/scipy/numpy/signal_welch.txt",
-    "third_party/scipy/numpy/stats_linregress.txt",
-    // (DEP-indent)
-    "third_party/scipy/numpy/interpolate_pade.txt",
-];
+// The within-style laws (idempotence, model stability) hold on the entire
+// corpus: the real-bug clusters flushed out by the realworld ingest (#88)
+// were fixed in #89–#93. Every remaining KNOWN_CONVERSION_FAILURES entry is
+// a representational limit of a cross-style trip, not an emit/parse
+// disagreement.
+const KNOWN_IDEMPOTENCE_FAILURES: &[&str] = &[];
+const KNOWN_MODEL_STABILITY_FAILURES: &[&str] = &[];
 /// Entries are `"<from>-><to>: <corpus path>"`, e.g. `"numpy->google: numpy/returns/yields_basic.txt"`.
 const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     // Fundamental NumPy ambiguity: a description-only Return has no
@@ -106,9 +57,10 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     // ---- realworld corpus ----
     //
     // Description-only Returns/Yields (prefer_type ambiguity, same as
-    // returns_without_type.txt above). fire/google/fire.txt is aggravated by
-    // the (RET-flat) bug (see KNOWN_MODEL_STABILITY_FAILURES): its multi-line
-    // description becomes one bare numpy line PER LINE, i.e. many entries.
+    // returns_without_type.txt above): the numpy spelling of a description-
+    // only Return is a bare line that re-parses as the type. For multi-line
+    // descriptions (e.g. fire/google/fire.txt) each numpy line past the
+    // first becomes its own bare-TYPE entry on top of that.
     "google->numpy: third_party/absl/google/flags_define.txt",
     "google->numpy: third_party/absl/google/flags_define_enum.txt",
     "google->numpy: third_party/absl/google/flags_define_multi.txt",
@@ -155,29 +107,35 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     "numpy->google: third_party/scipy/numpy/linalg_solve_triangular.txt",
     "numpy->google: third_party/scipy/numpy/optimize_curve_fit.txt",
     "numpy->google: third_party/scipy/numpy/optimize_minimize.txt",
-    // (SA-role) through the google side — real bug, see
-    // KNOWN_MODEL_STABILITY_FAILURES. Most of these ALSO hit the named-return
-    // limits above, so fixing (SA-role) alone will not clear them.
+    // Formerly the (SA-role) cluster: their see-also entries now convert
+    // cleanly (#91 fixed the emit normal form; interpolate_interp1d cleared
+    // entirely). What keeps each of these listed is already documented
+    // elsewhere in this file: named/multiple NumPy returns (limits (a)/(b)
+    // above) and/or free-text fidelity — their Notes hold an rST support
+    // table whose cells are padded with trailing spaces, which the google
+    // round trip trims (the same free-text normalization family as
+    // numpy/where below). integrate_simpson and interpolate_cubicspline
+    // remain on the table trimming alone; the others also have named
+    // returns.
     "numpy->google: third_party/scipy/numpy/integrate_simpson.txt",
     "numpy->google: third_party/scipy/numpy/interpolate_cubicspline.txt",
-    "numpy->google: third_party/scipy/numpy/interpolate_interp1d.txt",
     "numpy->google: third_party/scipy/numpy/ndimage_label.txt",
     "numpy->google: third_party/scipy/numpy/signal_butter.txt",
     "numpy->google: third_party/scipy/numpy/signal_hilbert.txt",
     "numpy->google: third_party/scipy/numpy/signal_medfilt.txt",
     "numpy->google: third_party/scipy/numpy/signal_welch.txt",
     "numpy->google: third_party/scipy/numpy/stats_linregress.txt",
-    // Free-text fidelity through the google round trip (real bugs):
+    // scipy/interpolate_pade: its directive-body indent drift was fixed
+    // (#92); the named-return limit (`p, q : Polynomial class`) remains.
+    "numpy->google: third_party/scipy/numpy/interpolate_pade.txt",
+    // Free-text fidelity through the google round trip:
     // numpy/where — a `::` literal block inside Notes loses its 4-space base
     // indent on google re-parse (plus the named-return limit).
     // numpy/dtype — a numpy unknown section whose header is a signature line
     // (`dtype(...)` underlined with `--` in the real docstring) has no valid
     // google header form; its google spelling re-parses as summary text.
-    // scipy/interpolate_pade — (DEP-indent) directive-body indent drift
-    // (plus the named-return limit).
     "numpy->google: third_party/numpy/numpy/where.txt",
     "numpy->google: third_party/numpy/numpy/dtype.txt",
-    "numpy->google: third_party/scipy/numpy/interpolate_pade.txt",
     //
     // ---- scverse corpus (anndata / scanpy — the #26 reporters' ecosystem) ----
     //

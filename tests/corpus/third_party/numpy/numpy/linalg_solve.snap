@@ -243,7 +243,8 @@ LinAlgError
 
 See Also
 --------
-scipy.linalg.solve : Similar function in SciPy.
+scipy.linalg.solve
+    Similar function in SciPy.
 
 Notes
 -----

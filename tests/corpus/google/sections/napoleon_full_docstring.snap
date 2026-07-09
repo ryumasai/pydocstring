@@ -175,7 +175,8 @@ Warns:
     DeprecationWarning: If old API is used.
 
 See Also:
-    other_func: Related function.
+    other_func
+        Related function.
 
 Notes:
     Implementation detail.

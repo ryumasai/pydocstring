@@ -165,12 +165,12 @@ Args:
 
 Returns:
     The result of executing the Fire command. Execution begins with the initial
-target component. The component is updated by using the command arguments
-to either access a member of the current component, call the current
-component (if it's a function), or instantiate the current component (if
-it's a class). When all arguments are consumed and there's no function left
-to call or class left to instantiate, the resulting current component is
-the final result.
+    target component. The component is updated by using the command arguments
+    to either access a member of the current component, call the current
+    component (if it's a function), or instantiate the current component (if
+    it's a class). When all arguments are consumed and there's no function left
+    to call or class left to instantiate, the resulting current component is
+    the final result.
 
 Raises:
     ValueError: If the command argument is supplied, but not a string or a

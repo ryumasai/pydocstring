@@ -595,13 +595,18 @@ base : ndarray
 
 See Also
 --------
-array : Construct an array.
-zeros : Create an array, each element of which is zero.
-empty : Create an array, but leave its allocated memory unchanged (i.e.,
-it contains "garbage").
-dtype : Create a data-type.
-numpy.typing.NDArray : An ndarray alias :term:`generic <generic type>`
-w.r.t. its `dtype.type <numpy.dtype.type>`.
+array
+    Construct an array.
+zeros
+    Create an array, each element of which is zero.
+empty
+    Create an array, but leave its allocated memory unchanged (i.e.,
+    it contains "garbage").
+dtype
+    Create a data-type.
+numpy.typing.NDArray
+    An ndarray alias :term:`generic <generic type>`
+    w.r.t. its `dtype.type <numpy.dtype.type>`.
 
 Notes
 -----

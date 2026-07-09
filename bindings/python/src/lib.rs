@@ -790,7 +790,7 @@ impl PyGoogleArg {
         self.nr.first_default_value(py, self.view().defaults())
     }
     fn __repr__(&self) -> String {
-        format!("GoogleArg({:?})", self.view().name().text())
+        format!("GoogleArg({:?})", self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", "))
     }
 }
 
@@ -977,9 +977,14 @@ impl PyGoogleAttribute {
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
         self.nr.py_range(py)
     }
+    /// First name token (convenience for ``names[0]``).
     #[getter]
     fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
         self.nr.token(py, self.view().name().syntax())
+    }
+    #[getter]
+    fn names(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
+        self.nr.tokens(py, self.view().names())
     }
     #[getter]
     fn open_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
@@ -1005,7 +1010,7 @@ impl PyGoogleAttribute {
             .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
     fn __repr__(&self) -> String {
-        format!("GoogleAttribute({:?})", self.view().name().text())
+        format!("GoogleAttribute({:?})", self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", "))
     }
 }
 
@@ -1265,13 +1270,8 @@ impl PyNumPyParameter {
         self.nr.first_default_value(py, self.view().defaults())
     }
     fn __repr__(&self) -> String {
-        let first = self
-            .view()
-            .names()
-            .next()
-            .map(|n| n.text().to_owned())
-            .unwrap_or_default();
-        format!("NumPyParameter({:?})", first)
+        let names = self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", ");
+        format!("NumPyParameter({:?})", names)
     }
 }
 
@@ -1466,9 +1466,14 @@ impl PyNumPyAttribute {
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
         self.nr.py_range(py)
     }
+    /// First name token (convenience for ``names[0]``).
     #[getter]
     fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
         self.nr.token(py, self.view().name().syntax())
+    }
+    #[getter]
+    fn names(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
+        self.nr.tokens(py, self.view().names())
     }
     #[getter]
     fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
@@ -1485,7 +1490,7 @@ impl PyNumPyAttribute {
             .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
     fn __repr__(&self) -> String {
-        format!("NumPyAttribute({:?})", self.view().name().text())
+        format!("NumPyAttribute({:?})", self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", "))
     }
 }
 
@@ -2121,8 +2126,7 @@ impl TryInto<model::Reference> for &PyModelReference {
 
 #[pyclass(name = "Attribute")]
 struct PyModelAttribute {
-    #[pyo3(get, set)]
-    name: Py<PyString>,
+    names: Py<PyList>,
     #[pyo3(get, set)]
     type_annotation: Option<Py<PyString>>,
     #[pyo3(get, set)]
@@ -2132,18 +2136,32 @@ struct PyModelAttribute {
 #[pymethods]
 impl PyModelAttribute {
     #[new]
-    #[pyo3(signature = (name, *, type_annotation=None, description=None))]
-    fn new(name: Py<PyString>, type_annotation: Option<Py<PyString>>, description: Option<Py<PyString>>) -> Self {
-        Self {
-            name,
+    #[pyo3(signature = (names, *, type_annotation=None, description=None))]
+    fn new(
+        py: Python<'_>,
+        names: Py<PyList>,
+        type_annotation: Option<Py<PyString>>,
+        description: Option<Py<PyString>>,
+    ) -> PyResult<Self> {
+        ensure_str_list(py, &names, "Attribute names must be strings.")?;
+        Ok(Self {
+            names,
             type_annotation,
             description,
-        }
+        })
     }
-    fn __repr__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyAny>> {
-        "Attribute({})"
-            .into_pyobject(py)?
-            .call_method("format", (&self.name,), None)
+    #[getter]
+    fn names<'py>(&self, py: Python<'py>) -> &Bound<'py, PyList> {
+        self.names.bind(py)
+    }
+    #[setter]
+    fn set_names(&mut self, py: Python<'_>, names: Py<PyList>) -> PyResult<()> {
+        ensure_str_list(py, &names, "Attribute names must be strings.")?;
+        self.names = names;
+        Ok(())
+    }
+    fn __repr__(&self, py: Python<'_>) -> PyResult<String> {
+        Ok(format!("Attribute(names={})", self.names.bind(py).repr()?))
     }
 }
 
@@ -2153,7 +2171,7 @@ impl TryFrom<&model::Attribute> for PyModelAttribute {
     fn try_from(attribute: &model::Attribute) -> Result<Self, Self::Error> {
         Python::attach(|py| {
             Ok(Self {
-                name: (&attribute.name).into_pyobject(py)?.unbind(),
+                names: (&attribute.names).into_pyobject(py)?.cast_into::<PyList>()?.unbind(),
                 type_annotation: attribute
                     .type_annotation
                     .as_ref()
@@ -2175,7 +2193,7 @@ impl TryInto<model::Attribute> for &PyModelAttribute {
     fn try_into(self) -> Result<model::Attribute, Self::Error> {
         Python::attach(|py| {
             Ok(model::Attribute {
-                name: self.name.extract(py)?,
+                names: self.names.extract(py)?,
                 type_annotation: self
                     .type_annotation
                     .as_ref()

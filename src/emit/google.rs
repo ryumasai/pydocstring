@@ -76,21 +76,7 @@ pub fn emit_google(doc: &Docstring, options: &EmitOptions) -> String {
 }
 
 fn emit_multiline_with_indentation(out: &mut String, text: &str, indent_level: usize) {
-    if indent_level == 0 {
-        out.push_str(text);
-    } else {
-        let mut lines = text.lines();
-        if let Some(first_line) = lines.next() {
-            out.push_str(first_line);
-            for line in lines {
-                out.push('\n');
-                if !line.is_empty() {
-                    out.push_str(&" ".repeat(indent_level));
-                    out.push_str(line);
-                }
-            }
-        }
-    }
+    super::emit_multiline_with_indentation(out, text, indent_level);
 }
 
 /// Section header name for Google style.
@@ -223,7 +209,10 @@ fn emit_return(out: &mut String, r: &Return) {
             emit_multiline_with_indentation(out, desc, 4);
         }
     } else if let Some(ref desc) = r.description {
-        out.push_str(desc);
+        // Indent continuation lines into the section body: written raw at
+        // column 0 they dedent out of the Returns section and the re-parse
+        // silently drops every line after the first (#93).
+        emit_multiline_with_indentation(out, desc, 4);
     }
     out.push('\n');
 }
@@ -240,10 +229,10 @@ fn emit_exception(out: &mut String, e: &ExceptionEntry) {
     out.push('\n');
 }
 
-/// Google: `    name (type): Description.`
+/// Google: `    name1, name2 (type): Description.`
 fn emit_attribute(out: &mut String, a: &Attribute) {
     out.push_str("    ");
-    out.push_str(&a.name);
+    out.push_str(&a.names.join(", "));
     if let Some(ref ty) = a.type_annotation {
         out.push_str(" (");
         out.push_str(ty);
@@ -274,15 +263,27 @@ fn emit_method(out: &mut String, m: &Method) {
     out.push('\n');
 }
 
-/// Google: `    func1, func2: Description.`
+/// Google: `    func1, func2\n        Description.`
+///
+/// The description always goes on the following deeper-indented line(s) —
+/// the form the parser reads back for every name. The `name: desc` one-liner
+/// is NOT round-trippable when the name starts with an rST role
+/// (`:func:`x``): find_term_colon's leading-colon guard (the #26 rule)
+/// rejects the line on re-parse and the description comma-splits into fake
+/// names (#91).
 fn emit_see_also(out: &mut String, item: &SeeAlsoEntry) {
     out.push_str("    ");
     out.push_str(&item.names.join(", "));
-    if let Some(ref desc) = item.description {
-        out.push_str(": ");
-        emit_multiline_with_indentation(out, desc, 8);
-    }
     out.push('\n');
+    if let Some(ref desc) = item.description {
+        for line in desc.lines() {
+            if !line.is_empty() {
+                out.push_str("        ");
+                out.push_str(line);
+            }
+            out.push('\n');
+        }
+    }
 }
 
 /// Google: `    .. [1] Content.`

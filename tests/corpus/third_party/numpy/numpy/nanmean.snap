@@ -328,8 +328,10 @@ m : ndarray, see dtype parameter above
 
 See Also
 --------
-average : Weighted average
-mean : Arithmetic mean taken while not ignoring NaNs
+average
+    Weighted average
+mean
+    Arithmetic mean taken while not ignoring NaNs
 var, nanvar
 
 Notes

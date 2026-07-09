@@ -34,5 +34,6 @@ DOCUMENT@0..63 {
 Summary.
 
 See Also:
-    func_a: Description.
+    func_a
+        Description.
     func_b, func_c

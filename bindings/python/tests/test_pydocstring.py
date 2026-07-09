@@ -559,6 +559,11 @@ class TestModelTypes:
         with pytest.raises(TypeError):
             pydocstring.Parameter([1, 2])  # ty: ignore[invalid-argument-type]
 
+    def test_attribute_names_setter_validates(self):
+        a = pydocstring.Attribute(names=["x"])
+        with pytest.raises(TypeError):
+            a.names = [1]  # ty: ignore[invalid-assignment]
+
     def test_parameter_names_setter_validates(self):
         p = pydocstring.Parameter(["x"])
         with pytest.raises(TypeError):
@@ -597,9 +602,17 @@ class TestModelTypes:
             pydocstring.SeeAlsoEntry(names=[1])  # ty: ignore[invalid-argument-type]
 
     def test_attribute_construction(self):
-        a = pydocstring.Attribute("name", type_annotation="str", description="The name.")
-        assert a.name == "name"
+        a = pydocstring.Attribute(["name"], type_annotation="str", description="The name.")
+        assert a.names == ["name"]
         assert a.type_annotation == "str"
+
+    def test_attribute_construction_multiple_names(self):
+        a = pydocstring.Attribute(["jac", "hess"], type_annotation="ndarray")
+        assert a.names == ["jac", "hess"]
+
+    def test_attribute_construction_validates_names(self):
+        with pytest.raises(TypeError):
+            pydocstring.Attribute(names=[1])  # ty: ignore[invalid-argument-type]
 
     def test_method_construction(self):
         m = pydocstring.Method("run", description="Run the task.")
@@ -1376,3 +1389,37 @@ class TestMissingnessGrammarAsymmetries:
             pydocstring.parse_numpy("Summary.\n\nAttributes\n----------\nx : int\n"), Collector()
         ).attrs[0]
         assert n.description is None
+
+    def test_attribute_multiple_names(self):
+        """Multi-name attribute entries keep every name; ``name`` is the first (#89)."""
+
+        class Collector(pydocstring.Visitor):
+            def __init__(self):
+                self.attrs = []
+
+            def enter_google_attribute(self, a, ctx):
+                self.attrs.append(a)
+
+            def enter_numpy_attribute(self, a, ctx):
+                self.attrs.append(a)
+
+        g = pydocstring.walk(
+            pydocstring.parse_google("Summary.\n\nAttributes:\n    jac, hess (ndarray): Derivatives.\n"),
+            Collector(),
+        ).attrs[0]
+        assert [t.text for t in g.names] == ["jac", "hess"]
+        assert g.name.text == "jac"
+
+        n = pydocstring.walk(
+            pydocstring.parse_numpy("Summary.\n\nAttributes\n----------\njac, hess : ndarray\n    Derivatives.\n"),
+            Collector(),
+        ).attrs[0]
+        assert [t.text for t in n.names] == ["jac", "hess"]
+        assert n.name.text == "jac"
+
+        model = pydocstring.parse_numpy(
+            "Summary.\n\nAttributes\n----------\njac, hess : ndarray\n    Derivatives.\n"
+        ).to_model()
+        attrs = model.sections[0].attributes
+        assert attrs is not None
+        assert attrs[0].names == ["jac", "hess"]

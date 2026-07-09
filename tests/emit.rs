@@ -125,6 +125,27 @@ fn google_emit_returns_no_type() {
     assert!(text.contains("    The computed result.\n"));
 }
 
+/// A description-only Return's continuation lines stay indented inside the
+/// section body; at column 0 they would dedent out of the Returns section
+/// and be dropped on re-parse (#93).
+#[test]
+fn google_emit_returns_no_type_multiline() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Returns(vec![Return {
+            name: None,
+            type_annotation: None,
+            description: Some("The result of executing the command.\nExecution begins with the target.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_google(&doc, &EmitOptions::default());
+    assert!(
+        text.contains("    The result of executing the command.\n    Execution begins with the target.\n"),
+        "continuation lines must stay in the section body:\n{text}"
+    );
+}
+
 #[test]
 fn google_emit_raises() {
     let doc = Docstring {
@@ -197,7 +218,7 @@ fn google_emit_attributes() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
         sections: vec![Section::Attributes(vec![Attribute {
-            name: "name".into(),
+            names: vec!["name".into()],
             type_annotation: Some("str".into()),
             description: Some("The name.".into()),
         }])],
@@ -206,6 +227,22 @@ fn google_emit_attributes() {
     let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("Attributes:\n"));
     assert!(text.contains("    name (str): The name.\n"));
+}
+
+/// Multi-name attribute entries emit the FULL name list (#89).
+#[test]
+fn google_emit_attributes_multiple_names() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Attributes(vec![Attribute {
+            names: vec!["jac".into(), "hess".into()],
+            type_annotation: Some("ndarray".into()),
+            description: Some("Derivatives.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_google(&doc, &EmitOptions::default());
+    assert!(text.contains("    jac, hess (ndarray): Derivatives.\n"));
 }
 
 #[test]
@@ -220,7 +257,25 @@ fn google_emit_see_also() {
     };
     let text = emit_google(&doc, &EmitOptions::default());
     assert!(text.contains("See Also:\n"));
-    assert!(text.contains("    func1, func2: Related functions.\n"));
+    // Normal form (#91): the description goes on the following
+    // deeper-indented line, never a `name: desc` one-liner.
+    assert!(text.contains("    func1, func2\n        Related functions.\n"));
+}
+
+/// rST-role names have no valid `name: desc` one-liner (the #26 leading-colon
+/// guard rejects it on re-parse); the next-line form round-trips (#91).
+#[test]
+fn google_emit_see_also_role_name_multiline() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::SeeAlso(vec![SeeAlsoEntry {
+            names: vec![":func:`csd`".into()],
+            description: Some("Cross power spectral density\nusing Welch's method".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_google(&doc, &EmitOptions::default());
+    assert!(text.contains("    :func:`csd`\n        Cross power spectral density\n        using Welch's method\n"));
 }
 
 // =============================================================================
@@ -439,7 +494,7 @@ fn numpy_emit_attributes() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
         sections: vec![Section::Attributes(vec![Attribute {
-            name: "name".into(),
+            names: vec!["name".into()],
             type_annotation: Some("str".into()),
             description: Some("The name.".into()),
         }])],
@@ -448,6 +503,22 @@ fn numpy_emit_attributes() {
     let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("Attributes\n----------\n"));
     assert!(text.contains("name : str\n    The name.\n"));
+}
+
+/// Multi-name attribute entries emit the FULL name list (#89).
+#[test]
+fn numpy_emit_attributes_multiple_names() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Attributes(vec![Attribute {
+            names: vec!["jac".into(), "hess".into()],
+            type_annotation: Some("ndarray".into()),
+            description: Some("Derivatives.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_numpy(&doc, &EmitOptions::default());
+    assert!(text.contains("jac, hess : ndarray\n    Derivatives.\n"));
 }
 
 #[test]
@@ -462,7 +533,26 @@ fn numpy_emit_see_also() {
     };
     let text = emit_numpy(&doc, &EmitOptions::default());
     assert!(text.contains("See Also\n--------\n"));
-    assert!(text.contains("func1, func2 : Related.\n"));
+    // Normal form (#91): the description goes on the following indented
+    // line, never a `name : desc` one-liner.
+    assert!(text.contains("func1, func2\n    Related.\n"));
+}
+
+/// rST-role names have no valid `name : desc` one-liner (the #26
+/// leading-colon guard rejects it on re-parse); the next-line form
+/// round-trips (#91).
+#[test]
+fn numpy_emit_see_also_role_name_multiline() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::SeeAlso(vec![SeeAlsoEntry {
+            names: vec![":func:`csd`".into()],
+            description: Some("Cross power spectral density\nusing Welch's method".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_numpy(&doc, &EmitOptions::default());
+    assert!(text.contains(":func:`csd`\n    Cross power spectral density\n    using Welch's method\n"));
 }
 
 #[test]
@@ -633,7 +723,7 @@ fn sphinx_emit_attributes() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
         sections: vec![Section::Attributes(vec![Attribute {
-            name: "name".into(),
+            names: vec!["name".into()],
             type_annotation: Some("str".into()),
             description: Some("The name.".into()),
         }])],
@@ -642,6 +732,26 @@ fn sphinx_emit_attributes() {
     let text = emit_sphinx(&doc, &EmitOptions::default());
     assert!(text.contains(":var name: The name.\n"));
     assert!(text.contains(":vartype name: str\n"));
+}
+
+/// Multi-name attributes duplicate the `:var:` / `:vartype:` pair per name,
+/// like multi-name parameters (#89).
+#[test]
+fn sphinx_emit_attributes_multiple_names() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::Attributes(vec![Attribute {
+            names: vec!["jac".into(), "hess".into()],
+            type_annotation: Some("ndarray".into()),
+            description: Some("Derivatives.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, &EmitOptions::default());
+    assert!(text.contains(":var jac: Derivatives.\n"));
+    assert!(text.contains(":vartype jac: ndarray\n"));
+    assert!(text.contains(":var hess: Derivatives.\n"));
+    assert!(text.contains(":vartype hess: ndarray\n"));
 }
 
 #[test]

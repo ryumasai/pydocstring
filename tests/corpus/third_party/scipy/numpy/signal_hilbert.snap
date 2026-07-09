@@ -376,7 +376,8 @@ xa : ndarray
 
 See Also
 --------
-:func:`envelope` : Compute envelope of a real- or complex-valued signal.
+:func:`envelope`
+    Compute envelope of a real- or complex-valued signal.
 
 Notes
 -----

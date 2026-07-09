@@ -224,9 +224,9 @@ fn emit_exception(out: &mut String, e: &ExceptionEntry) {
     }
 }
 
-/// NumPy: `name : type\n    Description.`
+/// NumPy: `name1, name2 : type\n    Description.`
 fn emit_attribute(out: &mut String, a: &Attribute) {
-    out.push_str(&a.name);
+    out.push_str(&a.names.join(", "));
     if let Some(ref ty) = a.type_annotation {
         out.push_str(" : ");
         out.push_str(ty);
@@ -251,14 +251,19 @@ fn emit_method(out: &mut String, m: &Method) {
     }
 }
 
-/// NumPy: `func1, func2 : Description.`
+/// NumPy: `func1, func2\n    Description.`
+///
+/// The description always goes on the following indented line(s) — the form
+/// the parser reads back for every name. The `name : desc` one-liner is NOT
+/// round-trippable when the name starts with an rST role (`:func:`x``):
+/// find_term_colon's leading-colon guard (the #26 rule) rejects the line on
+/// re-parse and the description comma-splits into fake names (#91).
 fn emit_see_also(out: &mut String, item: &SeeAlsoEntry) {
     out.push_str(&item.names.join(", "));
-    if let Some(ref desc) = item.description {
-        out.push_str(" : ");
-        out.push_str(desc);
-    }
     out.push('\n');
+    if let Some(ref desc) = item.description {
+        emit_indented_body(out, desc);
+    }
 }
 
 /// NumPy: `.. [1] Content.`
@@ -269,28 +274,19 @@ fn emit_reference(out: &mut String, r: &Reference) {
         out.push(']');
         if let Some(ref content) = r.content {
             out.push(' ');
-            emit_reference_content(out, content);
+            emit_with_indented_continuations(out, content);
         }
     } else if let Some(ref content) = r.content {
-        emit_reference_content(out, content);
+        emit_with_indented_continuations(out, content);
     }
     out.push('\n');
 }
 
-/// Emit reference content, indenting continuation lines so they re-parse as
-/// part of the same entry (deeper than the entry line, like descriptions).
-fn emit_reference_content(out: &mut String, content: &str) {
-    let mut lines = content.lines();
-    if let Some(first_line) = lines.next() {
-        out.push_str(first_line);
-        for line in lines {
-            out.push('\n');
-            if !line.is_empty() {
-                out.push_str("    ");
-                out.push_str(line);
-            }
-        }
-    }
+/// Emit multi-line entry text (reference content, see-also descriptions),
+/// indenting continuation lines so they re-parse as part of the same entry
+/// (deeper than the entry line, like descriptions).
+fn emit_with_indented_continuations(out: &mut String, content: &str) {
+    super::emit_multiline_with_indentation(out, content, 4);
 }
 
 /// Indent each line of a body by 4 spaces.

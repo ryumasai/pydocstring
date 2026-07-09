@@ -149,6 +149,34 @@ fn google_returns() {
     }
 }
 
+/// A description-only Returns entry with a multi-line description survives
+/// the google emit/parse round trip: the continuation lines are emitted
+/// inside the section body, not at column 0 (#93).
+#[test]
+fn google_returns_description_only_multiline_round_trips() {
+    let parsed = parse_google(
+        "Summary.\n\nReturns:\n    The result of executing the command.\n    Execution begins with the target.\n",
+    );
+    let doc = google_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::Returns(returns) => {
+            assert_eq!(returns.len(), 1);
+            assert_eq!(returns[0].type_annotation, None);
+            assert_eq!(
+                returns[0].description.as_deref(),
+                Some("The result of executing the command.\nExecution begins with the target.")
+            );
+        }
+        other => panic!("expected Returns, got {:?}", other),
+    }
+    let emitted = pydocstring::emit::google::emit_google(&doc, &pydocstring::emit::EmitOptions::default());
+    let reparsed = google_to_model(&parse_google(&emitted)).unwrap();
+    assert_eq!(
+        reparsed, doc,
+        "google desc-only returns round trip diverged:\n{emitted}"
+    );
+}
+
 // =============================================================================
 // Google → IR: Raises
 // =============================================================================
@@ -405,6 +433,47 @@ fn numpy_parameters_multiple_names() {
     }
 }
 
+// =============================================================================
+// Attributes: multi-name entries keep every name (#89)
+// =============================================================================
+
+#[test]
+fn numpy_attributes_multiple_names() {
+    let parsed = parse_numpy(
+        "Summary.
+
+    Attributes
+    ----------
+    jac, hess : ndarray
+        Derivatives.",
+    );
+    let doc = numpy_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::Attributes(attrs) => {
+            assert_eq!(attrs.len(), 1);
+            assert_eq!(attrs[0].names, vec!["jac", "hess"]);
+            assert_eq!(attrs[0].type_annotation.as_deref(), Some("ndarray"));
+            assert_eq!(attrs[0].description.as_deref(), Some("Derivatives."));
+        }
+        other => panic!("expected Attributes, got {:?}", other),
+    }
+}
+
+#[test]
+fn google_attributes_multiple_names() {
+    let parsed = parse_google("Summary.\n\nAttributes:\n    jac, hess (ndarray): Derivatives.");
+    let doc = google_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::Attributes(attrs) => {
+            assert_eq!(attrs.len(), 1);
+            assert_eq!(attrs[0].names, vec!["jac", "hess"]);
+            assert_eq!(attrs[0].type_annotation.as_deref(), Some("ndarray"));
+            assert_eq!(attrs[0].description.as_deref(), Some("Derivatives."));
+        }
+        other => panic!("expected Attributes, got {:?}", other),
+    }
+}
+
 #[test]
 fn numpy_parameters_default_value() {
     let parsed = parse_numpy(
@@ -508,6 +577,45 @@ fn numpy_deprecation() {
     assert_eq!(dep.name, "deprecated");
     assert_eq!(dep.argument.as_deref(), Some("1.6.0"));
     assert_eq!(dep.description.as_deref(), Some("Use `other` instead."));
+}
+
+/// A multi-line directive body is DEDENTED in the model (logical text; the
+/// emitter re-indents exactly once), and the emit/parse round trip is a
+/// fixed point — the indent must not grow per cycle (#92).
+#[test]
+fn directive_body_is_dedented_and_round_trips() {
+    let input =
+        "Summary.\n\n.. deprecated:: 1.18.0\n    This function is deprecated. Use\n    `mpmath.pade` instead.\n";
+    for style in ["numpy", "google"] {
+        let (doc, emitted) = match style {
+            "numpy" => {
+                let doc = numpy_to_model(&parse_numpy(input)).unwrap();
+                let emitted = pydocstring::emit::numpy::emit_numpy(&doc, &pydocstring::emit::EmitOptions::default());
+                (doc, emitted)
+            }
+            _ => {
+                let doc = google_to_model(&parse_google(input)).unwrap();
+                let emitted = pydocstring::emit::google::emit_google(&doc, &pydocstring::emit::EmitOptions::default());
+                (doc, emitted)
+            }
+        };
+        let dep = doc.deprecation().expect("should have deprecation");
+        assert_eq!(
+            dep.description.as_deref(),
+            Some("This function is deprecated. Use\n`mpmath.pade` instead."),
+            "{style}: model must hold the dedented body"
+        );
+        assert!(
+            emitted
+                .contains(".. deprecated:: 1.18.0\n    This function is deprecated. Use\n    `mpmath.pade` instead.\n"),
+            "{style}: emit must re-indent the body exactly once:\n{emitted}"
+        );
+        let reparsed = match style {
+            "numpy" => numpy_to_model(&parse_numpy(&emitted)).unwrap(),
+            _ => google_to_model(&parse_google(&emitted)).unwrap(),
+        };
+        assert_eq!(reparsed, doc, "{style}: directive round trip diverged:\n{emitted}");
+    }
 }
 
 // =============================================================================
@@ -704,4 +812,57 @@ fn marker_like_segment_mid_type_is_part_of_the_type() {
         }
         other => panic!("expected Parameters, got {:?}", other),
     }
+}
+
+// =============================================================================
+// See Also round trips: multi-line + rST-role names (#90/#91)
+// =============================================================================
+
+/// The see-also normal form (description on the following indented line)
+/// round-trips multi-line descriptions and rST-role names: the model
+/// survives emit → parse unchanged in both styles.
+#[test]
+fn see_also_role_names_and_multiline_descriptions_round_trip() {
+    // NumPy: an rST-role name plus a multi-line description.
+    let parsed = parse_numpy(
+        "Summary.\n\nSee Also\n--------\n:func:`csd`\n    Cross power spectral density\n    using Welch's method\nperiodogram, lombscargle\n",
+    );
+    let doc = numpy_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::SeeAlso(items) => {
+            assert_eq!(items.len(), 2);
+            assert_eq!(items[0].names, vec![":func:`csd`"]);
+            assert_eq!(
+                items[0].description.as_deref(),
+                Some("Cross power spectral density\nusing Welch's method")
+            );
+            assert_eq!(items[1].names, vec!["periodogram", "lombscargle"]);
+            assert_eq!(items[1].description, None);
+        }
+        other => panic!("expected SeeAlso, got {:?}", other),
+    }
+    let emitted = pydocstring::emit::numpy::emit_numpy(&doc, &pydocstring::emit::EmitOptions::default());
+    let reparsed = numpy_to_model(&parse_numpy(&emitted)).unwrap();
+    assert_eq!(reparsed, doc, "numpy see-also round trip diverged:\n{emitted}");
+
+    // Google: the equivalent normal form.
+    let parsed = parse_google(
+        "Summary.\n\nSee Also:\n    :func:`csd`\n        Cross power spectral density\n        using Welch's method\n    periodogram, lombscargle\n",
+    );
+    let doc = google_to_model(&parsed).unwrap();
+    match &doc.sections[0] {
+        Section::SeeAlso(items) => {
+            assert_eq!(items.len(), 2);
+            assert_eq!(items[0].names, vec![":func:`csd`"]);
+            assert_eq!(
+                items[0].description.as_deref(),
+                Some("Cross power spectral density\nusing Welch's method")
+            );
+            assert_eq!(items[1].names, vec!["periodogram", "lombscargle"]);
+        }
+        other => panic!("expected SeeAlso, got {:?}", other),
+    }
+    let emitted = pydocstring::emit::google::emit_google(&doc, &pydocstring::emit::EmitOptions::default());
+    let reparsed = google_to_model(&parse_google(&emitted)).unwrap();
+    assert_eq!(reparsed, doc, "google see-also round trip diverged:\n{emitted}");
 }
