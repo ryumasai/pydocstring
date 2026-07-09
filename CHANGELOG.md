@@ -5,6 +5,256 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-07-09
+
+**The style-independent CST release** — phase 2 of the v2 roadmap
+([#41](https://github.com/ryumasai/pydocstring/issues/41)). The syntax tree
+no longer encodes the docstring style in its node kinds: 55 style-prefixed
+kinds collapse into 31 reST-neutral ones, style differences are confined to
+the `SECTION_HEADER` shape and the parsers, and a new unified typed layer
+(`Document` → `Section` → `Entry`) lets one code path handle Google and
+NumPy docstrings identically — spec-tested by cross-style parity laws.
+Together with formalized missing placeholders (the future insertion anchors)
+and now-private tree mutators, this fixes the tree shape and API surface the
+upcoming edit API will build on. The release is validated against a new
+real-world corpus: **every within-style law allowlist (byte coverage,
+idempotence, model stability) is empty across all 247 corpus inputs,
+including 85 docstrings taken verbatim from numpy, scipy, scanpy, anndata,
+absl and fire**. **This release is deliberately breaking**; the migration
+guides below cover every rename.
+
+### Migration guide — Rust
+
+#### Syntax kinds (`SyntaxKind`)
+
+The style is no longer in the kind — recover it with the new
+`Parsed::style()`. Old variants are **removed** (compile errors, not
+deprecations):
+
+| 0.2.0 kind(s) | 0.3.0 kind | Notes |
+|---|---|---|
+| `GOOGLE_DOCSTRING`, `NUMPY_DOCSTRING`, `PLAIN_DOCSTRING` | `DOCUMENT` | match on `parsed.style()` instead |
+| `GOOGLE_SECTION`, `NUMPY_SECTION` | `SECTION` | |
+| `GOOGLE_SECTION_HEADER`, `NUMPY_SECTION_HEADER` | `SECTION_HEADER` | style lives in its shape: `COLON` vs `UNDERLINE` |
+| `GOOGLE_ARG`, `NUMPY_PARAMETER`, `*_RETURNS`, `*_YIELDS`, `*_EXCEPTION`, `*_WARNING`, `*_SEE_ALSO_ITEM`, `*_ATTRIBUTE`, `*_METHOD` (16 kinds) | `ENTRY` | the entry's role derives from the enclosing `SECTION`'s kind |
+| `GOOGLE_DEPRECATION`, `NUMPY_DEPRECATION` | `DIRECTIVE` | generalized rST directive; `deprecated` is just the directive name |
+| `GOOGLE_REFERENCE`, `NUMPY_REFERENCE` | `CITATION` | rST citation/footnote (`.. [label]`) |
+| `BODY_TEXT`, `CONTENT` | `DESCRIPTION` | every construct's prose child is now `DESCRIPTION` |
+| `STRAY_LINE` (token) | `PARAGRAPH` (node) | stray prose is now a text-block *node* wrapping `TEXT_LINE` tokens; blank lines split paragraphs |
+| `WARNING_TYPE` | `TYPE` | was style-divergent (see Fixed) |
+| `RETURN_TYPE` | `TYPE` | role comes from the section, as everywhere else |
+| `VERSION` | `ARGUMENT` | the directive argument token |
+| `NUMBER` | `LABEL` | citation labels aren't always numbers (`CIT2002`, `#f1`) |
+| `KEYWORD` | `DIRECTIVE_NAME` | disambiguates from `DEFAULT_KEYWORD` |
+| — | `DEFAULT` (new node) | wraps one `default …` marker occurrence (see Added) |
+
+#### Typed-wrapper accessors
+
+Renames with a `#[deprecated(since = "0.3.0")]` alias still compile with a
+warning; **hard** changes do not.
+
+| 0.2.0 | 0.3.0 | Migration |
+|---|---|---|
+| `r#type()` (`GoogleArg`, `GoogleException`, `GoogleAttribute`, NumPy counterparts) | `type_annotation()` | deprecated alias kept |
+| `return_type()` (`GoogleReturn`/`Yield`, `NumPyReturn`/`Yield`) | `type_annotation()` | deprecated alias kept |
+| `warning_type()` (`GoogleWarning`, `NumPyWarning`) | `type_annotation()` | deprecated alias kept |
+| `optional()` | `optional_marker()`, plus `is_optional() -> bool` | deprecated alias kept; new `optionals()` iterates every occurrence |
+| `number()` (`GoogleReference`, `NumPyReference`) | `label()` | deprecated alias kept |
+| `stray_lines()` (yielded `&SyntaxToken`) | `paragraphs()` (yields `TextBlock`) | deprecated alias kept, but it now also yields `TextBlock` — a behavioral change even through the alias |
+| `syntax::walk` (untyped tree walk) | `syntax::walk_tree` | deprecated alias kept; resolves the collision with the typed `parse::visitor::walk` |
+
+#### Signatures (hard changes)
+
+The typed views now hold `&Parsed`, so `source: &str` disappears from the
+entire typed API — `arg.name()` returns a `TokenRef` and
+`arg.name().text()` replaces `arg.name().text(source)`. Raw
+`SyntaxToken::text(source)` is unchanged (per the
+[#42](https://github.com/ryumasai/pydocstring/issues/42) convention:
+synthesized trees never enter `Parsed`, so token text stays source-sliced).
+
+| 0.2.0 | 0.3.0 |
+|---|---|
+| `GoogleDocstring::cast(node)` (and all typed wrappers) | `cast(&parsed, node)` — uniform two-argument cast |
+| `section.section_kind(source)` | `section.section_kind()` |
+| accessors returning `&SyntaxToken` | return `TokenRef<'a>` (has `.text()`, `.kind()`, `.range()`, `.is_missing()`) |
+| `visitor::walk(source, node, visitor)` | `walk(parsed, node, visitor)` |
+| `DocstringVisitor::visit_*(&mut self, source: &str, …)` | `visit_*(&mut self, parsed: &Parsed, …)` |
+| `emit_google(doc, base_indent)` / `emit_numpy` / `emit_sphinx` | `emit_google(doc, &EmitOptions)`; use `EmitOptions::default().with_base_indent(n)` |
+| `Parsed::new(source, root)` | `Parsed::new(source, root, style)` |
+
+#### Model (`model::`)
+
+| 0.2.0 | 0.3.0 | Migration |
+|---|---|---|
+| `Docstring.deprecation: Option<Deprecation>` | `Docstring.directives: Vec<Directive>` | `deprecation()` convenience method finds the first directive named `deprecated` |
+| `Deprecation { version, description }` (struct removed) | `Directive { name, argument, description }` | `version` → `argument` of a `Directive` with `name == "deprecated"` |
+| `Reference.number` | `Reference.label` | hard field rename |
+| `Attribute.name: String` | `Attribute.names: Vec<String>` | hard field rename; NumPy allows multi-name attribute entries (`jac, hess`), and keeping only the first dropped the rest ([#89](https://github.com/ryumasai/pydocstring/issues/89)) |
+
+#### Removed / newly non-exhaustive
+
+- `SyntaxToken::extend_range` removed (was dead code).
+- Tree mutators `SyntaxNode::children_mut` / `push_child` /
+  `extend_range_to` and `TextRange::extend` are now crate-private — user
+  code can no longer violate the CI-enforced coverage/ordering invariants
+  (`TextRange::extend` could also silently *shrink* a range; fixed on the
+  way in).
+- `Style` and `model::Section` are now `#[non_exhaustive]`: downstream
+  exhaustive `match`es need a wildcard arm. A future `Style::Sphinx` or new
+  section variant will no longer be a breaking change.
+
+### Migration guide — Python (`pydocstring-rs`)
+
+| 0.2.0 | 0.3.0 | Migration |
+|---|---|---|
+| `GoogleWarning.warning_type` | `.type` | hard rename (Rust's three-way split unified; Python keeps `.type` per its own conventions) |
+| `GoogleDocstring.stray_lines` (`list[Token]`) | `.paragraphs` (`list[TextBlock]`) | removed, no alias; `NumPyDocstring.paragraphs` added for parity |
+| `GoogleReference.number` / `NumPyReference.number` | `.label` | hard rename, matching the Rust side — citation labels aren't always numbers |
+| `Reference(number=…)` / `.number` (model) | `Reference(label=…)` / `.label` | hard rename |
+| `Attribute(name=…)` / `.name` (model) | `Attribute(names=[…])` / `.names` | hard rename, matching `Parameter.names` ([#89](https://github.com/ryumasai/pydocstring/issues/89)) |
+| `Deprecation` class | removed | build `Directive("deprecated", argument=version, description=…)`; `Docstring(deprecation=…)` → `Docstring(directives=[…])` |
+| `Docstring.deprecation` (read/write field) | read-only computed property (`Directive \| None`) | edit `Docstring.directives` instead |
+| `Style == 1` (int equality) | compares only to `Style` members | `Style` is now hashable (usable in sets / as dict keys) |
+| `Section.Parameters(…)` etc. (pyo3 variant class-attrs) | removed at module init | these constructors bypassed `Section.__init__` validation; use `Section(kind=…, parameters=…)` |
+| `Section.parameters` etc. typed `list[…]` in the stub | honestly typed `list[…] \| None` | runtime already returned `None` for other-kind sections; the stub now says so |
+
+Other Python surface changes:
+
+- **Missing-value conventions unified**: NumPy parameter/attribute/method
+  `type`/`description` fields now return `is_missing()` placeholder objects
+  exactly like their Google counterparts; the full per-class
+  required / optional / or-missing-placeholder table is documented at the
+  top of the type stub (`_pydocstring.pyi`), and Google↔NumPy parity is
+  spec-tested.
+- New: `NumPyParameter.name` (first of `names`, `None` if empty), matching
+  `GoogleArg.name`; `GoogleAttribute.names` / `NumPyAttribute.names` (with
+  `.name` kept as a `names[0]` convenience).
+- Model property setters now validate like the constructors;
+  `Section(kind=SectionKind.UNKNOWN)` without `unknown_name` is rejected at
+  construction.
+- `repr()` no longer leaks Rust pointer addresses, and multi-name entry
+  reprs (`GoogleArg`, `NumPyParameter`, attributes, see-also items) now
+  show every name, not just the first.
+
+### Added
+
+- **Unified typed layer** (`parse::unified`, re-exported from `parse`):
+  `Document`, `Section`, `Entry`, `Directive`, `Citation`, `DefaultMarker`
+  — zero-copy, style-independent views over the neutral kinds. One generic
+  function can now extract from Google and NumPy docstrings identically;
+  a table-driven cross-style parity law over every entry role
+  (params/returns/yields/raises/warns/attributes) pins the guarantee
+  (`tests/unified.rs`; mirrored in Python by the missingness parity suite).
+- `Parsed::style()` — reports the detected/parsed style now that the root
+  kind is always `DOCUMENT`.
+- `TokenRef` — a `&Parsed`-holding token handle with source-free `text()`.
+- `EmitOptions` (`Default` + `#[non_exhaustive]` + `with_base_indent`) —
+  future emitter options become non-breaking field additions.
+- **`DEFAULT` marker nodes with repeatable-marker semantics**: every
+  `optional` / `default …` occurrence gets its own token/node in source
+  order (`x : int, default 1, default 2` produces two `DEFAULT` nodes);
+  which occurrence wins is a model-layer rule — **the first**, spec-pinned.
+  New accessors `optionals()` / `defaults()` iterate all occurrences
+  (fixes [#76](https://github.com/ryumasai/pydocstring/issues/76)).
+- **`PARAGRAPH` nodes** ([#78](https://github.com/ryumasai/pydocstring/issues/78)):
+  stray prose between sections becomes first-class `TextBlock` targets;
+  newline-joined lines form one paragraph, blank lines split (reST
+  semantics). Also on the unified `Document::paragraphs()`.
+- **Missing-placeholder formalization**
+  ([#78](https://github.com/ryumasai/pydocstring/issues/78)): zero-length ⇔
+  missing ⇔ edit-API insertion anchor, documented in `src/syntax.rs`,
+  rendered as `<missing>` by `pretty_print`, and pinned by an invariant test
+  over the whole corpus (placeholder set: `TYPE`, `CLOSE_BRACKET`, `COLON`,
+  `DEFAULT_VALUE` tokens; zero-length `DESCRIPTION` nodes; the empty-input
+  `DOCUMENT`). Placeholders are only ever *replaced*, never extended.
+
+### Changed
+
+- **Python bindings are now lazy views** over the shared parse result
+  ([#43](https://github.com/ryumasai/pydocstring/issues/43)): every CST
+  class holds a path into the immutable tree and delegates each getter to
+  the core Rust accessors on access, eliminating the eager-materialization
+  bug class (the source of the released Yields/Warns mislabeling,
+  [#50](https://github.com/ryumasai/pydocstring/pull/50)). The visible
+  surface is frozen — with one nuance: **getters return a fresh object per
+  access** (`doc.summary is doc.summary` is `False`); rely on `==` and
+  hashing, which are preserved, never on `is`.
+- **See-also emit normal form**: both emitters now always write a see-also
+  description on the following indented line (`name\n    desc`) instead of
+  collapsing to a `name : desc` one-liner — the one-liner is unparseable
+  when the name is an rST role (`` :func:`csd` ``), per the
+  [#26](https://github.com/ryumasai/pydocstring/issues/26) colon rule
+  ([#91](https://github.com/ryumasai/pydocstring/issues/91)). Emitted
+  output for see-also-bearing docstrings changes accordingly and
+  round-trips.
+
+### Fixed
+
+- Repeated `optional` / `default` markers dropped bytes: the second
+  `default` in `x : int, default 1, default 2` overwrote the first, whose
+  bytes got no tokens — a live violation of the byte-coverage law
+  ([#76](https://github.com/ryumasai/pydocstring/issues/76)). Structurally
+  fixed by the repeatable `DEFAULT` nodes; the byte-coverage law now passes
+  the whole corpus with an empty allowlist, repeated-marker inputs included.
+- `WARNING_TYPE` was style-divergent: Google warns entries emitted it while
+  NumPy warns emitted `TYPE`, so the unified `Entry::type_annotation()`
+  returned `Some` for NumPy warns and `None` for Google warns — silently
+  breaking the single-code-path guarantee. Both `WARNING_TYPE` and
+  `RETURN_TYPE` collapse into `TYPE`
+  ([#81](https://github.com/ryumasai/pydocstring/pull/81)).
+- Marker-like segments in the middle of a type (`int, optional, str`)
+  produced overlapping tokens (an `OPTIONAL` token inside the `TYPE`
+  token's range). Markers now only count in the trailing suffix of the
+  type, per numpydoc convention (markers are trailing annotations).
+- NumPy multi-name Attributes entries (`jac, hess : callable`) dropped
+  every name after the first — the extra names' bytes got no tokens and
+  the names vanished from the model. NumPy attributes now share the
+  parameter grammar (Google splits comma-separated attribute names too),
+  the CST wrappers gain `names()`, and the model field became
+  `Attribute.names` ([#89](https://github.com/ryumasai/pydocstring/issues/89)).
+- NumPy see-also multi-line descriptions were emitted with continuation
+  lines at entry indentation, which re-parsed as fake name-only see-also
+  entries ([#90](https://github.com/ryumasai/pydocstring/issues/90)).
+- The `.. deprecated::` directive body reached the model with its source
+  continuation indent attached, so the indentation grew by four spaces on
+  every emit/parse cycle; directive bodies are now dedented in the model
+  and re-indented exactly once on emit, in both styles
+  ([#92](https://github.com/ryumasai/pydocstring/issues/92)).
+- Google description-only Returns entries were emitted with continuation
+  lines at column 0, dedenting them out of the section — the re-parse
+  silently kept only the first line
+  ([#93](https://github.com/ryumasai/pydocstring/issues/93)).
+- Typed section accessors are guarded by section role: with all entries
+  unified to `ENTRY`, a mismatched accessor (`args()` on a `Raises:`
+  section) would have wrapped foreign entries and panicked in
+  `required_token`; accessors now return empty for sections outside their
+  role, preserving the 0.2.0 kind-filtered behavior.
+- `TextRange::extend` could silently shrink a range; fixed (and the method
+  is no longer public).
+
+### Deprecated
+
+- The ~20 renamed accessors listed in the Rust migration tables
+  (`r#type` / `return_type` / `warning_type` → `type_annotation`,
+  `optional` → `optional_marker`, `number` → `label`,
+  `stray_lines` → `paragraphs`, `syntax::walk` → `walk_tree`) remain as
+  `#[deprecated(since = "0.3.0")]` aliases. **They are scheduled for
+  removal in 0.4.0** — migrate now while the compiler still points at every
+  call site.
+
+### Internal
+
+- Real-world corpus: 85 docstrings ingested verbatim from numpy, scipy,
+  scanpy, anndata, absl and fire under `tests/corpus/third_party/` (with
+  per-library license notices), bringing the corpus to 247 inputs. The
+  five bug clusters it flushed out
+  ([#89](https://github.com/ryumasai/pydocstring/issues/89)–[#93](https://github.com/ryumasai/pydocstring/issues/93))
+  are fixed above; the within-style law allowlists (coverage, idempotence,
+  model stability) are now empty, and every remaining cross-style
+  conversion allowlist entry is re-verified and annotated against its
+  documented mechanism.
+- Coverage tooling for the test suite (profile-data reuse, lcov export).
+
 ## [0.2.0] - 2026-07-07
 
 **The lossless-CST release** — phase 1 of the v2 roadmap
@@ -481,6 +731,9 @@ infrastructure ([#59](https://github.com/ryumasai/pydocstring/issues/59)).
 - Zero external crate dependencies
 - Python bindings via PyO3 (`pydocstring-rs`)
 
+[0.3.0]: https://github.com/ryumasai/pydocstring/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/ryumasai/pydocstring/compare/v0.1.15...v0.2.0
+[0.1.15]: https://github.com/ryumasai/pydocstring/compare/v0.1.14...v0.1.15
 [0.1.14]: https://github.com/ryumasai/pydocstring/compare/v0.1.13...v0.1.14
 [0.1.13]: https://github.com/ryumasai/pydocstring/compare/v0.1.12...v0.1.13
 [0.1.12]: https://github.com/ryumasai/pydocstring/compare/v0.1.11...v0.1.12
