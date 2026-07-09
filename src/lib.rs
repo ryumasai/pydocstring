@@ -70,6 +70,9 @@
 //! - Google style: fully supported
 //! - Anchored splice edits ([`Parsed::edit`](syntax::Parsed::edit), see
 //!   [`edit`]): everything an edit does not touch is preserved byte-for-byte
+//! - Pattern fragments with `$X` / `$$$X` metavariables
+//!   ([`Pattern`](pattern::Pattern), see [`pattern`]) — the input side of the
+//!   match/rewrite engine
 //! - Emit to Google, NumPy, and Sphinx (reStructuredText) styles (Sphinx is
 //!   emit-only; see [`emit::sphinx`])
 
@@ -78,5 +81,6 @@ pub mod edit;
 pub mod emit;
 pub mod model;
 pub mod parse;
+pub mod pattern;
 pub mod syntax;
 pub mod text;
