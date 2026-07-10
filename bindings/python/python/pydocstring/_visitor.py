@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from . import GoogleArg
     from . import GoogleAttribute
     from . import GoogleDeprecation
+    from . import GoogleDirective
     from . import GoogleDocstring
     from . import GoogleException
     from . import GoogleMethod
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
     from . import GoogleYield
     from . import NumPyAttribute
     from . import NumPyDeprecation
+    from . import NumPyDirective
     from . import NumPyDocstring
     from . import NumPyException
     from . import NumPyMethod
@@ -42,6 +44,8 @@ _ALL_VISITOR_METHODS: frozenset[str] = frozenset(
     [
         "enter_google_docstring",
         "exit_google_docstring",
+        "enter_google_directive",
+        "exit_google_directive",
         "enter_google_deprecation",
         "exit_google_deprecation",
         "enter_google_section",
@@ -66,6 +70,8 @@ _ALL_VISITOR_METHODS: frozenset[str] = frozenset(
         "exit_google_method",
         "enter_numpy_docstring",
         "exit_numpy_docstring",
+        "enter_numpy_directive",
+        "exit_numpy_directive",
         "enter_numpy_deprecation",
         "exit_numpy_deprecation",
         "enter_numpy_section",
@@ -132,6 +138,14 @@ class Visitor:
 
     @_pydocstring_noop
     def exit_google_docstring(self, node: GoogleDocstring, ctx: WalkContext, /) -> None:
+        pass
+
+    @_pydocstring_noop
+    def enter_google_directive(self, node: GoogleDirective, ctx: WalkContext, /) -> None:
+        pass
+
+    @_pydocstring_noop
+    def exit_google_directive(self, node: GoogleDirective, ctx: WalkContext, /) -> None:
         pass
 
     @_pydocstring_noop
@@ -229,6 +243,14 @@ class Visitor:
 
     @_pydocstring_noop
     def exit_numpy_docstring(self, node: NumPyDocstring, ctx: WalkContext, /) -> None:
+        pass
+
+    @_pydocstring_noop
+    def enter_numpy_directive(self, node: NumPyDirective, ctx: WalkContext, /) -> None:
+        pass
+
+    @_pydocstring_noop
+    def exit_numpy_directive(self, node: NumPyDirective, ctx: WalkContext, /) -> None:
         pass
 
     @_pydocstring_noop

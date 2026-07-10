@@ -5,19 +5,28 @@ DOCUMENT@0..4789 {
   }
   NEWLINE: "\n"@25..26
   BLANK_LINE: "\n"@26..27
-  EXTENDED_SUMMARY@27..753 {
-    TEXT_LINE: ".. figure:: ../_static/img/anndata_schema.svg"@27..72
+  DIRECTIVE@27..128 {
+    DIRECTIVE_MARKER: ".."@27..29
+    WHITESPACE: " "@29..30
+    DIRECTIVE_NAME: "figure"@30..36
+    DOUBLE_COLON: "::"@36..38
+    WHITESPACE: " "@38..39
+    ARGUMENT: "../_static/img/anndata_schema.svg"@39..72
     NEWLINE: "\n"@72..73
     WHITESPACE: "   "@73..76
-    TEXT_LINE: ":width: 260px"@76..89
-    NEWLINE: "\n"@89..90
-    WHITESPACE: "   "@90..93
-    TEXT_LINE: ":align: right"@93..106
-    NEWLINE: "\n"@106..107
-    WHITESPACE: "   "@107..110
-    TEXT_LINE: ":class: dark-light"@110..128
-    NEWLINE: "\n"@128..129
-    BLANK_LINE: "\n"@129..130
+    DESCRIPTION@76..128 {
+      TEXT_LINE: ":width: 260px"@76..89
+      NEWLINE: "\n"@89..90
+      WHITESPACE: "   "@90..93
+      TEXT_LINE: ":align: right"@93..106
+      NEWLINE: "\n"@106..107
+      WHITESPACE: "   "@107..110
+      TEXT_LINE: ":class: dark-light"@110..128
+    }
+  }
+  NEWLINE: "\n"@128..129
+  BLANK_LINE: "\n"@129..130
+  EXTENDED_SUMMARY@130..753 {
     TEXT_LINE: ":class:`~anndata.AnnData` stores a data matrix :attr:`X` together with annotations"@130..212
     NEWLINE: "\n"@212..213
     TEXT_LINE: "of observations :attr:`obs` (:attr:`obsm`, :attr:`obsp`),"@213..270
@@ -302,9 +311,9 @@ DOCUMENT@0..4789 {
 An annotated data matrix.
 
 .. figure:: ../_static/img/anndata_schema.svg
-   :width: 260px
-   :align: right
-   :class: dark-light
+    :width: 260px
+    :align: right
+    :class: dark-light
 
 :class:`~anndata.AnnData` stores a data matrix :attr:`X` together with annotations
 of observations :attr:`obs` (:attr:`obsm`, :attr:`obsp`),

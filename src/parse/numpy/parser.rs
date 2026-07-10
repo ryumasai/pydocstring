@@ -16,7 +16,7 @@ use crate::parse::utils::process_reference_line;
 use crate::parse::utils::scan_type_markers;
 use crate::parse::utils::text_block_single;
 use crate::parse::utils::try_parse_bracket_entry;
-use crate::parse::utils::try_parse_deprecation_directive;
+use crate::parse::utils::try_parse_directive;
 use crate::syntax::Parsed;
 use crate::syntax::SyntaxElement;
 use crate::syntax::SyntaxKind;
@@ -944,10 +944,15 @@ pub fn parse_numpy(input: &str) -> Parsed {
 
     cursor.skip_blanks();
 
-    // --- Deprecation directive ---
-    if !cursor.is_eof()
+    // --- rST directives ---
+    // Any directive name is accepted (`deprecated`, `versionadded`, `note`,
+    // …) at this post-summary slot, and a run of consecutive directives is
+    // recognized (numpydoc stacks e.g. `.. deprecated::` and
+    // `.. versionadded::`). Block-level directives inside section bodies stay
+    // prose (deferred).
+    while !cursor.is_eof()
         && try_detect_header(&cursor).is_none()
-        && let Some(node) = try_parse_deprecation_directive(&mut cursor)
+        && let Some(node) = try_parse_directive(&mut cursor)
     {
         root_children.push(SyntaxElement::Node(node));
         cursor.skip_blanks();

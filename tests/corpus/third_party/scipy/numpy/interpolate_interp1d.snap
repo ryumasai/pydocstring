@@ -5,17 +5,26 @@ DOCUMENT@0..4369 {
   }
   NEWLINE: "\n"@36..37
   BLANK_LINE: "\n"@37..38
-  EXTENDED_SUMMARY@38..348 {
-    TEXT_LINE: ".. legacy:: class"@38..55
+  DIRECTIVE@38..163 {
+    DIRECTIVE_MARKER: ".."@38..40
+    WHITESPACE: " "@40..41
+    DIRECTIVE_NAME: "legacy"@41..47
+    DOUBLE_COLON: "::"@47..49
+    WHITESPACE: " "@49..50
+    ARGUMENT: "class"@50..55
     NEWLINE: "\n"@55..56
     BLANK_LINE: "\n"@56..57
     WHITESPACE: "    "@57..61
-    TEXT_LINE: "For a guide to the intended replacements for `interp1d` see"@61..120
-    NEWLINE: "\n"@120..121
-    WHITESPACE: "    "@121..125
-    TEXT_LINE: ":ref:`tutorial-interpolate_1Dsection`."@125..163
-    NEWLINE: "\n"@163..164
-    BLANK_LINE: "\n"@164..165
+    DESCRIPTION@61..163 {
+      TEXT_LINE: "For a guide to the intended replacements for `interp1d` see"@61..120
+      NEWLINE: "\n"@120..121
+      WHITESPACE: "    "@121..125
+      TEXT_LINE: ":ref:`tutorial-interpolate_1Dsection`."@125..163
+    }
+  }
+  NEWLINE: "\n"@163..164
+  BLANK_LINE: "\n"@164..165
+  EXTENDED_SUMMARY@165..348 {
     TEXT_LINE: "`x` and `y` are arrays of values used to approximate some function f:"@165..234
     NEWLINE: "\n"@234..235
     TEXT_LINE: "``y = f(x)``. This class returns a function whose call method uses"@235..301
@@ -394,7 +403,6 @@ DOCUMENT@0..4369 {
 Interpolate a 1-D function (legacy).
 
 .. legacy:: class
-
     For a guide to the intended replacements for `interp1d` see
     :ref:`tutorial-interpolate_1Dsection`.
 

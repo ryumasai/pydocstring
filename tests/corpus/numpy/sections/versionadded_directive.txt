@@ -1,0 +1,8 @@
+Summary.
+
+.. versionadded:: 2.0
+
+Parameters
+----------
+x : int
+    Desc.

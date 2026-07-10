@@ -168,6 +168,50 @@ class TestParseGoogle:
         assert deps[0].version.text == "1.6.0"
         assert repr(deps[0]) == 'GoogleDeprecation("1.6.0")'
 
+    def test_generic_directive_hook(self):
+        # A non-deprecated directive fires the generic hook, not the
+        # deprecation hook.
+        doc = pydocstring.parse_google("Summary.\n\n.. versionadded:: 2.0\n\nArgs:\n    x: v\n")
+
+        class Collector(pydocstring.Visitor):
+            def __init__(self):
+                self.events = []
+                self.directives = []
+
+            def enter_google_directive(self, node, ctx):
+                self.events.append(("directive", node.name.text))
+                self.directives.append(node)
+
+            def enter_google_deprecation(self, dep, ctx):
+                self.events.append(("deprecation", dep.version.text))
+
+        collector = pydocstring.walk(doc, Collector())
+        assert collector.events == [("directive", "versionadded")]
+
+        d = collector.directives[0]
+        assert d.name.text == "versionadded"
+        assert d.argument.text == "2.0"
+        assert d.description is None
+        assert repr(d) == 'GoogleDirective("versionadded")'
+
+    def test_deprecated_directive_fires_both_hooks_generic_first(self):
+        # A deprecated directive fires the generic hook first, then the
+        # deprecation specialization.
+        doc = pydocstring.parse_google("Summary.\n\n.. deprecated:: 1.6.0\n\nArgs:\n    x: v\n")
+
+        class Collector(pydocstring.Visitor):
+            def __init__(self):
+                self.events = []
+
+            def enter_google_directive(self, node, ctx):
+                self.events.append(("directive", node.name.text))
+
+            def enter_google_deprecation(self, dep, ctx):
+                self.events.append(("deprecation", dep.version.text))
+
+        events = pydocstring.walk(doc, Collector()).events
+        assert events == [("directive", "deprecated"), ("deprecation", "1.6.0")]
+
     def test_paragraphs_between_sections(self):
         text = "Summary.\n\nArgs:\n    a: desc.\n\nstray one\nstray two\n\nstray three\n\nReturns:\n    int: result.\n"
         doc = pydocstring.parse_google(text)

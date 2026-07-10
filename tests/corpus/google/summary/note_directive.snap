@@ -1,0 +1,54 @@
+=== CST ===
+DOCUMENT@0..112 {
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
+  DIRECTIVE@10..80 {
+    DIRECTIVE_MARKER: ".."@10..12
+    WHITESPACE: " "@12..13
+    DIRECTIVE_NAME: "note"@13..17
+    DOUBLE_COLON: "::"@17..19
+    NEWLINE: "\n"@19..20
+    WHITESPACE: "    "@20..24
+    DESCRIPTION@24..80 {
+      TEXT_LINE: "This is an admonition body."@24..51
+      NEWLINE: "\n"@51..52
+      WHITESPACE: "    "@52..56
+      TEXT_LINE: "Second line of the note."@56..80
+    }
+  }
+  NEWLINE: "\n"@80..81
+  BLANK_LINE: "\n"@81..82
+  SECTION@82..111 {
+    SECTION_HEADER@82..87 {
+      NAME: "Args"@82..86
+      COLON: ":"@86..87
+    }
+    NEWLINE: "\n"@87..88
+    WHITESPACE: "    "@88..92
+    ENTRY@92..111 {
+      NAME: "x"@92..93
+      WHITESPACE: " "@93..94
+      OPEN_BRACKET: "("@94..95
+      TYPE: "int"@95..98
+      CLOSE_BRACKET: ")"@98..99
+      COLON: ":"@99..100
+      WHITESPACE: " "@100..101
+      DESCRIPTION@101..111 {
+        TEXT_LINE: "The value."@101..111
+      }
+    }
+  }
+  NEWLINE: "\n"@111..112
+}
+=== EMIT ===
+Summary.
+
+.. note::
+    This is an admonition body.
+    Second line of the note.
+
+Args:
+    x (int): The value.

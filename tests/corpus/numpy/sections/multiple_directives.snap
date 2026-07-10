@@ -1,0 +1,65 @@
+=== CST ===
+DOCUMENT@0..123 {
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
+  DIRECTIVE@10..59 {
+    DIRECTIVE_MARKER: ".."@10..12
+    WHITESPACE: " "@12..13
+    DIRECTIVE_NAME: "deprecated"@13..23
+    DOUBLE_COLON: "::"@23..25
+    WHITESPACE: " "@25..26
+    ARGUMENT: "1.6.0"@26..31
+    NEWLINE: "\n"@31..32
+    WHITESPACE: "    "@32..36
+    DESCRIPTION@36..59 {
+      TEXT_LINE: "Use `new_func` instead."@36..59
+    }
+  }
+  NEWLINE: "\n"@59..60
+  DIRECTIVE@60..81 {
+    DIRECTIVE_MARKER: ".."@60..62
+    WHITESPACE: " "@62..63
+    DIRECTIVE_NAME: "versionadded"@63..75
+    DOUBLE_COLON: "::"@75..77
+    WHITESPACE: " "@77..78
+    ARGUMENT: "2.0"@78..81
+  }
+  NEWLINE: "\n"@81..82
+  BLANK_LINE: "\n"@82..83
+  SECTION@83..122 {
+    SECTION_HEADER@83..104 {
+      NAME: "Parameters"@83..93
+      NEWLINE: "\n"@93..94
+      UNDERLINE: "----------"@94..104
+    }
+    NEWLINE: "\n"@104..105
+    ENTRY@105..122 {
+      NAME: "x"@105..106
+      WHITESPACE: " "@106..107
+      COLON: ":"@107..108
+      WHITESPACE: " "@108..109
+      TYPE: "int"@109..112
+      NEWLINE: "\n"@112..113
+      WHITESPACE: "    "@113..117
+      DESCRIPTION@117..122 {
+        TEXT_LINE: "Desc."@117..122
+      }
+    }
+  }
+  NEWLINE: "\n"@122..123
+}
+=== EMIT ===
+Summary.
+
+.. deprecated:: 1.6.0
+    Use `new_func` instead.
+
+.. versionadded:: 2.0
+
+Parameters
+----------
+x : int
+    Desc.

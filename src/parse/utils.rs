@@ -13,8 +13,9 @@ use crate::text::TextRange;
 /// Convert every document-level `DIRECTIVE` node of `parsed` into a model
 /// [`Directive`](crate::model::Directive), in source order.
 ///
-/// Generic over the directive name — although the only directive the parsers
-/// produce today is `.. deprecated::`.
+/// Generic over the directive name: the parsers recognize any `.. name:: …`
+/// directive (`deprecated`, `versionadded`, `note`, …) at the post-summary
+/// slot, and each flows through here unchanged.
 pub(crate) fn convert_directives(parsed: &Parsed) -> Vec<crate::model::Directive> {
     parsed
         .root()
@@ -109,7 +110,7 @@ pub(crate) fn extend_text_block(block: &mut SyntaxNode, cont: TextRange) {
 }
 
 // =============================================================================
-// Deprecation directive parsing (shared by the NumPy and Google parsers)
+// Directive parsing (shared by the NumPy and Google parsers)
 // =============================================================================
 
 /// Collect a directive body: the following lines that are blank or indented
@@ -142,72 +143,114 @@ pub(crate) fn collect_description(cursor: &mut LineCursor, entry_indent_cols: us
     })
 }
 
-/// Try to parse an rST `.. deprecated:: <version>` directive at `cursor.line`.
+/// Length of the rST directive name at the start of `s`, if any.
 ///
-/// On success, builds a `DIRECTIVE` node with `DIRECTIVE_MARKER`, `DIRECTIVE_NAME`,
-/// `DOUBLE_COLON`, `ARGUMENT` (the version), and an optional `DESCRIPTION`
-/// collected from the following more-indented lines, and advances the cursor
-/// past the directive. Returns `None` (without advancing) if the current
-/// line is not a deprecation directive.
-pub(crate) fn try_parse_deprecation_directive(cursor: &mut LineCursor) -> Option<SyntaxNode> {
-    let line = cursor.current_line_text();
-    let trimmed = line.trim();
-    if !trimmed.starts_with(".. deprecated::") {
+/// A directive name is an identifier: it must start with an ASCII letter and
+/// continues over ASCII letters, digits, hyphens, and underscores (all one
+/// byte, so the count is a byte length). Returns `None` when `s` does not
+/// begin with a letter — e.g. `.. [1]` citations, `.. _target:` targets, and
+/// `.. |sub|` substitutions all fail here and fall through to prose.
+fn directive_name_len(s: &str) -> Option<usize> {
+    let bytes = s.as_bytes();
+    if bytes.first().is_none_or(|b| !b.is_ascii_alphabetic()) {
         return None;
     }
+    Some(
+        bytes
+            .iter()
+            .take_while(|b| b.is_ascii_alphanumeric() || **b == b'-' || **b == b'_')
+            .count(),
+    )
+}
+
+/// Try to parse an rST `.. name:: [argument]` directive at `cursor.line`.
+///
+/// Recognizes *any* directive name (`deprecated`, `versionadded`, `note`,
+/// `math`, …) — the name is preserved verbatim in the `DIRECTIVE_NAME` token.
+/// On success, builds a `DIRECTIVE` node with `DIRECTIVE_MARKER`,
+/// `DIRECTIVE_NAME`, `DOUBLE_COLON`, an optional `ARGUMENT` (the text after
+/// `::`, when present), and an optional `DESCRIPTION` collected from the
+/// following more-indented lines, then advances the cursor past the directive.
+/// Returns `None` (without advancing) when the current line is not a directive
+/// — anything not shaped `.. <letter-led-name>:: …` (citations, targets,
+/// substitutions, a bare `..`, or a name starting with a digit) falls through.
+///
+/// Only the directive *subfamily* of explicit markup is recognized here; the
+/// wider `..` family (citations/targets/comments) differs in syntax and stays
+/// prose.
+pub(crate) fn try_parse_directive(cursor: &mut LineCursor) -> Option<SyntaxNode> {
+    let line = cursor.current_line_text();
+    let trimmed = line.trim();
+
+    // Explicit-markup marker `..`, then whitespace, then the directive name.
+    let after_marker = trimmed.strip_prefix("..")?;
+    let name_ws = after_marker.len() - after_marker.trim_start().len();
+    if name_ws == 0 {
+        // `..name::` (no separating space) is not a directive; a bare `..`
+        // lands here too.
+        return None;
+    }
+    let after_ws = &after_marker[name_ws..];
+    let name_len = directive_name_len(after_ws)?;
+    // The name must be immediately followed by the `::` argument marker.
+    let after_colons = after_ws[name_len..].strip_prefix("::")?;
+
+    let arg_ws = after_colons.len() - after_colons.trim_start().len();
+    let arg_str = after_colons.trim();
 
     let col = cursor.current_indent();
-    let prefix = ".. deprecated::";
-    let after_prefix = &trimmed[prefix.len()..];
-    let ws_len = after_prefix.len() - after_prefix.trim_start().len();
-    let version_str = after_prefix.trim();
-    let version_col = col + prefix.len() + ws_len;
+    // Column layout within the line — every header char up to the argument is
+    // ASCII, so byte lengths are column widths.
+    let name_col = col + 2 + name_ws;
+    let colon_col = name_col + name_len;
+    let arg_col = colon_col + 2 + arg_ws;
 
-    let mut dep_children: Vec<SyntaxElement> = Vec::new();
+    let mut children: Vec<SyntaxElement> = Vec::new();
 
-    // `..` at col..col+2
-    dep_children.push(SyntaxElement::Token(SyntaxToken::new(
+    // `..`
+    children.push(SyntaxElement::Token(SyntaxToken::new(
         SyntaxKind::DIRECTIVE_MARKER,
         cursor.make_line_range(cursor.line, col, 2),
     )));
-    // `deprecated` at col+3..col+13
-    dep_children.push(SyntaxElement::Token(SyntaxToken::new(
+    // directive name (verbatim, e.g. `deprecated`, `versionadded`, `note`)
+    children.push(SyntaxElement::Token(SyntaxToken::new(
         SyntaxKind::DIRECTIVE_NAME,
-        cursor.make_line_range(cursor.line, col + 3, 10),
+        cursor.make_line_range(cursor.line, name_col, name_len),
     )));
-    // `::` at col+13..col+15
-    dep_children.push(SyntaxElement::Token(SyntaxToken::new(
+    // `::`
+    children.push(SyntaxElement::Token(SyntaxToken::new(
         SyntaxKind::DOUBLE_COLON,
-        cursor.make_line_range(cursor.line, col + 13, 2),
+        cursor.make_line_range(cursor.line, colon_col, 2),
     )));
+    // argument, when present (`.. note::` and friends carry none)
+    if !arg_str.is_empty() {
+        children.push(SyntaxElement::Token(SyntaxToken::new(
+            SyntaxKind::ARGUMENT,
+            cursor.make_line_range(cursor.line, arg_col, arg_str.len()),
+        )));
+    }
 
-    let version_range = cursor.make_line_range(cursor.line, version_col, version_str.len());
-    dep_children.push(SyntaxElement::Token(SyntaxToken::new(
-        SyntaxKind::ARGUMENT,
-        version_range,
-    )));
-
-    let dep_start_line = cursor.line;
+    let start_line = cursor.line;
     cursor.advance();
 
     let desc_range = collect_description(cursor, indent_columns(line));
 
     if let Some(desc) = desc_range {
-        dep_children.push(SyntaxElement::Node(build_text_block(
+        children.push(SyntaxElement::Node(build_text_block(
             SyntaxKind::DESCRIPTION,
             desc,
             cursor.source(),
         )));
     }
 
-    // Compute deprecation span
-    let (dep_end_line, dep_end_col) = match desc_range {
-        None => (dep_start_line, col + trimmed.len()),
+    // Compute the directive span.
+    let (end_line, end_col) = match desc_range {
+        None => (start_line, col + trimmed.len()),
         Some(d) => cursor.offset_to_line_col(d.end().raw() as usize),
     };
 
-    let dep_range = cursor.make_range(dep_start_line, col, dep_end_line, dep_end_col);
-    Some(SyntaxNode::new(SyntaxKind::DIRECTIVE, dep_range, dep_children))
+    let range = cursor.make_range(start_line, col, end_line, end_col);
+    Some(SyntaxNode::new(SyntaxKind::DIRECTIVE, range, children))
 }
 
 /// Find the byte offset of the first entry-separating colon in `text`.
@@ -1166,6 +1209,27 @@ mod tests {
     fn test_find_entry_open_bracket_at_start() {
         // Bracket at position 0 is not valid (no name before it).
         assert_eq!(find_entry_open_bracket("(int)"), None);
+    }
+
+    // ---- directive_name_len ----
+
+    #[test]
+    fn test_directive_name_len() {
+        // Valid identifiers: letter-led, with digits/hyphens/underscores.
+        assert_eq!(directive_name_len("deprecated::"), Some(10));
+        assert_eq!(directive_name_len("versionadded:: 2.0"), Some(12));
+        assert_eq!(directive_name_len("note::"), Some(4));
+        assert_eq!(directive_name_len("code-block:: python"), Some(10));
+        assert_eq!(directive_name_len("my_directive::"), Some(12));
+        // The name stops at the first non-identifier byte.
+        assert_eq!(directive_name_len("math:: x"), Some(4));
+        // Rejected: not letter-led (digit, colon, marker chars).
+        assert_eq!(directive_name_len("1bad::"), None);
+        assert_eq!(directive_name_len("::"), None);
+        assert_eq!(directive_name_len(""), None);
+        assert_eq!(directive_name_len("[1]"), None);
+        assert_eq!(directive_name_len("_target:"), None);
+        assert_eq!(directive_name_len("|sub|"), None);
     }
 
     #[test]

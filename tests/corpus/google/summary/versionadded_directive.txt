@@ -1,0 +1,6 @@
+Summary.
+
+.. versionadded:: 2.0
+
+Args:
+    x (int): The value.
