@@ -289,6 +289,39 @@ impl<'a> NumPyDeprecation<'a> {
 }
 
 // =============================================================================
+// NumPyDirective
+// =============================================================================
+
+define_node!(NumPyDirective, DIRECTIVE);
+
+impl<'a> NumPyDirective<'a> {
+    /// The `..` rST directive marker.
+    pub fn directive_marker(&self) -> Option<TokenRef<'a>> {
+        self.find_token_ref(SyntaxKind::DIRECTIVE_MARKER)
+    }
+
+    /// The directive name token (e.g. `deprecated`, `versionadded`, `note`).
+    pub fn name(&self) -> TokenRef<'a> {
+        self.token_ref(self.node.required_token(SyntaxKind::DIRECTIVE_NAME))
+    }
+
+    /// The `::` double-colon separator.
+    pub fn double_colon(&self) -> Option<TokenRef<'a>> {
+        self.find_token_ref(SyntaxKind::DOUBLE_COLON)
+    }
+
+    /// The directive argument token (the text after `::`), if present.
+    pub fn argument(&self) -> Option<TokenRef<'a>> {
+        self.find_token_ref(SyntaxKind::ARGUMENT)
+    }
+
+    /// The directive body / description block, if present.
+    pub fn description(&self) -> Option<TextBlock<'a>> {
+        find_text_block(self.parsed, self.node, SyntaxKind::DESCRIPTION)
+    }
+}
+
+// =============================================================================
 // NumPyParameter
 // =============================================================================
 

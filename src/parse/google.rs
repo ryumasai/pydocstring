@@ -14,6 +14,7 @@ pub use kind::GoogleSectionKind;
 pub use nodes::GoogleArg;
 pub use nodes::GoogleAttribute;
 pub use nodes::GoogleDeprecation;
+pub use nodes::GoogleDirective;
 pub use nodes::GoogleDocstring;
 pub use nodes::GoogleException;
 pub use nodes::GoogleMethod;

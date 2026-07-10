@@ -1118,6 +1118,41 @@ impl PyGoogleDeprecation {
     }
 }
 
+// ─── GoogleDirective ─────────────────────────────────────────────────────────
+
+lazy_node!(PyGoogleDirective, "GoogleDirective", gn::GoogleDirective);
+
+#[pymethods]
+impl PyGoogleDirective {
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        self.nr.py_range(py)
+    }
+    #[getter]
+    fn directive_marker(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().directive_marker())
+    }
+    #[getter]
+    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().name().syntax())
+    }
+    #[getter]
+    fn double_colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().double_colon())
+    }
+    #[getter]
+    fn argument(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().argument())
+    }
+    #[getter]
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().description())
+    }
+    fn __repr__(&self) -> String {
+        format!("GoogleDirective({:?})", self.view().name().text())
+    }
+}
+
 // ─── GoogleDocstring ─────────────────────────────────────────────────────────
 
 lazy_node!(PyGoogleDocstring, "GoogleDocstring", gn::GoogleDocstring);
@@ -1233,6 +1268,41 @@ impl PyNumPyDeprecation {
     }
     fn __repr__(&self) -> String {
         format!("NumPyDeprecation({:?})", self.view().version().text())
+    }
+}
+
+// ─── NumPyDirective ──────────────────────────────────────────────────────────
+
+lazy_node!(PyNumPyDirective, "NumPyDirective", nn::NumPyDirective);
+
+#[pymethods]
+impl PyNumPyDirective {
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        self.nr.py_range(py)
+    }
+    #[getter]
+    fn directive_marker(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().directive_marker())
+    }
+    #[getter]
+    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().name().syntax())
+    }
+    #[getter]
+    fn double_colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().double_colon())
+    }
+    #[getter]
+    fn argument(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().argument())
+    }
+    #[getter]
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().description())
+    }
+    fn __repr__(&self) -> String {
+        format!("NumPyDirective({:?})", self.view().name().text())
     }
 }
 
@@ -3584,6 +3654,7 @@ impl PyWalkContext {
 struct ActiveMethods {
     // Google (enter)
     google_docstring: bool,
+    google_directive: bool,
     google_deprecation: bool,
     google_section: bool,
     google_arg: bool,
@@ -3597,6 +3668,7 @@ struct ActiveMethods {
     google_method: bool,
     // Google (exit)
     exit_google_docstring: bool,
+    exit_google_directive: bool,
     exit_google_deprecation: bool,
     exit_google_section: bool,
     exit_google_arg: bool,
@@ -3610,6 +3682,7 @@ struct ActiveMethods {
     exit_google_method: bool,
     // NumPy (enter)
     numpy_docstring: bool,
+    numpy_directive: bool,
     numpy_deprecation: bool,
     numpy_section: bool,
     numpy_parameter: bool,
@@ -3623,6 +3696,7 @@ struct ActiveMethods {
     numpy_method: bool,
     // NumPy (exit)
     exit_numpy_docstring: bool,
+    exit_numpy_directive: bool,
     exit_numpy_deprecation: bool,
     exit_numpy_section: bool,
     exit_numpy_parameter: bool,
@@ -3656,6 +3730,7 @@ fn collect_active(py: Python<'_>, visitor: &Py<PyAny>) -> PyResult<ActiveMethods
     Ok(ActiveMethods {
         // Google (enter)
         google_docstring: has("enter_google_docstring"),
+        google_directive: has("enter_google_directive"),
         google_deprecation: has("enter_google_deprecation"),
         google_section: has("enter_google_section"),
         google_arg: has("enter_google_arg"),
@@ -3669,6 +3744,7 @@ fn collect_active(py: Python<'_>, visitor: &Py<PyAny>) -> PyResult<ActiveMethods
         google_method: has("enter_google_method"),
         // Google (exit)
         exit_google_docstring: has("exit_google_docstring"),
+        exit_google_directive: has("exit_google_directive"),
         exit_google_deprecation: has("exit_google_deprecation"),
         exit_google_section: has("exit_google_section"),
         exit_google_arg: has("exit_google_arg"),
@@ -3682,6 +3758,7 @@ fn collect_active(py: Python<'_>, visitor: &Py<PyAny>) -> PyResult<ActiveMethods
         exit_google_method: has("exit_google_method"),
         // NumPy (enter)
         numpy_docstring: has("enter_numpy_docstring"),
+        numpy_directive: has("enter_numpy_directive"),
         numpy_deprecation: has("enter_numpy_deprecation"),
         numpy_section: has("enter_numpy_section"),
         numpy_parameter: has("enter_numpy_parameter"),
@@ -3695,6 +3772,7 @@ fn collect_active(py: Python<'_>, visitor: &Py<PyAny>) -> PyResult<ActiveMethods
         numpy_method: has("enter_numpy_method"),
         // NumPy (exit)
         exit_numpy_docstring: has("exit_numpy_docstring"),
+        exit_numpy_directive: has("exit_numpy_directive"),
         exit_numpy_deprecation: has("exit_numpy_deprecation"),
         exit_numpy_section: has("exit_numpy_section"),
         exit_numpy_parameter: has("exit_numpy_parameter"),
@@ -3840,14 +3918,27 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
+    fn visit_google_directive(&mut self, parsed: &Parsed, dir: &gn::GoogleDirective<'_>) -> Result<(), PyErr> {
+        visit_node!(
+            self,
+            parsed,
+            google_directive,
+            exit_google_directive,
+            self.wrap::<PyGoogleDirective>(dir.syntax()),
+            dir.syntax()
+        )
+    }
+
     fn visit_google_deprecation(&mut self, parsed: &Parsed, dep: &gn::GoogleDeprecation<'_>) -> Result<(), PyErr> {
+        // Notification specialization: the generic directive hook already
+        // descended the body, so fire the deprecation hooks WITHOUT walking
+        // children again (no-children macro arm) — mirrors the core contract.
         visit_node!(
             self,
             parsed,
             google_deprecation,
             exit_google_deprecation,
-            self.wrap::<PyGoogleDeprecation>(dep.syntax()),
-            dep.syntax()
+            self.wrap::<PyGoogleDeprecation>(dep.syntax())
         )
     }
 
@@ -3973,14 +4064,27 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
         )
     }
 
+    fn visit_numpy_directive(&mut self, parsed: &Parsed, dir: &nn::NumPyDirective<'_>) -> Result<(), PyErr> {
+        visit_node!(
+            self,
+            parsed,
+            numpy_directive,
+            exit_numpy_directive,
+            self.wrap::<PyNumPyDirective>(dir.syntax()),
+            dir.syntax()
+        )
+    }
+
     fn visit_numpy_deprecation(&mut self, parsed: &Parsed, dep: &nn::NumPyDeprecation<'_>) -> Result<(), PyErr> {
+        // Notification specialization: the generic directive hook already
+        // descended the body, so fire the deprecation hooks WITHOUT walking
+        // children again (no-children macro arm) — mirrors the core contract.
         visit_node!(
             self,
             parsed,
             numpy_deprecation,
             exit_numpy_deprecation,
-            self.wrap::<PyNumPyDeprecation>(dep.syntax()),
-            dep.syntax()
+            self.wrap::<PyNumPyDeprecation>(dep.syntax())
         )
     }
 
@@ -4127,14 +4231,16 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
 /// ```
 ///
 /// Google `enter_*` / `exit_*` methods:
-/// `enter_google_docstring`, `enter_google_section`, `enter_google_deprecation`,
+/// `enter_google_docstring`, `enter_google_section`, `enter_google_directive`,
+/// `enter_google_deprecation`,
 /// `enter_google_arg`, `enter_google_return`, `enter_google_yield`,
 /// `enter_google_exception`, `enter_google_warning`,
 /// `enter_google_see_also_item`, `enter_google_reference`,
 /// `enter_google_attribute`, `enter_google_method`
 ///
 /// NumPy `enter_*` / `exit_*` methods:
-/// `enter_numpy_docstring`, `enter_numpy_section`, `enter_numpy_deprecation`,
+/// `enter_numpy_docstring`, `enter_numpy_section`, `enter_numpy_directive`,
+/// `enter_numpy_deprecation`,
 /// `enter_numpy_parameter`, `enter_numpy_returns`, `enter_numpy_yields`,
 /// `enter_numpy_exception`, `enter_numpy_warning`, `enter_numpy_see_also_item`,
 /// `enter_numpy_reference`, `enter_numpy_attribute`, `enter_numpy_method`
@@ -4220,6 +4326,7 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyGoogleDocstring>()?;
     m.add_class::<PyGoogleSection>()?;
     m.add_class::<PyGoogleDeprecation>()?;
+    m.add_class::<PyGoogleDirective>()?;
     m.add_class::<PyGoogleArg>()?;
     m.add_class::<PyGoogleReturn>()?;
     m.add_class::<PyGoogleYield>()?;
@@ -4233,6 +4340,7 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyNumPyDocstring>()?;
     m.add_class::<PyNumPySection>()?;
     m.add_class::<PyNumPyDeprecation>()?;
+    m.add_class::<PyNumPyDirective>()?;
     m.add_class::<PyNumPyParameter>()?;
     m.add_class::<PyNumPyReturns>()?;
     m.add_class::<PyNumPyYields>()?;

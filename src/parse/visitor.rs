@@ -55,6 +55,7 @@ use crate::parse::Style;
 use crate::parse::google::nodes::GoogleArg;
 use crate::parse::google::nodes::GoogleAttribute;
 use crate::parse::google::nodes::GoogleDeprecation;
+use crate::parse::google::nodes::GoogleDirective;
 use crate::parse::google::nodes::GoogleDocstring;
 use crate::parse::google::nodes::GoogleException;
 use crate::parse::google::nodes::GoogleMethod;
@@ -66,6 +67,7 @@ use crate::parse::google::nodes::GoogleWarning;
 use crate::parse::google::nodes::GoogleYield;
 use crate::parse::numpy::nodes::NumPyAttribute;
 use crate::parse::numpy::nodes::NumPyDeprecation;
+use crate::parse::numpy::nodes::NumPyDirective;
 use crate::parse::numpy::nodes::NumPyDocstring;
 use crate::parse::numpy::nodes::NumPyException;
 use crate::parse::numpy::nodes::NumPyMethod;
@@ -110,9 +112,21 @@ pub trait DocstringVisitor: Sized {
     fn visit_google_docstring(&mut self, parsed: &Parsed, doc: &GoogleDocstring<'_>) -> Result<(), Self::Error> {
         walk_children(parsed, doc.syntax(), self)
     }
-    /// Called for the deprecation notice, if present.
+    /// Called for **every** Google directive node (`.. name:: …`), whatever
+    /// its name. Deprecated directives additionally reach
+    /// [`visit_google_deprecation`](Self::visit_google_deprecation) — the
+    /// generic hook fires first, then the deprecation specialization.
+    fn visit_google_directive(&mut self, parsed: &Parsed, dir: &GoogleDirective<'_>) -> Result<(), Self::Error> {
+        walk_children(parsed, dir.syntax(), self)
+    }
+    /// Called for a `deprecated`-named directive, after
+    /// [`visit_google_directive`](Self::visit_google_directive). This is a
+    /// notification specialization: the generic directive hook owns the child
+    /// traversal, so this default does **not** descend again (overriding it to
+    /// call `walk_children` would visit the body twice). Returns `Ok(())`.
+    #[allow(unused_variables)]
     fn visit_google_deprecation(&mut self, parsed: &Parsed, dep: &GoogleDeprecation<'_>) -> Result<(), Self::Error> {
-        walk_children(parsed, dep.syntax(), self)
+        Ok(())
     }
     /// Called for each Google section.
     fn visit_google_section(&mut self, parsed: &Parsed, sec: &GoogleSection<'_>) -> Result<(), Self::Error> {
@@ -159,9 +173,21 @@ pub trait DocstringVisitor: Sized {
     fn visit_numpy_docstring(&mut self, parsed: &Parsed, doc: &NumPyDocstring<'_>) -> Result<(), Self::Error> {
         walk_children(parsed, doc.syntax(), self)
     }
-    /// Called for the deprecation notice, if present.
+    /// Called for **every** NumPy directive node (`.. name:: …`), whatever
+    /// its name. Deprecated directives additionally reach
+    /// [`visit_numpy_deprecation`](Self::visit_numpy_deprecation) — the
+    /// generic hook fires first, then the deprecation specialization.
+    fn visit_numpy_directive(&mut self, parsed: &Parsed, dir: &NumPyDirective<'_>) -> Result<(), Self::Error> {
+        walk_children(parsed, dir.syntax(), self)
+    }
+    /// Called for a `deprecated`-named directive, after
+    /// [`visit_numpy_directive`](Self::visit_numpy_directive). This is a
+    /// notification specialization: the generic directive hook owns the child
+    /// traversal, so this default does **not** descend again (overriding it to
+    /// call `walk_children` would visit the body twice). Returns `Ok(())`.
+    #[allow(unused_variables)]
     fn visit_numpy_deprecation(&mut self, parsed: &Parsed, dep: &NumPyDeprecation<'_>) -> Result<(), Self::Error> {
-        walk_children(parsed, dep.syntax(), self)
+        Ok(())
     }
     /// Called for each NumPy section.
     fn visit_numpy_section(&mut self, parsed: &Parsed, sec: &NumPySection<'_>) -> Result<(), Self::Error> {
@@ -252,15 +278,18 @@ fn walk_in<V: DocstringVisitor>(
             visitor.visit_google_section(parsed, &GoogleSection { parsed, node })?
         }
         (SyntaxKind::SECTION, Style::NumPy) => visitor.visit_numpy_section(parsed, &NumPySection { parsed, node })?,
-        // Directives: only `deprecated`-named directives route to the
-        // deprecation methods; other directive names are silently skipped
-        // for now (no generic directive visit method yet).
+        // Directives: the generic `visit_*_directive` hook fires for every
+        // directive, whatever its name (#84). A `deprecated`-named directive
+        // is a specialization — it *additionally* reaches the deprecation
+        // hook, and the order is generic first, then deprecation.
         (SyntaxKind::DIRECTIVE, Style::Google) => {
+            visitor.visit_google_directive(parsed, &GoogleDirective { parsed, node })?;
             if directive_is_deprecated(parsed, node) {
                 visitor.visit_google_deprecation(parsed, &GoogleDeprecation { parsed, node })?;
             }
         }
         (SyntaxKind::DIRECTIVE, Style::NumPy) => {
+            visitor.visit_numpy_directive(parsed, &NumPyDirective { parsed, node })?;
             if directive_is_deprecated(parsed, node) {
                 visitor.visit_numpy_deprecation(parsed, &NumPyDeprecation { parsed, node })?;
             }

@@ -311,6 +311,33 @@ fn google_no_deprecation() {
     assert!(doc.directives.is_empty());
 }
 
+/// A non-deprecated directive flows to `model.directives` (name/argument/
+/// description), while `deprecation()` — the `deprecated`-name filter — stays
+/// `None`.
+#[test]
+fn numpy_non_deprecated_directive_flows_to_model() {
+    let parsed = parse_numpy("Summary.\n\n.. versionadded:: 2.0\n\nParameters\n----------\nx : int\n    Desc.\n");
+    let doc = numpy_to_model(&parsed).unwrap();
+    assert_eq!(doc.deprecation(), None);
+    assert_eq!(doc.directives.len(), 1);
+    assert_eq!(doc.directives[0].name, "versionadded");
+    assert_eq!(doc.directives[0].argument.as_deref(), Some("2.0"));
+    assert_eq!(doc.directives[0].description, None);
+}
+
+/// Consecutive directives all land in `model.directives`, in source order,
+/// and the `deprecated` one is still surfaced by `deprecation()`.
+#[test]
+fn numpy_multiple_directives_flow_to_model() {
+    let parsed = parse_numpy(
+        "Summary.\n\n.. deprecated:: 1.6.0\n    Use `other`.\n.. versionadded:: 2.0\n\nParameters\n----------\nx : int\n    Desc.\n",
+    );
+    let doc = numpy_to_model(&parsed).unwrap();
+    let names: Vec<&str> = doc.directives.iter().map(|d| d.name.as_str()).collect();
+    assert_eq!(names, vec!["deprecated", "versionadded"]);
+    assert_eq!(doc.deprecation().map(|d| d.argument.as_deref()), Some(Some("1.6.0")));
+}
+
 // =============================================================================
 // NumPy → IR: Summary & Extended Summary
 // =============================================================================

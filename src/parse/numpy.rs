@@ -13,6 +13,7 @@ pub use crate::parse::visitor::walk;
 pub use kind::NumPySectionKind;
 pub use nodes::NumPyAttribute;
 pub use nodes::NumPyDeprecation;
+pub use nodes::NumPyDirective;
 pub use nodes::NumPyDocstring;
 pub use nodes::NumPyException;
 pub use nodes::NumPyMethod;

@@ -5,19 +5,26 @@ DOCUMENT@0..2040 {
   }
   NEWLINE: "\n"@34..35
   BLANK_LINE: "\n"@35..36
-  EXTENDED_SUMMARY@36..489 {
-    TEXT_LINE: ".. note::"@36..45
+  DIRECTIVE@36..225 {
+    DIRECTIVE_MARKER: ".."@36..38
+    WHITESPACE: " "@38..39
+    DIRECTIVE_NAME: "note"@39..43
+    DOUBLE_COLON: "::"@43..45
     NEWLINE: "\n"@45..46
     WHITESPACE: "   "@46..49
-    TEXT_LINE: "Setting compression to `'gzip'` can save disk space"@49..100
-    NEWLINE: "\n"@100..101
-    WHITESPACE: "   "@101..104
-    TEXT_LINE: "but will slow down writing and subsequent reading."@104..154
-    NEWLINE: "\n"@154..155
-    WHITESPACE: "   "@155..158
-    TEXT_LINE: "Prior to v0.6.16, this was the default for parameter `compression`."@158..225
-    NEWLINE: "\n"@225..226
-    BLANK_LINE: "\n"@226..227
+    DESCRIPTION@49..225 {
+      TEXT_LINE: "Setting compression to `'gzip'` can save disk space"@49..100
+      NEWLINE: "\n"@100..101
+      WHITESPACE: "   "@101..104
+      TEXT_LINE: "but will slow down writing and subsequent reading."@104..154
+      NEWLINE: "\n"@154..155
+      WHITESPACE: "   "@155..158
+      TEXT_LINE: "Prior to v0.6.16, this was the default for parameter `compression`."@158..225
+    }
+  }
+  NEWLINE: "\n"@225..226
+  BLANK_LINE: "\n"@226..227
+  EXTENDED_SUMMARY@227..489 {
     TEXT_LINE: "Generally, if you have sparse data that are stored as a dense matrix,"@227..296
     NEWLINE: "\n"@296..297
     TEXT_LINE: "you can dramatically improve performance and reduce disk space"@297..359
@@ -180,9 +187,9 @@ DOCUMENT@0..2040 {
 Write `.h5ad`-formatted hdf5 file.
 
 .. note::
-   Setting compression to `'gzip'` can save disk space
-   but will slow down writing and subsequent reading.
-   Prior to v0.6.16, this was the default for parameter `compression`.
+    Setting compression to `'gzip'` can save disk space
+    but will slow down writing and subsequent reading.
+    Prior to v0.6.16, this was the default for parameter `compression`.
 
 Generally, if you have sparse data that are stored as a dense matrix,
 you can dramatically improve performance and reduce disk space

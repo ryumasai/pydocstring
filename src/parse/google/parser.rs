@@ -18,7 +18,7 @@ use crate::parse::utils::missing_text_block;
 use crate::parse::utils::process_reference_line;
 use crate::parse::utils::scan_type_markers;
 use crate::parse::utils::text_block_single;
-use crate::parse::utils::try_parse_deprecation_directive;
+use crate::parse::utils::try_parse_directive;
 use crate::syntax::Parsed;
 use crate::syntax::SyntaxElement;
 use crate::syntax::SyntaxKind;
@@ -801,7 +801,6 @@ pub fn parse_google(input: &str) -> Parsed {
     }
 
     let mut summary_done = false;
-    let mut deprecation_done = false;
     let mut extended_done = false;
     let mut summary_first: Option<usize> = None;
     let mut summary_last: usize = 0;
@@ -837,21 +836,24 @@ pub fn parse_google(input: &str) -> Parsed {
             continue;
         }
 
-        // --- Deprecation directive (mirrors the NumPy parser) ---
+        // --- rST directive (mirrors the NumPy parser) ---
         // Recognized only between the summary and the extended summary; a
-        // `.. deprecated::` line never matches section-header detection (a
-        // header name must start with an ASCII letter), so checking first is
-        // safe. The helper consumes the directive line plus its more-indented
+        // `.. name::` line never matches section-header detection (a header
+        // name must start with an ASCII letter, not `.`), so checking first is
+        // safe. Any directive name is accepted (`deprecated`, `versionadded`,
+        // `note`, …), and a run of consecutive directives is recognized here
+        // (numpydoc stacks e.g. `.. deprecated::` and `.. versionadded::`);
+        // once extended-summary prose begins (`ext_first`) directives stop.
+        // Block-level directives inside section bodies stay prose (deferred).
+        // The helper consumes the directive line plus its more-indented
         // description lines.
         if summary_done
-            && !deprecation_done
             && !extended_done
             && ext_first.is_none()
             && current_header.is_none()
-            && let Some(node) = try_parse_deprecation_directive(&mut line_cursor)
+            && let Some(node) = try_parse_directive(&mut line_cursor)
         {
             root_children.push(SyntaxElement::Node(node));
-            deprecation_done = true;
             continue;
         }
 

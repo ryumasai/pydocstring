@@ -1,0 +1,48 @@
+=== CST ===
+DOCUMENT@0..73 {
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
+  DIRECTIVE@10..31 {
+    DIRECTIVE_MARKER: ".."@10..12
+    WHITESPACE: " "@12..13
+    DIRECTIVE_NAME: "versionadded"@13..25
+    DOUBLE_COLON: "::"@25..27
+    WHITESPACE: " "@27..28
+    ARGUMENT: "2.0"@28..31
+  }
+  NEWLINE: "\n"@31..32
+  BLANK_LINE: "\n"@32..33
+  SECTION@33..72 {
+    SECTION_HEADER@33..54 {
+      NAME: "Parameters"@33..43
+      NEWLINE: "\n"@43..44
+      UNDERLINE: "----------"@44..54
+    }
+    NEWLINE: "\n"@54..55
+    ENTRY@55..72 {
+      NAME: "x"@55..56
+      WHITESPACE: " "@56..57
+      COLON: ":"@57..58
+      WHITESPACE: " "@58..59
+      TYPE: "int"@59..62
+      NEWLINE: "\n"@62..63
+      WHITESPACE: "    "@63..67
+      DESCRIPTION@67..72 {
+        TEXT_LINE: "Desc."@67..72
+      }
+    }
+  }
+  NEWLINE: "\n"@72..73
+}
+=== EMIT ===
+Summary.
+
+.. versionadded:: 2.0
+
+Parameters
+----------
+x : int
+    Desc.

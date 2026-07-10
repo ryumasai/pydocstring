@@ -232,6 +232,58 @@ fn document_directives() {
     assert_eq!(dep.description().unwrap().text(), "Use `other` instead.");
 }
 
+/// A non-deprecated directive (`.. versionadded:: 2.0`) is recognized at the
+/// post-summary slot and exposed through the same name/argument accessors.
+#[test]
+fn document_directive_non_deprecated() {
+    let parsed = parse("Summary.\n\n.. versionadded:: 2.0\n\nParameters\n----------\nx : int\n    Desc.\n");
+    let doc = Document::new(&parsed);
+    let directives: Vec<_> = doc.directives().collect();
+    assert_eq!(directives.len(), 1);
+    assert_eq!(directives[0].name().text(), "versionadded");
+    assert_eq!(directives[0].argument().unwrap().text(), "2.0");
+    assert!(directives[0].description().is_none());
+}
+
+/// An admonition directive (`.. note::`) carries no argument but keeps its
+/// indented body as the description.
+#[test]
+fn document_directive_admonition_no_argument() {
+    let parsed = parse("Summary.\n\n.. note::\n    Be careful.\n\nParameters\n----------\nx : int\n    Desc.\n");
+    let directive = Document::new(&parsed).directives().next().unwrap();
+    assert_eq!(directive.name().text(), "note");
+    assert!(directive.argument().is_none());
+    assert_eq!(directive.description().unwrap().text(), "Be careful.");
+}
+
+/// Consecutive directives at the post-summary slot each become a `DIRECTIVE`.
+#[test]
+fn document_directives_multiple() {
+    let parsed = parse(
+        "Summary.\n\n.. deprecated:: 1.6.0\n    Use `other`.\n.. versionadded:: 2.0\n\nParameters\n----------\nx : int\n    Desc.\n",
+    );
+    let names: Vec<String> = Document::new(&parsed)
+        .directives()
+        .map(|d| d.name().text().to_owned())
+        .collect();
+    assert_eq!(names, vec!["deprecated", "versionadded"]);
+}
+
+/// Lines shaped like explicit markup but not a valid directive fall through to
+/// prose without panicking: a digit-led name, a bare `..`, and an empty name.
+#[test]
+fn non_directive_markup_falls_through_to_prose() {
+    for src in [
+        "Summary.\n\n.. 1bad:: x\n\nParameters\n----------\nx : int\n    Desc.\n",
+        "Summary.\n\n.. ::\n\nParameters\n----------\nx : int\n    Desc.\n",
+        "Summary.\n\n..\n\nParameters\n----------\nx : int\n    Desc.\n",
+    ] {
+        let parsed = parse(src);
+        // No DIRECTIVE was produced — the markup-shaped line stayed prose.
+        assert_eq!(Document::new(&parsed).directives().count(), 0, "src: {src:?}");
+    }
+}
+
 // =============================================================================
 // Section: citations
 // =============================================================================

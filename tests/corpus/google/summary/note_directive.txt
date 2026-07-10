@@ -1,0 +1,8 @@
+Summary.
+
+.. note::
+    This is an admonition body.
+    Second line of the note.
+
+Args:
+    x (int): The value.

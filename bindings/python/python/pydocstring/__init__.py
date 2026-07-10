@@ -6,6 +6,7 @@ from ._pydocstring import ExceptionEntry
 from ._pydocstring import GoogleArg
 from ._pydocstring import GoogleAttribute
 from ._pydocstring import GoogleDeprecation
+from ._pydocstring import GoogleDirective
 from ._pydocstring import GoogleDocstring
 from ._pydocstring import GoogleException
 from ._pydocstring import GoogleMethod
@@ -21,6 +22,7 @@ from ._pydocstring import Match
 from ._pydocstring import Method
 from ._pydocstring import NumPyAttribute
 from ._pydocstring import NumPyDeprecation
+from ._pydocstring import NumPyDirective
 from ._pydocstring import NumPyDocstring
 from ._pydocstring import NumPyException
 from ._pydocstring import NumPyMethod
@@ -72,6 +74,7 @@ __all__ = [
     "GoogleDocstring",
     "GoogleSection",
     "GoogleDeprecation",
+    "GoogleDirective",
     "GoogleArg",
     "GoogleReturn",
     "GoogleYield",
@@ -85,6 +88,7 @@ __all__ = [
     "NumPyDocstring",
     "NumPySection",
     "NumPyDeprecation",
+    "NumPyDirective",
     "NumPyParameter",
     "NumPyReturns",
     "NumPyYields",

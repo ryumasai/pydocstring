@@ -1,0 +1,46 @@
+=== CST ===
+DOCUMENT@0..63 {
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
+  DIRECTIVE@10..31 {
+    DIRECTIVE_MARKER: ".."@10..12
+    WHITESPACE: " "@12..13
+    DIRECTIVE_NAME: "versionadded"@13..25
+    DOUBLE_COLON: "::"@25..27
+    WHITESPACE: " "@27..28
+    ARGUMENT: "2.0"@28..31
+  }
+  NEWLINE: "\n"@31..32
+  BLANK_LINE: "\n"@32..33
+  SECTION@33..62 {
+    SECTION_HEADER@33..38 {
+      NAME: "Args"@33..37
+      COLON: ":"@37..38
+    }
+    NEWLINE: "\n"@38..39
+    WHITESPACE: "    "@39..43
+    ENTRY@43..62 {
+      NAME: "x"@43..44
+      WHITESPACE: " "@44..45
+      OPEN_BRACKET: "("@45..46
+      TYPE: "int"@46..49
+      CLOSE_BRACKET: ")"@49..50
+      COLON: ":"@50..51
+      WHITESPACE: " "@51..52
+      DESCRIPTION@52..62 {
+        TEXT_LINE: "The value."@52..62
+      }
+    }
+  }
+  NEWLINE: "\n"@62..63
+}
+=== EMIT ===
+Summary.
+
+.. versionadded:: 2.0
+
+Args:
+    x (int): The value.
