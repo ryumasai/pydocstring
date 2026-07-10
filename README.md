@@ -25,7 +25,7 @@ Python bindings are also available as [`pydocstring-rs`](https://pypi.org/projec
 
 ```toml
 [dependencies]
-pydocstring = "0.3.0"
+pydocstring = "0.3.1"
 ```
 
 ## Usage

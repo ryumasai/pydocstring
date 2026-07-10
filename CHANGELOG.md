@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-07-10
+
+**The edit API release** — phase 3 of the v2 roadmap
+([#48](https://github.com/ryumasai/pydocstring/issues/48)). This adds a
+pattern-based match/rewrite layer on top of the lossless CST: you target
+exactly the nodes you want and every other byte is preserved verbatim, which
+is the round-trip fidelity the normalizing `to_model()` path could not offer
+([#26](https://github.com/ryumasai/pydocstring/issues/26)). The release is
+purely additive — no existing API changed.
+
+### Added
+
+- **Pattern match/rewrite over the CST.** Patterns are docstring fragments
+  with metavariables — `$X` (a single node) and `$$$X` (a run of siblings);
+  rewrite templates re-render at the match site's base indent, and captured
+  variables substitute the **original source bytes** so anything you don't
+  rewrite is preserved by construction. Matching is whitespace-insensitive
+  and indentation-relative ([#45](https://github.com/ryumasai/pydocstring/issues/45),
+  [#46](https://github.com/ryumasai/pydocstring/issues/46),
+  [#47](https://github.com/ryumasai/pydocstring/issues/47)).
+  - Rust: `Pattern`, `Rewriter::replace` / `Rewriter::replace_in`, and
+    ambiguity resolution via `PatternOptions` (including
+    `Pattern::in_section`).
+  - Python: `doc.replace(pattern, template)` and `doc.findall(pattern)`.
+- **Low-level anchored edit primitive.** An anchored splice edit list
+  (`Editor` with `replace` / `replace_node` / `replace_token`) underneath the
+  pattern layer, with byte-identity property tests
+  ([#44](https://github.com/ryumasai/pydocstring/issues/44)).
+- **Generalized rST directives.** The parser now recognizes any
+  reStructuredText directive as a `DIRECTIVE` node rather than only
+  `deprecated` ([#84](https://github.com/ryumasai/pydocstring/issues/84)).
+
+### Changed
+
+- Differential parity tests against `sphinx.ext.napoleon` for Google and
+  NumPy docstrings, with the known divergences documented.
+
 ## [0.3.0] - 2026-07-09
 
 **The style-independent CST release** — phase 2 of the v2 roadmap
@@ -731,6 +768,7 @@ infrastructure ([#59](https://github.com/ryumasai/pydocstring/issues/59)).
 - Zero external crate dependencies
 - Python bindings via PyO3 (`pydocstring-rs`)
 
+[0.3.1]: https://github.com/ryumasai/pydocstring/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ryumasai/pydocstring/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ryumasai/pydocstring/compare/v0.1.15...v0.2.0
 [0.1.15]: https://github.com/ryumasai/pydocstring/compare/v0.1.14...v0.1.15
