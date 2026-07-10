@@ -56,6 +56,11 @@ py-dev: py-sync
 py-test: py-dev
     cd {{py_dir}} && uv run pytest tests/ -v
 
+# Run only the sphinx.ext.napoleon differential parity suite (needs sphinx,
+# which is a dev dependency; folded into py-test/py-ci automatically)
+py-napoleon: py-dev
+    cd {{py_dir}} && uv run pytest tests/test_napoleon_differential.py -v
+
 # Format Python sources (ruff)
 py-fmt:
     cd {{py_dir}} && uv run ruff format
