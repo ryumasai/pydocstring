@@ -3930,13 +3930,15 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
     }
 
     fn visit_google_deprecation(&mut self, parsed: &Parsed, dep: &gn::GoogleDeprecation<'_>) -> Result<(), PyErr> {
+        // Notification specialization: the generic directive hook already
+        // descended the body, so fire the deprecation hooks WITHOUT walking
+        // children again (no-children macro arm) — mirrors the core contract.
         visit_node!(
             self,
             parsed,
             google_deprecation,
             exit_google_deprecation,
-            self.wrap::<PyGoogleDeprecation>(dep.syntax()),
-            dep.syntax()
+            self.wrap::<PyGoogleDeprecation>(dep.syntax())
         )
     }
 
@@ -4074,13 +4076,15 @@ impl<'py> DocstringVisitor for PyDispatcher<'py> {
     }
 
     fn visit_numpy_deprecation(&mut self, parsed: &Parsed, dep: &nn::NumPyDeprecation<'_>) -> Result<(), PyErr> {
+        // Notification specialization: the generic directive hook already
+        // descended the body, so fire the deprecation hooks WITHOUT walking
+        // children again (no-children macro arm) — mirrors the core contract.
         visit_node!(
             self,
             parsed,
             numpy_deprecation,
             exit_numpy_deprecation,
-            self.wrap::<PyNumPyDeprecation>(dep.syntax()),
-            dep.syntax()
+            self.wrap::<PyNumPyDeprecation>(dep.syntax())
         )
     }
 

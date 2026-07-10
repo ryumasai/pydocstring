@@ -119,9 +119,14 @@ pub trait DocstringVisitor: Sized {
     fn visit_google_directive(&mut self, parsed: &Parsed, dir: &GoogleDirective<'_>) -> Result<(), Self::Error> {
         walk_children(parsed, dir.syntax(), self)
     }
-    /// Called for the deprecation notice, if present.
+    /// Called for a `deprecated`-named directive, after
+    /// [`visit_google_directive`](Self::visit_google_directive). This is a
+    /// notification specialization: the generic directive hook owns the child
+    /// traversal, so this default does **not** descend again (overriding it to
+    /// call `walk_children` would visit the body twice). Returns `Ok(())`.
+    #[allow(unused_variables)]
     fn visit_google_deprecation(&mut self, parsed: &Parsed, dep: &GoogleDeprecation<'_>) -> Result<(), Self::Error> {
-        walk_children(parsed, dep.syntax(), self)
+        Ok(())
     }
     /// Called for each Google section.
     fn visit_google_section(&mut self, parsed: &Parsed, sec: &GoogleSection<'_>) -> Result<(), Self::Error> {
@@ -175,9 +180,14 @@ pub trait DocstringVisitor: Sized {
     fn visit_numpy_directive(&mut self, parsed: &Parsed, dir: &NumPyDirective<'_>) -> Result<(), Self::Error> {
         walk_children(parsed, dir.syntax(), self)
     }
-    /// Called for the deprecation notice, if present.
+    /// Called for a `deprecated`-named directive, after
+    /// [`visit_numpy_directive`](Self::visit_numpy_directive). This is a
+    /// notification specialization: the generic directive hook owns the child
+    /// traversal, so this default does **not** descend again (overriding it to
+    /// call `walk_children` would visit the body twice). Returns `Ok(())`.
+    #[allow(unused_variables)]
     fn visit_numpy_deprecation(&mut self, parsed: &Parsed, dep: &NumPyDeprecation<'_>) -> Result<(), Self::Error> {
-        walk_children(parsed, dep.syntax(), self)
+        Ok(())
     }
     /// Called for each NumPy section.
     fn visit_numpy_section(&mut self, parsed: &Parsed, sec: &NumPySection<'_>) -> Result<(), Self::Error> {
