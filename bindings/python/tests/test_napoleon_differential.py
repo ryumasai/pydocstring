@@ -76,9 +76,20 @@ PARSERS = {
 # Shared reason strings (kept short so the table stays under the line limit).
 _BRACKET = "we parse this type-bracket form; napoleon reads the brackets as part of the name"
 _INDENT = "napoleon needs column-0 section headers; the indented docstring defeats its section detection"
-_ALIAS = "our section-header alias; napoleon does not recognize it"
+_ALIAS = (
+    "'Params' header: recognized by our default alias set, and by scverse's "
+    "own napoleon config via napoleon_custom_sections=[('Params','Parameters')] "
+    "(this differential runs stock napoleon without that setting, so it diverges "
+    "here while scverse's actual render agrees with us)."
+)
 _GOOGLE_IN_NUMPY = "we parse a google-style 'name (type)' entry in a NumPy section; napoleon reads it as one name"
-_ANON_RETURN = "numpydoc reads the anonymous NumPy return line as a type; napoleon reads it as a description"
+_ANON_RETURN = (
+    "multi-block prose intro in Returns: we emit one type-only entry per prose "
+    "line, napoleon reflows the prose to a bulleted description. (A SINGLE bare "
+    "line is a type on both sides — verified; the divergence is only the "
+    "multi-paragraph case.) The structurally correct reading is prose "
+    "paragraphs + a definition list — deferred block-level reST work, see #104."
+)
 _MORE_ALIASES = "we accept more header aliases than napoleon; extra aliased sections are extracted"
 _ISSUE26_COLON = "issue #26: we strip the role colon from the description; napoleon keeps it"
 _KW_ALIAS = "'Keyword Parameters' is our alias; napoleon knows only 'Keyword Args'"
@@ -124,7 +135,7 @@ KNOWN_NAPOLEON_DIVERGENCES: dict[str, str] = {
     "third_party/fire/google/completion_membervisible.txt": _FIRE_NOCOLON,
     # ── NumPy anonymous-return prose: numpydoc reads a bare line as a type,
     #    napoleon reads it as a description (and strips a trailing colon) ──────
-    "third_party/anndata/numpy/obs_vector.txt": "'Params' alias for params + " + _ANON_RETURN,
+    "third_party/anndata/numpy/obs_vector.txt": "'Params' header (see _ALIAS) plus " + _ANON_RETURN,
     "third_party/scanpy/numpy/pca.txt": _ANON_RETURN,
     "third_party/scanpy/numpy/filter_cells.txt": _ANON_RETURN,
     "third_party/scanpy/numpy/leiden.txt": _ANON_RETURN,
