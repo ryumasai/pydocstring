@@ -78,6 +78,11 @@
 //!   [`Pattern::matches_in`](pattern::Pattern::matches_in), see [`matcher`]):
 //!   trivia-skipping, indentation-relative unification whose captures expose
 //!   the original target bytes
+//! - Pattern-based rewriting
+//!   ([`Parsed::replace`](syntax::Parsed::replace) /
+//!   [`Parsed::replace_in`](syntax::Parsed::replace_in), see [`rewrite`]):
+//!   splices a template rendered with byte-exact captured content, preserving
+//!   everything outside the rewritten regions by construction
 //! - Emit to Google, NumPy, and Sphinx (reStructuredText) styles (Sphinx is
 //!   emit-only; see [`emit::sphinx`])
 
@@ -88,5 +93,6 @@ pub mod matcher;
 pub mod model;
 pub mod parse;
 pub mod pattern;
+pub mod rewrite;
 pub mod syntax;
 pub mod text;

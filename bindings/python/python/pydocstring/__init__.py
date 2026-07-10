@@ -1,4 +1,5 @@
 from ._pydocstring import Attribute
+from ._pydocstring import Capture
 from ._pydocstring import Directive
 from ._pydocstring import Docstring
 from ._pydocstring import ExceptionEntry
@@ -16,6 +17,7 @@ from ._pydocstring import GoogleSeeAlsoItem
 from ._pydocstring import GoogleWarning
 from ._pydocstring import GoogleYield
 from ._pydocstring import LineColumn
+from ._pydocstring import Match
 from ._pydocstring import Method
 from ._pydocstring import NumPyAttribute
 from ._pydocstring import NumPyDeprecation
@@ -31,6 +33,7 @@ from ._pydocstring import NumPySeeAlsoItem
 from ._pydocstring import NumPyWarning
 from ._pydocstring import NumPyYields
 from ._pydocstring import Parameter
+from ._pydocstring import PatternError
 from ._pydocstring import PlainDocstring
 from ._pydocstring import Reference
 from ._pydocstring import Return
@@ -93,6 +96,10 @@ __all__ = [
     "NumPyMethod",
     # ── Plain CST wrapper ─────────────────────────────────────────────────
     "PlainDocstring",
+    # ── Pattern matching & rewriting ──────────────────────────────────────
+    "Match",
+    "Capture",
+    "PatternError",
     # ── Model IR ──────────────────────────────────────────────────────────
     "Docstring",
     "Section",

@@ -19,6 +19,7 @@ Python bindings are also available as [`pydocstring-rs`](https://pypi.org/projec
 - **Zero dependencies** — pure Rust, no external crates, no regex
 - **Error-resilient** — never panics; malformed input still yields a best-effort tree
 - **Style auto-detection** — hand it a docstring, get back `Style::Google`, `Style::NumPy`, or `Style::Plain`
+- **Pattern matching & rewriting** — find and `replace` constructs with `$NAME` / `$$$NAME` patterns, substituting byte-exact captured content so everything you don't rewrite is preserved
 
 ## Installation
 
@@ -259,6 +260,40 @@ let parsed = parse_google("Summary.\n\nArgs:\n    x (int): The value.\n");
 let doc = to_model(&parsed).unwrap();
 let numpy_text = emit_numpy(&doc, &EmitOptions::default());
 assert!(numpy_text.contains("Parameters\n----------"));
+```
+
+### Pattern Matching & Rewriting
+
+Find constructs with a `$NAME` / `$$$NAME` pattern and rewrite them with a
+template. Captured metavariables substitute the **original source bytes**, so
+everything you don't explicitly rewrite is preserved byte-for-byte — the issue
+The issue #26 use case of annotating one entry without reflowing the rest:
+
+```rust
+use pydocstring::parse::{parse, Style};
+use pydocstring::pattern::Pattern;
+
+let src = "Summary.\n\nArgs:\n    x (int): The value.\n    y (str): Kept.\n";
+let parsed = parse(src);
+let pattern = Pattern::new(Style::Google, "$NAME (int): $DESC").unwrap();
+
+let out = parsed.replace(&pattern, "$NAME (int): $DESC (deprecated)").unwrap();
+assert_eq!(
+    out,
+    "Summary.\n\nArgs:\n    x (int): The value. (deprecated)\n    y (str): Kept.\n",
+);
+```
+
+In Python the same lives on the docstring wrappers as `doc.replace(pattern, template)`
+and `doc.findall(pattern)`:
+
+```python
+import pydocstring
+
+doc = pydocstring.parse_google("Summary.\n\nArgs:\n    x (int): The value.\n")
+new_src = doc.replace("$NAME ($TYPE): $DESC", "$NAME ($TYPE): $DESC (deprecated)")
+for m in doc.findall("$NAME ($TYPE): $DESC"):
+    print(m.capture("NAME").text, m.capture("TYPE").text)
 ```
 
 ## Supported Sections

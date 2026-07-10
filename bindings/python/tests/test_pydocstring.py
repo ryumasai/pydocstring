@@ -1423,3 +1423,77 @@ class TestMissingnessGrammarAsymmetries:
         attrs = model.sections[0].attributes
         assert attrs is not None
         assert attrs[0].names == ["jac", "hess"]
+
+
+class TestRewrite:
+    """`doc.replace` / `doc.findall` — the RFC #48 rewrite capstone (#47)."""
+
+    def test_findall_returns_matches_with_captures(self):
+        doc = pydocstring.parse_google("Summary.\n\nArgs:\n    x (int): The value.\n    y (str): Another.\n")
+        matches = doc.findall("$NAME ($TYPE): $DESC")
+        assert len(matches) == 2
+        assert matches[0].text == "x (int): The value."
+        caps = matches[0].captures
+        assert caps["NAME"].text == "x"
+        assert caps["TYPE"].text == "int"
+        assert caps["DESC"].text == "The value."
+        first_name = matches[0].capture("NAME")
+        second_name = matches[1].capture("NAME")
+        assert first_name is not None and first_name.text == "x"
+        assert matches[0].capture("MISSING") is None
+        assert second_name is not None and second_name.text == "y"
+
+    def test_capture_range_and_is_multi(self):
+        doc = pydocstring.parse_google("Summary.\n\nArgs:\n    x (int): The value.\n")
+        m = doc.findall("$NAME ($TYPE): $DESC")[0]
+        name = m.capture("NAME")
+        assert name is not None
+        # `x` sits at byte offset 20 in the source.
+        assert doc.source[name.range.start : name.range.end] == "x"
+        assert name.is_multi() is False
+
+    def test_replace_roundtrips_when_template_reemits_captures(self):
+        src = "Summary.\n\nArgs:\n    x (int): The value.\n    y (str): Another.\n"
+        doc = pydocstring.parse_google(src)
+        # A template that re-emits every capture reproduces the source exactly.
+        assert doc.replace("$NAME ($TYPE): $DESC", "$NAME ($TYPE): $DESC") == src
+
+    def test_replace_issue_26_annotate_one_entry(self):
+        src = "Summary.\n\nArgs:\n    x (int): The value.\n    y (str): Kept.\n"
+        doc = pydocstring.parse_google(src)
+        out = doc.replace("$NAME ($TYPE): $DESC", "$NAME ($TYPE): $DESC (deprecated)")
+        assert out == ("Summary.\n\nArgs:\n    x (int): The value. (deprecated)\n    y (str): Kept. (deprecated)\n")
+
+    def test_replace_numpy_style(self):
+        # A description-less parameter so the single-line `$NAME : $TYPE`
+        # pattern matches the whole entry.
+        src = "Summary.\n\nParameters\n----------\nx : int\n"
+        doc = pydocstring.parse_numpy(src)
+        matches = doc.findall("$NAME : $TYPE")
+        assert any((c := m.capture("NAME")) is not None and c.text == "x" for m in matches)
+        # Re-emitting the whole entry is identity.
+        src_desc = "Summary.\n\nParameters\n----------\nx : int\n    The value.\n"
+        assert pydocstring.parse_numpy(src_desc).replace("$$$X", "$$$X") == src_desc
+
+    def test_replace_no_match_is_noop(self):
+        src = "Summary.\n\nArgs:\n    x (int): The value.\n"
+        doc = pydocstring.parse_google(src)
+        assert doc.replace("$NAME (bool): $DESC", "changed") == src
+
+    def test_replace_style_mismatch_is_noop(self):
+        # A NumPy pattern against a Google document matches nothing.
+        src = "Summary.\n\nArgs:\n    x (int): The value.\n"
+        doc = pydocstring.parse_google(src)
+        assert doc.replace("$NAME : $TYPE", "changed") == src
+
+    def test_invalid_pattern_raises_pattern_error(self):
+        doc = pydocstring.parse_google("Summary.\n")
+        with pytest.raises(pydocstring.PatternError):
+            doc.findall("")
+        # PatternError is a ValueError subclass.
+        assert issubclass(pydocstring.PatternError, ValueError)
+
+    def test_unknown_template_metavar_raises(self):
+        doc = pydocstring.parse_google("Summary.\n\nArgs:\n    x (int): The value.\n")
+        with pytest.raises(ValueError):
+            doc.replace("$NAME ($TYPE): $DESC", "$NOPE")
