@@ -201,6 +201,11 @@ fn render(template: &str, m: &Match<'_>, source: &str) -> Result<String, Rewrite
                     if ch == '\n' {
                         out.push('\n');
                         pending = true; // A blank line keeps the indent owed.
+                    } else if ch == '\r' {
+                        // Part of a CRLF terminator, not line content: emit it
+                        // without fulfilling the owed indent, so a blank CRLF
+                        // line stays blank rather than gaining whitespace.
+                        out.push('\r');
                     } else {
                         if pending {
                             out.push_str(base);

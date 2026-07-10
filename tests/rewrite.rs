@@ -126,6 +126,20 @@ fn multiline_template_reindents_continuations() {
     assert_eq!(out, "Summary.\n\nArgs:\n    x (int):\n    The value.\n");
 }
 
+/// A blank CRLF continuation line in the template stays blank — the owed base
+/// indent must not be flushed before the `\r` of an empty `\r\n` line (#101).
+#[test]
+fn crlf_blank_continuation_line_stays_blank() {
+    let src = "Summary.\n\nArgs:\n    x (int): The value.\n";
+    let parsed = parse(src);
+    let pattern = Pattern::new(Style::Google, "$NAME ($TYPE): $DESC").unwrap();
+
+    // Template with a blank CRLF line between two content lines.
+    let out = parsed.replace(&pattern, "$NAME ($TYPE): $DESC\r\n\r\ntail").unwrap();
+    // The empty line carries no indentation; only the real continuation does.
+    assert_eq!(out, "Summary.\n\nArgs:\n    x (int): The value.\r\n\r\n    tail\n");
+}
+
 /// Interior template indentation is preserved *on top of* the base indent:
 /// the template's own leading spaces stack under the base indent.
 #[test]
