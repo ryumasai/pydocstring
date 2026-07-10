@@ -576,13 +576,31 @@ fn placeholder_stem(text: &str) -> String {
     stem
 }
 
-/// Replace every metavariable occurrence with a unique placeholder name and
-/// inventory the occurrences, in source order.
-fn substitute_metavars(text: &str) -> (String, Vec<Occurrence>) {
-    let stem = placeholder_stem(text);
+/// One lexed piece of pattern (or template) text: a run of literal
+/// characters, or a metavariable reference.
+///
+/// This is the shared `$X` / `$$$X` scanner used both when parsing a pattern
+/// (below) and when rendering a rewrite template (#47,
+/// [`crate::rewrite`]) — the template is *not* a fragment to parse, but its
+/// metavariable holes are recognised by the exact same rules, so the two
+/// layers share one scanner rather than reimplementing the lexing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum MetaVarToken<'a> {
+    /// A run of literal (non-metavariable) text.
+    Literal(&'a str),
+    /// A `$NAME` (`multi == false`) or `$$$NAME` (`multi == true`) reference;
+    /// `name` excludes the sigil.
+    Var { name: &'a str, multi: bool },
+}
+
+/// Lex `text` into literal runs and metavariable references using the
+/// documented [metavariable syntax](self#metavariable-syntax): a `$` starts a
+/// metavariable only at a word boundary and only when followed by an
+/// uppercase identifier; everything else is literal. Adjacent literal
+/// characters are coalesced into a single [`MetaVarToken::Literal`] run.
+pub(crate) fn lex_metavars(text: &str) -> Vec<MetaVarToken<'_>> {
     let bytes = text.as_bytes();
-    let mut out = String::with_capacity(text.len());
-    let mut occurrences: Vec<Occurrence> = Vec::new();
+    let mut tokens: Vec<MetaVarToken<'_>> = Vec::new();
     let mut run_start = 0;
     let mut i = 0;
     while i < bytes.len() {
@@ -598,13 +616,12 @@ fn substitute_metavars(text: &str) -> (String, Vec<Occurrence>) {
                 while end < bytes.len() && is_ident_continue(bytes[end]) {
                     end += 1;
                 }
-                let placeholder = format!("{stem}{}X", occurrences.len());
-                out.push_str(&text[run_start..i]);
-                out.push_str(&placeholder);
-                occurrences.push(Occurrence {
-                    name: text[ident_start..end].to_owned(),
+                if run_start < i {
+                    tokens.push(MetaVarToken::Literal(&text[run_start..i]));
+                }
+                tokens.push(MetaVarToken::Var {
+                    name: &text[ident_start..end],
                     multi,
-                    placeholder,
                 });
                 run_start = end;
                 i = end;
@@ -613,7 +630,33 @@ fn substitute_metavars(text: &str) -> (String, Vec<Occurrence>) {
         }
         i += 1;
     }
-    out.push_str(&text[run_start..]);
+    if run_start < text.len() {
+        tokens.push(MetaVarToken::Literal(&text[run_start..]));
+    }
+    tokens
+}
+
+/// Replace every metavariable occurrence with a unique placeholder name and
+/// inventory the occurrences, in source order. Built on the shared
+/// [`lex_metavars`] scanner.
+fn substitute_metavars(text: &str) -> (String, Vec<Occurrence>) {
+    let stem = placeholder_stem(text);
+    let mut out = String::with_capacity(text.len());
+    let mut occurrences: Vec<Occurrence> = Vec::new();
+    for token in lex_metavars(text) {
+        match token {
+            MetaVarToken::Literal(literal) => out.push_str(literal),
+            MetaVarToken::Var { name, multi } => {
+                let placeholder = format!("{stem}{}X", occurrences.len());
+                out.push_str(&placeholder);
+                occurrences.push(Occurrence {
+                    name: name.to_owned(),
+                    multi,
+                    placeholder,
+                });
+            }
+        }
+    }
     (out, occurrences)
 }
 

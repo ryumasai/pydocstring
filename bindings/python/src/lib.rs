@@ -1,6 +1,10 @@
 use pyo3::PyClass;
 use pyo3::prelude::*;
-use pyo3::types::{PyList, PyString};
+use pyo3::types::{PyDict, PyList, PyString};
+
+use pydocstring_core::matcher::Match;
+use pydocstring_core::parse::Style as CoreStyle;
+use pydocstring_core::pattern::Pattern;
 
 use pydocstring_core::emit::EmitOptions;
 use pydocstring_core::model;
@@ -1168,6 +1172,19 @@ impl PyGoogleDocstring {
             .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
     }
+    /// Replace every match of ``pattern`` (a Google-style pattern with
+    /// ``$NAME`` / ``$$$NAME`` metavariables) with ``template``, returning the
+    /// new source. Captured content is substituted byte-for-byte; everything
+    /// else is preserved. Raises ``PatternError`` for an invalid pattern.
+    fn replace(&self, pattern: &str, template: &str) -> PyResult<String> {
+        rewrite_replace(&self.nr, CoreStyle::Google, pattern, template)
+    }
+    /// Find every match of ``pattern`` in document order (non-overlapping),
+    /// returning a list of ``Match``. Raises ``PatternError`` for an invalid
+    /// pattern.
+    fn findall(&self, py: Python<'_>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
+        rewrite_findall(py, &self.nr, CoreStyle::Google, pattern)
+    }
     fn __repr__(&self) -> &'static str {
         "GoogleDocstring(...)"
     }
@@ -1599,6 +1616,19 @@ impl PyNumPyDocstring {
             .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
     }
+    /// Replace every match of ``pattern`` (a NumPy-style pattern with
+    /// ``$NAME`` / ``$$$NAME`` metavariables) with ``template``, returning the
+    /// new source. Captured content is substituted byte-for-byte; everything
+    /// else is preserved. Raises ``PatternError`` for an invalid pattern.
+    fn replace(&self, pattern: &str, template: &str) -> PyResult<String> {
+        rewrite_replace(&self.nr, CoreStyle::NumPy, pattern, template)
+    }
+    /// Find every match of ``pattern`` in document order (non-overlapping),
+    /// returning a list of ``Match``. Raises ``PatternError`` for an invalid
+    /// pattern.
+    fn findall(&self, py: Python<'_>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
+        rewrite_findall(py, &self.nr, CoreStyle::NumPy, pattern)
+    }
     fn __repr__(&self) -> &'static str {
         "NumPyDocstring(...)"
     }
@@ -1647,6 +1677,19 @@ impl PyPlainDocstring {
             .map(|doc| PyModelDocstring::try_from(&doc))
             .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
+    }
+    /// Replace every match of ``pattern`` (a plain-style pattern with
+    /// ``$NAME`` / ``$$$NAME`` metavariables) with ``template``, returning the
+    /// new source. Captured content is substituted byte-for-byte; everything
+    /// else is preserved. Raises ``PatternError`` for an invalid pattern.
+    fn replace(&self, pattern: &str, template: &str) -> PyResult<String> {
+        rewrite_replace(&self.nr, CoreStyle::Plain, pattern, template)
+    }
+    /// Find every match of ``pattern`` in document order (non-overlapping),
+    /// returning a list of ``Match``. Raises ``PatternError`` for an invalid
+    /// pattern.
+    fn findall(&self, py: Python<'_>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
+        rewrite_findall(py, &self.nr, CoreStyle::Plain, pattern)
     }
     fn __repr__(&self) -> &'static str {
         "PlainDocstring(...)"
@@ -3246,6 +3289,162 @@ impl<'py> pyo3::IntoPyObject<'py> for ParsedDocstring {
 }
 
 // =============================================================================
+// Pattern matching & rewriting (#47)
+// =============================================================================
+
+pyo3::create_exception!(
+    _pydocstring,
+    PatternError,
+    pyo3::exceptions::PyValueError,
+    "Raised when a pattern string has no valid reading (a ValueError subclass)."
+);
+
+/// Build a core `Pattern`, surfacing `PatternError` on failure.
+fn build_pattern(style: CoreStyle, pattern: &str) -> PyResult<Pattern> {
+    Pattern::new(style, pattern).map_err(|e| PatternError::new_err(e.to_string()))
+}
+
+/// Immutable value snapshot of a matcher `Capture` (byte range + original
+/// target bytes); cloned into every `Capture`/`captures` access.
+#[derive(Clone)]
+struct CaptureData {
+    start: u32,
+    end: u32,
+    text: String,
+    multi: bool,
+}
+
+/// One metavariable capture of a `Match`: the original target bytes it bound
+/// (`text`) and their byte range. Frozen, read-only.
+#[pyclass(frozen, skip_from_py_object, name = "Capture")]
+struct PyCapture {
+    data: CaptureData,
+}
+
+#[pymethods]
+impl PyCapture {
+    /// Byte range of the captured span, in the target's coordinates.
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        Py::new(
+            py,
+            PyTextRange {
+                start: self.data.start,
+                end: self.data.end,
+            },
+        )
+    }
+    /// The original target bytes of the captured span (never reformatted).
+    #[getter]
+    fn text(&self) -> &str {
+        &self.data.text
+    }
+    /// Whether this capture was bound by a ``$$$NAME`` sequence variable.
+    fn is_multi(&self) -> bool {
+        self.data.multi
+    }
+    fn __repr__(&self) -> String {
+        format!("Capture({:?})", self.data.text)
+    }
+}
+
+/// One non-overlapping match of a pattern against a docstring: the matched
+/// span (`range` / `text`) and its metavariable `captures`. Frozen value
+/// snapshot — safe to keep after the source is dropped.
+#[pyclass(frozen, skip_from_py_object, name = "Match")]
+struct PyMatch {
+    start: u32,
+    end: u32,
+    text: String,
+    captures: Vec<(String, CaptureData)>,
+}
+
+impl PyMatch {
+    fn from_match(m: &Match<'_>) -> Self {
+        let captures = m
+            .captures()
+            .map(|(name, capture)| {
+                (
+                    name.to_owned(),
+                    CaptureData {
+                        start: capture.range().start().raw(),
+                        end: capture.range().end().raw(),
+                        text: capture.text().to_owned(),
+                        multi: capture.is_multi(),
+                    },
+                )
+            })
+            .collect();
+        PyMatch {
+            start: m.range().start().raw(),
+            end: m.range().end().raw(),
+            text: m.text().to_owned(),
+            captures,
+        }
+    }
+}
+
+#[pymethods]
+impl PyMatch {
+    /// Byte range of the matched span, in the target's coordinates.
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        Py::new(
+            py,
+            PyTextRange {
+                start: self.start,
+                end: self.end,
+            },
+        )
+    }
+    /// The matched span's original target bytes.
+    #[getter]
+    fn text(&self) -> &str {
+        &self.text
+    }
+    /// The captures as a ``dict[str, Capture]``, keyed by metavariable name
+    /// (first occurrence order preserved by insertion).
+    #[getter]
+    fn captures(&self, py: Python<'_>) -> PyResult<Py<PyDict>> {
+        let dict = PyDict::new(py);
+        for (name, data) in &self.captures {
+            dict.set_item(name, Py::new(py, PyCapture { data: data.clone() })?)?;
+        }
+        Ok(dict.unbind())
+    }
+    /// The capture bound to metavariable ``name`` (without the ``$`` sigil),
+    /// or ``None`` if the pattern has no such metavariable.
+    fn capture(&self, py: Python<'_>, name: &str) -> PyResult<Option<Py<PyCapture>>> {
+        self.captures
+            .iter()
+            .find(|(n, _)| n == name)
+            .map(|(_, data)| Py::new(py, PyCapture { data: data.clone() }))
+            .transpose()
+    }
+    fn __repr__(&self) -> String {
+        format!("Match({:?})", self.text)
+    }
+}
+
+/// Shared implementation of ``doc.replace``.
+fn rewrite_replace(nr: &NodeRef, style: CoreStyle, pattern: &str, template: &str) -> PyResult<String> {
+    let pattern = build_pattern(style, pattern)?;
+    nr.parsed
+        .replace(&pattern, template)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+}
+
+/// Shared implementation of ``doc.findall``.
+fn rewrite_findall(py: Python<'_>, nr: &NodeRef, style: CoreStyle, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
+    let pattern = build_pattern(style, pattern)?;
+    pattern
+        .matches(&nr.parsed)
+        .iter()
+        .map(|m| Py::new(py, PyMatch::from_match(m)))
+        .collect()
+}
+
+// =============================================================================
 // Module functions
 // =============================================================================
 
@@ -4013,6 +4212,10 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyToken>()?;
     m.add_class::<PyTextBlock>()?;
     m.add_class::<PyWalkContext>()?;
+    // Pattern matching & rewriting (#47)
+    m.add_class::<PyMatch>()?;
+    m.add_class::<PyCapture>()?;
+    m.add("PatternError", m.py().get_type::<PatternError>())?;
     // Google CST wrappers
     m.add_class::<PyGoogleDocstring>()?;
     m.add_class::<PyGoogleSection>()?;
