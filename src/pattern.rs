@@ -376,6 +376,13 @@ impl Reading {
     pub fn parsed(&self) -> &Parsed {
         &self.parsed
     }
+
+    /// Child-index path from the wrapped tree's root to the fragment root
+    /// ([`Reading::fragment`]). Crate-private: the matcher (#46) uses it to
+    /// relate metavariable site paths to the fragment during unification.
+    pub(crate) fn fragment_path(&self) -> &[usize] {
+        &self.fragment_path
+    }
 }
 
 /// A parsed, context-free docstring pattern with metavariables.
