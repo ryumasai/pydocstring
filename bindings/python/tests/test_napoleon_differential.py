@@ -84,11 +84,12 @@ _ALIAS = (
 )
 _GOOGLE_IN_NUMPY = "we parse a google-style 'name (type)' entry in a NumPy section; napoleon reads it as one name"
 _ANON_RETURN = (
-    "multi-block prose intro in Returns: we emit one type-only entry per prose "
-    "line, napoleon reflows the prose to a bulleted description. (A SINGLE bare "
-    "line is a type on both sides — verified; the divergence is only the "
-    "multi-paragraph case.) The structurally correct reading is prose "
-    "paragraphs + a definition list — deferred block-level reST work, see #104."
+    "multi-block prose intro in Returns: we now model the prose as PARAGRAPH "
+    "blocks (#104/#105), excluded from the entries-only returns role, while "
+    "napoleon reflows the prose into a bulleted :returns: description. (A SINGLE "
+    "bare line is a type on both sides — verified.) The divergence is the "
+    "differential's entries-only projection vs napoleon's prose reflow; the "
+    "lossless CST + model preserve the prose either way."
 )
 _MORE_ALIASES = "we accept more header aliases than napoleon; extra aliased sections are extracted"
 _ISSUE26_COLON = "issue #26: we strip the role colon from the description; napoleon keeps it"
@@ -313,6 +314,16 @@ _PARAM_KINDS = {
 }
 
 
+def _entries(section: pydocstring.Section, cls: type) -> list:
+    """The `.value` of every block in `section` of the given `Block` variant.
+
+    Prose `Block.Paragraph`s are ignored — the role map compares typed entries
+    only (a section-intro paragraph is not a return/param/etc.).
+    """
+    # ``cls`` is a dynamic Block variant, so the checker can't narrow the type.
+    return [block.value for block in section.blocks if isinstance(block, cls)]  # ty: ignore[unresolved-attribute]
+
+
 def our_role_map(model: pydocstring.Docstring) -> dict[str, list[tuple]]:
     role_map: dict[str, list[tuple]] = {
         "parameters": [],
@@ -323,26 +334,30 @@ def our_role_map(model: pydocstring.Docstring) -> dict[str, list[tuple]]:
     }
     for section in model.sections:
         kind = section.kind
-        if kind in _PARAM_KINDS and section.parameters:
-            for prm in section.parameters:
+        parameters = _entries(section, pydocstring.Block.Parameter)
+        attributes = _entries(section, pydocstring.Block.Attribute)
+        exceptions = _entries(section, pydocstring.Block.Exception)
+        returns = _entries(section, pydocstring.Block.Return)
+        if kind in _PARAM_KINDS and parameters:
+            for prm in parameters:
                 for name in prm.names:  # expand multi-name groups, matching napoleon
                     role_map["parameters"].append(
                         ((name,), _norm_type(prm.type_annotation), _collapse(prm.description))
                     )
-        elif kind == pydocstring.SectionKind.KEYWORD_PARAMETERS and section.parameters:
-            for prm in section.parameters:
+        elif kind == pydocstring.SectionKind.KEYWORD_PARAMETERS and parameters:
+            for prm in parameters:
                 for name in prm.names:
                     role_map["keyword"].append(((name,), _norm_type(prm.type_annotation), _collapse(prm.description)))
-        elif kind == pydocstring.SectionKind.ATTRIBUTES and section.attributes:
-            for attr in section.attributes:  # keep multi-name groups as a tuple
+        elif kind == pydocstring.SectionKind.ATTRIBUTES and attributes:
+            for attr in attributes:  # keep multi-name groups as a tuple
                 role_map["attributes"].append(
                     (tuple(attr.names), _norm_type(attr.type_annotation), _collapse(attr.description))
                 )
-        elif kind == pydocstring.SectionKind.RAISES and section.exceptions:
-            for exc in section.exceptions:
+        elif kind == pydocstring.SectionKind.RAISES and exceptions:
+            for exc in exceptions:
                 role_map["raises"].append(((exc.type_name,), None, _collapse(exc.description)))
-        elif kind == pydocstring.SectionKind.RETURNS and section.returns:
-            for ret in section.returns:
+        elif kind == pydocstring.SectionKind.RETURNS and returns:
+            for ret in returns:
                 role_map["returns"].append(
                     ((ret.name,) if ret.name else (), _norm_type(ret.type_annotation), _collapse(ret.description))
                 )

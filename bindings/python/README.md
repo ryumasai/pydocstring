@@ -237,7 +237,7 @@ print(token.range.start, token.range.end)  # 0 8
 Convert any parsed docstring into a style-independent intermediate representation for analysis or transformation:
 
 ```python
-from pydocstring import parse_google, SectionKind
+from pydocstring import parse_google, Block, SectionKind
 
 parsed = parse_google("Summary.\n\nArgs:\n    x (int): The value.\n")
 doc = parsed.to_model()
@@ -246,29 +246,38 @@ print(doc.summary)  # "Summary."
 
 for section in doc.sections:
     if section.kind == SectionKind.PARAMETERS:
-        for param in section.parameters:
-            print(param.names)            # ["x"]
-            print(param.type_annotation)  # "int"
-            print(param.description)      # "The value."
+        for block in section.blocks:
+            if isinstance(block, Block.Parameter):
+                param = block.value
+                print(param.names)            # ["x"]
+                print(param.type_annotation)  # "int"
+                print(param.description)      # "The value."
 ```
+
+A section body is a flat sequence of `Block`s in source order: prose
+`Block.Paragraph`s interleaved with typed entries (`Block.Parameter`,
+`Block.Return`, `Block.Exception`, `Block.Attribute`, `Block.Method`,
+`Block.SeeAlso`, `Block.Reference`).
 
 ### Emitting (Code Generation)
 
 Re-emit a `Docstring` model in any style — useful for style conversion or formatting:
 
 ```python
-from pydocstring import Docstring, Section, SectionKind, Parameter, emit_google, emit_numpy
+from pydocstring import Docstring, Section, SectionKind, Block, Parameter, emit_google, emit_numpy
 
 doc = Docstring(
     summary="Brief summary.",
     sections=[
         Section(
             SectionKind.PARAMETERS,
-            parameters=[
-                Parameter(
-                    ["x"],
-                    type_annotation="int",
-                    description="The value.",
+            [
+                Block.Parameter(
+                    Parameter(
+                        ["x"],
+                        type_annotation="int",
+                        description="The value.",
+                    ),
                 ),
             ],
         ),
@@ -343,7 +352,8 @@ print(numpy_text)  # Contains "Parameters\n----------"
 | `WalkContext`        | `line_col(offset)` — passed as second arg to every `enter_*` / `exit_*` hook                                    |
 | `SectionKind`        | `PARAMETERS`, `RETURNS`, `RAISES`, `NOTES`, … (enum, 24 variants — model IR)                                    |
 | `Docstring`          | `summary`, `extended_summary`, `directives`, `deprecation` (computed), `sections`                                |
-| `Section` (model)    | `kind`, `parameters`, `returns`, `exceptions`, `attributes`, `methods`, `see_also_entries`, `references`, `body` |
+| `Section` (model)    | `kind`, `blocks`, `unknown_name`                                                                                 |
+| `Block` (model)      | variants `Paragraph` (`text`), `Parameter`/`Return`/`Exception`/`Attribute`/`Method`/`SeeAlso`/`Reference` (`value`) |
 | `Parameter`          | `names`, `type_annotation`, `description`, `is_optional`, `default_value`                                        |
 | `Return`             | `name`, `type_annotation`, `description`                                                                         |
 | `ExceptionEntry`     | `type_name`, `description`                                                                                       |

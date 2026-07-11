@@ -842,47 +842,69 @@ class SectionKind:
     UNKNOWN: SectionKind
     def __repr__(self) -> str: ...
 
-class Section:
-    """A section in the model IR.
+class Block:
+    """A body block within a :class:`Section`, mirroring the core ``model::Block``.
 
-    The collection getters (``parameters``, ``returns``, ``exceptions``,
-    ``attributes``, ``methods``, ``see_also_entries``, ``references``,
-    ``body``) return ``None`` when the section is of a different kind —
-    e.g. ``returns`` is ``None`` on a ``PARAMETERS`` section.
+    A structured section body is a flat sequence of blocks in source order:
+    prose :class:`Block.Paragraph`\\ s interleaved with typed entries. Match a
+    block with ``isinstance(block, Block.Parameter)`` etc.; the entry variants
+    expose the wrapped model object as ``.value``, and ``Paragraph`` exposes
+    ``.text``.
+    """
+
+    class Paragraph(Block):
+        text: str
+        def __init__(self, text: str) -> None: ...
+
+    class Parameter(Block):
+        value: Parameter
+        def __init__(self, value: Parameter) -> None: ...
+
+    class Return(Block):
+        value: Return
+        def __init__(self, value: Return) -> None: ...
+
+    class Exception(Block):
+        value: ExceptionEntry
+        def __init__(self, value: ExceptionEntry) -> None: ...
+
+    class Attribute(Block):
+        value: Attribute
+        def __init__(self, value: Attribute) -> None: ...
+
+    class Method(Block):
+        value: Method
+        def __init__(self, value: Method) -> None: ...
+
+    class SeeAlso(Block):
+        value: SeeAlsoEntry
+        def __init__(self, value: SeeAlsoEntry) -> None: ...
+
+    class Reference(Block):
+        value: Reference
+        def __init__(self, value: Reference) -> None: ...
+
+class Section:
+    """A docstring section in the model IR: a :class:`SectionKind` paired with a
+    flat sequence of :class:`Block`\\ s in source order.
+
+    Filter ``blocks`` by variant to read typed entries, e.g.
+    ``[b.value for b in section.blocks if isinstance(b, Block.Parameter)]``.
+    ``unknown_name`` carries the header text of an unrecognised free-text
+    section (``SectionKind.UNKNOWN``).
     """
     @property
     def kind(self) -> SectionKind: ...
     @property
+    def blocks(self) -> list[Block]: ...
+    @property
     def unknown_name(self) -> str | None: ...
-    @property
-    def parameters(self) -> list[Parameter] | None: ...
-    @property
-    def returns(self) -> list[Return] | None: ...
-    @property
-    def exceptions(self) -> list[ExceptionEntry] | None: ...
-    @property
-    def attributes(self) -> list[Attribute] | None: ...
-    @property
-    def methods(self) -> list[Method] | None: ...
-    @property
-    def see_also_entries(self) -> list[SeeAlsoEntry] | None: ...
-    @property
-    def references(self) -> list[Reference] | None: ...
-    @property
-    def body(self) -> str | None: ...
     def __init__(
         self,
         kind: SectionKind,
+        blocks: list[Block] | None = None,
         *,
         unknown_name: str | None = None,
-        parameters: list[Parameter] | None = None,
-        returns: list[Return] | None = None,
-        exceptions: list[ExceptionEntry] | None = None,
-        attributes: list[Attribute] | None = None,
-        methods: list[Method] | None = None,
-        see_also_entries: list[SeeAlsoEntry] | None = None,
-        references: list[Reference] | None = None,
-        body: str | None = None,
     ) -> None: ...
     def __repr__(self) -> str: ...
 

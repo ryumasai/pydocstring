@@ -1,4 +1,5 @@
 from ._pydocstring import Attribute
+from ._pydocstring import Block
 from ._pydocstring import Capture
 from ._pydocstring import Directive
 from ._pydocstring import Docstring
@@ -107,6 +108,7 @@ __all__ = [
     # ── Model IR ──────────────────────────────────────────────────────────
     "Docstring",
     "Section",
+    "Block",
     "Parameter",
     "Return",
     "ExceptionEntry",

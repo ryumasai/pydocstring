@@ -794,7 +794,10 @@ impl PyGoogleArg {
         self.nr.first_default_value(py, self.view().defaults())
     }
     fn __repr__(&self) -> String {
-        format!("GoogleArg({:?})", self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", "))
+        format!(
+            "GoogleArg({:?})",
+            self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", ")
+        )
     }
 }
 
@@ -1014,7 +1017,10 @@ impl PyGoogleAttribute {
             .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
     fn __repr__(&self) -> String {
-        format!("GoogleAttribute({:?})", self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", "))
+        format!(
+            "GoogleAttribute({:?})",
+            self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", ")
+        )
     }
 }
 
@@ -1577,7 +1583,10 @@ impl PyNumPyAttribute {
             .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
     }
     fn __repr__(&self) -> String {
-        format!("NumPyAttribute({:?})", self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", "))
+        format!(
+            "NumPyAttribute({:?})",
+            self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", ")
+        )
     }
 }
 
@@ -2485,302 +2494,210 @@ impl PySectionKind {
     }
 }
 
-fn section_to_py_kind(section: &PyModelSection) -> PySectionKind {
-    match section {
-        PyModelSection::Parameters(_) => PySectionKind::Parameters,
-        PyModelSection::KeywordParameters(_) => PySectionKind::KeywordParameters,
-        PyModelSection::OtherParameters(_) => PySectionKind::OtherParameters,
-        PyModelSection::Receives(_) => PySectionKind::Receives,
-        PyModelSection::Returns(_) => PySectionKind::Returns,
-        PyModelSection::Yields(_) => PySectionKind::Yields,
-        PyModelSection::Raises(_) => PySectionKind::Raises,
-        PyModelSection::Warns(_) => PySectionKind::Warns,
-        PyModelSection::Attributes(_) => PySectionKind::Attributes,
-        PyModelSection::Methods(_) => PySectionKind::Methods,
-        PyModelSection::SeeAlso(_) => PySectionKind::SeeAlso,
-        PyModelSection::References(_) => PySectionKind::References,
-        PyModelSection::FreeText { kind, .. } => *kind,
+// ─── Model SectionKind conversions ───────────────────────────────────────────
+
+/// Map a core [`model::SectionKind`] to the Python `SectionKind` enum plus the
+/// unknown section name, if the kind is an unrecognised free-text section.
+fn py_section_kind_of(kind: &model::SectionKind) -> (PySectionKind, Option<String>) {
+    use model::SectionKind as K;
+    match kind {
+        K::Parameters => (PySectionKind::Parameters, None),
+        K::KeywordParameters => (PySectionKind::KeywordParameters, None),
+        K::OtherParameters => (PySectionKind::OtherParameters, None),
+        K::Receives => (PySectionKind::Receives, None),
+        K::Returns => (PySectionKind::Returns, None),
+        K::Yields => (PySectionKind::Yields, None),
+        K::Raises => (PySectionKind::Raises, None),
+        K::Warns => (PySectionKind::Warns, None),
+        K::Attributes => (PySectionKind::Attributes, None),
+        K::Methods => (PySectionKind::Methods, None),
+        K::SeeAlso => (PySectionKind::SeeAlso, None),
+        K::References => (PySectionKind::References, None),
+        K::FreeText(free) => py_free_section_kind_of(free),
+        // model::SectionKind is #[non_exhaustive]; surface future kinds as Unknown.
+        _ => (PySectionKind::Unknown, None),
+    }
+}
+
+fn py_free_section_kind_of(kind: &model::FreeSectionKind) -> (PySectionKind, Option<String>) {
+    use model::FreeSectionKind as F;
+    match kind {
+        F::Notes => (PySectionKind::Notes, None),
+        F::Examples => (PySectionKind::Examples, None),
+        F::Warnings => (PySectionKind::Warnings, None),
+        F::Todo => (PySectionKind::Todo, None),
+        F::Attention => (PySectionKind::Attention, None),
+        F::Caution => (PySectionKind::Caution, None),
+        F::Danger => (PySectionKind::Danger, None),
+        F::Error => (PySectionKind::Error, None),
+        F::Hint => (PySectionKind::Hint, None),
+        F::Important => (PySectionKind::Important, None),
+        F::Tip => (PySectionKind::Tip, None),
+        F::Unknown(name) => (PySectionKind::Unknown, Some(name.clone())),
+        // model::FreeSectionKind is #[non_exhaustive].
+        _ => (PySectionKind::Unknown, None),
+    }
+}
+
+/// Map a Python `SectionKind` (plus optional unknown name) back to a core
+/// [`model::SectionKind`].
+fn model_section_kind_of(kind: PySectionKind, unknown_name: Option<String>) -> PyResult<model::SectionKind> {
+    use model::FreeSectionKind as F;
+    use model::SectionKind as K;
+    Ok(match kind {
+        PySectionKind::Parameters => K::Parameters,
+        PySectionKind::KeywordParameters => K::KeywordParameters,
+        PySectionKind::OtherParameters => K::OtherParameters,
+        PySectionKind::Receives => K::Receives,
+        PySectionKind::Returns => K::Returns,
+        PySectionKind::Yields => K::Yields,
+        PySectionKind::Raises => K::Raises,
+        PySectionKind::Warns => K::Warns,
+        PySectionKind::Attributes => K::Attributes,
+        PySectionKind::Methods => K::Methods,
+        PySectionKind::SeeAlso => K::SeeAlso,
+        PySectionKind::References => K::References,
+        PySectionKind::Notes => K::FreeText(F::Notes),
+        PySectionKind::Examples => K::FreeText(F::Examples),
+        PySectionKind::Warnings => K::FreeText(F::Warnings),
+        PySectionKind::Todo => K::FreeText(F::Todo),
+        PySectionKind::Attention => K::FreeText(F::Attention),
+        PySectionKind::Caution => K::FreeText(F::Caution),
+        PySectionKind::Danger => K::FreeText(F::Danger),
+        PySectionKind::Error => K::FreeText(F::Error),
+        PySectionKind::Hint => K::FreeText(F::Hint),
+        PySectionKind::Important => K::FreeText(F::Important),
+        PySectionKind::Tip => K::FreeText(F::Tip),
+        PySectionKind::Unknown => K::FreeText(F::Unknown(unknown_name.ok_or_else(|| {
+            pyo3::exceptions::PyValueError::new_err("Section(SectionKind.UNKNOWN) requires 'unknown_name'")
+        })?)),
+    })
+}
+
+// ─── Model Block ─────────────────────────────────────────────────────────────
+
+/// A single body block within a [`Section`], mirroring the core
+/// [`model::Block`]: a prose paragraph or a typed entry, in source order.
+#[pyclass(name = "Block")]
+enum PyModelBlock {
+    Paragraph { text: Py<PyString> },
+    Parameter { value: Py<PyModelParameter> },
+    Return { value: Py<PyModelReturn> },
+    Exception { value: Py<PyModelExceptionEntry> },
+    Attribute { value: Py<PyModelAttribute> },
+    Method { value: Py<PyModelMethod> },
+    SeeAlso { value: Py<PyModelSeeAlsoEntry> },
+    Reference { value: Py<PyModelReference> },
+}
+
+impl PyModelBlock {
+    fn from_model(py: Python<'_>, block: &model::Block) -> PyResult<Self> {
+        Ok(match block {
+            model::Block::Paragraph(text) => PyModelBlock::Paragraph {
+                text: PyString::new(py, text).unbind(),
+            },
+            model::Block::Parameter(p) => PyModelBlock::Parameter {
+                value: Py::new(py, PyModelParameter::try_from(p)?)?,
+            },
+            model::Block::Return(r) => PyModelBlock::Return {
+                value: Py::new(py, PyModelReturn::try_from(r)?)?,
+            },
+            model::Block::Exception(e) => PyModelBlock::Exception {
+                value: Py::new(py, PyModelExceptionEntry::try_from(e)?)?,
+            },
+            model::Block::Attribute(a) => PyModelBlock::Attribute {
+                value: Py::new(py, PyModelAttribute::try_from(a)?)?,
+            },
+            model::Block::Method(m) => PyModelBlock::Method {
+                value: Py::new(py, PyModelMethod::try_from(m)?)?,
+            },
+            model::Block::SeeAlso(s) => PyModelBlock::SeeAlso {
+                value: Py::new(py, PyModelSeeAlsoEntry::try_from(s)?)?,
+            },
+            model::Block::Reference(r) => PyModelBlock::Reference {
+                value: Py::new(py, PyModelReference::try_from(r)?)?,
+            },
+            // model::Block is #[non_exhaustive].
+            _ => {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "unsupported block kind (update the pydocstring-rs bindings)",
+                ));
+            }
+        })
+    }
+
+    fn to_model(&self, py: Python<'_>) -> PyResult<model::Block> {
+        Ok(match self {
+            PyModelBlock::Paragraph { text } => model::Block::Paragraph(text.extract(py)?),
+            PyModelBlock::Parameter { value } => model::Block::Parameter((&*value.borrow(py)).try_into()?),
+            PyModelBlock::Return { value } => model::Block::Return((&*value.borrow(py)).try_into()?),
+            PyModelBlock::Exception { value } => model::Block::Exception((&*value.borrow(py)).try_into()?),
+            PyModelBlock::Attribute { value } => model::Block::Attribute((&*value.borrow(py)).try_into()?),
+            PyModelBlock::Method { value } => model::Block::Method((&*value.borrow(py)).try_into()?),
+            PyModelBlock::SeeAlso { value } => model::Block::SeeAlso((&*value.borrow(py)).try_into()?),
+            PyModelBlock::Reference { value } => model::Block::Reference((&*value.borrow(py)).try_into()?),
+        })
     }
 }
 
 // ─── Model Section ───────────────────────────────────────────────────────────
 
+/// A docstring section: a [`SectionKind`] paired with a flat sequence of
+/// [`Block`]s in source order, mirroring the core [`model::Section`].
 #[pyclass(name = "Section")]
-enum PyModelSection {
-    Parameters(Py<PyList>),
-    KeywordParameters(Py<PyList>),
-    OtherParameters(Py<PyList>),
-    Receives(Py<PyList>),
-    Returns(Py<PyList>),
-    Yields(Py<PyList>),
-    Raises(Py<PyList>),
-    Warns(Py<PyList>),
-    Attributes(Py<PyList>),
-    Methods(Py<PyList>),
-    SeeAlso(Py<PyList>),
-    References(Py<PyList>),
-    FreeText {
-        kind: PySectionKind,
-        body: Py<PyString>,
-        name: Option<Py<PyString>>,
-    },
+struct PyModelSection {
+    kind: PySectionKind,
+    blocks: Py<PyList>,
+    unknown_name: Option<Py<PyString>>,
 }
 
 #[pymethods]
 impl PyModelSection {
     #[new]
-    #[pyo3(signature = (kind, *, unknown_name=None, parameters=None, returns=None, exceptions=None, attributes=None, methods=None, see_also_entries=None, references=None, body=None))]
-    #[allow(clippy::too_many_arguments)]
+    #[pyo3(signature = (kind, blocks=None, *, unknown_name=None))]
     fn new(
         py: Python<'_>,
         kind: PySectionKind,
+        blocks: Option<Py<PyList>>,
         unknown_name: Option<Py<PyString>>,
-        parameters: Option<Py<PyList>>,
-        returns: Option<Py<PyList>>,
-        exceptions: Option<Py<PyList>>,
-        attributes: Option<Py<PyList>>,
-        methods: Option<Py<PyList>>,
-        see_also_entries: Option<Py<PyList>>,
-        references: Option<Py<PyList>>,
-        body: Option<Py<PyString>>,
     ) -> PyResult<Self> {
-        // Validate that only the relevant kwargs for this kind are supplied.
-        let kind_name = py_section_kind_name(kind);
-
-        macro_rules! reject {
-            ($uses:expr, $arg:ident $(, $type:ty)?) => {
-                if let Some(ref _list) = $arg {
-                    if !$uses {
-                        return Err(pyo3::exceptions::PyTypeError::new_err(format!(
-                            "Section(SectionKind.{}) does not accept '{}'",
-                            kind_name, stringify!($arg)
-                        )));
-                    } $(else if _list.bind(py).into_iter().any(|i| {!i.is_instance_of::<$type>()}) {
-                        return Err(pyo3::exceptions::PyTypeError::new_err(format!(
-                            "Section(SectionKind.{}) only accepts '{}'",
-                            kind_name, <$type>::NAME
-                        )));
-                    })?
-                }
-            };
-        }
-
-        let uses_parameters = matches!(
-            kind,
-            PySectionKind::Parameters
-                | PySectionKind::KeywordParameters
-                | PySectionKind::OtherParameters
-                | PySectionKind::Receives
-        );
-        let uses_returns = matches!(kind, PySectionKind::Returns | PySectionKind::Yields);
-        let uses_exceptions = matches!(kind, PySectionKind::Raises | PySectionKind::Warns);
-        let uses_attributes = matches!(kind, PySectionKind::Attributes);
-        let uses_methods = matches!(kind, PySectionKind::Methods);
-        let uses_see_also = matches!(kind, PySectionKind::SeeAlso);
-        let uses_references = matches!(kind, PySectionKind::References);
-        let is_freetext = !uses_parameters
-            && !uses_returns
-            && !uses_exceptions
-            && !uses_attributes
-            && !uses_methods
-            && !uses_see_also
-            && !uses_references;
-
-        reject!(uses_parameters, parameters, PyModelParameter);
-        reject!(uses_returns, returns, PyModelReturn);
-        reject!(uses_exceptions, exceptions, PyModelExceptionEntry);
-        reject!(uses_attributes, attributes, PyModelAttribute);
-        reject!(uses_methods, methods, PyModelMethod);
-        reject!(uses_see_also, see_also_entries, PyModelSeeAlsoEntry);
-        reject!(uses_references, references, PyModelReference);
-        reject!(is_freetext, body);
-        reject!(matches!(kind, PySectionKind::Unknown), unknown_name);
-        if matches!(kind, PySectionKind::Unknown) && unknown_name.is_none() {
-            return Err(pyo3::exceptions::PyValueError::new_err(
-                "Section(SectionKind.UNKNOWN) requires 'unknown_name'",
+        if matches!(kind, PySectionKind::Unknown) {
+            if unknown_name.is_none() {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "Section(SectionKind.UNKNOWN) requires 'unknown_name'",
+                ));
+            }
+        } else if unknown_name.is_some() {
+            return Err(pyo3::exceptions::PyTypeError::new_err(
+                "'unknown_name' is only valid for Section(SectionKind.UNKNOWN)",
             ));
         }
-
-        let ret = match kind {
-            PySectionKind::Parameters => {
-                PyModelSection::Parameters(parameters.unwrap_or_else(|| PyList::empty(py).unbind()))
-            }
-            PySectionKind::KeywordParameters => {
-                PyModelSection::KeywordParameters(parameters.unwrap_or_else(|| PyList::empty(py).unbind()))
-            }
-            PySectionKind::OtherParameters => {
-                PyModelSection::OtherParameters(parameters.unwrap_or_else(|| PyList::empty(py).unbind()))
-            }
-            PySectionKind::Receives => {
-                PyModelSection::Receives(parameters.unwrap_or_else(|| PyList::empty(py).unbind()))
-            }
-            PySectionKind::Returns => PyModelSection::Returns(returns.unwrap_or_else(|| PyList::empty(py).unbind())),
-            PySectionKind::Yields => PyModelSection::Yields(returns.unwrap_or_else(|| PyList::empty(py).unbind())),
-            PySectionKind::Raises => PyModelSection::Raises(exceptions.unwrap_or_else(|| PyList::empty(py).unbind())),
-            PySectionKind::Warns => PyModelSection::Warns(exceptions.unwrap_or_else(|| PyList::empty(py).unbind())),
-            PySectionKind::Attributes => {
-                PyModelSection::Attributes(attributes.unwrap_or_else(|| PyList::empty(py).unbind()))
-            }
-            PySectionKind::Methods => PyModelSection::Methods(methods.unwrap_or_else(|| PyList::empty(py).unbind())),
-            PySectionKind::SeeAlso => {
-                PyModelSection::SeeAlso(see_also_entries.unwrap_or_else(|| PyList::empty(py).unbind()))
-            }
-            PySectionKind::References => {
-                PyModelSection::References(references.unwrap_or_else(|| PyList::empty(py).unbind()))
-            }
-            PySectionKind::Notes => PyModelSection::FreeText {
-                kind,
-                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
-                name: None,
-            },
-            PySectionKind::Examples => PyModelSection::FreeText {
-                kind,
-                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
-                name: None,
-            },
-            PySectionKind::Warnings => PyModelSection::FreeText {
-                kind,
-                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
-                name: None,
-            },
-            PySectionKind::Todo => PyModelSection::FreeText {
-                kind,
-                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
-                name: None,
-            },
-            PySectionKind::Attention => PyModelSection::FreeText {
-                kind,
-                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
-                name: None,
-            },
-            PySectionKind::Caution => PyModelSection::FreeText {
-                kind,
-                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
-                name: None,
-            },
-            PySectionKind::Danger => PyModelSection::FreeText {
-                kind,
-                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
-                name: None,
-            },
-            PySectionKind::Error => PyModelSection::FreeText {
-                kind,
-                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
-                name: None,
-            },
-            PySectionKind::Hint => PyModelSection::FreeText {
-                kind,
-                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
-                name: None,
-            },
-            PySectionKind::Important => PyModelSection::FreeText {
-                kind,
-                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
-                name: None,
-            },
-            PySectionKind::Tip => PyModelSection::FreeText {
-                kind,
-                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
-                name: None,
-            },
-            PySectionKind::Unknown => PyModelSection::FreeText {
-                kind,
-                body: body.unwrap_or_else(|| PyString::new(py, "").unbind()),
-                name: unknown_name,
-            },
-        };
-        Ok(ret)
+        let blocks = blocks.unwrap_or_else(|| PyList::empty(py).unbind());
+        ensure_all_instance_of::<PyModelBlock>(py, &blocks, "Section only accepts Blocks in the 'blocks' argument.")?;
+        Ok(Self {
+            kind,
+            blocks,
+            unknown_name,
+        })
     }
 
     #[getter]
     fn kind(&self) -> PySectionKind {
-        section_to_py_kind(self)
+        self.kind
+    }
+
+    #[getter]
+    fn blocks<'py>(&self, py: Python<'py>) -> &Bound<'py, PyList> {
+        self.blocks.bind(py)
     }
 
     #[getter]
     fn unknown_name<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyString>> {
-        match &self {
-            PyModelSection::FreeText {
-                kind: PySectionKind::Unknown,
-                body: _,
-                name,
-            } if name.is_some() => Some(name.as_ref().unwrap().bind(py)),
-            _ => None,
-        }
-    }
-
-    #[getter]
-    fn parameters<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
-        match &self {
-            PyModelSection::Parameters(ps)
-            | PyModelSection::KeywordParameters(ps)
-            | PyModelSection::OtherParameters(ps)
-            | PyModelSection::Receives(ps) => Some(ps.bind(py)),
-            _ => None,
-        }
-    }
-
-    #[getter]
-    fn returns<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
-        match &self {
-            PyModelSection::Returns(rs) | PyModelSection::Yields(rs) => Some(rs.bind(py)),
-            _ => None,
-        }
-    }
-
-    #[getter]
-    fn exceptions<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
-        match &self {
-            PyModelSection::Raises(es) | PyModelSection::Warns(es) => Some(es.bind(py)),
-            _ => None,
-        }
-    }
-
-    #[getter]
-    fn attributes<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
-        match &self {
-            PyModelSection::Attributes(attrs) => Some(attrs.bind(py)),
-            _ => None,
-        }
-    }
-
-    #[getter]
-    fn methods<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
-        match &self {
-            PyModelSection::Methods(ms) => Some(ms.bind(py)),
-            _ => None,
-        }
-    }
-
-    #[getter]
-    fn see_also_entries<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
-        match &self {
-            PyModelSection::SeeAlso(items) => Some(items.bind(py)),
-            _ => None,
-        }
-    }
-
-    #[getter]
-    fn references<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyList>> {
-        match &self {
-            PyModelSection::References(refs) => Some(refs.bind(py)),
-            _ => None,
-        }
-    }
-
-    #[getter]
-    fn body<'py>(&self, py: Python<'py>) -> Option<&Bound<'py, PyString>> {
-        match &self {
-            Self::FreeText { kind: _, body, .. } => Some(body.bind(py)),
-            _ => None,
-        }
+        self.unknown_name.as_ref().map(|n| n.bind(py))
     }
 
     fn __repr__(&self) -> String {
-        format!(
-            "Section(SectionKind.{})",
-            py_section_kind_name(section_to_py_kind(self))
-        )
+        format!("Section(SectionKind.{})", py_section_kind_name(self.kind))
     }
 }
 
@@ -2789,201 +2706,21 @@ impl TryFrom<&model::Section> for PyModelSection {
 
     fn try_from(section: &model::Section) -> Result<Self, Self::Error> {
         Python::attach(|py| -> Result<Self, Self::Error> {
-            match section {
-                model::Section::Parameters(params) => Ok(PyModelSection::Parameters(
-                    PyList::new(
-                        py,
-                        params
-                            .iter()
-                            .map(PyModelParameter::try_from)
-                            .collect::<Result<Vec<PyModelParameter>, _>>()?,
-                    )?
-                    .unbind(),
-                )),
-                model::Section::KeywordParameters(params) => Ok(PyModelSection::KeywordParameters(
-                    PyList::new(
-                        py,
-                        params
-                            .iter()
-                            .map(PyModelParameter::try_from)
-                            .collect::<Result<Vec<PyModelParameter>, _>>()?,
-                    )?
-                    .unbind(),
-                )),
-                model::Section::OtherParameters(params) => Ok(PyModelSection::OtherParameters(
-                    PyList::new(
-                        py,
-                        params
-                            .iter()
-                            .map(PyModelParameter::try_from)
-                            .collect::<Result<Vec<PyModelParameter>, _>>()?,
-                    )?
-                    .unbind(),
-                )),
-                model::Section::Receives(params) => Ok(PyModelSection::Receives(
-                    PyList::new(
-                        py,
-                        params
-                            .iter()
-                            .map(PyModelParameter::try_from)
-                            .collect::<Result<Vec<PyModelParameter>, _>>()?,
-                    )?
-                    .unbind(),
-                )),
-                model::Section::Returns(returns) => Ok(PyModelSection::Returns(
-                    PyList::new(
-                        py,
-                        returns
-                            .iter()
-                            .map(PyModelReturn::try_from)
-                            .collect::<Result<Vec<PyModelReturn>, _>>()?,
-                    )?
-                    .unbind(),
-                )),
-                model::Section::Yields(returns) => Ok(PyModelSection::Yields(
-                    PyList::new(
-                        py,
-                        returns
-                            .iter()
-                            .map(PyModelReturn::try_from)
-                            .collect::<Result<Vec<PyModelReturn>, _>>()?,
-                    )?
-                    .unbind(),
-                )),
-                model::Section::Raises(exceptions) => Ok(PyModelSection::Raises(
-                    PyList::new(
-                        py,
-                        exceptions
-                            .iter()
-                            .map(PyModelExceptionEntry::try_from)
-                            .collect::<Result<Vec<PyModelExceptionEntry>, _>>()?,
-                    )?
-                    .unbind(),
-                )),
-                model::Section::Warns(exceptions) => Ok(PyModelSection::Warns(
-                    PyList::new(
-                        py,
-                        exceptions
-                            .iter()
-                            .map(PyModelExceptionEntry::try_from)
-                            .collect::<Result<Vec<PyModelExceptionEntry>, _>>()?,
-                    )?
-                    .unbind(),
-                )),
-                model::Section::Attributes(attributes) => Ok(PyModelSection::Attributes(
-                    PyList::new(
-                        py,
-                        attributes
-                            .iter()
-                            .map(PyModelAttribute::try_from)
-                            .collect::<Result<Vec<PyModelAttribute>, _>>()?,
-                    )?
-                    .unbind(),
-                )),
-                model::Section::Methods(methods) => Ok(PyModelSection::Methods(
-                    PyList::new(
-                        py,
-                        methods
-                            .iter()
-                            .map(PyModelMethod::try_from)
-                            .collect::<Result<Vec<PyModelMethod>, _>>()?,
-                    )?
-                    .unbind(),
-                )),
-                model::Section::SeeAlso(seealso) => Ok(PyModelSection::SeeAlso(
-                    PyList::new(
-                        py,
-                        seealso
-                            .iter()
-                            .map(PyModelSeeAlsoEntry::try_from)
-                            .collect::<Result<Vec<PyModelSeeAlsoEntry>, _>>()?,
-                    )?
-                    .unbind(),
-                )),
-                model::Section::References(refs) => Ok(PyModelSection::References(
-                    PyList::new(
-                        py,
-                        refs.iter()
-                            .map(PyModelReference::try_from)
-                            .collect::<Result<Vec<PyModelReference>, _>>()?,
-                    )?
-                    .unbind(),
-                )),
-                model::Section::FreeText { kind, body } => Ok(match kind {
-                    model::FreeSectionKind::Notes => PyModelSection::FreeText {
-                        kind: PySectionKind::Notes,
-                        body: body.into_pyobject(py)?.unbind(),
-                        name: None,
-                    },
-                    model::FreeSectionKind::Examples => PyModelSection::FreeText {
-                        kind: PySectionKind::Examples,
-                        body: body.into_pyobject(py)?.unbind(),
-                        name: None,
-                    },
-                    model::FreeSectionKind::Warnings => PyModelSection::FreeText {
-                        kind: PySectionKind::Warnings,
-                        body: body.into_pyobject(py)?.unbind(),
-                        name: None,
-                    },
-                    model::FreeSectionKind::Todo => PyModelSection::FreeText {
-                        kind: PySectionKind::Todo,
-                        body: body.into_pyobject(py)?.unbind(),
-                        name: None,
-                    },
-                    model::FreeSectionKind::Attention => PyModelSection::FreeText {
-                        kind: PySectionKind::Attention,
-                        body: body.into_pyobject(py)?.unbind(),
-                        name: None,
-                    },
-                    model::FreeSectionKind::Caution => PyModelSection::FreeText {
-                        kind: PySectionKind::Caution,
-                        body: body.into_pyobject(py)?.unbind(),
-                        name: None,
-                    },
-                    model::FreeSectionKind::Danger => PyModelSection::FreeText {
-                        kind: PySectionKind::Danger,
-                        body: body.into_pyobject(py)?.unbind(),
-                        name: None,
-                    },
-                    model::FreeSectionKind::Error => PyModelSection::FreeText {
-                        kind: PySectionKind::Error,
-                        body: body.into_pyobject(py)?.unbind(),
-                        name: None,
-                    },
-                    model::FreeSectionKind::Hint => PyModelSection::FreeText {
-                        kind: PySectionKind::Hint,
-                        body: body.into_pyobject(py)?.unbind(),
-                        name: None,
-                    },
-                    model::FreeSectionKind::Important => PyModelSection::FreeText {
-                        kind: PySectionKind::Important,
-                        body: body.into_pyobject(py)?.unbind(),
-                        name: None,
-                    },
-                    model::FreeSectionKind::Tip => PyModelSection::FreeText {
-                        kind: PySectionKind::Tip,
-                        body: body.into_pyobject(py)?.unbind(),
-                        name: None,
-                    },
-                    model::FreeSectionKind::Unknown(name) => PyModelSection::FreeText {
-                        kind: PySectionKind::Unknown,
-                        body: body.into_pyobject(py)?.unbind(),
-                        name: Some(name.into_pyobject(py)?.unbind()),
-                    },
-                    // FreeSectionKind is #[non_exhaustive]; surface future kinds as Unknown.
-                    _ => PyModelSection::FreeText {
-                        kind: PySectionKind::Unknown,
-                        body: body.into_pyobject(py)?.unbind(),
-                        name: None,
-                    },
-                }),
-                // model::Section is #[non_exhaustive]; a new core variant that
-                // these bindings do not know about yet is a loud error rather
-                // than silent data loss.
-                _ => Err(pyo3::exceptions::PyValueError::new_err(
-                    "unsupported section kind (update the pydocstring-rs bindings)",
-                )),
+            let (kind, unknown_name) = py_section_kind_of(&section.kind);
+            // Build each block via `into_pyobject` (not `Py::new`) so the
+            // instance is the variant *subclass* (`Block.Paragraph`, …) that
+            // Python `isinstance` checks against, not the base `Block`.
+            let mut items: Vec<Bound<'_, PyAny>> = Vec::with_capacity(section.blocks.len());
+            for block in &section.blocks {
+                items.push(PyModelBlock::from_model(py, block)?.into_pyobject(py)?.into_any());
             }
+            let blocks = PyList::new(py, items)?.unbind();
+            let unknown_name = unknown_name.map(|s| PyString::new(py, &s).unbind());
+            Ok(Self {
+                kind,
+                blocks,
+                unknown_name,
+            })
         })
     }
 }
@@ -2993,148 +2730,18 @@ impl TryInto<model::Section> for &PyModelSection {
 
     fn try_into(self) -> Result<model::Section, Self::Error> {
         Python::attach(|py| -> Result<model::Section, Self::Error> {
-            match self {
-                PyModelSection::Parameters(params) => Ok(model::Section::Parameters(
-                    params
-                        .bind(py)
-                        .iter()
-                        .map(|param| param.cast::<PyModelParameter>()?.borrow().deref().try_into())
-                        .collect::<Result<Vec<_>, _>>()?,
-                )),
-                PyModelSection::KeywordParameters(params) => Ok(model::Section::KeywordParameters(
-                    params
-                        .bind(py)
-                        .iter()
-                        .map(|param| param.cast::<PyModelParameter>()?.borrow().deref().try_into())
-                        .collect::<Result<Vec<_>, _>>()?,
-                )),
-                PyModelSection::OtherParameters(params) => Ok(model::Section::OtherParameters(
-                    params
-                        .bind(py)
-                        .iter()
-                        .map(|param| param.cast::<PyModelParameter>()?.borrow().deref().try_into())
-                        .collect::<Result<Vec<_>, _>>()?,
-                )),
-                PyModelSection::Receives(params) => Ok(model::Section::Receives(
-                    params
-                        .bind(py)
-                        .iter()
-                        .map(|param| param.cast::<PyModelParameter>()?.borrow().deref().try_into())
-                        .collect::<Result<Vec<_>, _>>()?,
-                )),
-                PyModelSection::Returns(returns) => Ok(model::Section::Returns(
-                    returns
-                        .bind(py)
-                        .iter()
-                        .map(|ret| ret.cast::<PyModelReturn>()?.borrow().deref().try_into())
-                        .collect::<Result<Vec<_>, _>>()?,
-                )),
-                PyModelSection::Yields(returns) => Ok(model::Section::Yields(
-                    returns
-                        .bind(py)
-                        .iter()
-                        .map(|ret| ret.cast::<PyModelReturn>()?.borrow().deref().try_into())
-                        .collect::<Result<Vec<_>, _>>()?,
-                )),
-                PyModelSection::Raises(exceptions) => Ok(model::Section::Raises(
-                    exceptions
-                        .bind(py)
-                        .iter()
-                        .map(|ret| ret.cast::<PyModelExceptionEntry>()?.borrow().deref().try_into())
-                        .collect::<Result<Vec<_>, _>>()?,
-                )),
-                PyModelSection::Warns(exceptions) => Ok(model::Section::Warns(
-                    exceptions
-                        .bind(py)
-                        .iter()
-                        .map(|ret| ret.cast::<PyModelExceptionEntry>()?.borrow().deref().try_into())
-                        .collect::<Result<Vec<_>, _>>()?,
-                )),
-                PyModelSection::Attributes(attrs) => Ok(model::Section::Attributes(
-                    attrs
-                        .bind(py)
-                        .iter()
-                        .map(|ret| ret.cast::<PyModelAttribute>()?.borrow().deref().try_into())
-                        .collect::<Result<Vec<_>, _>>()?,
-                )),
-                PyModelSection::Methods(methods) => Ok(model::Section::Methods(
-                    methods
-                        .bind(py)
-                        .iter()
-                        .map(|ret| ret.cast::<PyModelMethod>()?.borrow().deref().try_into())
-                        .collect::<Result<Vec<_>, _>>()?,
-                )),
-                PyModelSection::SeeAlso(seealso) => Ok(model::Section::SeeAlso(
-                    seealso
-                        .bind(py)
-                        .iter()
-                        .map(|ret| ret.cast::<PyModelSeeAlsoEntry>()?.borrow().deref().try_into())
-                        .collect::<Result<Vec<_>, _>>()?,
-                )),
-                PyModelSection::References(refs) => Ok(model::Section::References(
-                    refs.bind(py)
-                        .iter()
-                        .map(|ret| ret.cast::<PyModelReference>()?.borrow().deref().try_into())
-                        .collect::<Result<Vec<_>, _>>()?,
-                )),
-                PyModelSection::FreeText { kind, body, name } => Ok(match kind {
-                    PySectionKind::Notes => model::Section::FreeText {
-                        kind: model::FreeSectionKind::Notes,
-                        body: body.extract(py)?,
-                    },
-                    PySectionKind::Examples => model::Section::FreeText {
-                        kind: model::FreeSectionKind::Examples,
-                        body: body.extract(py)?,
-                    },
-                    PySectionKind::Warnings => model::Section::FreeText {
-                        kind: model::FreeSectionKind::Warnings,
-                        body: body.extract(py)?,
-                    },
-                    PySectionKind::Todo => model::Section::FreeText {
-                        kind: model::FreeSectionKind::Todo,
-                        body: body.extract(py)?,
-                    },
-                    PySectionKind::Attention => model::Section::FreeText {
-                        kind: model::FreeSectionKind::Attention,
-                        body: body.extract(py)?,
-                    },
-                    PySectionKind::Caution => model::Section::FreeText {
-                        kind: model::FreeSectionKind::Caution,
-                        body: body.extract(py)?,
-                    },
-                    PySectionKind::Danger => model::Section::FreeText {
-                        kind: model::FreeSectionKind::Danger,
-                        body: body.extract(py)?,
-                    },
-                    PySectionKind::Error => model::Section::FreeText {
-                        kind: model::FreeSectionKind::Error,
-                        body: body.extract(py)?,
-                    },
-                    PySectionKind::Hint => model::Section::FreeText {
-                        kind: model::FreeSectionKind::Hint,
-                        body: body.extract(py)?,
-                    },
-                    PySectionKind::Important => model::Section::FreeText {
-                        kind: model::FreeSectionKind::Important,
-                        body: body.extract(py)?,
-                    },
-                    PySectionKind::Tip => model::Section::FreeText {
-                        kind: model::FreeSectionKind::Tip,
-                        body: body.extract(py)?,
-                    },
-                    PySectionKind::Unknown => model::Section::FreeText {
-                        kind: model::FreeSectionKind::Unknown(
-                            name.as_ref()
-                                .ok_or(pyo3::exceptions::PyValueError::new_err(
-                                    "Section(SectionKind.Unknown) requires a name.",
-                                ))?
-                                .extract(py)?,
-                        ),
-                        body: body.extract(py)?,
-                    },
-                    _ => unreachable!(),
-                }),
+            let unknown_name = self
+                .unknown_name
+                .as_ref()
+                .map(|s| s.extract::<String>(py))
+                .transpose()?;
+            let kind = model_section_kind_of(self.kind, unknown_name)?;
+            let mut blocks = Vec::new();
+            for item in self.blocks.bind(py).iter() {
+                let block = item.cast::<PyModelBlock>()?;
+                blocks.push(block.borrow().to_model(py)?);
             }
+            Ok(model::Section { kind, blocks })
         })
     }
 }
@@ -4356,6 +3963,7 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PySectionKind>()?;
     m.add_class::<PyModelDocstring>()?;
     m.add_class::<PyModelSection>()?;
+    m.add_class::<PyModelBlock>()?;
     m.add_class::<PyModelParameter>()?;
     m.add_class::<PyModelReturn>()?;
     m.add_class::<PyModelExceptionEntry>()?;
@@ -4364,28 +3972,5 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyModelAttribute>()?;
     m.add_class::<PyModelMethod>()?;
     m.add_class::<PyModelDirective>()?;
-    // PyO3 complex enums expose one class attribute per variant
-    // (``Section.Parameters(...)``); those constructors bypass ``Section``'s
-    // validating ``__init__``, so remove them from the public surface. The
-    // variant classes themselves stay alive (Rust still instantiates them);
-    // only the class-attribute constructors disappear.
-    let section = m.getattr("Section")?;
-    for variant in [
-        "Parameters",
-        "KeywordParameters",
-        "OtherParameters",
-        "Receives",
-        "Returns",
-        "Yields",
-        "Raises",
-        "Warns",
-        "Attributes",
-        "Methods",
-        "SeeAlso",
-        "References",
-        "FreeText",
-    ] {
-        section.delattr(variant)?;
-    }
     Ok(())
 }
