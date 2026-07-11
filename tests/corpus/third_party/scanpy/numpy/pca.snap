@@ -599,6 +599,7 @@ Returns
 If `data` is array-like and `return_info=False` was passed,
 this function returns the PCA representation of `data` as an
 array of the same type as the input array.
+
 Otherwise, it returns `None` if `copy=False`, else an updated `AnnData` object.
 Sets the following fields:
 `.obsm['X_pca' | key_added]` : :class:`~scipy.sparse.csr_matrix` | :class:`~scipy.sparse.csc_matrix` | :class:`~numpy.ndarray` (shape `(adata.n_obs, n_comps)`)

@@ -2,6 +2,7 @@
 
 use super::EmitOptions;
 use crate::model::Attribute;
+use crate::model::Block;
 use crate::model::Docstring;
 use crate::model::ExceptionEntry;
 use crate::model::FreeSectionKind;
@@ -10,6 +11,7 @@ use crate::model::Parameter;
 use crate::model::Reference;
 use crate::model::Return;
 use crate::model::Section;
+use crate::model::SectionKind;
 use crate::model::SeeAlsoEntry;
 
 /// Emit a [`Docstring`] as a NumPy-style docstring string.
@@ -27,7 +29,7 @@ use crate::model::SeeAlsoEntry;
 ///
 /// let doc = Docstring {
 ///     summary: Some("Brief summary.".into()),
-///     sections: vec![Section::Parameters(vec![Parameter {
+///     sections: vec![Section::parameters(vec![Parameter {
 ///         names: vec!["x".into()],
 ///         type_annotation: Some("int".into()),
 ///         description: Some("The value.".into()),
@@ -76,21 +78,21 @@ pub fn emit_numpy(doc: &Docstring, options: &EmitOptions) -> String {
 }
 
 /// Section header name for NumPy style.
-fn section_header(section: &Section) -> &str {
-    match section {
-        Section::Parameters(_) => "Parameters",
-        Section::KeywordParameters(_) => "Keyword Parameters",
-        Section::OtherParameters(_) => "Other Parameters",
-        Section::Receives(_) => "Receives",
-        Section::Returns(_) => "Returns",
-        Section::Yields(_) => "Yields",
-        Section::Raises(_) => "Raises",
-        Section::Warns(_) => "Warns",
-        Section::Attributes(_) => "Attributes",
-        Section::Methods(_) => "Methods",
-        Section::SeeAlso(_) => "See Also",
-        Section::References(_) => "References",
-        Section::FreeText { kind, .. } => free_section_name(kind),
+fn section_header(kind: &SectionKind) -> &str {
+    match kind {
+        SectionKind::Parameters => "Parameters",
+        SectionKind::KeywordParameters => "Keyword Parameters",
+        SectionKind::OtherParameters => "Other Parameters",
+        SectionKind::Receives => "Receives",
+        SectionKind::Returns => "Returns",
+        SectionKind::Yields => "Yields",
+        SectionKind::Raises => "Raises",
+        SectionKind::Warns => "Warns",
+        SectionKind::Attributes => "Attributes",
+        SectionKind::Methods => "Methods",
+        SectionKind::SeeAlso => "See Also",
+        SectionKind::References => "References",
+        SectionKind::FreeText(kind) => free_section_name(kind),
     }
 }
 
@@ -122,50 +124,35 @@ fn emit_section_header(out: &mut String, name: &str) {
 }
 
 fn emit_section(out: &mut String, section: &Section) {
-    emit_section_header(out, section_header(section));
+    emit_section_header(out, section_header(&section.kind));
 
-    match section {
-        Section::Parameters(params)
-        | Section::KeywordParameters(params)
-        | Section::OtherParameters(params)
-        | Section::Receives(params) => {
-            for p in params {
-                emit_parameter(out, p);
+    let mut prev_paragraph = false;
+    for block in &section.blocks {
+        if let Block::Paragraph(text) = block {
+            // A blank line separates two adjacent prose paragraphs so they do
+            // not merge into one run when re-parsed (reST paragraph rule). A
+            // paragraph adjacent to an entry needs no separator: the entry
+            // breaks the bare-line run on its own.
+            if prev_paragraph {
+                out.push('\n');
             }
-        }
-        Section::Returns(returns) | Section::Yields(returns) => {
-            for r in returns {
-                emit_return(out, r);
-            }
-        }
-        Section::Raises(entries) | Section::Warns(entries) => {
-            for e in entries {
-                emit_exception(out, e);
-            }
-        }
-        Section::Attributes(attrs) => {
-            for a in attrs {
-                emit_attribute(out, a);
-            }
-        }
-        Section::Methods(methods) => {
-            for m in methods {
-                emit_method(out, m);
-            }
-        }
-        Section::SeeAlso(items) => {
-            for item in items {
-                emit_see_also(out, item);
-            }
-        }
-        Section::References(refs) => {
-            for r in refs {
-                emit_reference(out, r);
-            }
-        }
-        Section::FreeText { body, .. } => {
-            out.push_str(body);
+            // Prose emits as bare lines at the section's base indent — the same
+            // bytes a type-only entry would produce.
+            out.push_str(text);
             out.push('\n');
+            prev_paragraph = true;
+            continue;
+        }
+        prev_paragraph = false;
+        match block {
+            Block::Parameter(p) => emit_parameter(out, p),
+            Block::Return(r) => emit_return(out, r),
+            Block::Exception(e) => emit_exception(out, e),
+            Block::Attribute(a) => emit_attribute(out, a),
+            Block::Method(m) => emit_method(out, m),
+            Block::SeeAlso(item) => emit_see_also(out, item),
+            Block::Reference(r) => emit_reference(out, r),
+            Block::Paragraph(_) => unreachable!("handled above"),
         }
     }
 }

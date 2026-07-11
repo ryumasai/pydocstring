@@ -3,6 +3,17 @@ import pytest
 import pydocstring
 
 
+def _entries(section, variant):
+    """The `.value` of every block of a given `Block` variant in `section`."""
+    return [b.value for b in section.blocks if isinstance(b, variant)]
+
+
+def _paragraph(section):
+    """The joined text of a section's `Block.Paragraph` blocks (its prose body)."""
+    texts = [b.text for b in section.blocks if isinstance(b, pydocstring.Block.Paragraph)]
+    return "\n".join(texts) if texts else None
+
+
 class TestDetectStyle:
     def test_google(self):
         assert pydocstring.detect_style("Summary.\n\nArgs:\n    x: Desc.") == pydocstring.Style.GOOGLE
@@ -684,77 +695,79 @@ class TestModelTypes:
 class TestSection:
     def test_parameters_section(self):
         p = pydocstring.Parameter(["x"], type_annotation="int", description="Value.")
-        sec = pydocstring.Section(pydocstring.SectionKind.PARAMETERS, parameters=[p])
+        sec = pydocstring.Section(pydocstring.SectionKind.PARAMETERS, [pydocstring.Block.Parameter(p)])
         assert sec.kind == pydocstring.SectionKind.PARAMETERS
-        params = sec.parameters
-        assert params is not None
+        params = _entries(sec, pydocstring.Block.Parameter)
         assert len(params) == 1
         assert params[0].names == ["x"]
         assert params[0].type_annotation == "int"
 
     def test_returns_section(self):
         r = pydocstring.Return(type_annotation="bool", description="Success.")
-        sec = pydocstring.Section(pydocstring.SectionKind.RETURNS, returns=[r])
+        sec = pydocstring.Section(pydocstring.SectionKind.RETURNS, [pydocstring.Block.Return(r)])
         assert sec.kind == pydocstring.SectionKind.RETURNS
-        rets = sec.returns
-        assert rets is not None
+        rets = _entries(sec, pydocstring.Block.Return)
         assert len(rets) == 1
         assert rets[0].type_annotation == "bool"
 
     def test_raises_section(self):
         e = pydocstring.ExceptionEntry("ValueError", description="Bad value.")
-        sec = pydocstring.Section(pydocstring.SectionKind.RAISES, exceptions=[e])
+        sec = pydocstring.Section(pydocstring.SectionKind.RAISES, [pydocstring.Block.Exception(e)])
         assert sec.kind == pydocstring.SectionKind.RAISES
-        exceptions = sec.exceptions
-        assert exceptions is not None
+        exceptions = _entries(sec, pydocstring.Block.Exception)
         assert len(exceptions) == 1
         assert exceptions[0].type_name == "ValueError"
 
     def test_free_text_section(self):
-        sec = pydocstring.Section(pydocstring.SectionKind.NOTES, body="Some notes here.")
+        sec = pydocstring.Section(
+            pydocstring.SectionKind.NOTES,
+            [pydocstring.Block.Paragraph("Some notes here.")],
+        )
         assert sec.kind == pydocstring.SectionKind.NOTES
-        assert sec.body == "Some notes here."
+        assert _paragraph(sec) == "Some notes here."
 
-    def test_empty_accessors(self):
-        sec = pydocstring.Section(pydocstring.SectionKind.PARAMETERS, parameters=[])
-        assert sec.returns is None
-        assert sec.exceptions is None
-        assert sec.body is None
+    def test_prose_and_entries_interleave(self):
+        # A structured section body is a flat block sequence: prose paragraphs
+        # interleaved with typed entries, in order (#105).
+        sec = pydocstring.Section(
+            pydocstring.SectionKind.RETURNS,
+            [
+                pydocstring.Block.Paragraph("If data is array-like, returns X."),
+                pydocstring.Block.Return(pydocstring.Return(type_annotation="ndarray", description="the rep.")),
+            ],
+        )
+        assert [type(b).__name__ for b in sec.blocks] == ["Paragraph", "Return"]
+        assert _paragraph(sec) == "If data is array-like, returns X."
+        assert _entries(sec, pydocstring.Block.Return)[0].type_annotation == "ndarray"
+
+    def test_empty_section_has_no_blocks(self):
+        sec = pydocstring.Section(pydocstring.SectionKind.PARAMETERS)
+        assert list(sec.blocks) == []
+        assert _entries(sec, pydocstring.Block.Return) == []
+        assert _paragraph(sec) is None
 
     def test_unknown_section_requires_name(self):
         with pytest.raises(ValueError, match="unknown_name"):
             pydocstring.Section(pydocstring.SectionKind.UNKNOWN)
-        sec = pydocstring.Section(pydocstring.SectionKind.UNKNOWN, unknown_name="Custom", body="text")
+        sec = pydocstring.Section(
+            pydocstring.SectionKind.UNKNOWN,
+            [pydocstring.Block.Paragraph("text")],
+            unknown_name="Custom",
+        )
         assert sec.kind == pydocstring.SectionKind.UNKNOWN
         assert sec.unknown_name == "Custom"
-        assert sec.body == "text"
+        # unknown_name is the only distinguishing feature of an UNKNOWN
+        # section, so repr must surface it.
+        assert repr(sec) == 'Section(SectionKind.UNKNOWN, unknown_name="Custom")'
+        assert _paragraph(sec) == "text"
 
-    def test_wrong_kind_kwarg_rejected(self):
+    def test_unknown_name_rejected_for_non_unknown_kind(self):
+        with pytest.raises(TypeError, match="unknown_name"):
+            pydocstring.Section(pydocstring.SectionKind.PARAMETERS, unknown_name="Nope")
+
+    def test_blocks_must_be_block_instances(self):
         with pytest.raises(TypeError):
-            pydocstring.Section(
-                pydocstring.SectionKind.PARAMETERS,
-                returns=[pydocstring.Return()],
-            )
-
-    def test_variant_constructors_are_suppressed(self):
-        # PyO3 complex-enum variant constructors would bypass __init__'s
-        # validation, so they are removed from the class surface.
-        for variant in [
-            "Parameters",
-            "KeywordParameters",
-            "OtherParameters",
-            "Receives",
-            "Returns",
-            "Yields",
-            "Raises",
-            "Warns",
-            "Attributes",
-            "Methods",
-            "SeeAlso",
-            "References",
-            "FreeText",
-        ]:
-            assert not hasattr(pydocstring.Section, variant), variant
+            pydocstring.Section(pydocstring.SectionKind.PARAMETERS, ["not a block"])  # ty: ignore[invalid-argument-type]
 
 
 class TestDocstringModel:
@@ -777,13 +790,13 @@ class TestDocstringModel:
 
     def test_with_sections(self):
         p = pydocstring.Parameter(["x"], type_annotation="int")
-        sec = pydocstring.Section(pydocstring.SectionKind.PARAMETERS, parameters=[p])
+        sec = pydocstring.Section(pydocstring.SectionKind.PARAMETERS, [pydocstring.Block.Parameter(p)])
         doc = pydocstring.Docstring(summary="Brief.", sections=[sec])
         assert len(doc.sections) == 1
         assert doc.sections[0].kind == pydocstring.SectionKind.PARAMETERS
 
-        params = doc.sections[0].parameters
-        assert params is not None
+        params = _entries(doc.sections[0], pydocstring.Block.Parameter)
+        assert len(params) == 1
         params[0].description = "foo"
         assert params[0].description == "foo"
 
@@ -836,8 +849,7 @@ class TestToModel:
         assert model.summary == "Summary."
         assert len(model.sections) == 1
         assert model.sections[0].kind == pydocstring.SectionKind.PARAMETERS
-        params = model.sections[0].parameters
-        assert params is not None
+        params = _entries(model.sections[0], pydocstring.Block.Parameter)
         assert len(params) == 1
         assert params[0].names == ["x"]
         assert params[0].type_annotation == "int"
@@ -851,8 +863,7 @@ class TestToModel:
         assert model.summary == "Summary."
         assert len(model.sections) == 1
         assert model.sections[0].kind == pydocstring.SectionKind.PARAMETERS
-        params = model.sections[0].parameters
-        assert params is not None
+        params = _entries(model.sections[0], pydocstring.Block.Parameter)
         assert len(params) == 1
         assert params[0].names == ["x"]
         assert params[0].type_annotation == "int"
@@ -883,16 +894,14 @@ class TestToModel:
         doc = pydocstring.parse_google("Summary.\n\nRaises:\n    ValueError: Bad input.\n")
         model = doc.to_model()
         assert model.sections[0].kind == pydocstring.SectionKind.RAISES
-        exceptions = model.sections[0].exceptions
-        assert exceptions is not None
+        exceptions = _entries(model.sections[0], pydocstring.Block.Exception)
         assert exceptions[0].type_name == "ValueError"
 
     def test_google_to_model_returns(self):
         doc = pydocstring.parse_google("Summary.\n\nReturns:\n    int: The result.\n")
         model = doc.to_model()
         assert model.sections[0].kind == pydocstring.SectionKind.RETURNS
-        rets = model.sections[0].returns
-        assert rets is not None
+        rets = _entries(model.sections[0], pydocstring.Block.Return)
         assert len(rets) == 1
         assert rets[0].type_annotation == "int"
 
@@ -1464,7 +1473,7 @@ class TestMissingnessGrammarAsymmetries:
         model = pydocstring.parse_numpy(
             "Summary.\n\nAttributes\n----------\njac, hess : ndarray\n    Derivatives.\n"
         ).to_model()
-        attrs = model.sections[0].attributes
+        attrs = _entries(model.sections[0], pydocstring.Block.Attribute)
         assert attrs is not None
         assert attrs[0].names == ["jac", "hess"]
 

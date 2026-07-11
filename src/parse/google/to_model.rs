@@ -1,21 +1,32 @@
 //! Convert a Google-style AST into the style-independent [`Docstring`] model.
 
 use crate::model::Attribute;
+use crate::model::Block;
 use crate::model::Docstring;
 use crate::model::ExceptionEntry;
-use crate::model::FreeSectionKind;
 use crate::model::Method;
 use crate::model::Parameter;
 use crate::model::Reference;
 use crate::model::Return;
 use crate::model::Section;
-use crate::model::SectionKind;
 use crate::model::SeeAlsoEntry;
-use crate::parse::google::kind::GoogleSectionKind;
+use crate::parse::EntryRole;
+use crate::parse::google::nodes::GoogleAttribute;
 use crate::parse::google::nodes::GoogleDocstring;
+use crate::parse::google::nodes::GoogleException;
+use crate::parse::google::nodes::GoogleMethod;
+use crate::parse::google::nodes::GoogleReference;
+use crate::parse::google::nodes::GoogleReturn;
 use crate::parse::google::nodes::GoogleSection;
+use crate::parse::google::nodes::GoogleSeeAlsoItem;
+use crate::parse::google::nodes::GoogleWarning;
+use crate::parse::google::nodes::GoogleYield;
+use crate::parse::text_block::TextBlock;
 use crate::parse::utils::convert_multiline_with_indentation;
 use crate::syntax::Parsed;
+use crate::syntax::SyntaxElement;
+use crate::syntax::SyntaxKind;
+use crate::syntax::SyntaxNode;
 
 /// Build a [`Docstring`] from a Google-style [`Parsed`] result.
 ///
@@ -44,109 +55,105 @@ pub fn to_model(parsed: &Parsed) -> Option<Docstring> {
     })
 }
 
+/// Build a [`Section`] by walking the section's children in source order,
+/// mapping each `ENTRY`/`CITATION`/`DESCRIPTION` node to the matching
+/// [`Block`], mirroring the NumPy converter (see its docs). Google needs no
+/// paragraph rule: its Returns/Yields bodies collapse into a single node
+/// (`ReturnsState`), so bare prose never parses as a run of type-only entries.
 fn convert_section(section: &GoogleSection<'_>) -> Section {
-    let kind = section.section_kind();
+    let g_kind = section.section_kind();
+    let section_kind = g_kind.to_section_kind(section.header().name().text());
+    let role = g_kind.entry_role();
+    let parsed = section.parsed;
 
-    match kind {
-        GoogleSectionKind::Args | GoogleSectionKind::Receives => {
-            let entries = section.args().map(|a| convert_arg(&a)).collect();
-            match kind {
-                GoogleSectionKind::Args => Section::Parameters(entries),
-                GoogleSectionKind::Receives => Section::Receives(entries),
-                _ => unreachable!(),
+    let mut blocks = Vec::new();
+    for child in section.syntax().children() {
+        let SyntaxElement::Node(node) = child else {
+            continue;
+        };
+        match node.kind() {
+            SyntaxKind::DESCRIPTION => {
+                if let Some(tb) = TextBlock::cast(parsed, node) {
+                    blocks.push(Block::Paragraph(convert_multiline_with_indentation(tb.text())));
+                }
             }
-        }
-        GoogleSectionKind::KeywordArgs => Section::KeywordParameters(section.args().map(|a| convert_arg(&a)).collect()),
-        GoogleSectionKind::OtherParameters => {
-            Section::OtherParameters(section.args().map(|a| convert_arg(&a)).collect())
-        }
-        GoogleSectionKind::Returns => {
-            let entries: Vec<Return> = section
-                .returns()
-                .into_iter()
-                .map(|r| Return {
-                    name: None,
-                    type_annotation: r.type_annotation().map(|t| t.text().to_owned()),
-                    description: r.description().map(|t| convert_multiline_with_indentation(t.text())),
-                })
-                .collect();
-            Section::Returns(entries)
-        }
-        GoogleSectionKind::Yields => {
-            let entries: Vec<Return> = section
-                .yields()
-                .into_iter()
-                .map(|r| Return {
-                    name: None,
-                    type_annotation: r.type_annotation().map(|t| t.text().to_owned()),
-                    description: r.description().map(|t| convert_multiline_with_indentation(t.text())),
-                })
-                .collect();
-            Section::Yields(entries)
-        }
-        GoogleSectionKind::Raises => Section::Raises(section.exceptions().map(|e| convert_exception(&e)).collect()),
-        GoogleSectionKind::Warns => Section::Warns(
-            section
-                .warnings()
-                .map(|w| ExceptionEntry {
-                    type_name: w.type_annotation().text().to_owned(),
-                    description: w.description().map(|t| convert_multiline_with_indentation(t.text())),
-                })
-                .collect(),
-        ),
-        GoogleSectionKind::SeeAlso => Section::SeeAlso(
-            section
-                .see_also_items()
-                .map(|item| SeeAlsoEntry {
-                    names: item.names().map(|n| n.text().to_owned()).collect(),
-                    description: item.description().map(|t| convert_multiline_with_indentation(t.text())),
-                })
-                .collect(),
-        ),
-        GoogleSectionKind::Attributes => Section::Attributes(
-            section
-                .attributes()
-                .map(|a| Attribute {
-                    names: a.names().map(|n| n.text().to_owned()).collect(),
-                    type_annotation: a.type_annotation().map(|t| t.text().to_owned()),
-                    description: a.description().map(|t| convert_multiline_with_indentation(t.text())),
-                })
-                .collect(),
-        ),
-        GoogleSectionKind::References => Section::References(
-            section
-                .references()
-                .map(|r| Reference {
+            SyntaxKind::CITATION => {
+                let r = GoogleReference { parsed, node };
+                blocks.push(Block::Reference(Reference {
                     label: r.label().map(|t| t.text().to_owned()),
                     content: r.content().map(|t| convert_multiline_with_indentation(t.text())),
-                })
-                .collect(),
-        ),
-        GoogleSectionKind::Methods => Section::Methods(
-            section
-                .methods()
-                .map(|m| Method {
-                    name: m.name().text().to_owned(),
-                    type_annotation: m.type_annotation().map(|t| t.text().to_owned()),
-                    description: m.description().map(|t| convert_multiline_with_indentation(t.text())),
-                })
-                .collect(),
-        ),
-        // Free-text sections
-        _ => {
-            let body = section
-                .body_text()
-                .map(|t| convert_multiline_with_indentation(t.text()))
-                .unwrap_or_default();
-            // A structured kind reaching this arm would mean to_section_kind and
-            // the structured arms above drifted apart; degrade gracefully.
-            let free_kind = match kind.to_section_kind(section.header().name().text()) {
-                SectionKind::FreeText(k) => k,
-                _ => FreeSectionKind::Unknown(section.header().name().text().to_owned()),
-            };
-            Section::FreeText { kind: free_kind, body }
+                }));
+            }
+            SyntaxKind::ENTRY => {
+                if let Some(block) = convert_entry(parsed, node, role) {
+                    blocks.push(block);
+                }
+            }
+            _ => {}
         }
     }
+
+    Section {
+        kind: section_kind,
+        blocks,
+    }
+}
+
+/// Convert a single `ENTRY` node into a typed [`Block`], routing by the
+/// enclosing section's [`EntryRole`]. Returns `None` for roles that own no
+/// `ENTRY` children.
+fn convert_entry(parsed: &Parsed, node: &SyntaxNode, role: EntryRole) -> Option<Block> {
+    Some(match role {
+        EntryRole::Parameter => Block::Parameter(convert_arg(&crate::parse::google::nodes::GoogleArg { parsed, node })),
+        EntryRole::Return => {
+            let r = GoogleReturn { parsed, node };
+            Block::Return(Return {
+                name: None,
+                type_annotation: r.type_annotation().map(|t| t.text().to_owned()),
+                description: r.description().map(|t| convert_multiline_with_indentation(t.text())),
+            })
+        }
+        EntryRole::Yield => {
+            let r = GoogleYield { parsed, node };
+            Block::Return(Return {
+                name: None,
+                type_annotation: r.type_annotation().map(|t| t.text().to_owned()),
+                description: r.description().map(|t| convert_multiline_with_indentation(t.text())),
+            })
+        }
+        EntryRole::Exception => Block::Exception(convert_exception(&GoogleException { parsed, node })),
+        EntryRole::Warning => {
+            let w = GoogleWarning { parsed, node };
+            Block::Exception(ExceptionEntry {
+                type_name: w.type_annotation().text().to_owned(),
+                description: w.description().map(|t| convert_multiline_with_indentation(t.text())),
+            })
+        }
+        EntryRole::Attribute => {
+            let a = GoogleAttribute { parsed, node };
+            Block::Attribute(Attribute {
+                names: a.names().map(|n| n.text().to_owned()).collect(),
+                type_annotation: a.type_annotation().map(|t| t.text().to_owned()),
+                description: a.description().map(|t| convert_multiline_with_indentation(t.text())),
+            })
+        }
+        EntryRole::Method => {
+            let m = GoogleMethod { parsed, node };
+            Block::Method(Method {
+                name: m.name().text().to_owned(),
+                type_annotation: m.type_annotation().map(|t| t.text().to_owned()),
+                description: m.description().map(|t| convert_multiline_with_indentation(t.text())),
+            })
+        }
+        EntryRole::SeeAlsoItem => {
+            let item = GoogleSeeAlsoItem { parsed, node };
+            Block::SeeAlso(SeeAlsoEntry {
+                names: item.names().map(|n| n.text().to_owned()).collect(),
+                description: item.description().map(|t| convert_multiline_with_indentation(t.text())),
+            })
+        }
+        EntryRole::Citation | EntryRole::FreeText => return None,
+    })
 }
 
 fn convert_arg(arg: &crate::parse::google::nodes::GoogleArg<'_>) -> Parameter {
