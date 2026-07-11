@@ -756,6 +756,9 @@ class TestSection:
         )
         assert sec.kind == pydocstring.SectionKind.UNKNOWN
         assert sec.unknown_name == "Custom"
+        # unknown_name is the only distinguishing feature of an UNKNOWN
+        # section, so repr must surface it.
+        assert repr(sec) == 'Section(SectionKind.UNKNOWN, unknown_name="Custom")'
         assert _paragraph(sec) == "text"
 
     def test_unknown_name_rejected_for_non_unknown_kind(self):

@@ -2696,8 +2696,17 @@ impl PyModelSection {
         self.unknown_name.as_ref().map(|n| n.bind(py))
     }
 
-    fn __repr__(&self) -> String {
-        format!("Section(SectionKind.{})", py_section_kind_name(self.kind))
+    fn __repr__(&self, py: Python<'_>) -> String {
+        // Include unknown_name: it is the only thing distinguishing one
+        // UNKNOWN section from another in debug output.
+        match &self.unknown_name {
+            Some(name) => format!(
+                "Section(SectionKind.{}, unknown_name={:?})",
+                py_section_kind_name(self.kind),
+                name.bind(py).to_string()
+            ),
+            None => format!("Section(SectionKind.{})", py_section_kind_name(self.kind)),
+        }
     }
 }
 
