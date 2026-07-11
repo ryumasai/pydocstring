@@ -41,6 +41,7 @@ include = ["LICENSE"]
 
 [dependency-groups]
 dev = [
+    "griffe>=1.0",
     "maturin>=1.0,<2.0",
     "pytest>=8",
     "pytest-cov>=7.1.0",
