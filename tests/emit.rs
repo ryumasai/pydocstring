@@ -1009,3 +1009,60 @@ fn numpy_emit_base_indent_preserves_blank_lines() {
     // Blank lines between sections should stay empty (no trailing whitespace).
     assert!(text.contains("  Summary.\n\n  Extended.\n\n  Parameters\n"));
 }
+
+// =============================================================================
+// Sphinx: every model block emits, in source order
+// =============================================================================
+
+/// A prose paragraph in a structured section survives sphinx emission at its
+/// source-order position (it used to be silently dropped by the kind-filtered
+/// emitter).
+#[test]
+fn sphinx_emit_paragraph_block_in_returns() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::new(
+            SectionKind::Returns,
+            vec![
+                Block::Paragraph("Sets the following fields:".into()),
+                Block::Return(Return {
+                    name: None,
+                    type_annotation: Some("ndarray".into()),
+                    description: Some("PCA rep.".into()),
+                }),
+            ],
+        )],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, &EmitOptions::default());
+    assert!(
+        text.contains("Sets the following fields:\n:return: PCA rep.\n"),
+        "paragraph must precede the fields it introduces:\n{text}"
+    );
+}
+
+/// Adjacent paragraphs stay separate paragraphs (blank-line separated), and a
+/// free-text body of several paragraphs keeps its boundaries.
+#[test]
+fn sphinx_emit_adjacent_paragraphs_blank_line_separated() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![
+            Section::new(
+                SectionKind::Returns,
+                vec![
+                    Block::Paragraph("First paragraph.".into()),
+                    Block::Paragraph("Second paragraph.".into()),
+                ],
+            ),
+            Section::free_text(FreeSectionKind::Notes, "Notes body.".into()),
+        ],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, &EmitOptions::default());
+    assert!(
+        text.contains("First paragraph.\n\nSecond paragraph.\n"),
+        "adjacent paragraphs need a blank line to stay separate:\n{text}"
+    );
+    assert!(text.contains(".. note::\n\n    Notes body.\n"), "{text}");
+}

@@ -93,58 +93,81 @@ pub fn emit_sphinx(doc: &Docstring, options: &EmitOptions) -> String {
 }
 
 fn emit_section(out: &mut String, section: &Section) {
-    let blocks = &section.blocks;
-    match &section.kind {
-        SectionKind::Parameters
-        | SectionKind::KeywordParameters
-        | SectionKind::OtherParameters
-        | SectionKind::Receives => {
-            for p in blocks.iter().filter_map(Block::as_parameter) {
-                emit_parameter(out, p);
+    // Free-text sections render as one admonition/rubric wrapping the prose
+    // body; paragraph boundaries are preserved as blank lines. Non-paragraph
+    // blocks under a free-text kind are representable nonsense, but the model
+    // contract is total emission — dispatch them after the admonition.
+    if let SectionKind::FreeText(kind) = &section.kind {
+        let body = section
+            .blocks
+            .iter()
+            .filter_map(Block::as_paragraph)
+            .collect::<Vec<_>>()
+            .join("\n\n");
+        emit_free_text(out, kind, &body);
+        let entries: Vec<&Block> = section.blocks.iter().filter(|b| b.as_paragraph().is_none()).collect();
+        if !entries.is_empty() {
+            emit_blocks(out, &entries, &section.kind);
+        }
+        return;
+    }
+
+    // Structured sections: emit every block at its source-order position (the
+    // model is permissive — any block can appear under any kind).
+    let blocks: Vec<&Block> = section.blocks.iter().collect();
+    emit_blocks(out, &blocks, &section.kind);
+}
+
+/// Emit blocks in source order, each with its kind-appropriate field/directive
+/// form. Adjacent paragraphs are separated by a blank line. Methods and See
+/// Also entries aggregate under a single rubric/directive, opened at the first
+/// such block.
+fn emit_blocks(out: &mut String, blocks: &[&Block], kind: &SectionKind) {
+    let mut prev_paragraph = false;
+    let mut methods_rubric_open = false;
+    let mut seealso_open = false;
+    for block in blocks {
+        if let Block::Paragraph(text) = block {
+            // Prose stays prose: emitted as a plain paragraph at its position
+            // (best-effort — Sphinx field lists have no prose slot).
+            if prev_paragraph {
+                out.push('\n');
             }
+            out.push_str(text);
+            out.push('\n');
+            prev_paragraph = true;
+            continue;
         }
-        SectionKind::Returns | SectionKind::Yields => {
-            for r in blocks.iter().filter_map(Block::as_return) {
-                emit_return(out, r);
+        prev_paragraph = false;
+        match block {
+            Block::Parameter(p) => emit_parameter(out, p),
+            Block::Return(r) => emit_return(out, r),
+            // Warns renders as `.. warning::` (no field role exists for
+            // warning types); every other kind's exception as `:raises:`.
+            Block::Exception(e) => {
+                if *kind == SectionKind::Warns {
+                    emit_warning(out, e);
+                } else {
+                    emit_exception(out, e);
+                }
             }
-        }
-        SectionKind::Raises => {
-            for e in blocks.iter().filter_map(Block::as_exception) {
-                emit_exception(out, e);
+            Block::Attribute(a) => emit_attribute(out, a),
+            Block::Method(m) => {
+                if !methods_rubric_open {
+                    out.push_str(".. rubric:: Methods\n\n");
+                    methods_rubric_open = true;
+                }
+                emit_method_item(out, m);
             }
-        }
-        SectionKind::Warns => {
-            for e in blocks.iter().filter_map(Block::as_exception) {
-                emit_warning(out, e);
+            Block::SeeAlso(item) => {
+                if !seealso_open {
+                    out.push_str(".. seealso::\n\n");
+                    seealso_open = true;
+                }
+                emit_see_also_item(out, item);
             }
-        }
-        SectionKind::Attributes => {
-            for a in blocks.iter().filter_map(Block::as_attribute) {
-                emit_attribute(out, a);
-            }
-        }
-        SectionKind::Methods => {
-            let methods: Vec<Method> = blocks.iter().filter_map(|b| b.as_method().cloned()).collect();
-            emit_methods(out, &methods);
-        }
-        SectionKind::SeeAlso => {
-            let items: Vec<SeeAlsoEntry> = blocks.iter().filter_map(|b| b.as_see_also().cloned()).collect();
-            emit_see_also(out, &items);
-        }
-        SectionKind::References => {
-            for r in blocks.iter().filter_map(Block::as_reference) {
-                emit_reference(out, r);
-            }
-        }
-        SectionKind::FreeText(kind) => {
-            // Free-text bodies are carried as paragraph blocks; rejoin them
-            // into the admonition body Sphinx expects.
-            let body = blocks
-                .iter()
-                .filter_map(Block::as_paragraph)
-                .collect::<Vec<_>>()
-                .join("\n");
-            emit_free_text(out, kind, &body);
+            Block::Reference(r) => emit_reference(out, r),
+            Block::Paragraph(_) => unreachable!("handled above"),
         }
     }
 }
@@ -253,36 +276,32 @@ fn emit_attribute(out: &mut String, a: &Attribute) {
     }
 }
 
-/// Sphinx: `.. rubric:: Methods` followed by a bullet list.
-fn emit_methods(out: &mut String, methods: &[Method]) {
-    out.push_str(".. rubric:: Methods\n\n");
-    for m in methods {
-        out.push_str("* ");
-        out.push_str(&m.name);
-        if let Some(ref ty) = m.type_annotation {
-            out.push('(');
-            out.push_str(ty);
-            out.push(')');
-        }
-        if let Some(ref desc) = m.description {
-            out.push_str(": ");
-            out.push_str(desc);
-        }
-        out.push('\n');
+/// Sphinx: one `* name(sig): desc` bullet under the `.. rubric:: Methods`
+/// heading (the rubric itself is opened once by [`emit_blocks`]).
+fn emit_method_item(out: &mut String, m: &Method) {
+    out.push_str("* ");
+    out.push_str(&m.name);
+    if let Some(ref ty) = m.type_annotation {
+        out.push('(');
+        out.push_str(ty);
+        out.push(')');
     }
+    if let Some(ref desc) = m.description {
+        out.push_str(": ");
+        out.push_str(desc);
+    }
+    out.push('\n');
 }
 
-/// Sphinx: `.. seealso::` directive.
-fn emit_see_also(out: &mut String, items: &[SeeAlsoEntry]) {
-    out.push_str(".. seealso::\n\n");
-    for item in items {
-        let mut body = item.names.join(", ");
-        if let Some(ref desc) = item.description {
-            body.push_str(": ");
-            body.push_str(desc);
-        }
-        emit_indented_body(out, &body, 4);
+/// Sphinx: one indented `names: desc` line inside the `.. seealso::`
+/// directive (the directive itself is opened once by [`emit_blocks`]).
+fn emit_see_also_item(out: &mut String, item: &SeeAlsoEntry) {
+    let mut body = item.names.join(", ");
+    if let Some(ref desc) = item.description {
+        body.push_str(": ");
+        body.push_str(desc);
     }
+    emit_indented_body(out, &body, 4);
 }
 
 /// Sphinx: `.. [1] content` (reStructuredText citation syntax).
