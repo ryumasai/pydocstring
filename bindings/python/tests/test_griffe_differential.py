@@ -11,6 +11,12 @@ parser and with griffe, projects both onto a shared, whitespace-normalized
 *stale-detecting*: a listed file that starts matching again fails the suite so
 the entry gets removed. Any new, unlisted divergence fails with a diff.
 
+The allowlist check is deliberately shape-agnostic — a listed file passes on
+*any* divergence, not just the documented one (same contract as the napoleon
+differential). Pinning each entry's exact diff would turn every griffe upgrade
+and every parser improvement into 48 snapshot updates; the corpus snapshots
+and spec tests already pin our own behavior precisely.
+
 Scope
 -----
 Roles both sides express structurally: parameters, returns, raises and
@@ -39,6 +45,7 @@ Normalization (so divergences are semantic, never formatting)
 """
 
 import logging
+import re
 from pathlib import Path
 
 import pytest
@@ -49,9 +56,18 @@ import griffe  # noqa: E402
 
 import pydocstring  # noqa: E402
 
-# griffe logs a warning for every docstring oddity it tolerates (missing
-# types, unknown sections); silence them so the suite output stays readable.
-logging.getLogger("griffe").setLevel(logging.CRITICAL)
+
+@pytest.fixture(autouse=True)
+def _quiet_griffe():
+    """Silence griffe's per-oddity warnings (missing types, unknown sections)
+    for the duration of each test, restoring the logger level afterwards so
+    the override never leaks into unrelated tests."""
+    logger = logging.getLogger("griffe")
+    previous = logger.level
+    logger.setLevel(logging.CRITICAL)
+    yield
+    logger.setLevel(previous)
+
 
 CORPUS = Path(__file__).resolve().parents[3] / "tests" / "corpus"
 
@@ -177,6 +193,12 @@ def _collapse(text: str | None) -> str:
     return " ".join(text.split()).strip() if text else ""
 
 
+# A trailing ", optional" or ", default ..." marker clause. ``default``
+# consumes to the end of the string so a comma-containing default value
+# ("tuple[int, str], default (1, 2)") is removed whole, not comma-split.
+_TRAILING_MARKER_RE = re.compile(r",\s*(?:optional|default\b.*)\s*$", re.IGNORECASE | re.DOTALL)
+
+
 def _norm_type(type_str) -> str | None:
     """Strip; drop trailing ``optional``/``default``; unbrace enum types."""
     if type_str is None:
@@ -184,13 +206,15 @@ def _norm_type(type_str) -> str | None:
     type_str = str(type_str).strip()
     if not type_str:
         return None
-    parts = [seg.strip() for seg in type_str.split(",")]
-    while len(parts) > 1 and (parts[-1].lower() == "optional" or parts[-1].lower().startswith("default")):
-        parts.pop()
-    type_str = ", ".join(parts).strip()
+    # Applied repeatedly: "int, optional, default 1" needs two passes (the
+    # ``default`` alternative eats to end-of-string, exposing ", optional").
+    previous = None
+    while previous != type_str:
+        previous = type_str
+        type_str = _TRAILING_MARKER_RE.sub("", type_str).strip()
     # numpydoc enum braces are notation, not semantics: griffe strips the
     # outer {} of "{'C', 'F'}"; unify on the stripped form. (After the
-    # optional/default pop, so "{...}, default 'C'" normalizes too.)
+    # marker strip, so "{...}, default 'C'" normalizes too.)
     if type_str.startswith("{") and type_str.endswith("}"):
         type_str = type_str[1:-1].strip()
     return type_str or None
@@ -300,14 +324,19 @@ def griffe_role_map(sections) -> dict[str, list[tuple]]:
 
 def corpus_cases():
     cases = []
+    rels: set[str] = set()
     for txt in sorted(CORPUS.rglob("*.txt")):
-        parts = txt.relative_to(CORPUS).parts
-        style = parts[2] if parts[0] == "third_party" else parts[0]
+        relative = txt.relative_to(CORPUS)
+        style = relative.parts[2] if relative.parts[0] == "third_party" else relative.parts[0]
         if style not in PARSERS:  # griffe only speaks google/numpy here; skip plain
             continue
-        rel = str(txt.relative_to(CORPUS))
+        rel = relative.as_posix()  # allowlist keys use "/" on every platform
+        rels.add(rel)
         cases.append(pytest.param(txt, style, rel, id=rel))
     assert cases, f"no google/numpy corpus inputs found under {CORPUS}"
+    # A deleted/renamed fixture must not leave a silently-dead allowlist row.
+    orphaned = set(KNOWN_GRIFFE_DIVERGENCES) - rels
+    assert not orphaned, f"KNOWN_GRIFFE_DIVERGENCES entries without a corpus file: {sorted(orphaned)}"
     return cases
 
 
