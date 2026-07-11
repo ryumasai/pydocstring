@@ -47,61 +47,211 @@ impl Docstring {
 
 /// A single section within a docstring.
 ///
-/// This enum is `#[non_exhaustive]`: new section shapes may be added in
-/// minor releases, so downstream `match`es need a wildcard arm.
+/// A section is a [`SectionKind`] paired with a flat sequence of [`Block`]s in
+/// source order. Replacing the pre-0.4 role-keyed `enum Section`
+/// (`Parameters(Vec<Parameter>)`, …), this completes the style-independent
+/// unification: `kind` identifies the section and `blocks` carries its body
+/// without baking the role into the shape.
+///
+/// The representation is permissive — nothing statically prevents a
+/// [`Block::Parameter`] under a `Raises` section — consistent with the CST's
+/// "permissive structure + documented interpretation" line; emitters render
+/// every block totally.
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[non_exhaustive]
-pub enum Section {
-    /// `Args` / `Parameters` section.
-    Parameters(Vec<Parameter>),
-    /// `Keyword Args` / `Keyword Arguments` section (Google only).
-    KeywordParameters(Vec<Parameter>),
-    /// `Other Parameters` section.
-    OtherParameters(Vec<Parameter>),
-    /// `Receives` section.
-    Receives(Vec<Parameter>),
-    /// `Returns` section.
-    Returns(Vec<Return>),
-    /// `Yields` section.
-    Yields(Vec<Return>),
-    /// `Raises` section.
-    Raises(Vec<ExceptionEntry>),
-    /// `Warns` section.
-    Warns(Vec<ExceptionEntry>),
-    /// `Attributes` section.
-    Attributes(Vec<Attribute>),
-    /// `Methods` section.
-    Methods(Vec<Method>),
-    /// `See Also` section.
-    SeeAlso(Vec<SeeAlsoEntry>),
-    /// `References` section (NumPy structured references).
-    References(Vec<Reference>),
-    /// Free-text section (Notes, Examples, Warnings, etc.).
-    FreeText {
-        /// The kind of free-text section.
-        kind: FreeSectionKind,
-        /// The body text content.
-        body: String,
-    },
+pub struct Section {
+    /// The style-independent kind of this section.
+    pub kind: SectionKind,
+    /// The section body: a flat sequence of blocks in source order.
+    pub blocks: Vec<Block>,
 }
 
 impl Section {
-    /// Return the canonical section kind for this section.
-    pub fn kind(&self) -> SectionKind {
+    /// Construct a section from its kind and block sequence.
+    pub fn new(kind: SectionKind, blocks: Vec<Block>) -> Self {
+        Self { kind, blocks }
+    }
+
+    /// A `Parameters` section wrapping each parameter in a [`Block::Parameter`].
+    pub fn parameters(params: Vec<Parameter>) -> Self {
+        Self::new(
+            SectionKind::Parameters,
+            params.into_iter().map(Block::Parameter).collect(),
+        )
+    }
+
+    /// A `Keyword Parameters` section (Google `Keyword Args`).
+    pub fn keyword_parameters(params: Vec<Parameter>) -> Self {
+        Self::new(
+            SectionKind::KeywordParameters,
+            params.into_iter().map(Block::Parameter).collect(),
+        )
+    }
+
+    /// An `Other Parameters` section.
+    pub fn other_parameters(params: Vec<Parameter>) -> Self {
+        Self::new(
+            SectionKind::OtherParameters,
+            params.into_iter().map(Block::Parameter).collect(),
+        )
+    }
+
+    /// A `Receives` section.
+    pub fn receives(params: Vec<Parameter>) -> Self {
+        Self::new(
+            SectionKind::Receives,
+            params.into_iter().map(Block::Parameter).collect(),
+        )
+    }
+
+    /// A `Returns` section wrapping each entry in a [`Block::Return`].
+    pub fn returns(returns: Vec<Return>) -> Self {
+        Self::new(SectionKind::Returns, returns.into_iter().map(Block::Return).collect())
+    }
+
+    /// A `Yields` section.
+    pub fn yields(returns: Vec<Return>) -> Self {
+        Self::new(SectionKind::Yields, returns.into_iter().map(Block::Return).collect())
+    }
+
+    /// A `Raises` section wrapping each entry in a [`Block::Exception`].
+    pub fn raises(entries: Vec<ExceptionEntry>) -> Self {
+        Self::new(SectionKind::Raises, entries.into_iter().map(Block::Exception).collect())
+    }
+
+    /// A `Warns` section.
+    pub fn warns(entries: Vec<ExceptionEntry>) -> Self {
+        Self::new(SectionKind::Warns, entries.into_iter().map(Block::Exception).collect())
+    }
+
+    /// An `Attributes` section wrapping each entry in a [`Block::Attribute`].
+    pub fn attributes(attrs: Vec<Attribute>) -> Self {
+        Self::new(
+            SectionKind::Attributes,
+            attrs.into_iter().map(Block::Attribute).collect(),
+        )
+    }
+
+    /// A `Methods` section wrapping each entry in a [`Block::Method`].
+    pub fn methods(methods: Vec<Method>) -> Self {
+        Self::new(SectionKind::Methods, methods.into_iter().map(Block::Method).collect())
+    }
+
+    /// A `See Also` section wrapping each entry in a [`Block::SeeAlso`].
+    pub fn see_also(items: Vec<SeeAlsoEntry>) -> Self {
+        Self::new(SectionKind::SeeAlso, items.into_iter().map(Block::SeeAlso).collect())
+    }
+
+    /// A `References` section wrapping each entry in a [`Block::Reference`].
+    pub fn references(refs: Vec<Reference>) -> Self {
+        Self::new(
+            SectionKind::References,
+            refs.into_iter().map(Block::Reference).collect(),
+        )
+    }
+
+    /// A free-text section (Notes, Examples, …) whose body is a single
+    /// [`Block::Paragraph`]. (The full dissolve of free-text bodies into
+    /// multiple blocks is deferred to Phase 4 increment E.)
+    pub fn free_text(kind: FreeSectionKind, body: String) -> Self {
+        Self::new(SectionKind::FreeText(kind), vec![Block::Paragraph(body)])
+    }
+}
+
+/// A single body block within a [`Section`], in source order.
+///
+/// A structured section body is a flat run of blocks: prose [`Block::Paragraph`]s
+/// interleaved with typed entries. Prose is a *model-layer* notion (#104): the
+/// CST keeps every base-indent body line as an `ENTRY` (the predictable
+/// napoleon/numpydoc line grammar), and `to_model` decides which bare entries
+/// read as paragraphs.
+///
+/// `#[non_exhaustive]`: new block shapes (e.g. reST fields, literal/doctest
+/// blocks) may be added in minor releases, so downstream `match`es need a
+/// wildcard arm.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum Block {
+    /// A prose paragraph (a section intro, a between-entries note, or a
+    /// free-text section body).
+    Paragraph(String),
+    /// A parameter / argument entry.
+    Parameter(Parameter),
+    /// A return / yield entry.
+    Return(Return),
+    /// An exception / warning entry.
+    Exception(ExceptionEntry),
+    /// An attribute entry.
+    Attribute(Attribute),
+    /// A method entry.
+    Method(Method),
+    /// A see-also entry.
+    SeeAlso(SeeAlsoEntry),
+    /// A reference / citation entry.
+    Reference(Reference),
+}
+
+impl Block {
+    /// The [`Parameter`] if this is a [`Block::Parameter`].
+    pub fn as_parameter(&self) -> Option<&Parameter> {
         match self {
-            Section::Parameters(_) => SectionKind::Parameters,
-            Section::KeywordParameters(_) => SectionKind::KeywordParameters,
-            Section::OtherParameters(_) => SectionKind::OtherParameters,
-            Section::Receives(_) => SectionKind::Receives,
-            Section::Returns(_) => SectionKind::Returns,
-            Section::Yields(_) => SectionKind::Yields,
-            Section::Raises(_) => SectionKind::Raises,
-            Section::Warns(_) => SectionKind::Warns,
-            Section::Attributes(_) => SectionKind::Attributes,
-            Section::Methods(_) => SectionKind::Methods,
-            Section::SeeAlso(_) => SectionKind::SeeAlso,
-            Section::References(_) => SectionKind::References,
-            Section::FreeText { kind, .. } => SectionKind::FreeText(kind.clone()),
+            Block::Parameter(p) => Some(p),
+            _ => None,
+        }
+    }
+
+    /// The [`Return`] if this is a [`Block::Return`].
+    pub fn as_return(&self) -> Option<&Return> {
+        match self {
+            Block::Return(r) => Some(r),
+            _ => None,
+        }
+    }
+
+    /// The [`ExceptionEntry`] if this is a [`Block::Exception`].
+    pub fn as_exception(&self) -> Option<&ExceptionEntry> {
+        match self {
+            Block::Exception(e) => Some(e),
+            _ => None,
+        }
+    }
+
+    /// The [`Attribute`] if this is a [`Block::Attribute`].
+    pub fn as_attribute(&self) -> Option<&Attribute> {
+        match self {
+            Block::Attribute(a) => Some(a),
+            _ => None,
+        }
+    }
+
+    /// The [`Method`] if this is a [`Block::Method`].
+    pub fn as_method(&self) -> Option<&Method> {
+        match self {
+            Block::Method(m) => Some(m),
+            _ => None,
+        }
+    }
+
+    /// The [`SeeAlsoEntry`] if this is a [`Block::SeeAlso`].
+    pub fn as_see_also(&self) -> Option<&SeeAlsoEntry> {
+        match self {
+            Block::SeeAlso(s) => Some(s),
+            _ => None,
+        }
+    }
+
+    /// The [`Reference`] if this is a [`Block::Reference`].
+    pub fn as_reference(&self) -> Option<&Reference> {
+        match self {
+            Block::Reference(r) => Some(r),
+            _ => None,
+        }
+    }
+
+    /// The prose text if this is a [`Block::Paragraph`].
+    pub fn as_paragraph(&self) -> Option<&str> {
+        match self {
+            Block::Paragraph(p) => Some(p),
+            _ => None,
         }
     }
 }

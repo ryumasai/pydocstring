@@ -109,6 +109,31 @@ pub(crate) fn extend_text_block(block: &mut SyntaxNode, cont: TextRange) {
     block.extend_range_to(cont.end());
 }
 
+/// Whether an entry node is a *genuine* ENTRY rather than a bare line: it has
+/// a term colon (`name : type`) or owns an indented definition (a non-empty
+/// `DESCRIPTION` child). Anything else is a bare base-indent line — a single
+/// TYPE/NAME run with no colon and no indented body.
+///
+/// The CST keeps bare lines as entries (the dialect's line grammar: every
+/// base-indent line in a structured section body starts an entry, exactly as
+/// napoleon and numpydoc read it). Whether a bare entry *means* a type or
+/// prose is the model layer's paragraph rule (`to_model`), never the tree's —
+/// the tree classification stays local and predictable (#104/#105).
+pub(crate) fn is_genuine_entry(node: &SyntaxNode) -> bool {
+    node.find_token(SyntaxKind::COLON).is_some() || node.nodes(SyntaxKind::DESCRIPTION).any(|d| !d.range().is_empty())
+}
+
+/// Whether a blank line separates the byte spans `a_end..b_start`. Consecutive
+/// content lines are joined by a single `\n`; a blank line contributes a
+/// second, so two or more newlines in the gap marks a paragraph break.
+pub(crate) fn blank_line_between(source: &str, a_end: crate::text::TextSize, b_start: crate::text::TextSize) -> bool {
+    source[usize::from(a_end)..usize::from(b_start)]
+        .bytes()
+        .filter(|&b| b == b'\n')
+        .count()
+        >= 2
+}
+
 // =============================================================================
 // Directive parsing (shared by the NumPy and Google parsers)
 // =============================================================================

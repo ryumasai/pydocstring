@@ -34,7 +34,7 @@ fn google_emit_summary_and_extended() {
 fn google_emit_args() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![
+        sections: vec![Section::parameters(vec![
             Parameter {
                 names: vec!["x".into()],
                 type_annotation: Some("int".into()),
@@ -64,7 +64,7 @@ fn google_emit_args() {
 fn google_emit_args_optional() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![Parameter {
+        sections: vec![Section::parameters(vec![Parameter {
             names: vec!["x".into()],
             type_annotation: Some("int".into()),
             description: Some("The value.".into()),
@@ -81,7 +81,7 @@ fn google_emit_args_optional() {
 fn google_emit_args_no_type() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![Parameter {
+        sections: vec![Section::parameters(vec![Parameter {
             names: vec!["x".into()],
             type_annotation: None,
             description: Some("The value.".into()),
@@ -98,7 +98,7 @@ fn google_emit_args_no_type() {
 fn google_emit_returns() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Returns(vec![Return {
+        sections: vec![Section::returns(vec![Return {
             name: None,
             type_annotation: Some("int".into()),
             description: Some("The result.".into()),
@@ -114,7 +114,7 @@ fn google_emit_returns() {
 fn google_emit_returns_no_type() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Returns(vec![Return {
+        sections: vec![Section::returns(vec![Return {
             name: None,
             type_annotation: None,
             description: Some("The computed result.".into()),
@@ -132,7 +132,7 @@ fn google_emit_returns_no_type() {
 fn google_emit_returns_no_type_multiline() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Returns(vec![Return {
+        sections: vec![Section::returns(vec![Return {
             name: None,
             type_annotation: None,
             description: Some("The result of executing the command.\nExecution begins with the target.".into()),
@@ -150,7 +150,7 @@ fn google_emit_returns_no_type_multiline() {
 fn google_emit_raises() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Raises(vec![
+        sections: vec![Section::raises(vec![
             ExceptionEntry {
                 type_name: "ValueError".into(),
                 description: Some("If the input is invalid.".into()),
@@ -172,10 +172,7 @@ fn google_emit_raises() {
 fn google_emit_notes() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::FreeText {
-            kind: FreeSectionKind::Notes,
-            body: "Some notes here.".into(),
-        }],
+        sections: vec![Section::free_text(FreeSectionKind::Notes, "Some notes here.".into())],
         ..Default::default()
     };
     let text = emit_google(&doc, &EmitOptions::default());
@@ -188,19 +185,19 @@ fn google_emit_multiple_sections() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
         sections: vec![
-            Section::Parameters(vec![Parameter {
+            Section::parameters(vec![Parameter {
                 names: vec!["x".into()],
                 type_annotation: Some("int".into()),
                 description: Some("Val.".into()),
                 is_optional: false,
                 default_value: None,
             }]),
-            Section::Returns(vec![Return {
+            Section::returns(vec![Return {
                 name: None,
                 type_annotation: Some("str".into()),
                 description: Some("Result.".into()),
             }]),
-            Section::Raises(vec![ExceptionEntry {
+            Section::raises(vec![ExceptionEntry {
                 type_name: "ValueError".into(),
                 description: Some("Bad.".into()),
             }]),
@@ -217,7 +214,7 @@ fn google_emit_multiple_sections() {
 fn google_emit_attributes() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Attributes(vec![Attribute {
+        sections: vec![Section::attributes(vec![Attribute {
             names: vec!["name".into()],
             type_annotation: Some("str".into()),
             description: Some("The name.".into()),
@@ -234,7 +231,7 @@ fn google_emit_attributes() {
 fn google_emit_attributes_multiple_names() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Attributes(vec![Attribute {
+        sections: vec![Section::attributes(vec![Attribute {
             names: vec!["jac".into(), "hess".into()],
             type_annotation: Some("ndarray".into()),
             description: Some("Derivatives.".into()),
@@ -249,7 +246,7 @@ fn google_emit_attributes_multiple_names() {
 fn google_emit_see_also() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::SeeAlso(vec![SeeAlsoEntry {
+        sections: vec![Section::see_also(vec![SeeAlsoEntry {
             names: vec!["func1".into(), "func2".into()],
             description: Some("Related functions.".into()),
         }])],
@@ -268,7 +265,7 @@ fn google_emit_see_also() {
 fn google_emit_see_also_role_name_multiline() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::SeeAlso(vec![SeeAlsoEntry {
+        sections: vec![Section::see_also(vec![SeeAlsoEntry {
             names: vec![":func:`csd`".into()],
             description: Some("Cross power spectral density\nusing Welch's method".into()),
         }])],
@@ -306,7 +303,7 @@ fn numpy_emit_summary_and_extended() {
 fn numpy_emit_parameters() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![
+        sections: vec![Section::parameters(vec![
             Parameter {
                 names: vec!["x".into()],
                 type_annotation: Some("int".into()),
@@ -336,7 +333,7 @@ fn numpy_emit_parameters() {
 fn numpy_emit_parameters_optional() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![Parameter {
+        sections: vec![Section::parameters(vec![Parameter {
             names: vec!["x".into()],
             type_annotation: Some("int".into()),
             description: Some("The value.".into()),
@@ -353,7 +350,7 @@ fn numpy_emit_parameters_optional() {
 fn numpy_emit_parameters_multiple_names() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![Parameter {
+        sections: vec![Section::parameters(vec![Parameter {
             names: vec!["x".into(), "y".into()],
             type_annotation: Some("float".into()),
             description: Some("Values.".into()),
@@ -370,7 +367,7 @@ fn numpy_emit_parameters_multiple_names() {
 fn numpy_emit_parameters_default() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![Parameter {
+        sections: vec![Section::parameters(vec![Parameter {
             names: vec!["x".into()],
             type_annotation: Some("int".into()),
             description: Some("The value.".into()),
@@ -387,7 +384,7 @@ fn numpy_emit_parameters_default() {
 fn numpy_emit_returns_named() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Returns(vec![Return {
+        sections: vec![Section::returns(vec![Return {
             name: Some("result".into()),
             type_annotation: Some("int".into()),
             description: Some("The result.".into()),
@@ -403,7 +400,7 @@ fn numpy_emit_returns_named() {
 fn numpy_emit_returns_type_only() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Returns(vec![Return {
+        sections: vec![Section::returns(vec![Return {
             name: None,
             type_annotation: Some("int".into()),
             description: Some("The result.".into()),
@@ -418,7 +415,7 @@ fn numpy_emit_returns_type_only() {
 fn numpy_emit_raises() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Raises(vec![
+        sections: vec![Section::raises(vec![
             ExceptionEntry {
                 type_name: "ValueError".into(),
                 description: Some("If the input is invalid.".into()),
@@ -456,10 +453,7 @@ fn numpy_emit_deprecation() {
 fn numpy_emit_notes() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::FreeText {
-            kind: FreeSectionKind::Notes,
-            body: "Some notes here.".into(),
-        }],
+        sections: vec![Section::free_text(FreeSectionKind::Notes, "Some notes here.".into())],
         ..Default::default()
     };
     let text = emit_numpy(&doc, &EmitOptions::default());
@@ -471,7 +465,7 @@ fn numpy_emit_notes() {
 fn numpy_emit_references() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::References(vec![
+        sections: vec![Section::references(vec![
             Reference {
                 label: Some("1".into()),
                 content: Some("Author, Title, Journal.".into()),
@@ -493,7 +487,7 @@ fn numpy_emit_references() {
 fn numpy_emit_attributes() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Attributes(vec![Attribute {
+        sections: vec![Section::attributes(vec![Attribute {
             names: vec!["name".into()],
             type_annotation: Some("str".into()),
             description: Some("The name.".into()),
@@ -510,7 +504,7 @@ fn numpy_emit_attributes() {
 fn numpy_emit_attributes_multiple_names() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Attributes(vec![Attribute {
+        sections: vec![Section::attributes(vec![Attribute {
             names: vec!["jac".into(), "hess".into()],
             type_annotation: Some("ndarray".into()),
             description: Some("Derivatives.".into()),
@@ -525,7 +519,7 @@ fn numpy_emit_attributes_multiple_names() {
 fn numpy_emit_see_also() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::SeeAlso(vec![SeeAlsoEntry {
+        sections: vec![Section::see_also(vec![SeeAlsoEntry {
             names: vec!["func1".into(), "func2".into()],
             description: Some("Related.".into()),
         }])],
@@ -545,7 +539,7 @@ fn numpy_emit_see_also() {
 fn numpy_emit_see_also_role_name_multiline() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::SeeAlso(vec![SeeAlsoEntry {
+        sections: vec![Section::see_also(vec![SeeAlsoEntry {
             names: vec![":func:`csd`".into()],
             description: Some("Cross power spectral density\nusing Welch's method".into()),
         }])],
@@ -560,14 +554,14 @@ fn numpy_emit_multiple_sections() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
         sections: vec![
-            Section::Parameters(vec![Parameter {
+            Section::parameters(vec![Parameter {
                 names: vec!["x".into()],
                 type_annotation: Some("int".into()),
                 description: Some("Val.".into()),
                 is_optional: false,
                 default_value: None,
             }]),
-            Section::Returns(vec![Return {
+            Section::returns(vec![Return {
                 name: None,
                 type_annotation: Some("int".into()),
                 description: Some("Result.".into()),
@@ -608,7 +602,7 @@ fn sphinx_emit_summary_and_extended() {
 fn sphinx_emit_params() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![
+        sections: vec![Section::parameters(vec![
             Parameter {
                 names: vec!["x".into()],
                 type_annotation: Some("int".into()),
@@ -637,7 +631,7 @@ fn sphinx_emit_params() {
 fn sphinx_emit_params_optional_and_default() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![Parameter {
+        sections: vec![Section::parameters(vec![Parameter {
             names: vec!["x".into()],
             type_annotation: Some("int".into()),
             description: Some("The value.".into()),
@@ -655,7 +649,7 @@ fn sphinx_emit_params_optional_and_default() {
 fn sphinx_emit_params_default_no_description() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![Parameter {
+        sections: vec![Section::parameters(vec![Parameter {
             names: vec!["x".into()],
             type_annotation: Some("int".into()),
             description: None,
@@ -672,7 +666,7 @@ fn sphinx_emit_params_default_no_description() {
 fn sphinx_emit_params_multiple_names_duplicated() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![Parameter {
+        sections: vec![Section::parameters(vec![Parameter {
             names: vec!["x".into(), "y".into()],
             type_annotation: Some("float".into()),
             description: Some("Values.".into()),
@@ -692,7 +686,7 @@ fn sphinx_emit_params_multiple_names_duplicated() {
 fn sphinx_emit_returns() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Returns(vec![Return {
+        sections: vec![Section::returns(vec![Return {
             name: None,
             type_annotation: Some("int".into()),
             description: Some("The result.".into()),
@@ -708,7 +702,7 @@ fn sphinx_emit_returns() {
 fn sphinx_emit_raises() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Raises(vec![ExceptionEntry {
+        sections: vec![Section::raises(vec![ExceptionEntry {
             type_name: "ValueError".into(),
             description: Some("If the input is invalid.".into()),
         }])],
@@ -722,7 +716,7 @@ fn sphinx_emit_raises() {
 fn sphinx_emit_attributes() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Attributes(vec![Attribute {
+        sections: vec![Section::attributes(vec![Attribute {
             names: vec!["name".into()],
             type_annotation: Some("str".into()),
             description: Some("The name.".into()),
@@ -740,7 +734,7 @@ fn sphinx_emit_attributes() {
 fn sphinx_emit_attributes_multiple_names() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Attributes(vec![Attribute {
+        sections: vec![Section::attributes(vec![Attribute {
             names: vec!["jac".into(), "hess".into()],
             type_annotation: Some("ndarray".into()),
             description: Some("Derivatives.".into()),
@@ -758,10 +752,7 @@ fn sphinx_emit_attributes_multiple_names() {
 fn sphinx_emit_notes_admonition() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::FreeText {
-            kind: FreeSectionKind::Notes,
-            body: "Some notes here.".into(),
-        }],
+        sections: vec![Section::free_text(FreeSectionKind::Notes, "Some notes here.".into())],
         ..Default::default()
     };
     let text = emit_sphinx(&doc, &EmitOptions::default());
@@ -772,7 +763,7 @@ fn sphinx_emit_notes_admonition() {
 fn sphinx_emit_see_also() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::SeeAlso(vec![SeeAlsoEntry {
+        sections: vec![Section::see_also(vec![SeeAlsoEntry {
             names: vec!["func1".into(), "func2".into()],
             description: Some("Related.".into()),
         }])],
@@ -802,7 +793,7 @@ fn sphinx_emit_deprecation() {
 fn sphinx_emit_with_base_indent() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![Parameter {
+        sections: vec![Section::parameters(vec![Parameter {
             names: vec!["x".into()],
             type_annotation: Some("int".into()),
             description: Some("The value.".into()),
@@ -947,7 +938,7 @@ fn numpy_to_google_conversion() {
 fn google_emit_with_base_indent() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![Parameter {
+        sections: vec![Section::parameters(vec![Parameter {
             names: vec!["x".into()],
             type_annotation: Some("int".into()),
             description: Some("The value.".into()),
@@ -966,7 +957,7 @@ fn google_emit_with_base_indent() {
 fn numpy_emit_with_base_indent() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
-        sections: vec![Section::Parameters(vec![Parameter {
+        sections: vec![Section::parameters(vec![Parameter {
             names: vec!["x".into()],
             type_annotation: Some("int".into()),
             description: Some("The value.".into()),
@@ -986,7 +977,7 @@ fn google_emit_base_indent_preserves_blank_lines() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
         extended_summary: Some("Extended.".into()),
-        sections: vec![Section::Parameters(vec![Parameter {
+        sections: vec![Section::parameters(vec![Parameter {
             names: vec!["x".into()],
             type_annotation: Some("int".into()),
             description: Some("Val.".into()),
@@ -1005,7 +996,7 @@ fn numpy_emit_base_indent_preserves_blank_lines() {
     let doc = Docstring {
         summary: Some("Summary.".into()),
         extended_summary: Some("Extended.".into()),
-        sections: vec![Section::Parameters(vec![Parameter {
+        sections: vec![Section::parameters(vec![Parameter {
             names: vec!["x".into()],
             type_annotation: Some("int".into()),
             description: Some("Val.".into()),

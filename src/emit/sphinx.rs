@@ -2,6 +2,7 @@
 
 use super::EmitOptions;
 use crate::model::Attribute;
+use crate::model::Block;
 use crate::model::Directive;
 use crate::model::Docstring;
 use crate::model::ExceptionEntry;
@@ -11,6 +12,7 @@ use crate::model::Parameter;
 use crate::model::Reference;
 use crate::model::Return;
 use crate::model::Section;
+use crate::model::SectionKind;
 use crate::model::SeeAlsoEntry;
 
 /// Emit a [`Docstring`] as a Sphinx-style (reStructuredText field list) string.
@@ -43,7 +45,7 @@ use crate::model::SeeAlsoEntry;
 ///
 /// let doc = Docstring {
 ///     summary: Some("Brief summary.".into()),
-///     sections: vec![Section::Parameters(vec![Parameter {
+///     sections: vec![Section::parameters(vec![Parameter {
 ///         names: vec!["x".into()],
 ///         type_annotation: Some("int".into()),
 ///         description: Some("The value.".into()),
@@ -91,48 +93,58 @@ pub fn emit_sphinx(doc: &Docstring, options: &EmitOptions) -> String {
 }
 
 fn emit_section(out: &mut String, section: &Section) {
-    match section {
-        Section::Parameters(params)
-        | Section::KeywordParameters(params)
-        | Section::OtherParameters(params)
-        | Section::Receives(params) => {
-            for p in params {
+    let blocks = &section.blocks;
+    match &section.kind {
+        SectionKind::Parameters
+        | SectionKind::KeywordParameters
+        | SectionKind::OtherParameters
+        | SectionKind::Receives => {
+            for p in blocks.iter().filter_map(Block::as_parameter) {
                 emit_parameter(out, p);
             }
         }
-        Section::Returns(returns) | Section::Yields(returns) => {
-            for r in returns {
+        SectionKind::Returns | SectionKind::Yields => {
+            for r in blocks.iter().filter_map(Block::as_return) {
                 emit_return(out, r);
             }
         }
-        Section::Raises(entries) => {
-            for e in entries {
+        SectionKind::Raises => {
+            for e in blocks.iter().filter_map(Block::as_exception) {
                 emit_exception(out, e);
             }
         }
-        Section::Warns(entries) => {
-            for e in entries {
+        SectionKind::Warns => {
+            for e in blocks.iter().filter_map(Block::as_exception) {
                 emit_warning(out, e);
             }
         }
-        Section::Attributes(attrs) => {
-            for a in attrs {
+        SectionKind::Attributes => {
+            for a in blocks.iter().filter_map(Block::as_attribute) {
                 emit_attribute(out, a);
             }
         }
-        Section::Methods(methods) => {
-            emit_methods(out, methods);
+        SectionKind::Methods => {
+            let methods: Vec<Method> = blocks.iter().filter_map(|b| b.as_method().cloned()).collect();
+            emit_methods(out, &methods);
         }
-        Section::SeeAlso(items) => {
-            emit_see_also(out, items);
+        SectionKind::SeeAlso => {
+            let items: Vec<SeeAlsoEntry> = blocks.iter().filter_map(|b| b.as_see_also().cloned()).collect();
+            emit_see_also(out, &items);
         }
-        Section::References(refs) => {
-            for r in refs {
+        SectionKind::References => {
+            for r in blocks.iter().filter_map(Block::as_reference) {
                 emit_reference(out, r);
             }
         }
-        Section::FreeText { kind, body } => {
-            emit_free_text(out, kind, body);
+        SectionKind::FreeText(kind) => {
+            // Free-text bodies are carried as paragraph blocks; rejoin them
+            // into the admonition body Sphinx expects.
+            let body = blocks
+                .iter()
+                .filter_map(Block::as_paragraph)
+                .collect::<Vec<_>>()
+                .join("\n");
+            emit_free_text(out, kind, &body);
         }
     }
 }
