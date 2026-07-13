@@ -1,6 +1,22 @@
+from typing import TypeVar
+
 import pytest
 
 import pydocstring
+
+_T = TypeVar("_T")
+
+
+def present(value: _T | None) -> _T:
+    """Assert that an optional view accessor is present, and return it.
+
+    Every accessor on the unified view is optional by design — a `Raises:` entry
+    has no name, an entry may have no type — so reading one in a test *is* an
+    assertion that it is there. Saying so keeps the type checker honest instead
+    of silently dereferencing `None`.
+    """
+    assert value is not None
+    return value
 
 
 def _entries(section, variant):
