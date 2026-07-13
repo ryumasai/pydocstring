@@ -22,8 +22,8 @@ use std::sync::Arc;
 
 // ─── TextRange ──────────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "TextRange")]
-#[derive(Clone, Copy)]
+#[pyclass(eq, hash, frozen, skip_from_py_object, module = "pydocstring", name = "TextRange")]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 struct PyTextRange {
     #[pyo3(get)]
     start: u32,
@@ -56,7 +56,8 @@ impl PyTextRange {
 
 // ─── LineColumn ─────────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "LineColumn")]
+#[pyclass(eq, hash, frozen, skip_from_py_object, module = "pydocstring", name = "LineColumn")]
+#[derive(PartialEq, Eq, Hash)]
 struct PyLineColumn {
     #[pyo3(get)]
     lineno: u32,
@@ -363,7 +364,7 @@ impl PyTextBlock {
 
 // ─── Style ──────────────────────────────────────────────────────────────────
 
-#[pyclass(eq, frozen, skip_from_py_object, hash, name = "Style")]
+#[pyclass(eq, frozen, skip_from_py_object, hash, module = "pydocstring", name = "Style")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum PyStyle {
     #[pyo3(name = "GOOGLE")]
@@ -398,8 +399,9 @@ impl PyStyle {
 
 /// A parsed docstring, whatever its style.
 ///
-/// One type for every style: the tree's vocabulary is style-independent, so
-/// there is nothing for a per-style wrapper to add. Read it through
+/// One type for every style: `parse()`, `parse_google()`, `parse_numpy()` and
+/// `parse_plain()` all return this, so nothing downstream branches on which
+/// one you called — the tree's vocabulary is style-independent. Read it through
 /// `Document(parsed)` (the semantic lens), `parsed.syntax` (the faithful CST),
 /// or `parsed.to_model()` (the normalized IR); edit it through `parsed.edit()`.
 #[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "Parsed")]
@@ -510,7 +512,7 @@ fn build_parsed(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyParsed>> {
 // (`find_missing(SyntaxKind.TYPE)` is what distinguishes `x ():` from `x:`).
 
 /// The kind of a CST node or token.
-#[pyclass(from_py_object, eq, eq_int, frozen, hash, module = "pydocstring", name = "SyntaxKind")]
+#[pyclass(from_py_object, eq, frozen, hash, module = "pydocstring", name = "SyntaxKind")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum PySyntaxKind {
     #[pyo3(name = "NAME")]
@@ -674,6 +676,23 @@ impl PyNode {
     fn text(&self) -> &str {
         self.nr.node().range().source_text(self.nr.parsed.source())
     }
+    /// Two `Node`s are equal when they are the same kind over the same range
+    /// of the same source — accessors hand out a fresh wrapper each time, so
+    /// identity would make even `n == n` false. Mirrors `Token`.
+    fn __eq__(&self, other: &PyNode) -> bool {
+        self.nr.node().kind() == other.nr.node().kind()
+            && self.nr.node().range() == other.nr.node().range()
+            && self.text() == other.text()
+    }
+    fn __hash__(&self) -> u64 {
+        use std::hash::{Hash, Hasher};
+        let mut hasher = std::collections::hash_map::DefaultHasher::new();
+        let node = self.nr.node();
+        node.kind().hash(&mut hasher);
+        node.range().hash(&mut hasher);
+        self.text().hash(&mut hasher);
+        hasher.finish()
+    }
     /// Every child, in source order: a mix of `Node` and `Token`.
     #[getter]
     fn children(&self, py: Python<'_>) -> PyResult<Vec<Py<PyAny>>> {
@@ -756,17 +775,16 @@ impl PyNode {
 // =============================================================================
 //
 // One code path over any docstring style. These wrap `parse::unified`, which
-// reads the same tree as the per-style wrappers above but names things in the
-// style-independent vocabulary: a section's role is `kind` (data), not a
-// nominal type. Like every wrapper here, they hold no conversion knowledge —
-// each getter delegates straight to the core accessor.
+// names things in the style-independent vocabulary: a section's role is `kind`
+// (data), not a nominal type. They hold no conversion knowledge — each getter
+// delegates straight to the core accessor.
 //
 // Missing (zero-length) placeholder tokens are *not* surfaced: these views
 // mirror the core exactly, where `find_token` excludes them, so `None` means
-// "not present" rather than "present but empty". The per-style wrappers remain
-// the CST-fidelity lens.
+// "not present" rather than "present but empty". `parsed.syntax` — the raw CST
+// — is the lens that keeps them.
 
-/// Extract the shared `Arc<Parsed>` from any of the three docstring wrappers.
+/// Extract the shared `Arc<Parsed>` from a `Parsed` or any unified view.
 fn parsed_of(obj: &Bound<'_, PyAny>) -> PyResult<Arc<Parsed>> {
     match obj.cast::<PyParsed>() {
         Ok(p) => Ok(Arc::clone(&p.get().nr.parsed)),
@@ -952,8 +970,8 @@ impl PySection {
 ///
 /// All roles share one type — the role is the parent section's `kind`. Every
 /// accessor is optional, so reading an entry never raises for a role that does
-/// not carry that piece (unlike the per-style wrappers, where a mismatched
-/// accessor panics).
+/// not carry that piece: a `Raises:` entry has `name is None` and its exception
+/// type in `type_annotation`.
 #[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "Entry")]
 struct PyEntry {
     nr: NodeRef,
@@ -1940,7 +1958,7 @@ impl TryInto<model::Method> for &PyModelMethod {
 
 // ─── SectionKind ─────────────────────────────────────────────────────────────
 
-#[pyclass(from_py_object, eq, eq_int, frozen, hash, module = "pydocstring", name = "SectionKind")]
+#[pyclass(from_py_object, eq, frozen, hash, module = "pydocstring", name = "SectionKind")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum PySectionKind {
     #[pyo3(name = "PARAMETERS")]
@@ -2934,10 +2952,10 @@ fn walk(py: Python<'_>, target: &Bound<'_, PyAny>, visitor: Py<PyAny>) -> PyResu
 // Module
 // =============================================================================
 
-/// `Visitor` is defined in `python/pydocstring/_visitor.py`.
-/// `collect_active` reads `__pydocstring_active__` (a frozenset set by
-/// `Visitor.__init_subclass__`) once via a single PyO3 `extract` call
-/// and builds a pure-Rust `ActiveMethods` struct.
+/// `Visitor` is defined in `python/pydocstring/_visitor.py`. Its three hooks
+/// are no-ops tagged with `__pydocstring_noop__`, so `is_overridden` probes for
+/// that tag once per walk and records the answer in `ActiveMethods` — an
+/// un-overridden hook then costs no Python call per node or token.
 
 #[pymodule]
 fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
