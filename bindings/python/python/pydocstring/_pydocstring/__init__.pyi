@@ -148,683 +148,6 @@ class Style:
 
 # ─── Section kinds ───────────────────────────────────────────────────────────
 
-class GoogleSectionKind:
-    ARGS: GoogleSectionKind
-    KEYWORD_ARGS: GoogleSectionKind
-    OTHER_PARAMETERS: GoogleSectionKind
-    RECEIVES: GoogleSectionKind
-    RETURNS: GoogleSectionKind
-    YIELDS: GoogleSectionKind
-    RAISES: GoogleSectionKind
-    WARNS: GoogleSectionKind
-    ATTRIBUTES: GoogleSectionKind
-    METHODS: GoogleSectionKind
-    SEE_ALSO: GoogleSectionKind
-    NOTES: GoogleSectionKind
-    EXAMPLES: GoogleSectionKind
-    TODO: GoogleSectionKind
-    REFERENCES: GoogleSectionKind
-    WARNINGS: GoogleSectionKind
-    ATTENTION: GoogleSectionKind
-    CAUTION: GoogleSectionKind
-    DANGER: GoogleSectionKind
-    ERROR: GoogleSectionKind
-    HINT: GoogleSectionKind
-    IMPORTANT: GoogleSectionKind
-    TIP: GoogleSectionKind
-    UNKNOWN: GoogleSectionKind
-    def __repr__(self) -> str: ...
-
-class NumPySectionKind:
-    PARAMETERS: NumPySectionKind
-    RETURNS: NumPySectionKind
-    YIELDS: NumPySectionKind
-    RECEIVES: NumPySectionKind
-    OTHER_PARAMETERS: NumPySectionKind
-    KEYWORD_PARAMETERS: NumPySectionKind
-    RAISES: NumPySectionKind
-    WARNS: NumPySectionKind
-    WARNINGS: NumPySectionKind
-    SEE_ALSO: NumPySectionKind
-    NOTES: NumPySectionKind
-    REFERENCES: NumPySectionKind
-    EXAMPLES: NumPySectionKind
-    ATTRIBUTES: NumPySectionKind
-    METHODS: NumPySectionKind
-    TODO: NumPySectionKind
-    ATTENTION: NumPySectionKind
-    CAUTION: NumPySectionKind
-    DANGER: NumPySectionKind
-    ERROR: NumPySectionKind
-    HINT: NumPySectionKind
-    IMPORTANT: NumPySectionKind
-    TIP: NumPySectionKind
-    UNKNOWN: NumPySectionKind
-    def __repr__(self) -> str: ...
-
-# ─── Google CST wrappers ─────────────────────────────────────────────────────
-
-class GoogleArg:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def name(self) -> Token: ...
-    @property
-    def names(self) -> list[Token]: ...
-    @property
-    def open_bracket(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def type(self) -> Token | None:
-        """Type token, or missing-placeholder (e.g. ``x ():``), or ``None``."""
-    @property
-    def close_bracket(self) -> Token | None:
-        """Closing bracket, or missing-placeholder (unclosed ``(``), or ``None``."""
-    @property
-    def colon(self) -> Token | None:
-        """Colon token, or missing-placeholder, or ``None``."""
-    @property
-    def description(self) -> TextBlock | None:
-        """Description, or missing-placeholder (e.g. ``x (int):``), or ``None``."""
-    @property
-    def optional(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def default_keyword(self) -> Token | None: ...
-    @property
-    def default_separator(self) -> Token | None: ...
-    @property
-    def default_value(self) -> Token | None: ...
-    def __repr__(self) -> str: ...
-
-class GoogleReturn:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def return_type(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def colon(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def description(self) -> TextBlock | None:
-        """``None`` when absent (never a missing placeholder; symmetric with NumPy)."""
-    def __repr__(self) -> str: ...
-
-class GoogleYield:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def return_type(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def colon(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def description(self) -> TextBlock | None:
-        """``None`` when absent (never a missing placeholder; symmetric with NumPy)."""
-    def __repr__(self) -> str: ...
-
-class GoogleException:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def type(self) -> Token: ...
-    @property
-    def colon(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def description(self) -> TextBlock | None:
-        """Description, or missing-placeholder (``ValueError:``), or ``None`` (no colon)."""
-    def __repr__(self) -> str: ...
-
-class GoogleWarning:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def type(self) -> Token: ...
-    @property
-    def colon(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def description(self) -> TextBlock | None:
-        """Description, or missing-placeholder (``UserWarning:``), or ``None`` (no colon)."""
-    def __repr__(self) -> str: ...
-
-class GoogleSeeAlsoItem:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def names(self) -> list[Token]: ...
-    @property
-    def colon(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def description(self) -> TextBlock | None:
-        """Description, or missing-placeholder (``name:``), or ``None`` (no colon)."""
-    def __repr__(self) -> str: ...
-
-class GoogleReference:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def directive_marker(self) -> Token | None: ...
-    @property
-    def open_bracket(self) -> Token | None: ...
-    @property
-    def label(self) -> Token | None: ...
-    @property
-    def close_bracket(self) -> Token | None: ...
-    @property
-    def content(self) -> TextBlock | None: ...
-    def __repr__(self) -> str: ...
-
-class GoogleAttribute:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def name(self) -> Token:
-        """First name token (convenience for ``names[0]``)."""
-    @property
-    def names(self) -> list[Token]: ...
-    @property
-    def open_bracket(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def type(self) -> Token | None:
-        """Type token, or missing-placeholder (``attr ():``), or ``None``."""
-    @property
-    def close_bracket(self) -> Token | None:
-        """Closing bracket, or missing-placeholder, or ``None``."""
-    @property
-    def colon(self) -> Token | None:
-        """Colon token, or missing-placeholder, or ``None``."""
-    @property
-    def description(self) -> TextBlock | None:
-        """Description, or missing-placeholder (``attr (int):``), or ``None``."""
-    def __repr__(self) -> str: ...
-
-class GoogleMethod:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def name(self) -> Token: ...
-    @property
-    def open_bracket(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def type(self) -> Token | None:
-        """Type token, or missing-placeholder (``meth ():``), or ``None``."""
-    @property
-    def close_bracket(self) -> Token | None:
-        """Closing bracket, or missing-placeholder, or ``None``."""
-    @property
-    def colon(self) -> Token | None:
-        """Colon token, or missing-placeholder, or ``None``."""
-    @property
-    def description(self) -> TextBlock | None:
-        """Description, or missing-placeholder (``meth:``), or ``None``."""
-    def __repr__(self) -> str: ...
-
-class GoogleSection:
-    """A section in a Google-style docstring.
-
-    Child nodes are not directly accessible; use :func:`walk` with a
-    :class:`Visitor` to iterate over ``GoogleArg``, ``GoogleReturn``, etc.
-    """
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def section_kind(self) -> GoogleSectionKind: ...
-    @property
-    def header_name(self) -> Token: ...
-    def __repr__(self) -> str: ...
-
-class GoogleDeprecation:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def directive_marker(self) -> Token | None: ...
-    @property
-    def keyword(self) -> Token | None: ...
-    @property
-    def double_colon(self) -> Token | None: ...
-    @property
-    def version(self) -> Token: ...
-    @property
-    def description(self) -> TextBlock | None: ...
-    def __repr__(self) -> str: ...
-
-class GoogleDirective:
-    """Any Google-style rST directive (``.. name:: ...``)."""
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def directive_marker(self) -> Token | None: ...
-    @property
-    def name(self) -> Token: ...
-    @property
-    def double_colon(self) -> Token | None: ...
-    @property
-    def argument(self) -> Token | None: ...
-    @property
-    def description(self) -> TextBlock | None: ...
-    def __repr__(self) -> str: ...
-
-class GoogleDocstring:
-    """A parsed Google-style docstring."""
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def summary(self) -> TextBlock | None: ...
-    @property
-    def extended_summary(self) -> TextBlock | None: ...
-    @property
-    def deprecation(self) -> GoogleDeprecation | None: ...
-    @property
-    def paragraphs(self) -> list[TextBlock]:
-        """Stray-prose paragraph blocks between sections, in source order."""
-    @property
-    def sections(self) -> list[GoogleSection]: ...
-    @property
-    def source(self) -> str: ...
-    @property
-    def syntax(self) -> Node:
-        """The root CST node — the escape hatch down to the faithful lens."""
-    @property
-    def style(self) -> Style: ...
-    def pretty_print(self) -> str: ...
-    def to_model(self) -> Docstring: ...
-    def edit(self) -> Edits:
-        """Start an empty edit list anchored on this parse result."""
-        ...
-    def replace(self, pattern: str, template: str) -> str:
-        """Replace every match of ``pattern`` with ``template``, returning new source.
-
-        ``pattern`` and ``template`` use ``$NAME`` / ``$$$NAME`` metavariables;
-        captured content is substituted byte-for-byte and everything else is
-        preserved. Raises :class:`PatternError` for an invalid pattern.
-        """
-        ...
-    def findall(self, pattern: str) -> list[Match]:
-        """Find every match of ``pattern`` in document order (non-overlapping)."""
-        ...
-    def replace_in(
-        self,
-        anchor: Document | Section | Entry,
-        pattern: str,
-        template: str,
-    ) -> str:
-        """Like :meth:`replace`, but scoped to ``anchor``'s subtree.
-
-        ``anchor`` is a :class:`Document`, :class:`Section`, or :class:`Entry`
-        view of *this* parse result — a plain docstring has no sections, so only
-        a ``Document`` anchor applies there. Raises ``TypeError`` for anything
-        else, and ``ValueError`` for a view of a different parse result.
-
-        The anchor also selects the *reading*: an entry line is a ``$NAME`` under
-        a parameters section and a ``$TYPE`` under a raises section, so the same
-        pattern reads differently depending on where it is scoped.
-        """
-        ...
-    def findall_in(
-        self,
-        anchor: Document | Section | Entry,
-        pattern: str,
-    ) -> list[Match]:
-        """Like :meth:`findall`, but scoped to ``anchor``'s subtree.
-
-        Same anchor rules as :meth:`replace_in`.
-        """
-        ...
-    def __repr__(self) -> str: ...
-
-# ─── NumPy CST wrappers ──────────────────────────────────────────────────────
-
-class NumPyDeprecation:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def directive_marker(self) -> Token | None: ...
-    @property
-    def keyword(self) -> Token | None: ...
-    @property
-    def double_colon(self) -> Token | None: ...
-    @property
-    def version(self) -> Token: ...
-    @property
-    def description(self) -> TextBlock | None: ...
-    def __repr__(self) -> str: ...
-
-class NumPyDirective:
-    """Any NumPy-style rST directive (``.. name:: ...``)."""
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def directive_marker(self) -> Token | None: ...
-    @property
-    def name(self) -> Token: ...
-    @property
-    def double_colon(self) -> Token | None: ...
-    @property
-    def argument(self) -> Token | None: ...
-    @property
-    def description(self) -> TextBlock | None: ...
-    def __repr__(self) -> str: ...
-
-class NumPyParameter:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def name(self) -> Token | None:
-        """First name token (``names[0]``); ``None`` when the entry has no names."""
-    @property
-    def names(self) -> list[Token]: ...
-    @property
-    def colon(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def type(self) -> Token | None:
-        """Type token, or missing-placeholder (``x :``), or ``None`` (no colon)."""
-    @property
-    def description(self) -> TextBlock | None:
-        """Description, or missing-placeholder, or ``None``.
-
-        The NumPy grammar carries descriptions on indented continuation
-        lines, so the parser emits no placeholder for a parameter without
-        one — expect ``None`` in that case (the placeholder form only
-        appears for Google-style ``name (type): desc`` entries).
-        """
-    @property
-    def optional(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def default_keyword(self) -> Token | None: ...
-    @property
-    def default_separator(self) -> Token | None: ...
-    @property
-    def default_value(self) -> Token | None: ...
-    def __repr__(self) -> str: ...
-
-class NumPyReturns:
-    """A single named return entry in a NumPy ``Returns`` section."""
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def name(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def colon(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def return_type(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def description(self) -> TextBlock | None:
-        """``None`` when absent (never a missing placeholder; symmetric with Google)."""
-    def __repr__(self) -> str: ...
-
-class NumPyYields:
-    """A single named yield entry in a NumPy ``Yields`` section."""
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def name(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def colon(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def return_type(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def description(self) -> TextBlock | None:
-        """``None`` when absent (never a missing placeholder; symmetric with Google)."""
-    def __repr__(self) -> str: ...
-
-class NumPyException:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def type(self) -> Token: ...
-    @property
-    def colon(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def description(self) -> TextBlock | None:
-        """Description, or missing-placeholder (``ValueError:``), or ``None`` (no colon)."""
-    def __repr__(self) -> str: ...
-
-class NumPyWarning:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def type(self) -> Token: ...
-    @property
-    def colon(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def description(self) -> TextBlock | None:
-        """Description, or missing-placeholder (``UserWarning:``), or ``None`` (no colon)."""
-    def __repr__(self) -> str: ...
-
-class NumPySeeAlsoItem:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def names(self) -> list[Token]: ...
-    @property
-    def colon(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def description(self) -> TextBlock | None:
-        """Description, or missing-placeholder (``name :``), or ``None`` (no colon)."""
-    def __repr__(self) -> str: ...
-
-class NumPyReference:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def directive_marker(self) -> Token | None: ...
-    @property
-    def open_bracket(self) -> Token | None: ...
-    @property
-    def label(self) -> Token | None: ...
-    @property
-    def close_bracket(self) -> Token | None: ...
-    @property
-    def content(self) -> TextBlock | None: ...
-    def __repr__(self) -> str: ...
-
-class NumPyAttribute:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def name(self) -> Token:
-        """First name token (convenience for ``names[0]``)."""
-    @property
-    def names(self) -> list[Token]: ...
-    @property
-    def colon(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def type(self) -> Token | None:
-        """Type token, or missing-placeholder (``attr :``), or ``None`` (no colon)."""
-    @property
-    def description(self) -> TextBlock | None:
-        """Description, or missing-placeholder, or ``None``.
-
-        NumPy attribute descriptions live on indented continuation lines,
-        so the parser emits no placeholder when one is absent — expect
-        ``None`` in that case.
-        """
-    def __repr__(self) -> str: ...
-
-class NumPyMethod:
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def name(self) -> Token: ...
-    @property
-    def colon(self) -> Token | None:
-        """``None`` when absent (never a missing placeholder)."""
-    @property
-    def description(self) -> TextBlock | None:
-        """Description, or missing-placeholder (``meth:``), or ``None`` (no colon)."""
-    def __repr__(self) -> str: ...
-
-class NumPySection:
-    """A section in a NumPy-style docstring.
-
-    Child nodes are not directly accessible; use :func:`walk` with a
-    :class:`Visitor` to iterate over ``NumPyParameter``, ``NumPyReturns``, etc.
-    """
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def section_kind(self) -> NumPySectionKind: ...
-    @property
-    def header_name(self) -> Token: ...
-    def __repr__(self) -> str: ...
-
-class NumPyDocstring:
-    """A parsed NumPy-style docstring."""
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def summary(self) -> TextBlock | None: ...
-    @property
-    def extended_summary(self) -> TextBlock | None: ...
-    @property
-    def deprecation(self) -> NumPyDeprecation | None: ...
-    @property
-    def paragraphs(self) -> list[TextBlock]:
-        """Stray-prose paragraph blocks between sections, in source order.
-
-        Parity with :attr:`GoogleDocstring.paragraphs`. The NumPy grammar
-        lets the extended summary and section bodies absorb stray prose, so
-        this list is typically empty.
-        """
-    @property
-    def sections(self) -> list[NumPySection]: ...
-    @property
-    def source(self) -> str: ...
-    @property
-    def syntax(self) -> Node:
-        """The root CST node — the escape hatch down to the faithful lens."""
-    @property
-    def style(self) -> Style: ...
-    def pretty_print(self) -> str: ...
-    def to_model(self) -> Docstring: ...
-    def edit(self) -> Edits:
-        """Start an empty edit list anchored on this parse result."""
-        ...
-    def replace(self, pattern: str, template: str) -> str:
-        """Replace every match of ``pattern`` with ``template``, returning new source.
-
-        ``pattern`` and ``template`` use ``$NAME`` / ``$$$NAME`` metavariables;
-        captured content is substituted byte-for-byte and everything else is
-        preserved. Raises :class:`PatternError` for an invalid pattern.
-        """
-        ...
-    def findall(self, pattern: str) -> list[Match]:
-        """Find every match of ``pattern`` in document order (non-overlapping)."""
-        ...
-    def replace_in(
-        self,
-        anchor: Document | Section | Entry,
-        pattern: str,
-        template: str,
-    ) -> str:
-        """Like :meth:`replace`, but scoped to ``anchor``'s subtree.
-
-        ``anchor`` is a :class:`Document`, :class:`Section`, or :class:`Entry`
-        view of *this* parse result — a plain docstring has no sections, so only
-        a ``Document`` anchor applies there. Raises ``TypeError`` for anything
-        else, and ``ValueError`` for a view of a different parse result.
-
-        The anchor also selects the *reading*: an entry line is a ``$NAME`` under
-        a parameters section and a ``$TYPE`` under a raises section, so the same
-        pattern reads differently depending on where it is scoped.
-        """
-        ...
-    def findall_in(
-        self,
-        anchor: Document | Section | Entry,
-        pattern: str,
-    ) -> list[Match]:
-        """Like :meth:`findall`, but scoped to ``anchor``'s subtree.
-
-        Same anchor rules as :meth:`replace_in`.
-        """
-        ...
-    def __repr__(self) -> str: ...
-
-# ─── Plain CST wrapper ───────────────────────────────────────────────────────
-
-class PlainDocstring:
-    """A parsed plain docstring (no section markers)."""
-    @property
-    def range(self) -> TextRange: ...
-    @property
-    def summary(self) -> TextBlock | None: ...
-    @property
-    def extended_summary(self) -> TextBlock | None: ...
-    @property
-    def source(self) -> str: ...
-    @property
-    def syntax(self) -> Node:
-        """The root CST node — the escape hatch down to the faithful lens."""
-    @property
-    def style(self) -> Style: ...
-    def pretty_print(self) -> str: ...
-    def to_model(self) -> Docstring: ...
-    def edit(self) -> Edits:
-        """Start an empty edit list anchored on this parse result."""
-        ...
-    def replace(self, pattern: str, template: str) -> str:
-        """Replace every match of ``pattern`` with ``template``, returning new source.
-
-        ``pattern`` and ``template`` use ``$NAME`` / ``$$$NAME`` metavariables;
-        captured content is substituted byte-for-byte and everything else is
-        preserved. Raises :class:`PatternError` for an invalid pattern.
-        """
-        ...
-    def findall(self, pattern: str) -> list[Match]:
-        """Find every match of ``pattern`` in document order (non-overlapping)."""
-        ...
-    def replace_in(
-        self,
-        anchor: Document | Section | Entry,
-        pattern: str,
-        template: str,
-    ) -> str:
-        """Like :meth:`replace`, but scoped to ``anchor``'s subtree.
-
-        ``anchor`` is a :class:`Document`, :class:`Section`, or :class:`Entry`
-        view of *this* parse result — a plain docstring has no sections, so only
-        a ``Document`` anchor applies there. Raises ``TypeError`` for anything
-        else, and ``ValueError`` for a view of a different parse result.
-
-        The anchor also selects the *reading*: an entry line is a ``$NAME`` under
-        a parameters section and a ``$TYPE`` under a raises section, so the same
-        pattern reads differently depending on where it is scoped.
-        """
-        ...
-    def findall_in(
-        self,
-        anchor: Document | Section | Entry,
-        pattern: str,
-    ) -> list[Match]:
-        """Like :meth:`findall`, but scoped to ``anchor``'s subtree.
-
-        Same anchor rules as :meth:`replace_in`.
-        """
-        ...
-    def __repr__(self) -> str: ...
-
-# ─── Section kinds (shared with the model IR) ───────────────────────────────
-
 class SectionKind:
     """Style-independent section kind.
 
@@ -961,7 +284,7 @@ class Document:
     zero-length missing placeholders: ``None`` means "not present".
     """
 
-    def __init__(self, parsed: GoogleDocstring | NumPyDocstring | PlainDocstring) -> None: ...
+    def __init__(self, parsed: Parsed) -> None: ...
     @property
     def range(self) -> TextRange: ...
     @property
@@ -1093,6 +416,72 @@ class Citation:
         """The underlying CST node — the escape hatch down to the faithful lens."""
     def __repr__(self) -> str: ...
 
+# ─── Parsed ──────────────────────────────────────────────────────────────────
+
+class Parsed:
+    """A parsed docstring, whatever its style.
+
+    One type for every style: the tree's vocabulary is style-independent, so
+    there is nothing for a per-style wrapper to add. Read it through
+    ``Document(parsed)`` (the semantic lens), ``parsed.syntax`` (the faithful
+    CST), or ``parsed.to_model()`` (the normalized IR); edit it through
+    ``parsed.edit()``.
+    """
+    @property
+    def style(self) -> Style: ...
+    @property
+    def source(self) -> str: ...
+    @property
+    def range(self) -> TextRange: ...
+    @property
+    def syntax(self) -> Node:
+        """The root CST node — the faithful lens."""
+    def pretty_print(self) -> str:
+        """A debug rendering of the syntax tree."""
+        ...
+    def to_model(self) -> Docstring:
+        """Convert to the normalized, position-free model IR."""
+        ...
+    def edit(self) -> Edits:
+        """Start an empty edit list anchored on this parse result."""
+        ...
+    def replace(self, pattern: str, template: str) -> str:
+        """Replace every match of ``pattern`` with ``template``, returning new source.
+
+        ``pattern`` and ``template`` use ``$NAME`` / ``$$$NAME`` metavariables;
+        captured content is substituted byte-for-byte and everything else is
+        preserved. Raises :class:`PatternError` for an invalid pattern.
+        """
+        ...
+    def findall(self, pattern: str) -> list[Match]:
+        """Find every match of ``pattern`` in document order (non-overlapping)."""
+        ...
+    def replace_in(
+        self,
+        anchor: Document | Section | Entry,
+        pattern: str,
+        template: str,
+    ) -> str:
+        """Like :meth:`replace`, but scoped to ``anchor``'s subtree.
+
+        ``anchor`` is a :class:`Document`, :class:`Section`, or :class:`Entry`
+        view of *this* parse result — a plain docstring has no sections, so only
+        a ``Document`` anchor applies there. Raises ``TypeError`` for anything
+        else, and ``ValueError`` for a view of a different parse result.
+
+        The anchor also selects the *reading*: an entry line is a ``$NAME`` under
+        a parameters section and a ``$TYPE`` under a raises section, so the same
+        pattern reads differently depending on where it is scoped.
+        """
+        ...
+    def findall_in(self, anchor: Document | Section | Entry, pattern: str) -> list[Match]:
+        """Like :meth:`findall`, but scoped to ``anchor``'s subtree.
+
+        Same anchor rules as :meth:`replace_in`.
+        """
+        ...
+    def __repr__(self) -> str: ...
+
 # ─── Editing — anchored splice edits ─────────────────────────────────────────
 
 class EditError(ValueError):
@@ -1149,7 +538,7 @@ class Edits:
         Raises :class:`EditError` for an out-of-bounds or overlapping edit.
         """
         ...
-    def apply_reparsed(self) -> GoogleDocstring | NumPyDocstring | PlainDocstring:
+    def apply_reparsed(self) -> Parsed:
         """``apply()`` the edits, then re-parse the result.
 
         The style is deliberately **not** re-detected: editing must not silently
@@ -1161,22 +550,19 @@ class Edits:
 
 # ─── Functions ───────────────────────────────────────────────────────────────
 
-def parse(input: str) -> GoogleDocstring | NumPyDocstring | PlainDocstring:
-    """Auto-detect the style and parse ``input``.
-
-    Check ``.style`` or use ``isinstance`` to distinguish the returned type.
-    """
+def parse(input: str) -> Parsed:
+    """Auto-detect the style and parse ``input``. Check ``.style`` for the result."""
     ...
 
-def parse_google(input: str) -> GoogleDocstring:
+def parse_google(input: str) -> Parsed:
     """Parse ``input`` as a Google-style docstring."""
     ...
 
-def parse_numpy(input: str) -> NumPyDocstring:
+def parse_numpy(input: str) -> Parsed:
     """Parse ``input`` as a NumPy-style docstring."""
     ...
 
-def parse_plain(input: str) -> PlainDocstring:
+def parse_plain(input: str) -> Parsed:
     """Parse ``input`` as a plain docstring (no section markers)."""
     ...
 
@@ -1185,86 +571,24 @@ def detect_style(input: str) -> Style:
     ...
 
 def emit_google(doc: Docstring, base_indent: int = 0) -> str:
-    """Render a model ``Docstring`` as Google-style text."""
+    """Emit a model ``Docstring`` as Google-style text."""
     ...
 
 def emit_numpy(doc: Docstring, base_indent: int = 0) -> str:
-    """Render a model ``Docstring`` as NumPy-style text."""
+    """Emit a model ``Docstring`` as NumPy-style text."""
     ...
 
 def emit_sphinx(doc: Docstring, base_indent: int = 0) -> str:
-    """Render a model ``Docstring`` as Sphinx-style (reStructuredText) text."""
+    """Emit a model ``Docstring`` as Sphinx-style (reStructuredText) text."""
     ...
 
-def walk(
-    doc: GoogleDocstring | NumPyDocstring | PlainDocstring,
-    visitor: _VisitorT,
-) -> _VisitorT:
-    """Walk any docstring depth-first, calling typed methods on ``visitor``.
+def walk(target: Parsed | Node, visitor: _VisitorT) -> _VisitorT:
+    """Walk a parse result or a subtree depth-first, calling the visitor's hooks.
 
-    Accepts a `GoogleDocstring`, `NumPyDocstring`, or `PlainDocstring`.
-    ``visitor`` must subclass :class:`Visitor`; override only the ``enter_*``
-    / ``exit_*`` methods you need — all others are silently skipped.
-    Returns ``visitor`` so results can be collected inline.
-
-    Every ``enter_*`` method receives ``(node, ctx: WalkContext)`` as arguments
-    and fires before the node's children are visited; the matching ``exit_*``
-    hook (same signature) fires after the children, e.g. ``exit_google_section``
-    runs once every entry of that section has been visited.
-    Use ``ctx.line_col(offset)`` to convert byte offsets to line/column positions.
-
-    .. code-block:: python
-
-        class MyChecker(Visitor):
-            def enter_google_arg(self, arg: GoogleArg, ctx: WalkContext) -> None:
-                lc = ctx.line_col(arg.range.start)
-            def enter_numpy_parameter(self, param: NumPyParameter, ctx: WalkContext) -> None: ...
-
-        checker = MyChecker()
-        for source_text in all_docstrings:
-            doc = pydocstring.parse(source_text)
-            pydocstring.walk(doc, checker)  # returns the visitor
-
-    Google-style ``enter_*`` methods (each has a matching ``exit_*`` hook):
-
-    .. code-block:: python
-
-        def enter_google_docstring(self, doc: GoogleDocstring, ctx: WalkContext) -> None: ...
-        def enter_google_section(self, section: GoogleSection, ctx: WalkContext) -> None: ...
-        def enter_google_directive(self, dir: GoogleDirective, ctx: WalkContext) -> None: ...
-        def enter_google_deprecation(self, dep: GoogleDeprecation, ctx: WalkContext) -> None: ...
-        def enter_google_arg(self, arg: GoogleArg, ctx: WalkContext) -> None: ...
-        def enter_google_return(self, ret: GoogleReturn, ctx: WalkContext) -> None: ...
-        def enter_google_yield(self, yld: GoogleYield, ctx: WalkContext) -> None: ...
-        def enter_google_exception(self, exc: GoogleException, ctx: WalkContext) -> None: ...
-        def enter_google_warning(self, wrn: GoogleWarning, ctx: WalkContext) -> None: ...
-        def enter_google_see_also_item(self, sai: GoogleSeeAlsoItem, ctx: WalkContext) -> None: ...
-        def enter_google_reference(self, ref: GoogleReference, ctx: WalkContext) -> None: ...
-        def enter_google_attribute(self, att: GoogleAttribute, ctx: WalkContext) -> None: ...
-        def enter_google_method(self, mtd: GoogleMethod, ctx: WalkContext) -> None: ...
-
-    NumPy-style ``enter_*`` methods (each has a matching ``exit_*`` hook):
-
-    .. code-block:: python
-
-        def enter_numpy_docstring(self, doc: NumPyDocstring, ctx: WalkContext) -> None: ...
-        def enter_numpy_section(self, section: NumPySection, ctx: WalkContext) -> None: ...
-        def enter_numpy_directive(self, dir: NumPyDirective, ctx: WalkContext) -> None: ...
-        def enter_numpy_deprecation(self, dep: NumPyDeprecation, ctx: WalkContext) -> None: ...
-        def enter_numpy_parameter(self, param: NumPyParameter, ctx: WalkContext) -> None: ...
-        def enter_numpy_returns(self, ret: NumPyReturns, ctx: WalkContext) -> None: ...
-        def enter_numpy_yields(self, yld: NumPyYields, ctx: WalkContext) -> None: ...
-        def enter_numpy_exception(self, exc: NumPyException, ctx: WalkContext) -> None: ...
-        def enter_numpy_warning(self, wrn: NumPyWarning, ctx: WalkContext) -> None: ...
-        def enter_numpy_see_also_item(self, sai: NumPySeeAlsoItem, ctx: WalkContext) -> None: ...
-        def enter_numpy_reference(self, ref: NumPyReference, ctx: WalkContext) -> None: ...
-        def enter_numpy_attribute(self, att: NumPyAttribute, ctx: WalkContext) -> None: ...
-        def enter_numpy_method(self, mtd: NumPyMethod, ctx: WalkContext) -> None: ...
-
-    Plain ``enter_*`` methods (each has a matching ``exit_*`` hook):
-
-    .. code-block:: python
-
-        def enter_plain_docstring(self, doc: PlainDocstring, ctx: WalkContext) -> None: ...
+    The visitor may override any of ``enter_node(node, ctx)``,
+    ``leave_node(node, ctx)``, and ``visit_token(token, ctx)``; the ones it
+    leaves alone are never called. Dispatch on ``node.kind`` / ``token.kind`` —
+    the traversal is style-independent. Returns the visitor, so state can be read
+    straight off the call. Exceptions raised in a hook propagate out of ``walk``.
     """
     ...

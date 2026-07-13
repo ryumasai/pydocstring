@@ -77,12 +77,13 @@ fn spec_parsed_style_reports_the_parser_style() {
     assert_eq!(plain.root().kind(), SyntaxKind::DOCUMENT);
 }
 
-/// SPEC: the per-style typed wrappers are views over the unified `DOCUMENT`
-/// node — `GoogleDocstring::cast` works on a Google-parsed root.
+/// SPEC: every style parses to the same unified `DOCUMENT` root, so the
+/// style-independent view reads a Google-parsed tree with no per-style step.
 #[test]
-fn spec_google_docstring_casts_on_document_root() {
+fn spec_unified_view_reads_a_google_parsed_document_root() {
     let parsed = pydocstring::parse::google::parse_google("Summary.\n\nArgs:\n    x: Desc.");
-    let doc = pydocstring::parse::google::GoogleDocstring::cast(&parsed, parsed.root()).expect("cast must succeed");
+    assert_eq!(parsed.root().kind(), SyntaxKind::DOCUMENT);
+    let doc = pydocstring::parse::unified::Document::new(&parsed);
     assert_eq!(doc.summary().unwrap().text(), "Summary.");
     assert_eq!(doc.sections().count(), 1);
 }

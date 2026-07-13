@@ -78,9 +78,9 @@ Accessors on `Entry` are all optional (`name`, `type_annotation`,
 carry that piece: a `Raises:` entry simply has `name is None` and its exception
 type in `type_annotation`.
 
-If you already know the style, `parse_google()`, `parse_numpy()`, and
-`parse_plain()` return a concrete type and are slightly more efficient;
-`Document` accepts any of them.
+Every parser returns the same `Parsed` — there is no per-style result type to
+dispatch on. Use `parse_google()` / `parse_numpy()` / `parse_plain()` when you
+want to force a style instead of detecting one.
 
 ### Editing
 
@@ -206,156 +206,101 @@ detect_style("Just a summary.")                       # Style.PLAIN
 `Style.PLAIN` covers docstrings with no recognised section markers:
 summary-only, summary + extended, and unrecognised styles such as Sphinx.
 
-### Plain Style
+### Forcing a style
 
-Docstrings with no NumPy or Google section markers are parsed as plain:
-
-```python
-from pydocstring import parse_plain
-
-doc = parse_plain("""Brief summary.
-
-More detail here.
-Spanning multiple lines.
-""")
-
-print(doc.summary.text)            # "Brief summary."
-print(doc.extended_summary.text)   # "More detail here.\nSpanning multiple lines."
-```
-
-Unrecognised styles such as Sphinx are also treated as plain: the `:param:`
-lines are preserved verbatim in `extended_summary`.
-
-### Google Style
+`parse()` auto-detects. When you know the style — or want to force it — use the
+explicit parsers. They all return the same `Parsed`:
 
 ```python
-from pydocstring import parse_google
+from pydocstring import parse_google, parse_numpy, parse_plain
 
-doc = parse_google("""Summary line.
-
-Args:
-    x (int): The first value.
-    y (str): The second value.
-
-Returns:
-    bool: True if successful.
-
-Raises:
-    ValueError: If x is negative.
-""")
-
-# Summary
-print(doc.summary.text)  # "Summary line."
-
-# Sections
-for section in doc.sections:
-    print(section.section_kind)  # GoogleSectionKind.ARGS, .RETURNS, .RAISES
-
-# Walk the tree to access entries
-from pydocstring import walk, Visitor
-
-class GoogleArgCollector(Visitor):
-    def __init__(self): self.args = []
-    def enter_google_arg(self, arg, ctx): self.args.append(arg)
-
-for arg in walk(doc, GoogleArgCollector()).args:
-    print(f"  {arg.name.text}: {arg.type.text} — {arg.description.text}")
+parse_google(source)   # read as Google, whatever it looks like
+parse_numpy(source)
+parse_plain(source)    # no section markers; everything after the summary is extended_summary
 ```
 
-### NumPy Style
+Docstrings with no recognised section markers parse as plain. Unrecognised styles
+such as Sphinx are treated the same way for now: `:param:` lines are preserved
+verbatim in `extended_summary`.
+
+### The syntax tree
+
+`pretty_print()` visualises the whole tree:
 
 ```python
-from pydocstring import parse_numpy
-
-doc = parse_numpy("""Summary line.
-
-Parameters
-----------
-x : int
-    The first value.
-y : str
-    The second value.
-
-Returns
--------
-bool
-    True if successful.
-""")
-
-print(doc.summary.text)  # "Summary line."
-
-for section in doc.sections:
-    print(section.section_kind)  # NumPySectionKind.PARAMETERS, .RETURNS
-
-# Walk the tree to access entries
-class NumPyParamCollector(Visitor):
-    def __init__(self): self.params = []
-    def enter_numpy_parameter(self, p, ctx): self.params.append(p)
-
-for param in walk(doc, NumPyParamCollector()).params:
-    names = [n.text for n in param.names]
-    print(f"  {names}: {param.type.text} — {param.description.text}")
+print(parse_google("Summary.\n\nArgs:\n    x (int): Value.").pretty_print())
 ```
-
-### AST Access
-
-Use `pretty_print()` to visualise the full syntax tree:
-
-```python
-doc = parse_google("Summary.\n\nArgs:\n    x (int): Value.")
-
-print(doc.pretty_print())
-```
-
-Output:
 
 ```text
-GOOGLE_DOCSTRING@0..42 {
-  SUMMARY: "Summary."@0..8
-  GOOGLE_SECTION@10..42 {
-    GOOGLE_SECTION_HEADER@10..15 {
+DOCUMENT@0..35 {
+  SUMMARY@0..8 {
+    TEXT_LINE: "Summary."@0..8
+  }
+  NEWLINE: "\n"@8..9
+  BLANK_LINE: "\n"@9..10
+  SECTION@10..35 {
+    SECTION_HEADER@10..15 {
       NAME: "Args"@10..14
       COLON: ":"@14..15
     }
-    GOOGLE_ARG@20..42 {
+    NEWLINE: "\n"@15..16
+    WHITESPACE: "    "@16..20
+    ENTRY@20..35 {
       NAME: "x"@20..21
+      WHITESPACE: " "@21..22
       OPEN_BRACKET: "("@22..23
       TYPE: "int"@23..26
       CLOSE_BRACKET: ")"@26..27
       COLON: ":"@27..28
-      DESCRIPTION: "Value."@29..35
+      WHITESPACE: " "@28..29
+      DESCRIPTION@29..35 {
+        TEXT_LINE: "Value."@29..35
+      }
     }
   }
 }
 ```
 
-### Tree Traversal
+Note the node kinds: `SECTION`, `ENTRY`, `NAME` — nothing in the tree is
+Google-specific. The same NumPy docstring produces the same kinds, which is why
+one traversal reads both.
 
-Use `walk()` with a `Visitor` subclass for depth-first traversal. `walk()` returns
-the visitor instance so you can read results inline:
+### Tree traversal
+
+`walk()` takes a `Visitor` subclass and returns it, so results can be read inline.
+Override any of `enter_node`, `leave_node`, `visit_token` — the hooks you leave
+alone are never called. Dispatch on `kind`:
 
 ```python
-from pydocstring import parse_google, walk, Visitor
-
-doc = parse_google("Summary.\n\nArgs:\n    x (int): Value.")
+from pydocstring import SyntaxKind, Visitor, parse, walk
 
 class NameCollector(Visitor):
-    def __init__(self): self.names = []
-    def enter_google_arg(self, arg, ctx): self.names.append(arg.name.text)
+    def __init__(self):
+        self.names = []
 
-print(walk(doc, NameCollector()).names)  # ["x"]
+    def visit_token(self, token, ctx):
+        if token.kind == SyntaxKind.NAME:
+            self.names.append(token.text)
+
+print(walk(parse(source), NameCollector()).names)
 ```
 
-`WalkContext` is passed as the second argument to every `enter_*` / `exit_*` hook
-and exposes `line_col(offset)` for O(log n) byte-offset-to-line/column conversion:
+`walk()` also accepts a `Node`, so you can walk a subtree:
+
+```python
+section = parse(source).syntax.find_node(SyntaxKind.SECTION)
+walk(section, NameCollector())
+```
+
+`WalkContext` is the second argument to every hook, and converts a byte offset to
+a line/column in O(log n):
 
 ```python
 class LocPrinter(Visitor):
-    def enter_google_arg(self, arg, ctx):
-        lc = ctx.line_col(arg.name.range.start)
-        print(f"{arg.name.text} at line {lc.lineno}, col {lc.col}")
-
-walk(doc, LocPrinter())
+    def visit_token(self, token, ctx):
+        if token.kind == SyntaxKind.NAME:
+            lc = ctx.line_col(token.range.start)
+            print(f"{token.text} at line {lc.lineno}, col {lc.col}")
 ```
 
 ### Source Locations
@@ -452,15 +397,17 @@ print(numpy_text)  # Contains "Parameters\n----------"
 
 ### Functions
 
-| Function             | Returns                                         | Description                                                   |
-|----------------------|-------------------------------------------------|---------------------------------------------------------------|
-| `parse(text)`        | `GoogleDocstring \| NumPyDocstring \| PlainDocstring` | Auto-detect style and parse                             |
-| `parse_google(text)` | `GoogleDocstring`                               | Parse a Google-style docstring                                |
-| `parse_numpy(text)`  | `NumPyDocstring`                                | Parse a NumPy-style docstring                                 |
-| `parse_plain(text)`  | `PlainDocstring`                                | Parse a plain docstring (no section markers)                  |
-| `detect_style(text)` | `Style`                                         | Detect style: `Style.GOOGLE`, `Style.NUMPY`, or `Style.PLAIN` |
-| `emit_google(doc)`   | `str`                                           | Emit a `Docstring` model as Google-style text                 |
-| `emit_numpy(doc)`    | `str`                                           | Emit a `Docstring` model as NumPy-style text                  |
+| Function                      | Returns  | Description                                                   |
+|-------------------------------|----------|---------------------------------------------------------------|
+| `parse(text)`                 | `Parsed` | Auto-detect style and parse; check `.style` for the result     |
+| `parse_google(text)`          | `Parsed` | Parse as Google style                                          |
+| `parse_numpy(text)`           | `Parsed` | Parse as NumPy style                                           |
+| `parse_plain(text)`           | `Parsed` | Parse as plain (no section markers)                            |
+| `detect_style(text)`          | `Style`  | Detect style: `Style.GOOGLE`, `Style.NUMPY`, or `Style.PLAIN`  |
+| `walk(parsed_or_node, visitor)` | the visitor | Depth-first CST traversal                                |
+| `emit_google(doc)`            | `str`    | Emit a model `Docstring` as Google-style text                  |
+| `emit_numpy(doc)`             | `str`    | Emit a model `Docstring` as NumPy-style text                   |
+| `emit_sphinx(doc)`            | `str`    | Emit a model `Docstring` as Sphinx (reStructuredText) text     |
 
 ### Objects
 
@@ -502,33 +449,9 @@ Start one with `parsed.edit()` or `doc.edit()`.
 
 | Class                | Key Properties                                                                                                   |
 |----------------------|------------------------------------------------------------------------------------------------------------------|
-| `Style`              | `GOOGLE`, `NUMPY`, `PLAIN` (enum)                                                                                |
-| `SectionKind`        | `PARAMETERS`, `RETURNS`, `RAISES`, `NOTES`, … (enum, 24 variants — shared by `Section.kind` and the model)       |
-| `GoogleSectionKind`  | `ARGS`, `RETURNS`, `YIELDS`, `RAISES`, `NOTES`, `EXAMPLES`, … (enum)                                            |
-| `NumPySectionKind`   | `PARAMETERS`, `RETURNS`, `YIELDS`, `RAISES`, `NOTES`, `EXAMPLES`, … (enum)                                      |
-| `GoogleDocstring`    | `style`, `summary`, `extended_summary`, `paragraphs`, `sections`, `deprecation`, `source`, `pretty_print()`, `to_model()` |
-| `GoogleSection`      | `section_kind`, `header_name`, `range`                                                                           |
-| `GoogleArg`          | `name`, `type`, `description`, `optional`, `open_bracket`, `close_bracket`, `colon`                             |
-| `GoogleReturn`       | `return_type`, `description`, `colon`                                                                            |
-| `GoogleYield`        | `return_type`, `description`, `colon`                                                                            |
-| `GoogleException`    | `type`, `description`, `colon`                                                                                   |
-| `GoogleWarning`      | `type`, `description`, `colon`                                                                                   |
-| `GoogleSeeAlsoItem`  | `name`, `description`, `colon`                                                                                   |
-| `GoogleAttribute`    | `name`, `type`, `description`, `open_bracket`, `close_bracket`, `colon`                                         |
-| `GoogleMethod`       | `name`, `type`, `description`, `open_bracket`, `close_bracket`, `colon`                                         |
-| `PlainDocstring`     | `style`, `summary`, `extended_summary`, `source`, `pretty_print()`, `to_model()`                                |
-| `NumPyDocstring`     | `style`, `summary`, `extended_summary`, `paragraphs`, `sections`, `deprecation`, `source`, `pretty_print()`, `to_model()` |
-| `NumPySection`       | `section_kind`, `header_name`, `range`                                                                           |
-| `NumPyParameter`     | `name`, `names`, `type`, `description`, `optional`, `default_value`, `colon`, `default_keyword`, `default_separator` |
-| `NumPyReturns`       | `name`, `return_type`, `description`, `colon`                                                                    |
-| `NumPyYields`        | `name`, `return_type`, `description`, `colon`                                                                    |
-| `NumPyException`     | `type`, `description`, `colon`                                                                                   |
-| `NumPyWarning`       | `type`, `description`, `colon`                                                                                   |
-| `NumPySeeAlsoItem`   | `name`, `description`, `colon`                                                                                   |
-| `NumPyReference`     | `label`, `content`, `directive_marker`, `open_bracket`, `close_bracket`                                        |
-| `NumPyAttribute`     | `name`, `type`, `description`, `colon`                                                                           |
-| `NumPyMethod`        | `name`, `type`, `description`, `colon`                                                                           |
-| `NumPyDeprecation`   | `version`, `description`, `directive_marker`, `keyword`, `double_colon`                                         |
+| `Style`         | `GOOGLE`, `NUMPY`, `PLAIN` (enum)                                                                     |
+| `SectionKind`   | `PARAMETERS`, `RETURNS`, `RAISES`, `NOTES`, … (24 variants — shared by `Section.kind` and the model)  |
+| `Parsed`        | `style`, `source`, `syntax`, `range`, `pretty_print()`, `to_model()`, `edit()`, `replace()`, `replace_in()`, `findall()`, `findall_in()` |
 | `Token`              | `text`, `range`, `is_missing()`                                                                                  |
 | `TextRange`          | `start`, `end`, `is_empty()`                                                                                     |
 | `Visitor`            | Base class; subclass and override `enter_*` / `exit_*` methods                                                   |

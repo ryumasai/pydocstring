@@ -9,17 +9,9 @@ use pydocstring_core::pattern::Pattern;
 use pydocstring_core::edit::Edits as CoreEdits;
 use pydocstring_core::emit::EmitOptions;
 use pydocstring_core::model;
-use pydocstring_core::parse::DefaultMarker;
-use pydocstring_core::parse::google;
-use pydocstring_core::parse::google::kind::GoogleSectionKind;
-use pydocstring_core::parse::google::nodes as gn;
-use pydocstring_core::parse::numpy::kind::NumPySectionKind;
-use pydocstring_core::parse::numpy::nodes as nn;
-use pydocstring_core::parse::plain::nodes as pn;
 use pydocstring_core::parse::text_block::TextBlock;
 use pydocstring_core::parse::token_ref::TokenRef;
 use pydocstring_core::parse::unified as uv;
-use pydocstring_core::parse::visitor::{DocstringVisitor, walk as core_walk, walk_children};
 use pydocstring_core::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use pydocstring_core::text::TextRange;
 use pydocstring_core::text::TextSize;
@@ -167,17 +159,6 @@ impl NodeRef {
         }
     }
 
-    /// Address `node`, which must belong to `parsed`'s tree.
-    fn for_node(parsed: &Arc<Parsed>, node: &SyntaxNode) -> Self {
-        let mut path = Vec::new();
-        let found = find_node_path(parsed.root(), node, &mut path);
-        debug_assert!(found, "node does not belong to this parse result");
-        Self {
-            parsed: Arc::clone(parsed),
-            path,
-        }
-    }
-
     /// Resolve to the addressed `SyntaxNode`.
     fn node(&self) -> &SyntaxNode {
         resolve_node_path(self.parsed.root(), &self.path)
@@ -237,41 +218,6 @@ impl NodeRef {
         tokens.map(|t| self.token(py, t.syntax())).collect()
     }
 
-    /// The present token from a typed accessor, else the zero-length
-    /// "missing" placeholder of `kind` (excluded by the typed accessors) so
-    /// Python callers can distinguish e.g. `a ()` from `a`.
-    fn token_or_missing(
-        &self,
-        py: Python<'_>,
-        present: Option<TokenRef<'_>>,
-        kind: SyntaxKind,
-    ) -> PyResult<Option<Py<PyToken>>> {
-        match present {
-            Some(t) => Ok(Some(self.token(py, t.syntax())?)),
-            None => self.node().find_missing(kind).map(|t| self.token(py, t)).transpose(),
-        }
-    }
-
-    /// First DEFAULT occurrence wins (markers are repeatable, #41); a missing
-    /// (zero-length) value token lives inside that node.
-    fn first_default_value<'a>(
-        &self,
-        py: Python<'_>,
-        mut defaults: impl Iterator<Item = DefaultMarker<'a>>,
-    ) -> PyResult<Option<Py<PyToken>>> {
-        match defaults.next() {
-            Some(d) => match d.value() {
-                Some(t) => Ok(Some(self.token(py, t.syntax())?)),
-                None => d
-                    .syntax()
-                    .find_missing(SyntaxKind::DEFAULT_VALUE)
-                    .map(|t| self.token(py, t))
-                    .transpose(),
-            },
-            None => Ok(None),
-        }
-    }
-
     // ── TextBlock helpers ────────────────────────────────────────────────
 
     fn block(&self, py: Python<'_>, block: &TextBlock<'_>) -> PyResult<Py<PyTextBlock>> {
@@ -295,26 +241,6 @@ impl NodeRef {
         blocks.map(|b| self.block(py, &b)).collect()
     }
 
-    /// Like [`NodeRef::block_opt`], but falls back to the zero-length
-    /// "missing" placeholder block of `kind` (excluded by the typed
-    /// accessors) so Python callers can distinguish e.g. `a (int):` from
-    /// `a (int)`.
-    fn block_or_missing(
-        &self,
-        py: Python<'_>,
-        present: Option<TextBlock<'_>>,
-        kind: SyntaxKind,
-    ) -> PyResult<Option<Py<PyTextBlock>>> {
-        match present {
-            Some(b) => Ok(Some(self.block(py, &b)?)),
-            None => self
-                .node()
-                .nodes(kind)
-                .next()
-                .map(|n| Py::new(py, PyTextBlock { nr: self.child_ref(n) }))
-                .transpose(),
-        }
-    }
 }
 
 // ─── Token ──────────────────────────────────────────────────────────────────
@@ -466,764 +392,71 @@ impl PyStyle {
     }
 }
 
-// ─── GoogleSectionKind ───────────────────────────────────────────────────────
-
-#[pyclass(eq, eq_int, frozen, skip_from_py_object, hash, name = "GoogleSectionKind")]
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-enum PyGoogleSectionKind {
-    #[pyo3(name = "ARGS")]
-    Args,
-    #[pyo3(name = "KEYWORD_ARGS")]
-    KeywordArgs,
-    #[pyo3(name = "OTHER_PARAMETERS")]
-    OtherParameters,
-    #[pyo3(name = "RECEIVES")]
-    Receives,
-    #[pyo3(name = "RETURNS")]
-    Returns,
-    #[pyo3(name = "YIELDS")]
-    Yields,
-    #[pyo3(name = "RAISES")]
-    Raises,
-    #[pyo3(name = "WARNS")]
-    Warns,
-    #[pyo3(name = "ATTRIBUTES")]
-    Attributes,
-    #[pyo3(name = "METHODS")]
-    Methods,
-    #[pyo3(name = "SEE_ALSO")]
-    SeeAlso,
-    #[pyo3(name = "NOTES")]
-    Notes,
-    #[pyo3(name = "EXAMPLES")]
-    Examples,
-    #[pyo3(name = "TODO")]
-    Todo,
-    #[pyo3(name = "REFERENCES")]
-    References,
-    #[pyo3(name = "WARNINGS")]
-    Warnings,
-    #[pyo3(name = "ATTENTION")]
-    Attention,
-    #[pyo3(name = "CAUTION")]
-    Caution,
-    #[pyo3(name = "DANGER")]
-    Danger,
-    #[pyo3(name = "ERROR")]
-    Error,
-    #[pyo3(name = "HINT")]
-    Hint,
-    #[pyo3(name = "IMPORTANT")]
-    Important,
-    #[pyo3(name = "TIP")]
-    Tip,
-    #[pyo3(name = "UNKNOWN")]
-    Unknown,
-}
-
-#[pymethods]
-impl PyGoogleSectionKind {
-    fn __repr__(&self) -> String {
-        format!(
-            "GoogleSectionKind.{}",
-            match self {
-                Self::Args => "ARGS",
-                Self::KeywordArgs => "KEYWORD_ARGS",
-                Self::OtherParameters => "OTHER_PARAMETERS",
-                Self::Receives => "RECEIVES",
-                Self::Returns => "RETURNS",
-                Self::Yields => "YIELDS",
-                Self::Raises => "RAISES",
-                Self::Warns => "WARNS",
-                Self::Attributes => "ATTRIBUTES",
-                Self::Methods => "METHODS",
-                Self::SeeAlso => "SEE_ALSO",
-                Self::Notes => "NOTES",
-                Self::Examples => "EXAMPLES",
-                Self::Todo => "TODO",
-                Self::References => "REFERENCES",
-                Self::Warnings => "WARNINGS",
-                Self::Attention => "ATTENTION",
-                Self::Caution => "CAUTION",
-                Self::Danger => "DANGER",
-                Self::Error => "ERROR",
-                Self::Hint => "HINT",
-                Self::Important => "IMPORTANT",
-                Self::Tip => "TIP",
-                Self::Unknown => "UNKNOWN",
-            }
-        )
-    }
-}
-
-fn google_section_kind_to_py(kind: GoogleSectionKind) -> PyGoogleSectionKind {
-    match kind {
-        GoogleSectionKind::Args => PyGoogleSectionKind::Args,
-        GoogleSectionKind::KeywordArgs => PyGoogleSectionKind::KeywordArgs,
-        GoogleSectionKind::OtherParameters => PyGoogleSectionKind::OtherParameters,
-        GoogleSectionKind::Receives => PyGoogleSectionKind::Receives,
-        GoogleSectionKind::Returns => PyGoogleSectionKind::Returns,
-        GoogleSectionKind::Yields => PyGoogleSectionKind::Yields,
-        GoogleSectionKind::Raises => PyGoogleSectionKind::Raises,
-        GoogleSectionKind::Warns => PyGoogleSectionKind::Warns,
-        GoogleSectionKind::Attributes => PyGoogleSectionKind::Attributes,
-        GoogleSectionKind::Methods => PyGoogleSectionKind::Methods,
-        GoogleSectionKind::SeeAlso => PyGoogleSectionKind::SeeAlso,
-        GoogleSectionKind::Notes => PyGoogleSectionKind::Notes,
-        GoogleSectionKind::Examples => PyGoogleSectionKind::Examples,
-        GoogleSectionKind::Todo => PyGoogleSectionKind::Todo,
-        GoogleSectionKind::References => PyGoogleSectionKind::References,
-        GoogleSectionKind::Warnings => PyGoogleSectionKind::Warnings,
-        GoogleSectionKind::Attention => PyGoogleSectionKind::Attention,
-        GoogleSectionKind::Caution => PyGoogleSectionKind::Caution,
-        GoogleSectionKind::Danger => PyGoogleSectionKind::Danger,
-        GoogleSectionKind::Error => PyGoogleSectionKind::Error,
-        GoogleSectionKind::Hint => PyGoogleSectionKind::Hint,
-        GoogleSectionKind::Important => PyGoogleSectionKind::Important,
-        GoogleSectionKind::Tip => PyGoogleSectionKind::Tip,
-        GoogleSectionKind::Unknown => PyGoogleSectionKind::Unknown,
-        // GoogleSectionKind is #[non_exhaustive]; surface future kinds as Unknown.
-        _ => PyGoogleSectionKind::Unknown,
-    }
-}
-
-// ─── NumPySectionKind ────────────────────────────────────────────────────────
-
-#[pyclass(eq, eq_int, frozen, skip_from_py_object, hash, name = "NumPySectionKind")]
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-enum PyNumPySectionKind {
-    #[pyo3(name = "PARAMETERS")]
-    Parameters,
-    #[pyo3(name = "RETURNS")]
-    Returns,
-    #[pyo3(name = "YIELDS")]
-    Yields,
-    #[pyo3(name = "RECEIVES")]
-    Receives,
-    #[pyo3(name = "OTHER_PARAMETERS")]
-    OtherParameters,
-    #[pyo3(name = "KEYWORD_PARAMETERS")]
-    KeywordParameters,
-    #[pyo3(name = "RAISES")]
-    Raises,
-    #[pyo3(name = "WARNS")]
-    Warns,
-    #[pyo3(name = "WARNINGS")]
-    Warnings,
-    #[pyo3(name = "SEE_ALSO")]
-    SeeAlso,
-    #[pyo3(name = "NOTES")]
-    Notes,
-    #[pyo3(name = "REFERENCES")]
-    References,
-    #[pyo3(name = "EXAMPLES")]
-    Examples,
-    #[pyo3(name = "ATTRIBUTES")]
-    Attributes,
-    #[pyo3(name = "METHODS")]
-    Methods,
-    #[pyo3(name = "TODO")]
-    Todo,
-    #[pyo3(name = "ATTENTION")]
-    Attention,
-    #[pyo3(name = "CAUTION")]
-    Caution,
-    #[pyo3(name = "DANGER")]
-    Danger,
-    #[pyo3(name = "ERROR")]
-    Error,
-    #[pyo3(name = "HINT")]
-    Hint,
-    #[pyo3(name = "IMPORTANT")]
-    Important,
-    #[pyo3(name = "TIP")]
-    Tip,
-    #[pyo3(name = "UNKNOWN")]
-    Unknown,
-}
-
-#[pymethods]
-impl PyNumPySectionKind {
-    fn __repr__(&self) -> String {
-        format!(
-            "NumPySectionKind.{}",
-            match self {
-                Self::Parameters => "PARAMETERS",
-                Self::Returns => "RETURNS",
-                Self::Yields => "YIELDS",
-                Self::Receives => "RECEIVES",
-                Self::OtherParameters => "OTHER_PARAMETERS",
-                Self::KeywordParameters => "KEYWORD_PARAMETERS",
-                Self::Raises => "RAISES",
-                Self::Warns => "WARNS",
-                Self::Warnings => "WARNINGS",
-                Self::SeeAlso => "SEE_ALSO",
-                Self::Notes => "NOTES",
-                Self::References => "REFERENCES",
-                Self::Examples => "EXAMPLES",
-                Self::Attributes => "ATTRIBUTES",
-                Self::Methods => "METHODS",
-                Self::Todo => "TODO",
-                Self::Attention => "ATTENTION",
-                Self::Caution => "CAUTION",
-                Self::Danger => "DANGER",
-                Self::Error => "ERROR",
-                Self::Hint => "HINT",
-                Self::Important => "IMPORTANT",
-                Self::Tip => "TIP",
-                Self::Unknown => "UNKNOWN",
-            }
-        )
-    }
-}
-
-fn numpy_section_kind_to_py(kind: NumPySectionKind) -> PyNumPySectionKind {
-    match kind {
-        NumPySectionKind::Parameters => PyNumPySectionKind::Parameters,
-        NumPySectionKind::Returns => PyNumPySectionKind::Returns,
-        NumPySectionKind::Yields => PyNumPySectionKind::Yields,
-        NumPySectionKind::Receives => PyNumPySectionKind::Receives,
-        NumPySectionKind::OtherParameters => PyNumPySectionKind::OtherParameters,
-        NumPySectionKind::KeywordParameters => PyNumPySectionKind::KeywordParameters,
-        NumPySectionKind::Raises => PyNumPySectionKind::Raises,
-        NumPySectionKind::Warns => PyNumPySectionKind::Warns,
-        NumPySectionKind::Warnings => PyNumPySectionKind::Warnings,
-        NumPySectionKind::SeeAlso => PyNumPySectionKind::SeeAlso,
-        NumPySectionKind::Notes => PyNumPySectionKind::Notes,
-        NumPySectionKind::References => PyNumPySectionKind::References,
-        NumPySectionKind::Examples => PyNumPySectionKind::Examples,
-        NumPySectionKind::Attributes => PyNumPySectionKind::Attributes,
-        NumPySectionKind::Methods => PyNumPySectionKind::Methods,
-        NumPySectionKind::Todo => PyNumPySectionKind::Todo,
-        NumPySectionKind::Attention => PyNumPySectionKind::Attention,
-        NumPySectionKind::Caution => PyNumPySectionKind::Caution,
-        NumPySectionKind::Danger => PyNumPySectionKind::Danger,
-        NumPySectionKind::Error => PyNumPySectionKind::Error,
-        NumPySectionKind::Hint => PyNumPySectionKind::Hint,
-        NumPySectionKind::Important => PyNumPySectionKind::Important,
-        NumPySectionKind::Tip => PyNumPySectionKind::Tip,
-        NumPySectionKind::Unknown => PyNumPySectionKind::Unknown,
-        // NumPySectionKind is #[non_exhaustive]; surface future kinds as Unknown.
-        _ => PyNumPySectionKind::Unknown,
-    }
-}
-
 // =============================================================================
-// Lazy CST wrappers
+// Parsed — the parse result (#119)
 // =============================================================================
 
-/// Define a frozen pyclass CST wrapper holding a [`NodeRef`], resolving into
-/// the core typed view `$mod::$view` on every property access.
+/// A parsed docstring, whatever its style.
 ///
-/// THE POINT of these wrappers is that they contain no conversion knowledge:
-/// every getter delegates to the corresponding core accessor, so grammar and
-/// kind knowledge lives in one place (the Rust crate).
-macro_rules! lazy_node {
-    ($py:ident, $name:literal, $mod:ident :: $view:ident) => {
-        #[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = $name)]
-        struct $py {
-            nr: NodeRef,
-        }
-
-        impl From<NodeRef> for $py {
-            fn from(nr: NodeRef) -> Self {
-                Self { nr }
-            }
-        }
-
-        impl $py {
-            /// Resolve the lazy address into the core typed view.
-            fn view(&self) -> $mod::$view<'_> {
-                $mod::$view::cast(&self.nr.parsed, self.nr.node())
-                    .expect("NodeRef addresses a node of the wrapped kind")
-            }
-        }
-    };
+/// One type for every style: the tree's vocabulary is style-independent, so
+/// there is nothing for a per-style wrapper to add. Read it through
+/// `Document(parsed)` (the semantic lens), `parsed.syntax` (the faithful CST),
+/// or `parsed.to_model()` (the normalized IR); edit it through `parsed.edit()`.
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "Parsed")]
+struct PyParsed {
+    nr: NodeRef,
 }
 
-// =============================================================================
-// Google typed wrappers
-// =============================================================================
-
-// ─── GoogleArg ───────────────────────────────────────────────────────────────
-
-lazy_node!(PyGoogleArg, "GoogleArg", gn::GoogleArg);
-
-#[pymethods]
-impl PyGoogleArg {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().name().syntax())
-    }
-    #[getter]
-    fn names(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
-        self.nr.tokens(py, self.view().names())
-    }
-    #[getter]
-    fn open_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().open_bracket())
-    }
-    #[getter]
-    fn r#type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr
-            .token_or_missing(py, self.view().type_annotation(), SyntaxKind::TYPE)
-    }
-    #[getter]
-    fn close_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr
-            .token_or_missing(py, self.view().close_bracket(), SyntaxKind::CLOSE_BRACKET)
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_or_missing(py, self.view().colon(), SyntaxKind::COLON)
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr
-            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
-    }
-    #[getter]
-    fn optional(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().optional_marker())
-    }
-    #[getter]
-    fn default_keyword(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().default_keyword())
-    }
-    #[getter]
-    fn default_separator(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().default_separator())
-    }
-    #[getter]
-    fn default_value(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.first_default_value(py, self.view().defaults())
-    }
-    fn __repr__(&self) -> String {
-        format!(
-            "GoogleArg({:?})",
-            self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", ")
-        )
+impl From<NodeRef> for PyParsed {
+    fn from(nr: NodeRef) -> Self {
+        Self { nr }
     }
 }
 
-// ─── GoogleReturn ────────────────────────────────────────────────────────────
-
-lazy_node!(PyGoogleReturn, "GoogleReturn", gn::GoogleReturn);
-
-#[pymethods]
-impl PyGoogleReturn {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn return_type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().type_annotation())
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().colon())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().description())
-    }
-    fn __repr__(&self) -> &'static str {
-        "GoogleReturn(...)"
+/// Map a core style onto the Python enum.
+fn py_style_of(style: CoreStyle) -> PyStyle {
+    match style {
+        CoreStyle::Google => PyStyle::Google,
+        CoreStyle::NumPy => PyStyle::NumPy,
+        // `Style` is #[non_exhaustive]; surface future styles as PLAIN until the
+        // Python enum grows a matching member.
+        _ => PyStyle::Plain,
     }
 }
 
-// ─── GoogleYield ─────────────────────────────────────────────────────────────
-
-lazy_node!(PyGoogleYield, "GoogleYield", gn::GoogleYield);
-
 #[pymethods]
-impl PyGoogleYield {
+impl PyParsed {
+    /// The style this docstring was parsed as.
     #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn return_type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().type_annotation())
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().colon())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().description())
-    }
-    fn __repr__(&self) -> &'static str {
-        "GoogleYield(...)"
-    }
-}
-
-// ─── GoogleException ─────────────────────────────────────────────────────────
-
-lazy_node!(PyGoogleException, "GoogleException", gn::GoogleException);
-
-#[pymethods]
-impl PyGoogleException {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn r#type(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().type_annotation().syntax())
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().colon())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr
-            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
-    }
-    fn __repr__(&self) -> String {
-        format!("GoogleException({:?})", self.view().type_annotation().text())
-    }
-}
-
-// ─── GoogleWarning ───────────────────────────────────────────────────────────
-
-lazy_node!(PyGoogleWarning, "GoogleWarning", gn::GoogleWarning);
-
-#[pymethods]
-impl PyGoogleWarning {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn r#type(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().type_annotation().syntax())
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().colon())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr
-            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
-    }
-    fn __repr__(&self) -> String {
-        format!("GoogleWarning({:?})", self.view().type_annotation().text())
-    }
-}
-
-// ─── GoogleSeeAlsoItem ───────────────────────────────────────────────────────
-
-lazy_node!(PyGoogleSeeAlsoItem, "GoogleSeeAlsoItem", gn::GoogleSeeAlsoItem);
-
-#[pymethods]
-impl PyGoogleSeeAlsoItem {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn names(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
-        self.nr.tokens(py, self.view().names())
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().colon())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr
-            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
-    }
-    fn __repr__(&self) -> &'static str {
-        "GoogleSeeAlsoItem(...)"
-    }
-}
-
-// ─── GoogleReference ─────────────────────────────────────────────────────────
-
-lazy_node!(PyGoogleReference, "GoogleReference", gn::GoogleReference);
-
-#[pymethods]
-impl PyGoogleReference {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn directive_marker(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().directive_marker())
-    }
-    #[getter]
-    fn open_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().open_bracket())
-    }
-    #[getter]
-    fn label(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().label())
-    }
-    #[getter]
-    fn close_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().close_bracket())
-    }
-    #[getter]
-    fn content(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().content())
-    }
-    fn __repr__(&self) -> &'static str {
-        "GoogleReference(...)"
-    }
-}
-
-// ─── GoogleAttribute ─────────────────────────────────────────────────────────
-
-lazy_node!(PyGoogleAttribute, "GoogleAttribute", gn::GoogleAttribute);
-
-#[pymethods]
-impl PyGoogleAttribute {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    /// First name token (convenience for ``names[0]``).
-    #[getter]
-    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().name().syntax())
-    }
-    #[getter]
-    fn names(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
-        self.nr.tokens(py, self.view().names())
-    }
-    #[getter]
-    fn open_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().open_bracket())
-    }
-    #[getter]
-    fn r#type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr
-            .token_or_missing(py, self.view().type_annotation(), SyntaxKind::TYPE)
-    }
-    #[getter]
-    fn close_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr
-            .token_or_missing(py, self.view().close_bracket(), SyntaxKind::CLOSE_BRACKET)
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_or_missing(py, self.view().colon(), SyntaxKind::COLON)
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr
-            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
-    }
-    fn __repr__(&self) -> String {
-        format!(
-            "GoogleAttribute({:?})",
-            self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", ")
-        )
-    }
-}
-
-// ─── GoogleMethod ────────────────────────────────────────────────────────────
-
-lazy_node!(PyGoogleMethod, "GoogleMethod", gn::GoogleMethod);
-
-#[pymethods]
-impl PyGoogleMethod {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().name().syntax())
-    }
-    #[getter]
-    fn open_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().open_bracket())
-    }
-    #[getter]
-    fn r#type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr
-            .token_or_missing(py, self.view().type_annotation(), SyntaxKind::TYPE)
-    }
-    #[getter]
-    fn close_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr
-            .token_or_missing(py, self.view().close_bracket(), SyntaxKind::CLOSE_BRACKET)
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_or_missing(py, self.view().colon(), SyntaxKind::COLON)
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr
-            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
-    }
-    fn __repr__(&self) -> String {
-        format!("GoogleMethod({:?})", self.view().name().text())
-    }
-}
-
-// ─── GoogleSection ───────────────────────────────────────────────────────────
-
-lazy_node!(PyGoogleSection, "GoogleSection", gn::GoogleSection);
-
-#[pymethods]
-impl PyGoogleSection {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn section_kind(&self) -> PyGoogleSectionKind {
-        google_section_kind_to_py(self.view().section_kind())
-    }
-    #[getter]
-    fn header_name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().header().name().syntax())
-    }
-    fn __repr__(&self) -> String {
-        format!("GoogleSection({:?})", self.view().header().name().text())
-    }
-}
-
-// ─── GoogleDeprecation ───────────────────────────────────────────────────────
-
-lazy_node!(PyGoogleDeprecation, "GoogleDeprecation", gn::GoogleDeprecation);
-
-#[pymethods]
-impl PyGoogleDeprecation {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn directive_marker(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().directive_marker())
-    }
-    #[getter]
-    fn keyword(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().keyword())
-    }
-    #[getter]
-    fn double_colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().double_colon())
-    }
-    #[getter]
-    fn version(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().version().syntax())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().description())
-    }
-    fn __repr__(&self) -> String {
-        format!("GoogleDeprecation({:?})", self.view().version().text())
-    }
-}
-
-// ─── GoogleDirective ─────────────────────────────────────────────────────────
-
-lazy_node!(PyGoogleDirective, "GoogleDirective", gn::GoogleDirective);
-
-#[pymethods]
-impl PyGoogleDirective {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn directive_marker(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().directive_marker())
-    }
-    #[getter]
-    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().name().syntax())
-    }
-    #[getter]
-    fn double_colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().double_colon())
-    }
-    #[getter]
-    fn argument(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().argument())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().description())
-    }
-    fn __repr__(&self) -> String {
-        format!("GoogleDirective({:?})", self.view().name().text())
-    }
-}
-
-// ─── GoogleDocstring ─────────────────────────────────────────────────────────
-
-lazy_node!(PyGoogleDocstring, "GoogleDocstring", gn::GoogleDocstring);
-
-#[pymethods]
-impl PyGoogleDocstring {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().summary())
-    }
-    #[getter]
-    fn extended_summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().extended_summary())
-    }
-    #[getter]
-    fn deprecation(&self, py: Python<'_>) -> PyResult<Option<Py<PyGoogleDeprecation>>> {
-        self.view()
-            .deprecation()
-            .map(|d| self.nr.wrap_child(py, d.syntax()))
-            .transpose()
-    }
-    /// Stray-prose paragraph blocks between sections, in source order.
-    #[getter]
-    fn paragraphs(&self, py: Python<'_>) -> PyResult<Vec<Py<PyTextBlock>>> {
-        self.nr.blocks(py, self.view().paragraphs())
-    }
-    #[getter]
-    fn sections(&self, py: Python<'_>) -> PyResult<Vec<Py<PyGoogleSection>>> {
-        self.view()
-            .sections()
-            .map(|s| self.nr.wrap_child(py, s.syntax()))
-            .collect()
+    fn style(&self) -> PyStyle {
+        py_style_of(self.nr.parsed.style())
     }
     #[getter]
     fn source(&self) -> &str {
         self.nr.parsed.source()
     }
-    /// The root CST node — the escape hatch down to the faithful lens.
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        self.nr.py_range(py)
+    }
+    /// The root CST node — the faithful lens.
     #[getter]
     fn syntax(&self, py: Python<'_>) -> PyResult<Py<PyNode>> {
         self.nr.py_node(py)
     }
-    #[getter]
-    fn style(&self) -> PyStyle {
-        PyStyle::Google
-    }
+    /// A debug rendering of the syntax tree.
     fn pretty_print(&self) -> String {
         self.nr.parsed.pretty_print()
     }
+    /// Convert to the normalized, position-free model IR.
     fn to_model(&self) -> PyResult<PyModelDocstring> {
-        pydocstring_core::parse::google::to_model::to_model(&self.nr.parsed)
-            .map(|doc| PyModelDocstring::try_from(&doc))
+        let parsed = &self.nr.parsed;
+        let doc = match parsed.style() {
+            CoreStyle::Google => pydocstring_core::parse::google::to_model::to_model(parsed),
+            CoreStyle::NumPy => pydocstring_core::parse::numpy::to_model::to_model(parsed),
+            _ => pydocstring_core::parse::plain::to_model::to_model(parsed),
+        };
+        doc.map(|doc| PyModelDocstring::try_from(&doc))
             .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
     }
@@ -1234,18 +467,16 @@ impl PyGoogleDocstring {
     fn edit(&self) -> PyEdits {
         PyEdits::new(Arc::clone(&self.nr.parsed))
     }
-    /// Replace every match of ``pattern`` (a Google-style pattern with
-    /// ``$NAME`` / ``$$$NAME`` metavariables) with ``template``, returning the
-    /// new source. Captured content is substituted byte-for-byte; everything
+    /// Replace every match of ``pattern`` (a pattern of this docstring's style,
+    /// with ``$NAME`` / ``$$$NAME`` metavariables) with ``template``, returning
+    /// the new source. Captured content is substituted byte-for-byte; everything
     /// else is preserved. Raises ``PatternError`` for an invalid pattern.
     fn replace(&self, pattern: &str, template: &str) -> PyResult<String> {
-        rewrite_replace(&self.nr, CoreStyle::Google, pattern, template)
+        rewrite_replace(&self.nr, self.nr.parsed.style(), pattern, template)
     }
-    /// Find every match of ``pattern`` in document order (non-overlapping),
-    /// returning a list of ``Match``. Raises ``PatternError`` for an invalid
-    /// pattern.
+    /// Find every match of ``pattern`` in document order (non-overlapping).
     fn findall(&self, py: Python<'_>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
-        rewrite_findall(py, &self.nr, CoreStyle::Google, pattern)
+        rewrite_findall(py, &self.nr, self.nr.parsed.style(), pattern)
     }
     /// Like ``replace``, but scoped to ``anchor``'s subtree.
     ///
@@ -1258,7 +489,7 @@ impl PyGoogleDocstring {
     /// a parameters section and a ``$TYPE`` under a raises section, so the same
     /// pattern reads differently depending on where it is scoped.
     fn replace_in(&self, anchor: &Bound<'_, PyAny>, pattern: &str, template: &str) -> PyResult<String> {
-        rewrite_replace_in(&self.nr, CoreStyle::Google, anchor, pattern, template)
+        rewrite_replace_in(&self.nr, self.nr.parsed.style(), anchor, pattern, template)
     }
     /// Like ``findall``, but scoped to ``anchor``'s subtree.
     ///
@@ -1266,628 +497,15 @@ impl PyGoogleDocstring {
     /// ``Entry`` view of *this* parse result. Raises ``TypeError`` for anything
     /// else, and ``ValueError`` for a view of a different parse result.
     fn findall_in(&self, py: Python<'_>, anchor: &Bound<'_, PyAny>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
-        rewrite_findall_in(py, &self.nr, CoreStyle::Google, anchor, pattern)
-    }
-    fn __repr__(&self) -> &'static str {
-        "GoogleDocstring(...)"
-    }
-}
-
-fn build_google_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyGoogleDocstring>> {
-    let arc = Arc::new(parsed);
-    gn::GoogleDocstring::cast(&arc, arc.root())
-        .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not a DOCUMENT node"))?;
-    Py::new(py, PyGoogleDocstring::from(NodeRef::root(arc)))
-}
-
-// =============================================================================
-// NumPy typed wrappers
-// =============================================================================
-
-// ─── NumPyDeprecation ────────────────────────────────────────────────────────
-
-lazy_node!(PyNumPyDeprecation, "NumPyDeprecation", nn::NumPyDeprecation);
-
-#[pymethods]
-impl PyNumPyDeprecation {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn directive_marker(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().directive_marker())
-    }
-    #[getter]
-    fn keyword(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().keyword())
-    }
-    #[getter]
-    fn double_colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().double_colon())
-    }
-    #[getter]
-    fn version(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().version().syntax())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().description())
+        rewrite_findall_in(py, &self.nr, self.nr.parsed.style(), anchor, pattern)
     }
     fn __repr__(&self) -> String {
-        format!("NumPyDeprecation({:?})", self.view().version().text())
+        format!("Parsed(style={:?})", self.nr.parsed.style())
     }
 }
 
-// ─── NumPyDirective ──────────────────────────────────────────────────────────
-
-lazy_node!(PyNumPyDirective, "NumPyDirective", nn::NumPyDirective);
-
-#[pymethods]
-impl PyNumPyDirective {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn directive_marker(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().directive_marker())
-    }
-    #[getter]
-    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().name().syntax())
-    }
-    #[getter]
-    fn double_colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().double_colon())
-    }
-    #[getter]
-    fn argument(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().argument())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().description())
-    }
-    fn __repr__(&self) -> String {
-        format!("NumPyDirective({:?})", self.view().name().text())
-    }
-}
-
-// ─── NumPyParameter ──────────────────────────────────────────────────────────
-
-lazy_node!(PyNumPyParameter, "NumPyParameter", nn::NumPyParameter);
-
-#[pymethods]
-impl PyNumPyParameter {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    /// First name token (convenience for ``names[0]``); ``None`` when the
-    /// entry has no name tokens.
-    #[getter]
-    fn name(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().names().next())
-    }
-    #[getter]
-    fn names(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
-        self.nr.tokens(py, self.view().names())
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().colon())
-    }
-    #[getter]
-    fn r#type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr
-            .token_or_missing(py, self.view().type_annotation(), SyntaxKind::TYPE)
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr
-            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
-    }
-    #[getter]
-    fn optional(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().optional_marker())
-    }
-    #[getter]
-    fn default_keyword(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().default_keyword())
-    }
-    #[getter]
-    fn default_separator(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().default_separator())
-    }
-    #[getter]
-    fn default_value(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.first_default_value(py, self.view().defaults())
-    }
-    fn __repr__(&self) -> String {
-        let names = self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", ");
-        format!("NumPyParameter({:?})", names)
-    }
-}
-
-// ─── NumPyReturns ────────────────────────────────────────────────────────────
-
-lazy_node!(PyNumPyReturns, "NumPyReturns", nn::NumPyReturns);
-
-#[pymethods]
-impl PyNumPyReturns {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn name(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().name())
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().colon())
-    }
-    #[getter]
-    fn return_type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().type_annotation())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().description())
-    }
-    fn __repr__(&self) -> &'static str {
-        "NumPyReturns(...)"
-    }
-}
-
-// ─── NumPyYields ─────────────────────────────────────────────────────────────
-
-lazy_node!(PyNumPyYields, "NumPyYields", nn::NumPyYields);
-
-#[pymethods]
-impl PyNumPyYields {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn name(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().name())
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().colon())
-    }
-    #[getter]
-    fn return_type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().type_annotation())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().description())
-    }
-    fn __repr__(&self) -> &'static str {
-        "NumPyYields(...)"
-    }
-}
-
-// ─── NumPyException ──────────────────────────────────────────────────────────
-
-lazy_node!(PyNumPyException, "NumPyException", nn::NumPyException);
-
-#[pymethods]
-impl PyNumPyException {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn r#type(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().type_annotation().syntax())
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().colon())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr
-            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
-    }
-    fn __repr__(&self) -> String {
-        format!("NumPyException({:?})", self.view().type_annotation().text())
-    }
-}
-
-// ─── NumPyWarning ────────────────────────────────────────────────────────────
-
-lazy_node!(PyNumPyWarning, "NumPyWarning", nn::NumPyWarning);
-
-#[pymethods]
-impl PyNumPyWarning {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn r#type(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().type_annotation().syntax())
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().colon())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr
-            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
-    }
-    fn __repr__(&self) -> String {
-        format!("NumPyWarning({:?})", self.view().type_annotation().text())
-    }
-}
-
-// ─── NumPySeeAlsoItem ────────────────────────────────────────────────────────
-
-lazy_node!(PyNumPySeeAlsoItem, "NumPySeeAlsoItem", nn::NumPySeeAlsoItem);
-
-#[pymethods]
-impl PyNumPySeeAlsoItem {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn names(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
-        self.nr.tokens(py, self.view().names())
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().colon())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr
-            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
-    }
-    fn __repr__(&self) -> &'static str {
-        "NumPySeeAlsoItem(...)"
-    }
-}
-
-// ─── NumPyReference ──────────────────────────────────────────────────────────
-
-lazy_node!(PyNumPyReference, "NumPyReference", nn::NumPyReference);
-
-#[pymethods]
-impl PyNumPyReference {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn directive_marker(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().directive_marker())
-    }
-    #[getter]
-    fn open_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().open_bracket())
-    }
-    #[getter]
-    fn label(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().label())
-    }
-    #[getter]
-    fn close_bracket(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().close_bracket())
-    }
-    #[getter]
-    fn content(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().content())
-    }
-    fn __repr__(&self) -> &'static str {
-        "NumPyReference(...)"
-    }
-}
-
-// ─── NumPyAttribute ──────────────────────────────────────────────────────────
-
-lazy_node!(PyNumPyAttribute, "NumPyAttribute", nn::NumPyAttribute);
-
-#[pymethods]
-impl PyNumPyAttribute {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    /// First name token (convenience for ``names[0]``).
-    #[getter]
-    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().name().syntax())
-    }
-    #[getter]
-    fn names(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
-        self.nr.tokens(py, self.view().names())
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().colon())
-    }
-    #[getter]
-    fn r#type(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr
-            .token_or_missing(py, self.view().type_annotation(), SyntaxKind::TYPE)
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr
-            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
-    }
-    fn __repr__(&self) -> String {
-        format!(
-            "NumPyAttribute({:?})",
-            self.view().names().map(|n| n.text()).collect::<Vec<_>>().join(", ")
-        )
-    }
-}
-
-// ─── NumPyMethod ─────────────────────────────────────────────────────────────
-
-lazy_node!(PyNumPyMethod, "NumPyMethod", nn::NumPyMethod);
-
-#[pymethods]
-impl PyNumPyMethod {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().name().syntax())
-    }
-    #[getter]
-    fn colon(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
-        self.nr.token_opt(py, self.view().colon())
-    }
-    #[getter]
-    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr
-            .block_or_missing(py, self.view().description(), SyntaxKind::DESCRIPTION)
-    }
-    fn __repr__(&self) -> String {
-        format!("NumPyMethod({:?})", self.view().name().text())
-    }
-}
-
-// ─── NumPySection ────────────────────────────────────────────────────────────
-
-lazy_node!(PyNumPySection, "NumPySection", nn::NumPySection);
-
-#[pymethods]
-impl PyNumPySection {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn section_kind(&self) -> PyNumPySectionKind {
-        numpy_section_kind_to_py(self.view().section_kind())
-    }
-    #[getter]
-    fn header_name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
-        self.nr.token(py, self.view().header().name().syntax())
-    }
-    fn __repr__(&self) -> String {
-        format!("NumPySection({:?})", self.view().header().name().text())
-    }
-}
-
-// ─── NumPyDocstring ──────────────────────────────────────────────────────────
-
-lazy_node!(PyNumPyDocstring, "NumPyDocstring", nn::NumPyDocstring);
-
-#[pymethods]
-impl PyNumPyDocstring {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().summary())
-    }
-    #[getter]
-    fn extended_summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().extended_summary())
-    }
-    #[getter]
-    fn deprecation(&self, py: Python<'_>) -> PyResult<Option<Py<PyNumPyDeprecation>>> {
-        self.view()
-            .deprecation()
-            .map(|d| self.nr.wrap_child(py, d.syntax()))
-            .transpose()
-    }
-    /// Stray-prose paragraph blocks between sections, in source order.
-    #[getter]
-    fn paragraphs(&self, py: Python<'_>) -> PyResult<Vec<Py<PyTextBlock>>> {
-        self.nr.blocks(py, self.view().paragraphs())
-    }
-    #[getter]
-    fn sections(&self, py: Python<'_>) -> PyResult<Vec<Py<PyNumPySection>>> {
-        self.view()
-            .sections()
-            .map(|s| self.nr.wrap_child(py, s.syntax()))
-            .collect()
-    }
-    #[getter]
-    fn source(&self) -> &str {
-        self.nr.parsed.source()
-    }
-    /// The root CST node — the escape hatch down to the faithful lens.
-    #[getter]
-    fn syntax(&self, py: Python<'_>) -> PyResult<Py<PyNode>> {
-        self.nr.py_node(py)
-    }
-    #[getter]
-    fn style(&self) -> PyStyle {
-        PyStyle::NumPy
-    }
-    fn pretty_print(&self) -> String {
-        self.nr.parsed.pretty_print()
-    }
-    fn to_model(&self) -> PyResult<PyModelDocstring> {
-        pydocstring_core::parse::numpy::to_model::to_model(&self.nr.parsed)
-            .map(|doc| PyModelDocstring::try_from(&doc))
-            .transpose()?
-            .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
-    }
-    /// Start an empty edit list anchored on this parse result.
-    ///
-    /// Anchor edits on the ``range`` of any view; everything an edit does not
-    /// touch is preserved byte-for-byte.
-    fn edit(&self) -> PyEdits {
-        PyEdits::new(Arc::clone(&self.nr.parsed))
-    }
-    /// Replace every match of ``pattern`` (a NumPy-style pattern with
-    /// ``$NAME`` / ``$$$NAME`` metavariables) with ``template``, returning the
-    /// new source. Captured content is substituted byte-for-byte; everything
-    /// else is preserved. Raises ``PatternError`` for an invalid pattern.
-    fn replace(&self, pattern: &str, template: &str) -> PyResult<String> {
-        rewrite_replace(&self.nr, CoreStyle::NumPy, pattern, template)
-    }
-    /// Find every match of ``pattern`` in document order (non-overlapping),
-    /// returning a list of ``Match``. Raises ``PatternError`` for an invalid
-    /// pattern.
-    fn findall(&self, py: Python<'_>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
-        rewrite_findall(py, &self.nr, CoreStyle::NumPy, pattern)
-    }
-    /// Like ``replace``, but scoped to ``anchor``'s subtree.
-    ///
-    /// ``anchor`` is a ``Document``, ``Section``, or ``Entry`` view of *this*
-    /// parse result — a plain docstring has no sections, so only a ``Document``
-    /// anchor applies there. Raises ``TypeError`` for anything else, and
-    /// ``ValueError`` for a view of a different parse result.
-    ///
-    /// The anchor also selects the *reading*: an entry line is a ``$NAME`` under
-    /// a parameters section and a ``$TYPE`` under a raises section, so the same
-    /// pattern reads differently depending on where it is scoped.
-    fn replace_in(&self, anchor: &Bound<'_, PyAny>, pattern: &str, template: &str) -> PyResult<String> {
-        rewrite_replace_in(&self.nr, CoreStyle::NumPy, anchor, pattern, template)
-    }
-    /// Like ``findall``, but scoped to ``anchor``'s subtree.
-    ///
-    /// Same anchor rules as ``replace_in``: a ``Document``, ``Section``, or
-    /// ``Entry`` view of *this* parse result. Raises ``TypeError`` for anything
-    /// else, and ``ValueError`` for a view of a different parse result.
-    fn findall_in(&self, py: Python<'_>, anchor: &Bound<'_, PyAny>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
-        rewrite_findall_in(py, &self.nr, CoreStyle::NumPy, anchor, pattern)
-    }
-    fn __repr__(&self) -> &'static str {
-        "NumPyDocstring(...)"
-    }
-}
-
-fn build_numpy_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyNumPyDocstring>> {
-    let arc = Arc::new(parsed);
-    nn::NumPyDocstring::cast(&arc, arc.root())
-        .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not a DOCUMENT node"))?;
-    Py::new(py, PyNumPyDocstring::from(NodeRef::root(arc)))
-}
-
-// =============================================================================
-// Plain docstring
-// =============================================================================
-
-lazy_node!(PyPlainDocstring, "PlainDocstring", pn::PlainDocstring);
-
-#[pymethods]
-impl PyPlainDocstring {
-    #[getter]
-    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        self.nr.py_range(py)
-    }
-    #[getter]
-    fn summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().summary())
-    }
-    #[getter]
-    fn extended_summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
-        self.nr.block_opt(py, self.view().extended_summary())
-    }
-    #[getter]
-    fn source(&self) -> &str {
-        self.nr.parsed.source()
-    }
-    /// The root CST node — the escape hatch down to the faithful lens.
-    #[getter]
-    fn syntax(&self, py: Python<'_>) -> PyResult<Py<PyNode>> {
-        self.nr.py_node(py)
-    }
-    #[getter]
-    fn style(&self) -> PyStyle {
-        PyStyle::Plain
-    }
-    fn pretty_print(&self) -> String {
-        self.nr.parsed.pretty_print()
-    }
-    fn to_model(&self) -> PyResult<PyModelDocstring> {
-        pydocstring_core::parse::plain::to_model::to_model(&self.nr.parsed)
-            .map(|doc| PyModelDocstring::try_from(&doc))
-            .transpose()?
-            .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
-    }
-    /// Start an empty edit list anchored on this parse result.
-    ///
-    /// Anchor edits on the ``range`` of any view; everything an edit does not
-    /// touch is preserved byte-for-byte.
-    fn edit(&self) -> PyEdits {
-        PyEdits::new(Arc::clone(&self.nr.parsed))
-    }
-    /// Replace every match of ``pattern`` (a plain-style pattern with
-    /// ``$NAME`` / ``$$$NAME`` metavariables) with ``template``, returning the
-    /// new source. Captured content is substituted byte-for-byte; everything
-    /// else is preserved. Raises ``PatternError`` for an invalid pattern.
-    fn replace(&self, pattern: &str, template: &str) -> PyResult<String> {
-        rewrite_replace(&self.nr, CoreStyle::Plain, pattern, template)
-    }
-    /// Find every match of ``pattern`` in document order (non-overlapping),
-    /// returning a list of ``Match``. Raises ``PatternError`` for an invalid
-    /// pattern.
-    fn findall(&self, py: Python<'_>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
-        rewrite_findall(py, &self.nr, CoreStyle::Plain, pattern)
-    }
-    /// Like ``replace``, but scoped to ``anchor``'s subtree.
-    ///
-    /// ``anchor`` is a ``Document``, ``Section``, or ``Entry`` view of *this*
-    /// parse result — a plain docstring has no sections, so only a ``Document``
-    /// anchor applies there. Raises ``TypeError`` for anything else, and
-    /// ``ValueError`` for a view of a different parse result.
-    ///
-    /// The anchor also selects the *reading*: an entry line is a ``$NAME`` under
-    /// a parameters section and a ``$TYPE`` under a raises section, so the same
-    /// pattern reads differently depending on where it is scoped.
-    fn replace_in(&self, anchor: &Bound<'_, PyAny>, pattern: &str, template: &str) -> PyResult<String> {
-        rewrite_replace_in(&self.nr, CoreStyle::Plain, anchor, pattern, template)
-    }
-    /// Like ``findall``, but scoped to ``anchor``'s subtree.
-    ///
-    /// Same anchor rules as ``replace_in``: a ``Document``, ``Section``, or
-    /// ``Entry`` view of *this* parse result. Raises ``TypeError`` for anything
-    /// else, and ``ValueError`` for a view of a different parse result.
-    fn findall_in(&self, py: Python<'_>, anchor: &Bound<'_, PyAny>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
-        rewrite_findall_in(py, &self.nr, CoreStyle::Plain, anchor, pattern)
-    }
-    fn __repr__(&self) -> &'static str {
-        "PlainDocstring(...)"
-    }
-}
-
-fn build_plain_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyPlainDocstring>> {
-    let arc = Arc::new(parsed);
-    pn::PlainDocstring::cast(&arc, arc.root())
-        .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not a DOCUMENT node"))?;
-    Py::new(py, PyPlainDocstring::from(NodeRef::root(arc)))
+fn build_parsed(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyParsed>> {
+    Py::new(py, PyParsed::from(NodeRef::root(Arc::new(parsed))))
 }
 
 // =============================================================================
@@ -2158,19 +776,13 @@ impl PyNode {
 
 /// Extract the shared `Arc<Parsed>` from any of the three docstring wrappers.
 fn parsed_of(obj: &Bound<'_, PyAny>) -> PyResult<Arc<Parsed>> {
-    if let Ok(d) = obj.cast::<PyGoogleDocstring>() {
-        return Ok(Arc::clone(&d.get().nr.parsed));
+    match obj.cast::<PyParsed>() {
+        Ok(p) => Ok(Arc::clone(&p.get().nr.parsed)),
+        Err(_) => Err(pyo3::exceptions::PyTypeError::new_err(
+            "Document() expects a Parsed (the result of parse() / parse_google() / \
+             parse_numpy() / parse_plain())",
+        )),
     }
-    if let Ok(d) = obj.cast::<PyNumPyDocstring>() {
-        return Ok(Arc::clone(&d.get().nr.parsed));
-    }
-    if let Ok(d) = obj.cast::<PyPlainDocstring>() {
-        return Ok(Arc::clone(&d.get().nr.parsed));
-    }
-    Err(pyo3::exceptions::PyTypeError::new_err(
-        "Document() expects a GoogleDocstring, NumPyDocstring, or PlainDocstring \
-         (the result of parse() / parse_google() / parse_numpy() / parse_plain())",
-    ))
 }
 
 // ─── Document ────────────────────────────────────────────────────────────────
@@ -2697,12 +1309,12 @@ impl PyEdits {
     /// The style is deliberately **not** re-detected: editing must not silently
     /// reinterpret the docstring as another style, even if the edited text would
     /// auto-detect differently. Returns the same wrapper type as the original.
-    fn apply_reparsed(&self, py: Python<'_>) -> PyResult<ParsedDocstring> {
+    fn apply_reparsed(&self, py: Python<'_>) -> PyResult<Py<PyParsed>> {
         let parsed = self
             .build()
             .apply_reparsed()
             .map_err(|e| EditError::new_err(e.to_string()))?;
-        wrap_parsed(py, parsed)
+        build_parsed(py, parsed)
     }
     /// The number of pending edits.
     fn __len__(&self) -> usize {
@@ -3877,35 +2489,6 @@ impl TryInto<model::Docstring> for &PyModelDocstring {
 }
 
 // =============================================================================
-// ParsedDocstring — typed return value for parse()
-// =============================================================================
-
-/// The three possible return values of [`parse`].
-///
-/// Implementing [`pyo3::IntoPyObject`] lets `parse` return a concrete Rust
-/// type while still handing Python a `GoogleDocstring`, `NumPyDocstring`, or
-/// `PlainDocstring` object at runtime.
-enum ParsedDocstring {
-    Google(Py<PyGoogleDocstring>),
-    NumPy(Py<PyNumPyDocstring>),
-    Plain(Py<PyPlainDocstring>),
-}
-
-impl<'py> pyo3::IntoPyObject<'py> for ParsedDocstring {
-    type Target = pyo3::types::PyAny;
-    type Output = pyo3::Bound<'py, pyo3::types::PyAny>;
-    type Error = pyo3::PyErr;
-
-    fn into_pyobject(self, py: Python<'py>) -> Result<Self::Output, Self::Error> {
-        match self {
-            ParsedDocstring::Google(d) => Ok(d.into_pyobject(py)?.into_any()),
-            ParsedDocstring::NumPy(d) => Ok(d.into_pyobject(py)?.into_any()),
-            ParsedDocstring::Plain(d) => Ok(d.into_pyobject(py)?.into_any()),
-        }
-    }
-}
-
-// =============================================================================
 // Pattern matching & rewriting (#47)
 // =============================================================================
 
@@ -4125,54 +2708,34 @@ fn rewrite_findall_in(
 
 /// Parse a Google-style docstring.
 #[pyfunction]
-fn parse_google(py: Python<'_>, input: &str) -> PyResult<Py<PyGoogleDocstring>> {
-    build_google_docstring(py, google::parse_google(input))
+fn parse_google(py: Python<'_>, input: &str) -> PyResult<Py<PyParsed>> {
+    build_parsed(py, pydocstring_core::parse::google::parse_google(input))
 }
 
 /// Parse a NumPy-style docstring.
 #[pyfunction]
-fn parse_numpy(py: Python<'_>, input: &str) -> PyResult<Py<PyNumPyDocstring>> {
-    build_numpy_docstring(py, pydocstring_core::parse::numpy::parse_numpy(input))
+fn parse_numpy(py: Python<'_>, input: &str) -> PyResult<Py<PyParsed>> {
+    build_parsed(py, pydocstring_core::parse::numpy::parse_numpy(input))
 }
 
 /// Parse a plain docstring (no section markers).
 #[pyfunction]
-fn parse_plain(py: Python<'_>, input: &str) -> PyResult<Py<PyPlainDocstring>> {
-    build_plain_docstring(py, pydocstring_core::parse::plain::parse_plain(input))
-}
-
-/// Wrap a parse result in the Python wrapper matching its style.
-fn wrap_parsed(py: Python<'_>, parsed: Parsed) -> PyResult<ParsedDocstring> {
-    match parsed.style() {
-        CoreStyle::Google => Ok(ParsedDocstring::Google(build_google_docstring(py, parsed)?)),
-        CoreStyle::NumPy => Ok(ParsedDocstring::NumPy(build_numpy_docstring(py, parsed)?)),
-        CoreStyle::Plain => Ok(ParsedDocstring::Plain(build_plain_docstring(py, parsed)?)),
-        // `Style` is #[non_exhaustive]; surface future styles as Plain until
-        // the Python surface grows a matching wrapper.
-        _ => Ok(ParsedDocstring::Plain(build_plain_docstring(py, parsed)?)),
-    }
+fn parse_plain(py: Python<'_>, input: &str) -> PyResult<Py<PyParsed>> {
+    build_parsed(py, pydocstring_core::parse::plain::parse_plain(input))
 }
 
 /// Auto-detect the docstring style and parse it.
 ///
-/// Returns a `GoogleDocstring`, `NumPyDocstring`, or `PlainDocstring`.
-/// Use `.style` on the result to distinguish them without `isinstance` checks.
+/// Returns a `Parsed`; check `.style` to see which style was detected.
 #[pyfunction]
-fn parse(py: Python<'_>, input: &str) -> PyResult<ParsedDocstring> {
-    wrap_parsed(py, pydocstring_core::parse::parse(input))
+fn parse(py: Python<'_>, input: &str) -> PyResult<Py<PyParsed>> {
+    build_parsed(py, pydocstring_core::parse::parse(input))
 }
 
 /// Detect the docstring style without fully parsing.
 #[pyfunction]
 fn detect_style(input: &str) -> PyStyle {
-    match pydocstring_core::parse::detect_style(input) {
-        pydocstring_core::parse::Style::Google => PyStyle::Google,
-        pydocstring_core::parse::Style::NumPy => PyStyle::NumPy,
-        pydocstring_core::parse::Style::Plain => PyStyle::Plain,
-        // `Style` is #[non_exhaustive]; surface future styles as PLAIN until
-        // the Python surface grows a matching enum member.
-        _ => PyStyle::Plain,
-    }
+    py_style_of(pydocstring_core::parse::detect_style(input))
 }
 
 /// Emit a model `Docstring` as Google-style text.
@@ -4206,12 +2769,18 @@ fn py_emit_sphinx(py: Python<'_>, doc: Py<PyModelDocstring>, base_indent: usize)
 }
 
 // =============================================================================
-// walk() — CST-direct Python dispatch
+// walk() — generic CST traversal (#119)
 // =============================================================================
+//
+// The traversal used to dispatch into per-style typed callbacks
+// (`enter_google_arg`, `enter_numpy_parameter`, …), which is what coupled it to
+// the 26 wrapper classes. The tree has no per-style structure, so the traversal
+// need not either: it now walks nodes and tokens, and the visitor decides what
+// it cares about by looking at `kind`.
 
 // ─── WalkContext ─────────────────────────────────────────────────────────────
 
-/// Context passed to every ``enter_*` / `exit_*`` method during a ``walk()`` call.
+/// Context passed to every visitor method during a ``walk()`` call.
 ///
 /// Provides source-location helpers for the docstring currently being walked.
 #[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "WalkContext")]
@@ -4255,644 +2824,117 @@ impl PyWalkContext {
     }
 }
 
-/// Which `enter_*` / `exit_*` / `leave_*` methods the Python visitor defines.
-///
-/// Collected **once per `walk()` call** by inspecting the visitor object,
-/// so `hasattr` is never called per-node.
+// ─── walk ────────────────────────────────────────────────────────────────────
+
+/// Which visitor methods are defined, collected **once per `walk()` call** so
+/// the reflection is never repeated per-node.
 struct ActiveMethods {
-    // Google (enter)
-    google_docstring: bool,
-    google_directive: bool,
-    google_deprecation: bool,
-    google_section: bool,
-    google_arg: bool,
-    google_return: bool,
-    google_yield: bool,
-    google_exception: bool,
-    google_warning: bool,
-    google_see_also_item: bool,
-    google_reference: bool,
-    google_attribute: bool,
-    google_method: bool,
-    // Google (exit)
-    exit_google_docstring: bool,
-    exit_google_directive: bool,
-    exit_google_deprecation: bool,
-    exit_google_section: bool,
-    exit_google_arg: bool,
-    exit_google_return: bool,
-    exit_google_yield: bool,
-    exit_google_exception: bool,
-    exit_google_warning: bool,
-    exit_google_see_also_item: bool,
-    exit_google_reference: bool,
-    exit_google_attribute: bool,
-    exit_google_method: bool,
-    // NumPy (enter)
-    numpy_docstring: bool,
-    numpy_directive: bool,
-    numpy_deprecation: bool,
-    numpy_section: bool,
-    numpy_parameter: bool,
-    numpy_returns: bool,
-    numpy_yields: bool,
-    numpy_exception: bool,
-    numpy_warning: bool,
-    numpy_see_also_item: bool,
-    numpy_reference: bool,
-    numpy_attribute: bool,
-    numpy_method: bool,
-    // NumPy (exit)
-    exit_numpy_docstring: bool,
-    exit_numpy_directive: bool,
-    exit_numpy_deprecation: bool,
-    exit_numpy_section: bool,
-    exit_numpy_parameter: bool,
-    exit_numpy_returns: bool,
-    exit_numpy_yields: bool,
-    exit_numpy_exception: bool,
-    exit_numpy_warning: bool,
-    exit_numpy_see_also_item: bool,
-    exit_numpy_reference: bool,
-    exit_numpy_attribute: bool,
-    exit_numpy_method: bool,
-    // Plain
-    plain_docstring: bool,
-    exit_plain_docstring: bool,
+    enter_node: bool,
+    leave_node: bool,
+    visit_token: bool,
 }
 
-/// Inspect `visitor` once and return which `enter_*` / `exit_*` methods it defines.
+/// Whether the visitor actually implements `name`.
 ///
-/// Fast path: if the visitor has `__pydocstring_active__` (set by `Visitor.__init__`),
-/// extract the frozenset to a Rust `HashSet` in one PyO3 call, then do pure-Rust
-/// membership tests — no further Python attribute lookups.
-fn collect_active(py: Python<'_>, visitor: &Py<PyAny>) -> PyResult<ActiveMethods> {
-    let b = visitor.bind(py);
-
-    let attr = b
-        .getattr("__pydocstring_active__")
-        .map_err(|_| pyo3::exceptions::PyTypeError::new_err("visitor must subclass pydocstring.Visitor"))?;
-    // One extraction converts the Python frozenset into a Rust HashSet.
-    let active: std::collections::HashSet<String> = attr.extract()?;
-    let has = |name: &str| active.contains(name);
-    Ok(ActiveMethods {
-        // Google (enter)
-        google_docstring: has("enter_google_docstring"),
-        google_directive: has("enter_google_directive"),
-        google_deprecation: has("enter_google_deprecation"),
-        google_section: has("enter_google_section"),
-        google_arg: has("enter_google_arg"),
-        google_return: has("enter_google_return"),
-        google_yield: has("enter_google_yield"),
-        google_exception: has("enter_google_exception"),
-        google_warning: has("enter_google_warning"),
-        google_see_also_item: has("enter_google_see_also_item"),
-        google_reference: has("enter_google_reference"),
-        google_attribute: has("enter_google_attribute"),
-        google_method: has("enter_google_method"),
-        // Google (exit)
-        exit_google_docstring: has("exit_google_docstring"),
-        exit_google_directive: has("exit_google_directive"),
-        exit_google_deprecation: has("exit_google_deprecation"),
-        exit_google_section: has("exit_google_section"),
-        exit_google_arg: has("exit_google_arg"),
-        exit_google_return: has("exit_google_return"),
-        exit_google_yield: has("exit_google_yield"),
-        exit_google_exception: has("exit_google_exception"),
-        exit_google_warning: has("exit_google_warning"),
-        exit_google_see_also_item: has("exit_google_see_also_item"),
-        exit_google_reference: has("exit_google_reference"),
-        exit_google_attribute: has("exit_google_attribute"),
-        exit_google_method: has("exit_google_method"),
-        // NumPy (enter)
-        numpy_docstring: has("enter_numpy_docstring"),
-        numpy_directive: has("enter_numpy_directive"),
-        numpy_deprecation: has("enter_numpy_deprecation"),
-        numpy_section: has("enter_numpy_section"),
-        numpy_parameter: has("enter_numpy_parameter"),
-        numpy_returns: has("enter_numpy_returns"),
-        numpy_yields: has("enter_numpy_yields"),
-        numpy_exception: has("enter_numpy_exception"),
-        numpy_warning: has("enter_numpy_warning"),
-        numpy_see_also_item: has("enter_numpy_see_also_item"),
-        numpy_reference: has("enter_numpy_reference"),
-        numpy_attribute: has("enter_numpy_attribute"),
-        numpy_method: has("enter_numpy_method"),
-        // NumPy (exit)
-        exit_numpy_docstring: has("exit_numpy_docstring"),
-        exit_numpy_directive: has("exit_numpy_directive"),
-        exit_numpy_deprecation: has("exit_numpy_deprecation"),
-        exit_numpy_section: has("exit_numpy_section"),
-        exit_numpy_parameter: has("exit_numpy_parameter"),
-        exit_numpy_returns: has("exit_numpy_returns"),
-        exit_numpy_yields: has("exit_numpy_yields"),
-        exit_numpy_exception: has("exit_numpy_exception"),
-        exit_numpy_warning: has("exit_numpy_warning"),
-        exit_numpy_see_also_item: has("exit_numpy_see_also_item"),
-        exit_numpy_reference: has("exit_numpy_reference"),
-        exit_numpy_attribute: has("exit_numpy_attribute"),
-        exit_numpy_method: has("exit_numpy_method"),
-        // Plain
-        plain_docstring: has("enter_plain_docstring"),
-        exit_plain_docstring: has("exit_plain_docstring"),
-    })
+/// `Visitor`'s base hooks are no-ops tagged with `__pydocstring_noop__`, so a
+/// plain `hasattr` would report every hook as present and call back into Python
+/// for every node and token. Only an override counts.
+fn is_overridden(visitor: &Bound<'_, PyAny>, name: &str) -> PyResult<bool> {
+    match visitor.getattr(name) {
+        Ok(method) => Ok(!method.hasattr("__pydocstring_noop__")?),
+        Err(_) => Ok(false),
+    }
 }
 
-/// Call `visitor.method(arg, ctx)`.  The caller has already confirmed the method exists.
-#[inline]
-fn dispatch_with_ctx<T: pyo3::PyClass>(
+fn walk_subtree(
     py: Python<'_>,
+    nr: &NodeRef,
     visitor: &Py<PyAny>,
-    method: &str,
-    arg: Py<T>,
     ctx: &Py<PyWalkContext>,
+    active: &ActiveMethods,
 ) -> PyResult<()> {
-    visitor.bind(py).call_method1(method, (arg.bind(py), ctx.bind(py)))?;
+    let visitor = visitor.bind(py);
+    if active.enter_node {
+        let node = Py::new(py, PyNode::from(nr.clone()))?;
+        visitor.call_method1("enter_node", (node, ctx))?;
+    }
+    // Collect the child node addresses first: `nr.node()` re-resolves the path
+    // on each access, and the borrow must not straddle the Python callbacks.
+    let child_kinds: Vec<(u32, bool)> = nr
+        .node()
+        .children()
+        .iter()
+        .enumerate()
+        .map(|(i, c)| (i as u32, matches!(c, SyntaxElement::Node(_))))
+        .collect();
+    for (index, is_node) in child_kinds {
+        if is_node {
+            let mut path = nr.path.clone();
+            path.push(index);
+            let child = NodeRef {
+                parsed: Arc::clone(&nr.parsed),
+                path,
+            };
+            walk_subtree(py, &child, &visitor.clone().unbind(), ctx, active)?;
+        } else if active.visit_token {
+            let token = Py::new(
+                py,
+                PyToken {
+                    parent: nr.clone(),
+                    index,
+                },
+            )?;
+            visitor.call_method1("visit_token", (token, ctx))?;
+        }
+    }
+    if active.leave_node {
+        let node = Py::new(py, PyNode::from(nr.clone()))?;
+        visitor.call_method1("leave_node", (node, ctx))?;
+    }
     Ok(())
 }
 
-// =============================================================================
-// PyDispatcher — ANTLR-style Python dispatch via DocstringVisitor
-// =============================================================================
-
-/// Implements `DocstringVisitor` from the core crate.
+/// Walk a parse result or a subtree depth-first, calling the visitor's methods.
 ///
-/// For every node kind the pattern is:
-/// 1. Call Python `enter_*` / `exit_*` (enter) if the visitor defines it.
-/// 2. Recurse into children via `core_walk`.
-/// 3. Call Python `leave_*` (exit) if the visitor defines it.
-struct PyDispatcher<'py> {
-    py: Python<'py>,
-    arc: Arc<Parsed>,
-    visitor: Py<PyAny>,
-    active: ActiveMethods,
-    ctx: Py<PyWalkContext>,
-}
-
-/// Generates a `DocstringVisitor` method body for `PyDispatcher`.
+/// The visitor may define any of `enter_node(node, ctx)`,
+/// `leave_node(node, ctx)`, and `visit_token(token, ctx)`; whichever are absent
+/// are simply not called. Dispatch on `node.kind` / `token.kind` to decide what
+/// to do. Returns the visitor, so state can be read straight off the call.
 ///
-/// Variant with children:
-///   `visit_node!(self, parsed, ENTER_FIELD, EXIT_FIELD, build_expr, syntax_expr)`
-///
-/// Variant without children (Plain):
-///   `visit_node!(self, parsed, ENTER_FIELD, EXIT_FIELD, build_expr)`
-///
-/// The method name strings are derived automatically via `concat!` / `stringify!`.
-macro_rules! visit_node {
-    // ── with children ────────────────────────────────────────────────────
-    ($self:ident, $parsed:expr, $enter:ident, $exit:ident, $build:expr, $syntax:expr) => {{
-        let need = $self.active.$enter || $self.active.$exit;
-        let obj: Option<_> = if need { Some($build?) } else { None };
-        if $self.active.$enter {
-            if let Some(ref o) = obj {
-                dispatch_with_ctx(
-                    $self.py,
-                    &$self.visitor,
-                    concat!("enter_", stringify!($enter)),
-                    o.clone_ref($self.py),
-                    &$self.ctx,
-                )?;
-            }
-        }
-        walk_children($parsed, $syntax, $self)?;
-        if $self.active.$exit {
-            if let Some(ref o) = obj {
-                dispatch_with_ctx(
-                    $self.py,
-                    &$self.visitor,
-                    concat!("exit_", stringify!($enter)),
-                    o.clone_ref($self.py),
-                    &$self.ctx,
-                )?;
-            }
-        }
-        Ok(())
-    }};
-    // ── without children (Plain) ─────────────────────────────────────────
-    ($self:ident, $parsed:expr, $enter:ident, $exit:ident, $build:expr) => {{
-        let need = $self.active.$enter || $self.active.$exit;
-        let obj: Option<_> = if need { Some($build?) } else { None };
-        if $self.active.$enter {
-            if let Some(ref o) = obj {
-                dispatch_with_ctx(
-                    $self.py,
-                    &$self.visitor,
-                    concat!("enter_", stringify!($enter)),
-                    o.clone_ref($self.py),
-                    &$self.ctx,
-                )?;
-            }
-        }
-        if $self.active.$exit {
-            if let Some(ref o) = obj {
-                dispatch_with_ctx(
-                    $self.py,
-                    &$self.visitor,
-                    concat!("exit_", stringify!($enter)),
-                    o.clone_ref($self.py),
-                    &$self.ctx,
-                )?;
-            }
-        }
-        Ok(())
-    }};
-}
-
-impl PyDispatcher<'_> {
-    /// Wrap `node` (from `self.arc`'s tree) in its lazy pyclass wrapper.
-    ///
-    /// Construction is cheap — a child-index path — so `walk()` can build
-    /// wrappers during traversal without materializing any content.
-    fn wrap<T>(&self, node: &SyntaxNode) -> PyResult<Py<T>>
-    where
-        T: PyClass + From<NodeRef> + Into<pyo3::PyClassInitializer<T>>,
-    {
-        Py::new(self.py, T::from(NodeRef::for_node(&self.arc, node)))
-    }
-}
-
-impl<'py> DocstringVisitor for PyDispatcher<'py> {
-    type Error = PyErr;
-
-    // ── Google ────────────────────────────────────────────────────────────
-    fn visit_google_docstring(&mut self, parsed: &Parsed, doc: &gn::GoogleDocstring<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            google_docstring,
-            exit_google_docstring,
-            self.wrap::<PyGoogleDocstring>(doc.syntax()),
-            doc.syntax()
-        )
-    }
-
-    fn visit_google_directive(&mut self, parsed: &Parsed, dir: &gn::GoogleDirective<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            google_directive,
-            exit_google_directive,
-            self.wrap::<PyGoogleDirective>(dir.syntax()),
-            dir.syntax()
-        )
-    }
-
-    fn visit_google_deprecation(&mut self, parsed: &Parsed, dep: &gn::GoogleDeprecation<'_>) -> Result<(), PyErr> {
-        // Notification specialization: the generic directive hook already
-        // descended the body, so fire the deprecation hooks WITHOUT walking
-        // children again (no-children macro arm) — mirrors the core contract.
-        visit_node!(
-            self,
-            parsed,
-            google_deprecation,
-            exit_google_deprecation,
-            self.wrap::<PyGoogleDeprecation>(dep.syntax())
-        )
-    }
-
-    fn visit_google_section(&mut self, parsed: &Parsed, sec: &gn::GoogleSection<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            google_section,
-            exit_google_section,
-            self.wrap::<PyGoogleSection>(sec.syntax()),
-            sec.syntax()
-        )
-    }
-
-    fn visit_google_arg(&mut self, parsed: &Parsed, arg: &gn::GoogleArg<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            google_arg,
-            exit_google_arg,
-            self.wrap::<PyGoogleArg>(arg.syntax()),
-            arg.syntax()
-        )
-    }
-
-    fn visit_google_return(&mut self, parsed: &Parsed, rtn: &gn::GoogleReturn<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            google_return,
-            exit_google_return,
-            self.wrap::<PyGoogleReturn>(rtn.syntax()),
-            rtn.syntax()
-        )
-    }
-
-    fn visit_google_yield(&mut self, parsed: &Parsed, yld: &gn::GoogleYield<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            google_yield,
-            exit_google_yield,
-            self.wrap::<PyGoogleYield>(yld.syntax()),
-            yld.syntax()
-        )
-    }
-
-    fn visit_google_exception(&mut self, parsed: &Parsed, exc: &gn::GoogleException<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            google_exception,
-            exit_google_exception,
-            self.wrap::<PyGoogleException>(exc.syntax()),
-            exc.syntax()
-        )
-    }
-
-    fn visit_google_warning(&mut self, parsed: &Parsed, wrn: &gn::GoogleWarning<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            google_warning,
-            exit_google_warning,
-            self.wrap::<PyGoogleWarning>(wrn.syntax()),
-            wrn.syntax()
-        )
-    }
-
-    fn visit_google_see_also_item(&mut self, parsed: &Parsed, sai: &gn::GoogleSeeAlsoItem<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            google_see_also_item,
-            exit_google_see_also_item,
-            self.wrap::<PyGoogleSeeAlsoItem>(sai.syntax()),
-            sai.syntax()
-        )
-    }
-
-    fn visit_google_reference(&mut self, parsed: &Parsed, r#ref: &gn::GoogleReference<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            google_reference,
-            exit_google_reference,
-            self.wrap::<PyGoogleReference>(r#ref.syntax()),
-            r#ref.syntax()
-        )
-    }
-
-    fn visit_google_attribute(&mut self, parsed: &Parsed, att: &gn::GoogleAttribute<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            google_attribute,
-            exit_google_attribute,
-            self.wrap::<PyGoogleAttribute>(att.syntax()),
-            att.syntax()
-        )
-    }
-
-    fn visit_google_method(&mut self, parsed: &Parsed, mtd: &gn::GoogleMethod<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            google_method,
-            exit_google_method,
-            self.wrap::<PyGoogleMethod>(mtd.syntax()),
-            mtd.syntax()
-        )
-    }
-
-    // ── NumPy ─────────────────────────────────────────────────────────────
-    fn visit_numpy_docstring(&mut self, parsed: &Parsed, doc: &nn::NumPyDocstring<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            numpy_docstring,
-            exit_numpy_docstring,
-            self.wrap::<PyNumPyDocstring>(doc.syntax()),
-            doc.syntax()
-        )
-    }
-
-    fn visit_numpy_directive(&mut self, parsed: &Parsed, dir: &nn::NumPyDirective<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            numpy_directive,
-            exit_numpy_directive,
-            self.wrap::<PyNumPyDirective>(dir.syntax()),
-            dir.syntax()
-        )
-    }
-
-    fn visit_numpy_deprecation(&mut self, parsed: &Parsed, dep: &nn::NumPyDeprecation<'_>) -> Result<(), PyErr> {
-        // Notification specialization: the generic directive hook already
-        // descended the body, so fire the deprecation hooks WITHOUT walking
-        // children again (no-children macro arm) — mirrors the core contract.
-        visit_node!(
-            self,
-            parsed,
-            numpy_deprecation,
-            exit_numpy_deprecation,
-            self.wrap::<PyNumPyDeprecation>(dep.syntax())
-        )
-    }
-
-    fn visit_numpy_section(&mut self, parsed: &Parsed, sec: &nn::NumPySection<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            numpy_section,
-            exit_numpy_section,
-            self.wrap::<PyNumPySection>(sec.syntax()),
-            sec.syntax()
-        )
-    }
-
-    fn visit_numpy_parameter(&mut self, parsed: &Parsed, prm: &nn::NumPyParameter<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            numpy_parameter,
-            exit_numpy_parameter,
-            self.wrap::<PyNumPyParameter>(prm.syntax()),
-            prm.syntax()
-        )
-    }
-
-    fn visit_numpy_returns(&mut self, parsed: &Parsed, rtn: &nn::NumPyReturns<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            numpy_returns,
-            exit_numpy_returns,
-            self.wrap::<PyNumPyReturns>(rtn.syntax()),
-            rtn.syntax()
-        )
-    }
-
-    fn visit_numpy_yields(&mut self, parsed: &Parsed, yld: &nn::NumPyYields<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            numpy_yields,
-            exit_numpy_yields,
-            self.wrap::<PyNumPyYields>(yld.syntax()),
-            yld.syntax()
-        )
-    }
-
-    fn visit_numpy_exception(&mut self, parsed: &Parsed, exc: &nn::NumPyException<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            numpy_exception,
-            exit_numpy_exception,
-            self.wrap::<PyNumPyException>(exc.syntax()),
-            exc.syntax()
-        )
-    }
-
-    fn visit_numpy_warning(&mut self, parsed: &Parsed, wrn: &nn::NumPyWarning<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            numpy_warning,
-            exit_numpy_warning,
-            self.wrap::<PyNumPyWarning>(wrn.syntax()),
-            wrn.syntax()
-        )
-    }
-
-    fn visit_numpy_see_also_item(&mut self, parsed: &Parsed, sai: &nn::NumPySeeAlsoItem<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            numpy_see_also_item,
-            exit_numpy_see_also_item,
-            self.wrap::<PyNumPySeeAlsoItem>(sai.syntax()),
-            sai.syntax()
-        )
-    }
-
-    fn visit_numpy_reference(&mut self, parsed: &Parsed, r#ref: &nn::NumPyReference<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            numpy_reference,
-            exit_numpy_reference,
-            self.wrap::<PyNumPyReference>(r#ref.syntax()),
-            r#ref.syntax()
-        )
-    }
-
-    fn visit_numpy_attribute(&mut self, parsed: &Parsed, att: &nn::NumPyAttribute<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            numpy_attribute,
-            exit_numpy_attribute,
-            self.wrap::<PyNumPyAttribute>(att.syntax()),
-            att.syntax()
-        )
-    }
-
-    fn visit_numpy_method(&mut self, parsed: &Parsed, mtd: &nn::NumPyMethod<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            parsed,
-            numpy_method,
-            exit_numpy_method,
-            self.wrap::<PyNumPyMethod>(mtd.syntax()),
-            mtd.syntax()
-        )
-    }
-
-    // ── Plain ─────────────────────────────────────────────────────────────
-    fn visit_plain_docstring(&mut self, _parsed: &Parsed, doc: &pn::PlainDocstring<'_>) -> Result<(), PyErr> {
-        visit_node!(
-            self,
-            _parsed,
-            plain_docstring,
-            exit_plain_docstring,
-            self.wrap::<PyPlainDocstring>(doc.syntax())
-        )
-    }
-}
-
-/// Walk any docstring depth-first, calling typed methods on ``visitor`` for each node.
-///
-/// Accepts a `GoogleDocstring`, `NumPyDocstring`, or `PlainDocstring`.
-/// The visitor defines only the methods it needs; all others are silently skipped.
-/// Returns ``visitor`` so results can be collected inline.
-///
-/// Every ``enter_*` / `exit_*`` method receives ``(node, ctx: WalkContext)`` where
-/// ``ctx.line_col(offset)`` converts byte offsets to line/column positions.
-///
-/// ```python
-/// class TypeAnnotationChecker(pydocstring.Visitor):
-///     def enter_google_arg(self, arg, ctx): ...
-///     def enter_numpy_parameter(self, param, ctx): ...
-///
-/// checker = TypeAnnotationChecker()
-/// for docstring_text in all_docstrings:
-///     doc = pydocstring.parse(docstring_text)  # auto-detects style
-///     pydocstring.walk(doc, checker)           # returns the visitor
-/// ```
-///
-/// Google `enter_*` / `exit_*` methods:
-/// `enter_google_docstring`, `enter_google_section`, `enter_google_directive`,
-/// `enter_google_deprecation`,
-/// `enter_google_arg`, `enter_google_return`, `enter_google_yield`,
-/// `enter_google_exception`, `enter_google_warning`,
-/// `enter_google_see_also_item`, `enter_google_reference`,
-/// `enter_google_attribute`, `enter_google_method`
-///
-/// NumPy `enter_*` / `exit_*` methods:
-/// `enter_numpy_docstring`, `enter_numpy_section`, `enter_numpy_directive`,
-/// `enter_numpy_deprecation`,
-/// `enter_numpy_parameter`, `enter_numpy_returns`, `enter_numpy_yields`,
-/// `enter_numpy_exception`, `enter_numpy_warning`, `enter_numpy_see_also_item`,
-/// `enter_numpy_reference`, `enter_numpy_attribute`, `enter_numpy_method`
-///
-/// Plain `enter_*` / `exit_*` methods:
-/// `enter_plain_docstring`
+/// Exceptions raised inside a visitor method propagate out of `walk`.
 #[pyfunction]
-fn walk(py: Python<'_>, doc: Py<PyAny>, visitor: Py<PyAny>) -> PyResult<Py<PyAny>> {
-    let bound = doc.bind(py);
-    let active = collect_active(py, &visitor)?;
-
-    let arc = if let Ok(d) = bound.cast::<PyGoogleDocstring>() {
-        d.borrow().nr.parsed.clone()
-    } else if let Ok(d) = bound.cast::<PyNumPyDocstring>() {
-        d.borrow().nr.parsed.clone()
-    } else if let Ok(d) = bound.cast::<PyPlainDocstring>() {
-        d.borrow().nr.parsed.clone()
+fn walk(py: Python<'_>, target: &Bound<'_, PyAny>, visitor: Py<PyAny>) -> PyResult<Py<PyAny>> {
+    let nr = if let Ok(p) = target.cast::<PyParsed>() {
+        p.get().nr.clone()
+    } else if let Ok(n) = target.cast::<PyNode>() {
+        n.get().nr.clone()
     } else {
         return Err(pyo3::exceptions::PyTypeError::new_err(
-            "expected GoogleDocstring, NumPyDocstring, or PlainDocstring",
+            "walk() expects a Parsed or a Node",
         ));
     };
 
-    let source = arc.source().to_string();
-    let root = arc.root();
-    let line_starts = build_line_starts(&source);
-    let ctx = Py::new(
-        py,
-        PyWalkContext {
-            source: source.clone(),
-            line_starts,
-        },
-    )?;
-
-    let mut dispatcher = PyDispatcher {
-        py,
-        arc: Arc::clone(&arc),
-        visitor: visitor.clone_ref(py),
-        active,
-        ctx,
+    let bound = visitor.bind(py);
+    // Duck-typing here would silently do nothing for an object that is not a
+    // visitor at all, so the subclass contract is checked, as it was before the
+    // traversal became generic.
+    let visitor_cls = py.import("pydocstring")?.getattr("Visitor")?;
+    if !bound.is_instance(&visitor_cls)? {
+        return Err(pyo3::exceptions::PyTypeError::new_err(
+            "visitor must subclass pydocstring.Visitor",
+        ));
+    }
+    let active = ActiveMethods {
+        enter_node: is_overridden(bound, "enter_node")?,
+        leave_node: is_overridden(bound, "leave_node")?,
+        visit_token: is_overridden(bound, "visit_token")?,
     };
 
-    core_walk(&arc, root, &mut dispatcher)?;
+    let source = nr.parsed.source().to_string();
+    let line_starts = build_line_starts(&source);
+    let ctx = Py::new(py, PyWalkContext { source, line_starts })?;
 
+    walk_subtree(py, &nr, &visitor, &ctx, &active)?;
     Ok(visitor)
 }
 
@@ -4919,8 +2961,7 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(walk, m)?)?;
     // Core types
     m.add_class::<PyStyle>()?;
-    m.add_class::<PyGoogleSectionKind>()?;
-    m.add_class::<PyNumPySectionKind>()?;
+    m.add_class::<PyParsed>()?;
     m.add_class::<PyTextRange>()?;
     m.add_class::<PyLineColumn>()?;
     m.add_class::<PyToken>()?;
@@ -4930,36 +2971,6 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyMatch>()?;
     m.add_class::<PyCapture>()?;
     m.add("PatternError", m.py().get_type::<PatternError>())?;
-    // Google CST wrappers
-    m.add_class::<PyGoogleDocstring>()?;
-    m.add_class::<PyGoogleSection>()?;
-    m.add_class::<PyGoogleDeprecation>()?;
-    m.add_class::<PyGoogleDirective>()?;
-    m.add_class::<PyGoogleArg>()?;
-    m.add_class::<PyGoogleReturn>()?;
-    m.add_class::<PyGoogleYield>()?;
-    m.add_class::<PyGoogleException>()?;
-    m.add_class::<PyGoogleWarning>()?;
-    m.add_class::<PyGoogleSeeAlsoItem>()?;
-    m.add_class::<PyGoogleReference>()?;
-    m.add_class::<PyGoogleAttribute>()?;
-    m.add_class::<PyGoogleMethod>()?;
-    // NumPy CST wrappers
-    m.add_class::<PyNumPyDocstring>()?;
-    m.add_class::<PyNumPySection>()?;
-    m.add_class::<PyNumPyDeprecation>()?;
-    m.add_class::<PyNumPyDirective>()?;
-    m.add_class::<PyNumPyParameter>()?;
-    m.add_class::<PyNumPyReturns>()?;
-    m.add_class::<PyNumPyYields>()?;
-    m.add_class::<PyNumPyException>()?;
-    m.add_class::<PyNumPyWarning>()?;
-    m.add_class::<PyNumPySeeAlsoItem>()?;
-    m.add_class::<PyNumPyReference>()?;
-    m.add_class::<PyNumPyAttribute>()?;
-    m.add_class::<PyNumPyMethod>()?;
-    // Plain CST wrapper
-    m.add_class::<PyPlainDocstring>()?;
     // Raw CST — the fidelity lens (#126)
     m.add_class::<PySyntaxKind>()?;
     m.add_class::<PyNode>()?;

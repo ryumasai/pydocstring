@@ -10,74 +10,74 @@ use super::*;
 // =============================================================================
 
 /// SPEC: full table of accepted section header spellings and the
-/// NumPySectionKind each maps to (parsed end-to-end through the parser).
+/// SectionKind each maps to (parsed end-to-end through the parser).
 #[test]
 fn test_section_header_alias_table() {
     #[rustfmt::skip]
-    let cases: &[(&str, NumPySectionKind)] = &[
+    let cases: &[(&str, SectionKind)] = &[
         // Parameters and aliases (incl. Arguments family)
-        ("Parameters", NumPySectionKind::Parameters),
-        ("Parameter", NumPySectionKind::Parameters),
-        ("Params", NumPySectionKind::Parameters),
-        ("Param", NumPySectionKind::Parameters),
-        ("Arguments", NumPySectionKind::Parameters),
-        ("Argument", NumPySectionKind::Parameters),
-        ("Args", NumPySectionKind::Parameters),
-        ("Arg", NumPySectionKind::Parameters),
+        ("Parameters", SectionKind::Parameters),
+        ("Parameter", SectionKind::Parameters),
+        ("Params", SectionKind::Parameters),
+        ("Param", SectionKind::Parameters),
+        ("Arguments", SectionKind::Parameters),
+        ("Argument", SectionKind::Parameters),
+        ("Args", SectionKind::Parameters),
+        ("Arg", SectionKind::Parameters),
         // Other Parameters and aliases
-        ("Other Parameters", NumPySectionKind::OtherParameters),
-        ("Other Parameter", NumPySectionKind::OtherParameters),
-        ("Other Params", NumPySectionKind::OtherParameters),
-        ("Other Param", NumPySectionKind::OtherParameters),
-        ("Other Arguments", NumPySectionKind::OtherParameters),
-        ("Other Argument", NumPySectionKind::OtherParameters),
-        ("Other Args", NumPySectionKind::OtherParameters),
-        ("Other Arg", NumPySectionKind::OtherParameters),
+        ("Other Parameters", SectionKind::OtherParameters),
+        ("Other Parameter", SectionKind::OtherParameters),
+        ("Other Params", SectionKind::OtherParameters),
+        ("Other Param", SectionKind::OtherParameters),
+        ("Other Arguments", SectionKind::OtherParameters),
+        ("Other Argument", SectionKind::OtherParameters),
+        ("Other Args", SectionKind::OtherParameters),
+        ("Other Arg", SectionKind::OtherParameters),
         // Returns / Yields / Receives
-        ("Returns", NumPySectionKind::Returns),
-        ("Return", NumPySectionKind::Returns),
-        ("Yields", NumPySectionKind::Yields),
-        ("Yield", NumPySectionKind::Yields),
-        ("Receives", NumPySectionKind::Receives),
-        ("Receive", NumPySectionKind::Receives),
+        ("Returns", SectionKind::Returns),
+        ("Return", SectionKind::Returns),
+        ("Yields", SectionKind::Yields),
+        ("Yield", SectionKind::Yields),
+        ("Receives", SectionKind::Receives),
+        ("Receive", SectionKind::Receives),
         // Raises / Warns / Warnings
-        ("Raises", NumPySectionKind::Raises),
-        ("Raise", NumPySectionKind::Raises),
-        ("Warns", NumPySectionKind::Warns),
-        ("Warn", NumPySectionKind::Warns),
-        ("Warnings", NumPySectionKind::Warnings),
-        ("Warning", NumPySectionKind::Warnings),
+        ("Raises", SectionKind::Raises),
+        ("Raise", SectionKind::Raises),
+        ("Warns", SectionKind::Warns),
+        ("Warn", SectionKind::Warns),
+        ("Warnings", SectionKind::FreeText(FreeSectionKind::Warnings)),
+        ("Warning", SectionKind::FreeText(FreeSectionKind::Warnings)),
         // Free-text and item sections
-        ("See Also", NumPySectionKind::SeeAlso),
-        ("Notes", NumPySectionKind::Notes),
-        ("Note", NumPySectionKind::Notes),
-        ("References", NumPySectionKind::References),
-        ("Reference", NumPySectionKind::References),
-        ("Examples", NumPySectionKind::Examples),
-        ("Example", NumPySectionKind::Examples),
+        ("See Also", SectionKind::SeeAlso),
+        ("Notes", SectionKind::FreeText(FreeSectionKind::Notes)),
+        ("Note", SectionKind::FreeText(FreeSectionKind::Notes)),
+        ("References", SectionKind::References),
+        ("Reference", SectionKind::References),
+        ("Examples", SectionKind::FreeText(FreeSectionKind::Examples)),
+        ("Example", SectionKind::FreeText(FreeSectionKind::Examples)),
         // Class sections
-        ("Attributes", NumPySectionKind::Attributes),
-        ("Attribute", NumPySectionKind::Attributes),
-        ("Methods", NumPySectionKind::Methods),
-        ("Method", NumPySectionKind::Methods),
+        ("Attributes", SectionKind::Attributes),
+        ("Attribute", SectionKind::Attributes),
+        ("Methods", SectionKind::Methods),
+        ("Method", SectionKind::Methods),
         // Keyword parameters family (recognized for cross-style round trips, #53)
-        ("Keyword Parameters", NumPySectionKind::KeywordParameters),
-        ("Keyword Parameter", NumPySectionKind::KeywordParameters),
-        ("Keyword Params", NumPySectionKind::KeywordParameters),
-        ("Keyword Param", NumPySectionKind::KeywordParameters),
-        ("Keyword Arguments", NumPySectionKind::KeywordParameters),
-        ("Keyword Argument", NumPySectionKind::KeywordParameters),
-        ("Keyword Args", NumPySectionKind::KeywordParameters),
-        ("Keyword Arg", NumPySectionKind::KeywordParameters),
+        ("Keyword Parameters", SectionKind::KeywordParameters),
+        ("Keyword Parameter", SectionKind::KeywordParameters),
+        ("Keyword Params", SectionKind::KeywordParameters),
+        ("Keyword Param", SectionKind::KeywordParameters),
+        ("Keyword Arguments", SectionKind::KeywordParameters),
+        ("Keyword Argument", SectionKind::KeywordParameters),
+        ("Keyword Args", SectionKind::KeywordParameters),
+        ("Keyword Arg", SectionKind::KeywordParameters),
         // Admonition free-text sections (recognized for cross-style round trips, #52)
-        ("Todo", NumPySectionKind::Todo),
-        ("Attention", NumPySectionKind::Attention),
-        ("Caution", NumPySectionKind::Caution),
-        ("Danger", NumPySectionKind::Danger),
-        ("Error", NumPySectionKind::Error),
-        ("Hint", NumPySectionKind::Hint),
-        ("Important", NumPySectionKind::Important),
-        ("Tip", NumPySectionKind::Tip),
+        ("Todo", SectionKind::FreeText(FreeSectionKind::Todo)),
+        ("Attention", SectionKind::FreeText(FreeSectionKind::Attention)),
+        ("Caution", SectionKind::FreeText(FreeSectionKind::Caution)),
+        ("Danger", SectionKind::FreeText(FreeSectionKind::Danger)),
+        ("Error", SectionKind::FreeText(FreeSectionKind::Error)),
+        ("Hint", SectionKind::FreeText(FreeSectionKind::Hint)),
+        ("Important", SectionKind::FreeText(FreeSectionKind::Important)),
+        ("Tip", SectionKind::FreeText(FreeSectionKind::Tip)),
     ];
 
     for (header, expected) in cases {
@@ -86,8 +86,8 @@ fn test_section_header_alias_table() {
         let result = parse_numpy(&docstring);
         let sections = all_sections(&result);
         assert_eq!(sections.len(), 1, "header {header:?} should start a section");
-        assert_eq!(sections[0].header().name().text(), *header);
-        assert_eq!(sections[0].section_kind(), *expected, "header {header:?}");
+        assert_eq!(sections[0].header_name(), *header);
+        assert_eq!(&sections[0].kind(), expected, "header {header:?}");
     }
 }
 
@@ -121,8 +121,8 @@ Some notes here.
     assert_eq!(names[0].text(), "x");
     assert_eq!(returns(&result).len(), 1);
     assert!(notes(&result).is_some());
-    assert_eq!(all_sections(&result)[0].header().name().text(), "parameters");
-    assert_eq!(all_sections(&result)[2].header().name().text(), "NOTES");
+    assert_eq!(all_sections(&result)[0].header_name(), "parameters");
+    assert_eq!(all_sections(&result)[2].header_name(), "NOTES");
 }
 
 // =============================================================================
@@ -143,8 +143,8 @@ x : int
     let result = parse_numpy(docstring);
 
     assert_eq!(doc(&result).summary().unwrap().text(), "Summary line.");
-    assert_eq!(all_sections(&result)[0].header().name().text(), "Parameters");
-    let underline = all_sections(&result)[0].header().underline().text();
+    assert_eq!(all_sections(&result)[0].header_name(), "Parameters");
+    let underline = header_underline(&result, &all_sections(&result)[0]);
     assert!(underline.chars().all(|c| c == '-'));
 
     let p = &parameters(&result)[0];
@@ -159,7 +159,7 @@ x : int
 // =============================================================================
 
 /// SPEC: `.. deprecated:: <version>` directive is recognized before sections.
-/// Also CONTRACT for NumPyDeprecation accessors (version / description).
+/// Also CONTRACT for Directive accessors (name / argument / description).
 #[test]
 fn test_deprecation_directive() {
     let docstring = r#"Summary.
@@ -173,9 +173,19 @@ x : int
     Desc.
 "#;
     let result = parse_numpy(docstring);
-    let dep = doc(&result).deprecation().expect("deprecation should be parsed");
-    assert_eq!(dep.version().text(), "1.6.0");
+    let dep: Directive = doc(&result)
+        .directives()
+        .find(|d| d.name().text() == "deprecated")
+        .expect("deprecation should be parsed");
+    assert_eq!(dep.argument().unwrap().text(), "1.6.0");
     assert_eq!(dep.description().unwrap().text(), "Use `new_func` instead.");
+    // The `..` directive marker is raw-tree punctuation.
+    assert_eq!(
+        dep.syntax()
+            .find_token(SyntaxKind::DIRECTIVE_MARKER)
+            .map(|t| t.text(result.source())),
+        Some("..")
+    );
 }
 
 // =============================================================================
@@ -209,31 +219,59 @@ Some notes.
     let result = parse_numpy(docstring);
     let s = all_sections(&result);
     assert_eq!(s.len(), 4);
-    assert_eq!(s[0].section_kind(), NumPySectionKind::Parameters);
-    assert_eq!(s[1].section_kind(), NumPySectionKind::Returns);
-    assert_eq!(s[2].section_kind(), NumPySectionKind::Raises);
-    assert_eq!(s[3].section_kind(), NumPySectionKind::Notes);
+    assert_eq!(s[0].kind(), SectionKind::Parameters);
+    assert_eq!(s[1].kind(), SectionKind::Returns);
+    assert_eq!(s[2].kind(), SectionKind::Raises);
+    assert_eq!(s[3].kind(), SectionKind::FreeText(FreeSectionKind::Notes));
 }
 
 // =============================================================================
-// NumPySectionKind API
+// Section-kind table (the NumPy name↔kind mapping, read through the public API)
 // =============================================================================
 
-/// CONTRACT: ALL contains every known kind and never Unknown.
+/// CONTRACT: the NumPy style knows exactly 23 section kinds, and every one of
+/// them resolves to a distinct kind that is never `FreeText(Unknown(_))`
+/// (the old `NumPySectionKind::ALL` invariant, observed end-to-end).
 #[test]
 fn test_all_section_kinds_exist() {
-    assert_eq!(NumPySectionKind::ALL.len(), 23);
-    for kind in NumPySectionKind::ALL {
-        assert_ne!(*kind, NumPySectionKind::Unknown);
+    /// The canonical spelling of each of the 23 known NumPy section kinds.
+    #[rustfmt::skip]
+    const CANONICAL: &[&str] = &[
+        "Parameters", "Returns", "Yields", "Receives", "Other Parameters",
+        "Keyword Parameters", "Raises", "Warns", "Warnings", "See Also",
+        "Notes", "References", "Examples", "Attributes", "Methods", "Todo",
+        "Attention", "Caution", "Danger", "Error", "Hint", "Important", "Tip",
+    ];
+    assert_eq!(CANONICAL.len(), 23);
+
+    let mut kinds = std::collections::HashSet::new();
+    for header in CANONICAL {
+        let underline = "-".repeat(header.len());
+        let docstring = format!("Summary.\n\n{header}\n{underline}\nx : int\n    d.\n");
+        let result = parse_numpy(&docstring);
+        let kind = all_sections(&result)[0].kind();
+        assert!(
+            !matches!(kind, SectionKind::FreeText(FreeSectionKind::Unknown(_))),
+            "header {header:?} must map to a known kind"
+        );
+        assert!(kinds.insert(kind), "header {header:?} must map to a distinct kind");
     }
+    assert_eq!(kinds.len(), 23);
 }
 
-/// CONTRACT: from_name / is_known behavior for unknown and known names.
+/// CONTRACT: an unrecognised header name yields `FreeText(Unknown(name))`,
+/// carrying the header text as written; a known name (matched
+/// case-insensitively) yields its kind.
 #[test]
 fn test_section_kind_from_name_unknown() {
-    assert_eq!(NumPySectionKind::from_name("nonexistent"), NumPySectionKind::Unknown);
-    assert!(!NumPySectionKind::is_known("nonexistent"));
-    assert!(NumPySectionKind::is_known("parameters"));
+    let result = parse_numpy("Summary.\n\nnonexistent\n-----------\nBody.\n");
+    assert_eq!(
+        all_sections(&result)[0].kind(),
+        SectionKind::FreeText(FreeSectionKind::Unknown("nonexistent".to_owned()))
+    );
+
+    let result = parse_numpy("Summary.\n\nparameters\n----------\nx : int\n    d.\n");
+    assert_eq!(all_sections(&result)[0].kind(), SectionKind::Parameters);
 }
 
 // =============================================================================
@@ -264,69 +302,101 @@ fn test_stray_line_between_sections() {
     // Stray lines are absorbed, never dropped into new sections.
     let s = all_sections(&result);
     assert_eq!(s.len(), 2, "stray lines must not start new sections");
-    assert_eq!(s[0].section_kind(), NumPySectionKind::Parameters);
-    assert_eq!(s[1].section_kind(), NumPySectionKind::Returns);
+    assert_eq!(s[0].kind(), SectionKind::Parameters);
+    assert_eq!(s[1].kind(), SectionKind::Returns);
 }
 
 // =============================================================================
-// Display impl
+// Canonical header spelling of each kind
 // =============================================================================
 
-/// CONTRACT: Display impl for NumPySectionKind.
+/// CONTRACT: the canonical NumPy header spelling of each section kind — the
+/// name the (now crate-private) `NumPySectionKind: Display` impl produced.
+/// The same name table is observable through the public NumPy emitter, so the
+/// spelling of every kind is pinned there.
 #[test]
 fn test_section_kind_display() {
-    assert_eq!(format!("{}", NumPySectionKind::Parameters), "Parameters");
-    assert_eq!(format!("{}", NumPySectionKind::Returns), "Returns");
-    assert_eq!(format!("{}", NumPySectionKind::Yields), "Yields");
-    assert_eq!(format!("{}", NumPySectionKind::Receives), "Receives");
-    assert_eq!(format!("{}", NumPySectionKind::OtherParameters), "Other Parameters");
-    assert_eq!(format!("{}", NumPySectionKind::Raises), "Raises");
-    assert_eq!(format!("{}", NumPySectionKind::Warns), "Warns");
-    assert_eq!(format!("{}", NumPySectionKind::Warnings), "Warnings");
-    assert_eq!(format!("{}", NumPySectionKind::SeeAlso), "See Also");
-    assert_eq!(format!("{}", NumPySectionKind::Notes), "Notes");
-    assert_eq!(format!("{}", NumPySectionKind::References), "References");
-    assert_eq!(format!("{}", NumPySectionKind::Examples), "Examples");
-    assert_eq!(format!("{}", NumPySectionKind::Attributes), "Attributes");
-    assert_eq!(format!("{}", NumPySectionKind::Methods), "Methods");
-    assert_eq!(format!("{}", NumPySectionKind::Unknown), "Unknown");
+    let cases: &[(SectionKind, &str)] = &[
+        (SectionKind::Parameters, "Parameters"),
+        (SectionKind::Returns, "Returns"),
+        (SectionKind::Yields, "Yields"),
+        (SectionKind::Receives, "Receives"),
+        (SectionKind::OtherParameters, "Other Parameters"),
+        (SectionKind::Raises, "Raises"),
+        (SectionKind::Warns, "Warns"),
+        (SectionKind::FreeText(FreeSectionKind::Warnings), "Warnings"),
+        (SectionKind::SeeAlso, "See Also"),
+        (SectionKind::FreeText(FreeSectionKind::Notes), "Notes"),
+        (SectionKind::References, "References"),
+        (SectionKind::FreeText(FreeSectionKind::Examples), "Examples"),
+        (SectionKind::Attributes, "Attributes"),
+        (SectionKind::Methods, "Methods"),
+        // `NumPySectionKind::Unknown` displayed as the literal "Unknown"; the
+        // model's Unknown carries the header text as written, so its canonical
+        // spelling is that text.
+        (
+            SectionKind::FreeText(FreeSectionKind::Unknown("Unknown".to_owned())),
+            "Unknown",
+        ),
+    ];
+
+    for (kind, name) in cases {
+        let docstring = Docstring {
+            sections: vec![ModelSection::new(kind.clone(), vec![])],
+            ..Default::default()
+        };
+        let emitted = emit_numpy(&docstring, &EmitOptions::default());
+        let underline = "-".repeat(name.chars().count());
+        assert!(
+            emitted.contains(&format!("{name}\n{underline}\n")),
+            "kind {kind:?} should emit header {name:?}, got {emitted:?}"
+        );
+    }
 }
 
 // =============================================================================
 // SPEC: entry accessors are guarded by the section's kind (#77 review)
 // =============================================================================
 
-/// SPEC: all entries share the `ENTRY` node kind, so a mismatched accessor
-/// (`parameters()` on a Raises section) must return empty instead of wrapping
-/// the foreign entries — pre-unification behavior, and calling typed
-/// accessors on the results must not panic.
+/// SPEC: all entries share the `ENTRY` node kind, so an entry's role comes
+/// solely from its section's kind: selecting entries by any other role's
+/// section kind (`parameters()` on a Raises-only docstring) must return empty
+/// instead of yielding the foreign entries — pre-unification behavior — and
+/// reading those entries through the typed accessors must not panic.
 #[test]
 fn spec_mismatched_entry_accessor_returns_empty() {
     let docstring = "Summary.\n\nRaises\n------\nValueError\n    If the value is bad.\n";
     let result = parse_numpy(docstring);
     let sections = all_sections(&result);
     let section = &sections[0];
-    assert_eq!(section.section_kind(), NumPySectionKind::Raises);
+    assert_eq!(section.kind(), SectionKind::Raises);
 
-    // The matching accessor sees the entry…
-    assert_eq!(section.exceptions().count(), 1);
+    // The matching role sees the entry…
+    assert_eq!(section.entries().count(), 1);
+    assert_eq!(raises(&result).len(), 1);
 
-    // …every mismatched accessor returns empty (collecting token accessors
-    // would panic in required_token if a foreign entry leaked through).
-    assert_eq!(section.parameters().count(), 0);
-    assert_eq!(section.returns().count(), 0);
-    assert_eq!(section.yields().count(), 0);
-    assert_eq!(section.warnings().count(), 0);
-    assert_eq!(section.see_also_items().count(), 0);
-    assert_eq!(section.attributes().count(), 0);
-    assert_eq!(section.methods().count(), 0);
-    assert_eq!(section.references().count(), 0);
+    // …every mismatched role selects nothing (a foreign entry leaking through
+    // would show up as a type/name-less entry in the wrong role).
+    assert_eq!(parameters(&result).len(), 0);
+    assert_eq!(returns(&result).len(), 0);
+    assert_eq!(yields(&result).len(), 0);
+    assert_eq!(warns(&result).len(), 0);
+    assert_eq!(see_also(&result).len(), 0);
+    assert_eq!(attributes(&result).len(), 0);
+    assert_eq!(methods(&result).len(), 0);
+    assert_eq!(references(&result).len(), 0);
 
-    // And the guard also separates the NAME-carrying roles from each other:
-    // attributes() on a Parameters section is empty.
+    // Reading the exception entry through the unified accessors does not panic:
+    // an exception carries a TYPE and no NAME.
+    let exc = &raises(&result)[0];
+    assert!(exc.name().is_none());
+    assert_eq!(exc.type_annotation().unwrap().text(), "ValueError");
+    assert_eq!(exc.description().unwrap().text(), "If the value is bad.");
+
+    // And the kind also separates the NAME-carrying roles from each other:
+    // attributes on a Parameters-only docstring is empty.
     let result = parse_numpy("Summary.\n\nParameters\n----------\nx : int\n    The value.\n");
-    let sections = all_sections(&result);
-    assert_eq!(sections[0].parameters().count(), 1);
-    assert_eq!(sections[0].attributes().count(), 0);
-    assert_eq!(sections[0].methods().count(), 0);
+    assert_eq!(parameters(&result).len(), 1);
+    assert_eq!(attributes(&result).len(), 0);
+    assert_eq!(methods(&result).len(), 0);
 }

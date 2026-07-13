@@ -37,17 +37,25 @@
 //! assert_eq!(entry.type_annotation().unwrap().text(), "int");
 //! ```
 //!
-//! ## Per-Style Typed Views
+//! ## The Raw CST
 //!
-//! When you know (or want to force) the style, the per-style parsers expose
-//! style-specific wrappers with the same source-free accessors:
+//! The unified view is a *semantic* lens: it answers "is there a type?" and
+//! folds away punctuation and the parser's zero-length placeholders. For the
+//! tree exactly as parsed, go down to the CST with `syntax()`:
 //!
 //! ```rust
-//! use pydocstring::parse::numpy::{parse_numpy, NumPyDocstring};
+//! use pydocstring::parse::{parse, Document};
+//! use pydocstring::syntax::SyntaxKind;
 //!
-//! let result = parse_numpy("Brief description.\n\nParameters\n----------\nx : int\n    Desc.\n");
-//! let doc = NumPyDocstring::cast(&result, result.root()).unwrap();
-//! assert_eq!(doc.summary().unwrap().text(), "Brief description.");
+//! let parsed = parse("Summary.\n\nArgs:\n    x (): The value.\n");
+//! let entry = Document::new(&parsed).sections().next().unwrap().entries().next().unwrap();
+//!
+//! // The semantic lens says "no type" …
+//! assert!(entry.type_annotation().is_none());
+//! // … the CST says *why*: an empty type between brackets, whose zero-length
+//! // range is the anchor to write one at.
+//! let placeholder = entry.syntax().find_missing(SyntaxKind::TYPE).unwrap();
+//! assert!(placeholder.is_missing());
 //! ```
 //!
 //! ## Style Auto-Detection

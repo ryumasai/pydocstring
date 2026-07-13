@@ -14,7 +14,7 @@ Python bindings are also available as [`pydocstring-rs`](https://pypi.org/projec
 ## Features
 
 - **Full syntax tree** — builds a complete AST, not just extracted fields; traverse it with the built-in `Visitor` + `walk_tree`
-- **Typed nodes per style** — style-specific accessors like `GoogleArg`, `NumPyParameter` with full type safety
+- **One code path for every style** — the unified view (`Document` → `Section` → `Entry`) reads any docstring with no style branching
 - **Byte-precise source locations** — every token carries its exact byte range for pinpoint diagnostics
 - **Zero dependencies** — pure Rust, no external crates, no regex
 - **Error-resilient** — never panics; malformed input still yields a best-effort tree
@@ -56,28 +56,30 @@ for section in doc.sections() {
 }
 ```
 
-When you know the style (or want to force it), the per-style parsers expose
-style-specific typed wrappers:
+When you know the style (or want to force it), use the explicit parsers —
+`parse_google` / `parse_numpy` / `parse_plain`. They all produce the same tree,
+read through the same views.
+
+### The Raw CST
+
+The unified view is a *semantic* lens: it answers "is there a type?" and folds
+away punctuation and the parser's zero-length placeholders. For the tree exactly
+as parsed, go down to the CST with `syntax()`:
 
 ```rust
-use pydocstring::parse::google::{parse_google, GoogleDocstring, GoogleSectionKind};
+use pydocstring::parse::{parse, Document};
+use pydocstring::syntax::SyntaxKind;
 
-let input = "Summary.\n\nArgs:\n    x (int): The value.\n    y (int): Another value.";
-let result = parse_google(input);
-let doc = GoogleDocstring::cast(&result, result.root()).unwrap();
+let parsed = parse("Summary.\n\nArgs:\n    x (): The value.\n");
+let entry = Document::new(&parsed).sections().next().unwrap().entries().next().unwrap();
 
-for section in doc.sections() {
-    if section.section_kind() == GoogleSectionKind::Args {
-        for arg in section.args() {
-            println!("{}: {}",
-                arg.name().text(),
-                arg.type_annotation().map(|t| t.text()).unwrap_or(""));
-        }
-    }
-}
+// The semantic lens says "no type" …
+assert!(entry.type_annotation().is_none());
+// … the CST says *why*: an empty type between brackets, whose zero-length range
+// is the anchor to write one at. (`x:` — no brackets — has no placeholder.)
+let placeholder = entry.syntax().find_missing(SyntaxKind::TYPE).unwrap();
+assert!(placeholder.is_missing());
 ```
-
-NumPy style works the same way — use `parse_numpy` / `NumPyDocstring` instead.
 
 ### Style Auto-Detection
 
@@ -110,21 +112,20 @@ assert_eq!(result.style(), Style::Plain);
 
 ### Source Locations
 
-Every token carries byte offsets for precise diagnostics:
+Every view and token carries byte offsets for precise diagnostics — and they
+double as edit anchors:
 
 ```rust
-use pydocstring::parse::google::{parse_google, GoogleDocstring, GoogleSectionKind};
+use pydocstring::model::SectionKind;
+use pydocstring::parse::{parse, Document};
 
-let result = parse_google("Summary.\n\nArgs:\n    x (int): The value.");
-let doc = GoogleDocstring::cast(&result, result.root()).unwrap();
+let parsed = parse("Summary.\n\nArgs:\n    x (int): The value.");
+let doc = Document::new(&parsed);
 
-for section in doc.sections() {
-    if section.section_kind() == GoogleSectionKind::Args {
-        for arg in section.args() {
-            let name = arg.name();
-            println!("'{}' at byte {}..{}",
-                name.text(), name.range().start(), name.range().end());
-        }
+for section in doc.sections().filter(|s| s.kind() == SectionKind::Parameters) {
+    for entry in section.entries() {
+        let name = entry.name().unwrap();
+        println!("'{}' at byte {}..{}", name.text(), name.range().start(), name.range().end());
     }
 }
 ```
@@ -298,21 +299,22 @@ for m in doc.findall("$NAME ($TYPE): $DESC"):
 
 ## Supported Sections
 
-Both styles support the following section categories. Typed accessor methods are available on each style's section node.
+Both styles support the same section categories. A section's role is read from
+`Section::kind()` — `Args:` (Google) and `Parameters` (NumPy) both resolve to
+`SectionKind::Parameters` — and every entry, whatever its role, is an `Entry`.
 
-| Category                          | Google                                   | NumPy                                   |
-|-----------------------------------|------------------------------------------|-----------------------------------------|
-| Parameters                        | `args()` → `GoogleArg`                   | `parameters()` → `NumPyParameter`       |
-| Returns                           | `returns()` → `GoogleReturns`            | `returns()` → `NumPyReturns`            |
-| Yields                            | `yields()` → `GoogleYields`              | `yields()` → `NumPyYields`              |
-| Raises                            | `exceptions()` → `GoogleException`       | `exceptions()` → `NumPyException`       |
-| Warns                             | `warnings()` → `GoogleWarning`           | `warnings()` → `NumPyWarning`           |
-| See Also                          | `see_also_items()` → `GoogleSeeAlsoItem` | `see_also_items()` → `NumPySeeAlsoItem` |
-| Attributes                        | `attributes()` → `GoogleAttribute`       | `attributes()` → `NumPyAttribute`       |
-| Methods                           | `methods()` → `GoogleMethod`             | `methods()` → `NumPyMethod`             |
-| Free text (Notes, Examples, etc.) | `body_text()`                            | `body_text()`                           |
+| Category                          | `SectionKind`                                        | Read with              |
+|-----------------------------------|------------------------------------------------------|------------------------|
+| Parameters                        | `Parameters`, `KeywordParameters`, `OtherParameters`, `Receives` | `section.entries()` |
+| Returns / Yields                  | `Returns`, `Yields`                                  | `section.entries()`    |
+| Raises / Warns                    | `Raises`, `Warns`                                    | `section.entries()`    |
+| See Also                          | `SeeAlso`                                            | `section.entries()`    |
+| Attributes / Methods              | `Attributes`, `Methods`                              | `section.entries()`    |
+| References                        | `References`                                         | `section.citations()`  |
+| Free text (Notes, Examples, …)    | `FreeText(_)`                                        | `section.body()`       |
 
-Root-level accessors: `summary()`, `extended_summary()`, and `deprecation()` (Google and NumPy). `PlainDocstring` exposes only `summary()` and `extended_summary()`.
+Document-level: `summary()`, `extended_summary()`, `directives()` (a deprecation
+notice is a directive named `deprecated`), and `paragraphs()`.
 
 ## Development
 

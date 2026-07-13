@@ -2,8 +2,8 @@
 //!
 //! Shows the raw docstring text, then the detailed parsed AST.
 
-use pydocstring::parse::numpy::NumPyDocstring;
 use pydocstring::parse::numpy::parse_numpy;
+use pydocstring::parse::unified::Document;
 
 fn main() {
     let docstring = r#"
@@ -36,7 +36,7 @@ Examples
 "#;
 
     let parsed = parse_numpy(docstring);
-    let doc = NumPyDocstring::cast(&parsed, parsed.root()).unwrap();
+    let doc = Document::new(&parsed);
 
     println!("╔══════════════════════════════════════════════════╗");
     println!("║          NumPy-style Docstring Example           ║");

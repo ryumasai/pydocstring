@@ -78,14 +78,17 @@ fn test_section_only_no_summary() {
 
 /// SPEC: `.. deprecated:: <version>` directive between the summary and the
 /// extended summary is recognized and does NOT become extended summary.
-/// Also CONTRACT for GoogleDeprecation accessors (version / description).
+/// Also CONTRACT for the Directive accessors (name / argument / description).
 #[test]
 fn test_deprecation_directive() {
     let docstring = "Summary.\n\n.. deprecated:: 1.6.0\n    Use `new_func` instead.\n\nArgs:\n    x (int): The value.";
     let result = parse_google(docstring);
 
-    let dep = doc(&result).deprecation().expect("deprecation should be parsed");
-    assert_eq!(dep.version().text(), "1.6.0");
+    let dep = doc(&result)
+        .directives()
+        .find(|d| d.name().text() == "deprecated")
+        .expect("deprecation should be parsed");
+    assert_eq!(dep.argument().unwrap().text(), "1.6.0");
     assert_eq!(dep.description().unwrap().text(), "Use `new_func` instead.");
 
     // The directive is not swallowed into the extended summary.

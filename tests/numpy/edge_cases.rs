@@ -22,7 +22,7 @@ fn test_indented_docstring() {
     assert_eq!(parameters(&result)[0].type_annotation().map(|t| t.text()), Some("int"));
     let names1: Vec<_> = parameters(&result)[1].names().collect();
     assert_eq!(names1[0].text(), "y");
-    assert!(parameters(&result)[1].optional_marker().is_some());
+    assert!(parameters(&result)[1].is_optional());
     assert_eq!(returns(&result).len(), 1);
     assert_eq!(returns(&result)[0].type_annotation().map(|t| t.text()), Some("bool"));
 }
