@@ -571,11 +571,8 @@ pub trait Visitor {
 
 /// Walk the raw syntax tree depth-first, calling the visitor methods.
 ///
-/// This is the untyped, kind-agnostic traversal. For the typed traversal
-/// (per-style `visit_*` methods) see
-/// [`parse::visitor::walk`](crate::parse::visitor::walk); this function was
-/// renamed from `walk` to `walk_tree` in 0.3.0 to resolve that name
-/// collision.
+/// The traversal is kind-agnostic: it visits every node and token in the
+/// tree, and the [`Visitor`] decides what to do with each [`SyntaxKind`].
 pub fn walk_tree(node: &SyntaxNode, visitor: &mut dyn Visitor) {
     visitor.enter(node);
     for child in node.children() {
@@ -585,12 +582,6 @@ pub fn walk_tree(node: &SyntaxNode, visitor: &mut dyn Visitor) {
         }
     }
     visitor.leave(node);
-}
-
-/// Deprecated alias for [`walk_tree`].
-#[deprecated(since = "0.3.0", note = "renamed to walk_tree")]
-pub fn walk(node: &SyntaxNode, visitor: &mut dyn Visitor) {
-    walk_tree(node, visitor);
 }
 
 // =============================================================================
