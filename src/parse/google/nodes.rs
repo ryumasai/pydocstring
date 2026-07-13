@@ -109,16 +109,6 @@ impl<'a> GoogleDocstring<'a> {
             .nodes(SyntaxKind::PARAGRAPH)
             .filter_map(move |node| TextBlock::cast(parsed, node))
     }
-
-    /// Deprecated alias for [`GoogleDocstring::paragraphs`]: stray lines are
-    /// now grouped into `PARAGRAPH` text blocks.
-    #[deprecated(
-        since = "0.3.0",
-        note = "use `paragraphs()`; stray lines are now PARAGRAPH text blocks"
-    )]
-    pub fn stray_lines(&self) -> impl Iterator<Item = TextBlock<'a>> {
-        self.paragraphs()
-    }
 }
 
 // =============================================================================
@@ -365,12 +355,6 @@ impl<'a> GoogleArg<'a> {
         self.find_token_ref(SyntaxKind::TYPE)
     }
 
-    /// Deprecated alias for [`GoogleArg::type_annotation`].
-    #[deprecated(since = "0.3.0", note = "renamed to type_annotation")]
-    pub fn r#type(&self) -> Option<TokenRef<'a>> {
-        self.type_annotation()
-    }
-
     /// Closing bracket token (e.g. `)`), if present.
     pub fn close_bracket(&self) -> Option<TokenRef<'a>> {
         self.find_token_ref(SyntaxKind::CLOSE_BRACKET)
@@ -397,12 +381,6 @@ impl<'a> GoogleArg<'a> {
     /// occurrence, or [`GoogleArg::is_optional`] for the boolean question.
     pub fn optional_marker(&self) -> Option<TokenRef<'a>> {
         self.find_token_ref(SyntaxKind::OPTIONAL)
-    }
-
-    /// Deprecated alias for [`GoogleArg::optional_marker`].
-    #[deprecated(since = "0.3.0", note = "renamed to optional_marker; see also is_optional")]
-    pub fn optional(&self) -> Option<TokenRef<'a>> {
-        self.optional_marker()
     }
 
     /// All `optional` marker tokens, one per occurrence, in source order.
@@ -454,12 +432,6 @@ impl<'a> GoogleReturn<'a> {
         self.find_token_ref(SyntaxKind::TYPE)
     }
 
-    /// Deprecated alias for [`GoogleReturn::type_annotation`].
-    #[deprecated(since = "0.3.0", note = "renamed to type_annotation")]
-    pub fn return_type(&self) -> Option<TokenRef<'a>> {
-        self.type_annotation()
-    }
-
     /// Colon separator token, if present.
     pub fn colon(&self) -> Option<TokenRef<'a>> {
         self.find_token_ref(SyntaxKind::COLON)
@@ -481,12 +453,6 @@ impl<'a> GoogleYield<'a> {
     /// Yield type annotation token, if present.
     pub fn type_annotation(&self) -> Option<TokenRef<'a>> {
         self.find_token_ref(SyntaxKind::TYPE)
-    }
-
-    /// Deprecated alias for [`GoogleYield::type_annotation`].
-    #[deprecated(since = "0.3.0", note = "renamed to type_annotation")]
-    pub fn return_type(&self) -> Option<TokenRef<'a>> {
-        self.type_annotation()
     }
 
     /// Colon separator token, if present.
@@ -512,12 +478,6 @@ impl<'a> GoogleException<'a> {
         self.token_ref(self.node.required_token(SyntaxKind::TYPE))
     }
 
-    /// Deprecated alias for [`GoogleException::type_annotation`].
-    #[deprecated(since = "0.3.0", note = "renamed to type_annotation")]
-    pub fn r#type(&self) -> TokenRef<'a> {
-        self.type_annotation()
-    }
-
     /// Colon separator token, if present.
     pub fn colon(&self) -> Option<TokenRef<'a>> {
         self.find_token_ref(SyntaxKind::COLON)
@@ -539,12 +499,6 @@ impl<'a> GoogleWarning<'a> {
     /// Warning type name token (e.g. `UserWarning`).
     pub fn type_annotation(&self) -> TokenRef<'a> {
         self.token_ref(self.node.required_token(SyntaxKind::TYPE))
-    }
-
-    /// Deprecated alias for [`GoogleWarning::type_annotation`].
-    #[deprecated(since = "0.3.0", note = "renamed to type_annotation")]
-    pub fn warning_type(&self) -> TokenRef<'a> {
-        self.type_annotation()
     }
 
     /// Colon separator token, if present.
@@ -606,12 +560,6 @@ impl<'a> GoogleReference<'a> {
         self.find_token_ref(SyntaxKind::LABEL)
     }
 
-    /// Deprecated alias for [`GoogleReference::label`].
-    #[deprecated(since = "0.3.0", note = "renamed to label")]
-    pub fn number(&self) -> Option<TokenRef<'a>> {
-        self.label()
-    }
-
     /// Closing bracket token, if present.
     pub fn close_bracket(&self) -> Option<TokenRef<'a>> {
         self.find_token_ref(SyntaxKind::CLOSE_BRACKET)
@@ -656,12 +604,6 @@ impl<'a> GoogleAttribute<'a> {
         self.find_token_ref(SyntaxKind::TYPE)
     }
 
-    /// Deprecated alias for [`GoogleAttribute::type_annotation`].
-    #[deprecated(since = "0.3.0", note = "renamed to type_annotation")]
-    pub fn r#type(&self) -> Option<TokenRef<'a>> {
-        self.type_annotation()
-    }
-
     /// Closing bracket token (e.g. `)`), if present.
     pub fn close_bracket(&self) -> Option<TokenRef<'a>> {
         self.find_token_ref(SyntaxKind::CLOSE_BRACKET)
@@ -698,12 +640,6 @@ impl<'a> GoogleMethod<'a> {
     /// Type annotation token, if present.
     pub fn type_annotation(&self) -> Option<TokenRef<'a>> {
         self.find_token_ref(SyntaxKind::TYPE)
-    }
-
-    /// Deprecated alias for [`GoogleMethod::type_annotation`].
-    #[deprecated(since = "0.3.0", note = "renamed to type_annotation")]
-    pub fn r#type(&self) -> Option<TokenRef<'a>> {
-        self.type_annotation()
     }
 
     /// Closing bracket token (e.g. `)`), if present.

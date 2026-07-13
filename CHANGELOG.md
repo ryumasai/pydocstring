@@ -138,6 +138,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   survived the entire phase it hurts most. Breaking the public API once,
   properly, beats breaking it twice.
 
+- **BREAKING (Rust): the accessor aliases deprecated in 0.3.0 are gone**
+  ([#109](https://github.com/ryumasai/pydocstring/issues/109)), as the 0.3.0
+  changelog announced. The only one still reachable from outside the crate was
+  **`syntax::walk`** — use `syntax::walk_tree`, its name since 0.3.0. The
+  other nineteen (`r#type`, `return_type`, `warning_type`, `optional`,
+  `number`, `stray_lines` on the per-style node wrappers) left the public API
+  with the wrappers themselves, above; they are now deleted outright. Python
+  never carried any of these aliases.
+
 ### Changed
 
 - **BREAKING (Python): the model IR moved to `pydocstring.model`.** The Rust
