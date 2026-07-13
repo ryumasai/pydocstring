@@ -1750,3 +1750,166 @@ class TestModelNamespace:
         doc = pydocstring.parse(GOOGLE_SRC).to_model()
         assert isinstance(doc, pydocstring.model.Docstring)
         assert doc.sections[0].kind == pydocstring.SectionKind.PARAMETERS
+
+
+# ─── Edits (#117) ────────────────────────────────────────────────────────────
+
+
+class TestEdits:
+    @pytest.mark.parametrize("src", [GOOGLE_SRC, NUMPY_SRC], ids=["google", "numpy"])
+    def test_style_independent_scoped_rewrite(self, src):
+        """The whole point of #115: one loop, any style, byte-preserving."""
+        parsed = pydocstring.parse(src)
+        doc = pydocstring.Document(parsed)
+        edits = parsed.edit()
+
+        for section in doc.sections:
+            if section.kind == pydocstring.SectionKind.PARAMETERS:
+                for entry in section.entries:
+                    if present(entry.name).text == "y":
+                        edits.replace(present(entry.description).range, "The other value.")
+
+        assert edits.apply() == src.replace("Another.", "The other value.")
+
+    # ── Kernel laws ───────────────────────────────────────────────────────
+
+    @pytest.mark.parametrize("src", [GOOGLE_SRC, NUMPY_SRC], ids=["google", "numpy"])
+    def test_empty_edit_list_is_the_identity(self, src):
+        assert pydocstring.parse(src).edit().apply() == src
+
+    @pytest.mark.parametrize("src", [GOOGLE_SRC, NUMPY_SRC], ids=["google", "numpy"])
+    def test_replacing_an_element_with_its_own_text_is_the_identity(self, src):
+        parsed = pydocstring.parse(src)
+        doc = pydocstring.Document(parsed)
+        edits = parsed.edit()
+        for section in doc.sections:
+            for entry in section.entries:
+                edits.replace(present(entry.description).range, present(entry.description).text)
+        assert edits.apply() == src
+
+    # ── Core operations ───────────────────────────────────────────────────
+
+    def test_insert(self):
+        parsed = pydocstring.parse(GOOGLE_SRC)
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        edits = parsed.edit()
+        edits.insert(present(entry.description).range.start, "NOTE: ")
+        assert edits.apply() == GOOGLE_SRC.replace("The value.", "NOTE: The value.")
+
+    def test_delete(self):
+        parsed = pydocstring.parse(GOOGLE_SRC)
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        edits = parsed.edit()
+        edits.delete(present(entry.description).range)
+        assert edits.apply() == GOOGLE_SRC.replace("The value.", "")
+
+    def test_remove_lines_takes_the_whole_line(self):
+        parsed = pydocstring.parse(GOOGLE_SRC)
+        entry = pydocstring.Document(parsed).sections[0].entries[1]
+        edits = parsed.edit()
+        edits.remove_lines(entry.range)
+        # The entry's indentation and trailing newline go with it.
+        assert edits.apply() == "Summary.\n\nArgs:\n    x (int): The value.\n"
+
+    def test_missing_placeholder_is_an_insertion_anchor(self):
+        """A zero-length range inserts exactly where the absent element belongs.
+
+        The unified view reports an absent type as ``None`` rather than as a
+        placeholder, so the anchor is reached through the CST lens.
+        """
+        src = "Summary.\n\nArgs:\n    x (): The value.\n"
+        parsed = pydocstring.parse_google(src)
+
+        class Collector(pydocstring.Visitor):
+            def __init__(self):
+                self.types = []
+
+            def enter_google_arg(self, arg, ctx):
+                self.types.append(arg.type)
+
+        arg_type = pydocstring.walk(parsed, Collector()).types[0]
+        assert arg_type.is_missing()
+        assert present(arg_type).range.is_empty()
+
+        edits = parsed.edit()
+        edits.replace(present(arg_type).range, "int")
+        assert edits.apply() == "Summary.\n\nArgs:\n    x (int): The value.\n"
+
+    def test_insert_a_type_where_the_grammar_left_no_placeholder(self):
+        """No brackets at all: anchor the insert on the name's end offset."""
+        src = "Summary.\n\nArgs:\n    x: The value.\n"
+        parsed = pydocstring.parse(src)
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        assert entry.type_annotation is None
+
+        edits = parsed.edit()
+        edits.insert(present(entry.name).range.end, " (int)")
+        assert edits.apply() == "Summary.\n\nArgs:\n    x (int): The value.\n"
+
+    def test_several_edits_apply_together(self):
+        parsed = pydocstring.parse(GOOGLE_SRC)
+        entries = pydocstring.Document(parsed).sections[0].entries
+        edits = parsed.edit()
+        edits.replace(present(entries[0].name).range, "a")
+        edits.replace(present(entries[1].name).range, "b")
+        assert len(edits) == 2
+        assert edits.apply() == GOOGLE_SRC.replace("x (int)", "a (int)").replace("    y:", "    b:")
+
+    def test_apply_is_non_consuming(self):
+        parsed = pydocstring.parse(GOOGLE_SRC)
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        edits = parsed.edit()
+        edits.replace(present(entry.description).range, "First.")
+        assert edits.apply() == edits.apply()
+        edits.replace(present(entry.name).range, "z")
+        assert "z (int): First." in edits.apply()
+
+    # ── Validation ────────────────────────────────────────────────────────
+
+    def test_overlapping_edits_raise(self):
+        parsed = pydocstring.parse(GOOGLE_SRC)
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        edits = parsed.edit()
+        edits.replace(present(entry.description).range, "a")
+        edits.replace(present(entry.description).range, "b")
+        with pytest.raises(pydocstring.EditError):
+            edits.apply()
+        assert issubclass(pydocstring.EditError, ValueError)
+
+    def test_out_of_bounds_edit_raises(self):
+        parsed = pydocstring.parse(GOOGLE_SRC)
+        edits = parsed.edit()
+        edits.insert(len(GOOGLE_SRC) + 100, "x")
+        with pytest.raises(pydocstring.EditError):
+            edits.apply()
+
+    # ── Reparsing ─────────────────────────────────────────────────────────
+
+    @pytest.mark.parametrize(
+        ("src", "expected"),
+        [(GOOGLE_SRC, pydocstring.Style.GOOGLE), (NUMPY_SRC, pydocstring.Style.NUMPY)],
+        ids=["google", "numpy"],
+    )
+    def test_apply_reparsed_keeps_the_original_style(self, src, expected):
+        """Editing must not silently reinterpret the docstring as another style."""
+        parsed = pydocstring.parse(src)
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        edits = parsed.edit()
+        edits.replace(present(entry.description).range, "Changed.")
+        reparsed = edits.apply_reparsed()
+        assert reparsed.style == expected
+        assert reparsed.source == edits.apply()
+        # The edit is visible in the new tree, read through the unified view.
+        again = pydocstring.Document(reparsed)
+        assert present(again.sections[0].entries[0].description).logical_text == "Changed."
+
+    def test_edit_is_reachable_from_the_document_too(self):
+        doc = pydocstring.Document(pydocstring.parse(GOOGLE_SRC))
+        edits = doc.edit()
+        edits.replace(present(doc.sections[0].entries[0].description).range, "Changed.")
+        assert "x (int): Changed." in edits.apply()
+
+    def test_repr(self):
+        edits = pydocstring.parse(GOOGLE_SRC).edit()
+        assert repr(edits) == "Edits(0 pending)"
+        assert len(edits) == 0

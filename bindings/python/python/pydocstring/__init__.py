@@ -4,6 +4,8 @@ from ._pydocstring import Citation
 from ._pydocstring import DefaultMarker
 from ._pydocstring import Directive
 from ._pydocstring import Document
+from ._pydocstring import EditError
+from ._pydocstring import Edits
 from ._pydocstring import Entry
 from ._pydocstring import GoogleArg
 from ._pydocstring import GoogleAttribute
@@ -74,6 +76,9 @@ __all__ = [
     "DefaultMarker",
     "Directive",
     "Citation",
+    # ── Editing ───────────────────────────────────────────────────────────
+    "Edits",
+    "EditError",
     # ── Model IR (position-free); see pydocstring.model ────────────────────
     "model",
     # ── Google CST wrappers ───────────────────────────────────────────────

@@ -32,6 +32,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   Also exposed: `DefaultMarker`, `Directive`, `Citation`.
 
+- **The edit API is now available from Python** — `Edits`, reached with
+  `parsed.edit()` or `doc.edit()`
+  ([#117](https://github.com/ryumasai/pydocstring/issues/117)). Anchored splice
+  edits: `replace(range, text)`, `insert(at, text)`, `delete(range)`,
+  `remove_lines(range)`, `apply()`, `apply_reparsed()`. Anchor them on the
+  `range` of any view, so scoping a rewrite to one section is an ordinary `if`
+  in the traversal loop.
+
+  Everything an edit does not touch is preserved byte-for-byte — this is a
+  splice, not a re-render, so a NumPy docstring keeps its indentation and a
+  Google one keeps its `x (int): ` prefix. Both kernel laws hold from Python and
+  are tested there: an empty edit list reproduces the source exactly, and
+  replacing an element with its own text is the identity. `apply()` raises
+  `EditError` (a `ValueError`) for an out-of-bounds or overlapping edit.
+  `apply_reparsed()` re-parses with the **same** style — editing must not
+  silently reinterpret a docstring as another style.
+
+- `Edits::remove_lines_range` (Rust) — the range-anchored form of
+  `remove_lines`, which only ever read its node's range. Needed by the Python
+  binding, whose handle on a construct is a range; pinned equal to
+  `remove_lines` for every node of the corpus.
+
 ### Changed
 
 - **BREAKING (Python): the model IR moved to `pydocstring.model`.** The Rust

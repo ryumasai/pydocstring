@@ -438,3 +438,45 @@ fn remove_lines_non_char_boundary_range_is_rejected_not_panicking() {
         "got {err:?}"
     );
 }
+
+// =============================================================================
+// remove_lines_range — the range-anchored form
+// =============================================================================
+
+/// Collect every node of the tree, in document order.
+fn all_nodes<'a>(node: &'a SyntaxNode, out: &mut Vec<&'a SyntaxNode>) {
+    out.push(node);
+    for child in node.children() {
+        if let SyntaxElement::Node(n) = child {
+            all_nodes(n, out);
+        }
+    }
+}
+
+/// `remove_lines(node)` is exactly `remove_lines_range(*node.range())` — the
+/// expansion only ever reads the node's range, and the blank-line step
+/// resolves against the whole tree. Pinned over the corpus, node by node, so
+/// the FFI surface (which can only hold a range) cannot drift from the
+/// node-anchored API.
+#[test]
+fn remove_lines_range_matches_remove_lines_for_every_node() {
+    for (style, path) in corpus_cases() {
+        let source = fs::read_to_string(&path).unwrap();
+        let parsed = parse_for_style(&style, &source);
+
+        let mut nodes = Vec::new();
+        all_nodes(parsed.root(), &mut nodes);
+
+        for node in nodes {
+            let by_node = parsed.edit().remove_lines(node).apply().unwrap();
+            let by_range = parsed.edit().remove_lines_range(*node.range()).apply().unwrap();
+            assert_eq!(
+                by_node,
+                by_range,
+                "remove_lines/remove_lines_range diverged on {:?} in {}",
+                node.kind(),
+                corpus_name(&path)
+            );
+        }
+    }
+}
