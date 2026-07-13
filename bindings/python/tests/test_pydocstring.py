@@ -2139,6 +2139,18 @@ class TestValueSemantics:
         assert section.kind != pydocstring.SectionKind.RETURNS
         assert len({pydocstring.SectionKind.PARAMETERS, pydocstring.SectionKind.PARAMETERS}) == 1
 
+    def test_tokens_of_different_kinds_are_not_equal(self):
+        # `x (:` puts a missing TYPE and a missing CLOSE_BRACKET at the same
+        # zero-length offset. On text and range alone they compare equal and a
+        # set collapses them into one — `kind` is what keeps them apart.
+        entry = pydocstring.Document(pydocstring.parse("Summary.\n\nArgs:\n    x (:\n")).sections[0].entries[0]
+        type_ = present(entry.syntax.find_missing(pydocstring.SyntaxKind.TYPE))
+        bracket = present(entry.syntax.find_missing(pydocstring.SyntaxKind.CLOSE_BRACKET))
+
+        assert type_.range == bracket.range and type_.text == bracket.text
+        assert type_ != bracket
+        assert len({type_, bracket}) == 2
+
     def test_public_types_report_their_public_module(self):
         # Tracebacks and reprs should not leak the private `_pydocstring` name.
         assert pydocstring.Style.__module__ == "pydocstring"

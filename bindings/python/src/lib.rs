@@ -291,16 +291,25 @@ impl PyToken {
     fn is_missing(&self) -> bool {
         self.resolve().is_missing()
     }
+    /// Two `Token`s are equal when they are the same kind over the same range
+    /// of the same source.
+    ///
+    /// `kind` is load-bearing, not decoration: an entry like `x (:` produces a
+    /// missing TYPE *and* a missing CLOSE_BRACKET, both zero-length at the same
+    /// offset. On text and range alone they compare equal and collapse into one
+    /// element in a set.
     fn __eq__(&self, other: &PyToken) -> bool {
-        self.text() == other.text() && self.resolve().range() == other.resolve().range()
+        self.resolve().kind() == other.resolve().kind()
+            && self.resolve().range() == other.resolve().range()
+            && self.text() == other.text()
     }
     fn __hash__(&self) -> u64 {
         use std::hash::{Hash, Hasher};
         let mut hasher = std::collections::hash_map::DefaultHasher::new();
         let token = self.resolve();
+        token.kind().hash(&mut hasher);
+        token.range().hash(&mut hasher);
         token.text(self.parent.parsed.source()).hash(&mut hasher);
-        token.range().start().raw().hash(&mut hasher);
-        token.range().end().raw().hash(&mut hasher);
         hasher.finish()
     }
     fn __repr__(&self) -> String {

@@ -75,11 +75,11 @@
 //! simply contributes no matches, while the pattern's other readings match
 //! normally.
 //!
-//! - A reading with an **inexact site** (a metavariable amid literal prose
-//!   *inside* one `TEXT_LINE` token,
-//!   [`MetaVarSite::is_exact`](crate::pattern::MetaVarSite::is_exact)` == false`)
-//!   is not matchable: sub-line text matching is regex territory and is
-//!   deferred.
+//! - A reading with an **inexact site** — a metavariable amid literal prose
+//!   *inside* one `TEXT_LINE` token, i.e. one whose
+//!   [`MetaVarSite::is_exact`](crate::pattern::MetaVarSite::is_exact) is
+//!   `false` — is not matchable: sub-line text matching is regex territory and
+//!   is deferred.
 //! - A reading with **two or more `$$$` holes in the same sibling list** is
 //!   not matchable: the split of the middle would be ambiguous. (#45
 //!   deliberately inventories such patterns instead of rejecting them, so
