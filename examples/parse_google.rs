@@ -2,7 +2,7 @@
 //!
 //! Shows the raw docstring text, then the detailed parsed AST.
 
-use pydocstring::parse::google::parse_google;
+use pydocstring::parse::parse_google;
 
 fn main() {
     let docstring = r#"

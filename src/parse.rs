@@ -1,21 +1,34 @@
-//! Docstring style implementations.
+//! Parsing: source text in, [`Parsed`] out.
 //!
-//! Each sub-module provides an AST and parser for its respective style.
-//! This module also provides [`detect_style`] for automatic style detection.
+//! [`parse`] auto-detects the style; [`parse_google`], [`parse_numpy`] and
+//! [`parse_plain`] force one. All four return the same [`Parsed`], so nothing
+//! downstream branches on which one you called — read it through the
+//! style-independent [`Document`] view, the raw CST ([`Parsed::root`]), or the
+//! normalized model ([`Parsed::to_model`]).
+//!
+//! The per-style parsers are an implementation detail: the tree they build has
+//! no per-style structure, and [`detect_style`] is the only thing that cares
+//! which one runs.
 
 use core::fmt;
 
 use google::kind::GoogleSectionKind;
 
-pub mod google;
-pub mod numpy;
-pub mod plain;
+use crate::model::Docstring;
+use crate::syntax::Parsed;
+
+pub(crate) mod google;
+pub(crate) mod numpy;
+pub(crate) mod plain;
 pub mod text_block;
 pub mod token_ref;
 pub(crate) mod trivia;
 pub mod unified;
 pub(crate) mod utils;
 
+pub use google::parse_google;
+pub use numpy::parse_numpy;
+pub use plain::parse_plain;
 pub use text_block::TextBlock;
 pub use token_ref::TokenRef;
 pub use unified::Citation;
@@ -24,6 +37,33 @@ pub use unified::Directive;
 pub use unified::Document;
 pub use unified::Entry;
 pub use unified::Section;
+
+impl Parsed {
+    /// Convert to the normalized model IR ([`Docstring`]).
+    ///
+    /// This is the third read lens, next to the [`Document`] view and the raw
+    /// CST: it drops byte positions and normalizes the text, which is what
+    /// makes it the input to [`emit`](crate::emit). The style is dispatched
+    /// on internally — a Google and a NumPy docstring with the same content
+    /// produce the same model.
+    ///
+    /// ```rust
+    /// use pydocstring::parse::parse;
+    ///
+    /// let model = parse("Summary.\n\nArgs:\n    x (int): The value.\n").to_model();
+    /// assert_eq!(model.summary.as_deref(), Some("Summary."));
+    /// ```
+    pub fn to_model(&self) -> Docstring {
+        let model = match self.style() {
+            Style::Google => google::to_model::to_model(self),
+            Style::NumPy => numpy::to_model::to_model(self),
+            Style::Plain => plain::to_model::to_model(self),
+        };
+        // Each per-style converter returns `None` only on a style mismatch,
+        // which the dispatch above rules out.
+        model.expect("to_model dispatched on the parsed style")
+    }
+}
 
 // =============================================================================
 // Style

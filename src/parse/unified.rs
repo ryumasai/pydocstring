@@ -159,7 +159,7 @@ impl<'a> Section<'a> {
     }
 
     /// The source range of this section.
-    pub fn range(&self) -> &'a TextRange {
+    pub fn range(&self) -> TextRange {
         self.node.range()
     }
 
@@ -234,7 +234,7 @@ impl<'a> Entry<'a> {
     }
 
     /// The source range of this entry.
-    pub fn range(&self) -> &'a TextRange {
+    pub fn range(&self) -> TextRange {
         self.node.range()
     }
 
@@ -322,7 +322,7 @@ impl<'a> DefaultMarker<'a> {
     }
 
     /// The source range of this marker.
-    pub fn range(&self) -> &'a TextRange {
+    pub fn range(&self) -> TextRange {
         self.node.range()
     }
 
@@ -371,7 +371,7 @@ impl<'a> Directive<'a> {
     }
 
     /// The source range of this directive.
-    pub fn range(&self) -> &'a TextRange {
+    pub fn range(&self) -> TextRange {
         self.node.range()
     }
 
@@ -419,7 +419,7 @@ impl<'a> Citation<'a> {
     }
 
     /// The source range of this citation.
-    pub fn range(&self) -> &'a TextRange {
+    pub fn range(&self) -> TextRange {
         self.node.range()
     }
 

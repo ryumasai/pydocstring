@@ -3,7 +3,14 @@
 //! # pydocstring
 //!
 //! A fast, zero-dependency Rust parser for Python docstrings with full AST and
-//! source location tracking. Supports **NumPy** and **Google** styles.
+//! source location tracking. Supports **NumPy** and **Google** styles, and
+//! reads anything else as a plain summary/extended-summary docstring.
+//!
+//! One parse result, [`Parsed`](syntax::Parsed), is read through three lenses:
+//! the style-independent [`Document`](parse::Document) view (semantic), the
+//! raw CST (faithful — it keeps byte positions and the parser's zero-length
+//! placeholders), and [`Parsed::to_model`](syntax::Parsed::to_model) (the
+//! normalized IR that feeds [`emit`]). Nothing downstream branches on style.
 //!
 //! ## Quick Start
 //!
@@ -93,6 +100,15 @@
 //!   everything outside the rewritten regions by construction
 //! - Emit to Google, NumPy, and Sphinx (reStructuredText) styles (Sphinx is
 //!   emit-only; see [`emit::sphinx`])
+
+/// Compiles every Rust example in `README.md` as a doctest.
+///
+/// The README is the crates.io front page; without this it is prose that
+/// nothing checks, and its examples rot silently against the API they
+/// document.
+#[cfg(doctest)]
+#[doc = include_str!("../README.md")]
+struct ReadmeDoctests;
 
 pub(crate) mod cursor;
 pub mod edit;

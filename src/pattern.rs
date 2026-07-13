@@ -817,14 +817,14 @@ fn landing_chain(root: &SyntaxNode, ph: TextRange) -> Vec<ChainLink> {
     let mut chain = vec![ChainLink {
         path: Vec::new(),
         kind: root.kind(),
-        range: *root.range(),
+        range: root.range(),
         is_token: false,
     }];
     let mut path = Vec::new();
     let mut cur = root;
     'descend: loop {
         for (i, child) in cur.children().iter().enumerate() {
-            let r = *child.range();
+            let r = child.range();
             if !r.is_empty() && r.start() <= ph.start() && ph.end() <= r.end() {
                 path.push(i);
                 match child {

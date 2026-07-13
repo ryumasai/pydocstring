@@ -28,19 +28,18 @@ use pydocstring::syntax::Parsed;
 fn render_snapshot(style: &str, input: &str) -> String {
     let (parsed, emitted): (Parsed, Option<String>) = match style {
         "google" => {
-            let parsed = pydocstring::parse::google::parse_google(input);
-            let emitted = pydocstring::parse::google::to_model::to_model(&parsed).map(|model| {
-                pydocstring::emit::google::emit_google(&model, &pydocstring::emit::EmitOptions::default())
-            });
-            (parsed, emitted)
+            let parsed = pydocstring::parse::parse_google(input);
+            let emitted =
+                pydocstring::emit::google::emit_google(&parsed.to_model(), &pydocstring::emit::EmitOptions::default());
+            (parsed, Some(emitted))
         }
         "numpy" => {
-            let parsed = pydocstring::parse::numpy::parse_numpy(input);
-            let emitted = pydocstring::parse::numpy::to_model::to_model(&parsed)
-                .map(|model| pydocstring::emit::numpy::emit_numpy(&model, &pydocstring::emit::EmitOptions::default()));
-            (parsed, emitted)
+            let parsed = pydocstring::parse::parse_numpy(input);
+            let emitted =
+                pydocstring::emit::numpy::emit_numpy(&parsed.to_model(), &pydocstring::emit::EmitOptions::default());
+            (parsed, Some(emitted))
         }
-        "plain" => (pydocstring::parse::plain::parse_plain(input), None),
+        "plain" => (pydocstring::parse::parse_plain(input), None),
         other => panic!("unknown corpus style directory: {other}"),
     };
 

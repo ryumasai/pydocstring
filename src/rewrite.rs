@@ -18,7 +18,7 @@
 //!
 //! - literal template text is emitted as written;
 //! - a `$NAME` hole is replaced by the **original target bytes** of the
-//!   capture the match bound to `NAME` ([`Capture::text`] — the RFC
+//!   capture the match bound to `NAME` ([`Capture::text`](crate::matcher::Capture::text) — the RFC
 //!   preservation guarantee: captured content is copied byte-exact, never
 //!   reformatted);
 //! - a `$$$NAME` hole is likewise replaced by the captured sibling
@@ -57,7 +57,7 @@
 //! yields no matches, so the source is returned unchanged (`Ok`). Likewise a
 //! pattern that simply matches nothing is a no-op. To re-parse the result,
 //! feed the returned string back through the same-style parser (e.g.
-//! [`parse`](crate::parse::parse) or [`parse_google`](crate::parse::google::parse_google)).
+//! [`parse`](crate::parse::parse) or [`parse_google`](crate::parse::parse_google)).
 //!
 //! # Example
 //!

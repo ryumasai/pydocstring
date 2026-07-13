@@ -1,5 +1,5 @@
-use pydocstring::parse::plain::parse_plain;
-use pydocstring::parse::plain::to_model::to_model;
+use pydocstring::model::SectionKind;
+use pydocstring::parse::parse_plain;
 use pydocstring::parse::unified::Document;
 use pydocstring::syntax::SyntaxKind;
 
@@ -43,7 +43,7 @@ fn test_sphinx_treated_as_plain() {
 #[test]
 fn test_to_model_empty() {
     let result = parse_plain("");
-    let model = to_model(&result).unwrap();
+    let model = result.to_model();
     assert!(model.summary.is_none());
     assert!(model.extended_summary.is_none());
     assert!(model.sections.is_empty());
@@ -52,15 +52,22 @@ fn test_to_model_empty() {
 #[test]
 fn test_to_model_summary_only() {
     let result = parse_plain("Summary.");
-    let model = to_model(&result).unwrap();
+    let model = result.to_model();
     assert_eq!(model.summary.as_deref(), Some("Summary."));
     assert!(model.extended_summary.is_none());
 }
 
 #[test]
-fn test_to_model_returns_none_for_wrong_kind() {
-    use pydocstring::parse::google::parse_google;
-    let result = parse_google("Summary.\n\nArgs:\n    x: Desc.");
-    // google root → plain to_model should return None
-    assert!(to_model(&result).is_none());
+fn test_to_model_dispatches_on_the_parsed_style() {
+    // The same source, forced through two parsers. `to_model` follows the
+    // style the tree was parsed with, so the plain reading keeps the section
+    // as prose while the Google reading resolves it to a section.
+    let src = "Summary.\n\nArgs:\n    x: Desc.";
+
+    let plain = parse_plain(src).to_model();
+    assert!(plain.sections.is_empty());
+
+    let google = pydocstring::parse::parse_google(src).to_model();
+    assert_eq!(google.sections.len(), 1);
+    assert_eq!(google.sections[0].kind, SectionKind::Parameters);
 }

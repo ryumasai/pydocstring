@@ -184,7 +184,7 @@ impl NodeRef {
     }
 
     fn py_range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(*self.node().range()))
+        Py::new(py, PyTextRange::from(self.node().range()))
     }
 
     /// Wrap the addressed node itself in the raw-CST `Node` view (#126).
@@ -279,7 +279,7 @@ impl PyToken {
     }
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
-        Py::new(py, PyTextRange::from(*self.resolve().range()))
+        Py::new(py, PyTextRange::from(self.resolve().range()))
     }
     /// Whether this token is a zero-length placeholder inserted by the parser
     /// to represent a syntactically missing element.
@@ -450,15 +450,7 @@ impl PyParsed {
     }
     /// Convert to the normalized, position-free model IR.
     fn to_model(&self) -> PyResult<PyModelDocstring> {
-        let parsed = &self.nr.parsed;
-        let doc = match parsed.style() {
-            CoreStyle::Google => pydocstring_core::parse::google::to_model::to_model(parsed),
-            CoreStyle::NumPy => pydocstring_core::parse::numpy::to_model::to_model(parsed),
-            _ => pydocstring_core::parse::plain::to_model::to_model(parsed),
-        };
-        doc.map(|doc| PyModelDocstring::try_from(&doc))
-            .transpose()?
-            .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
+        PyModelDocstring::try_from(&self.nr.parsed.to_model())
     }
     /// Start an empty edit list anchored on this parse result.
     ///
@@ -2293,7 +2285,7 @@ impl TryInto<model::Section> for &PyModelSection {
                 let block = item.cast::<PyModelBlock>()?;
                 blocks.push(block.borrow().to_model(py)?);
             }
-            Ok(model::Section { kind, blocks })
+            Ok(model::Section::new(kind, blocks))
         })
     }
 }
@@ -2709,19 +2701,19 @@ fn rewrite_findall_in(
 /// Parse a Google-style docstring.
 #[pyfunction]
 fn parse_google(py: Python<'_>, input: &str) -> PyResult<Py<PyParsed>> {
-    build_parsed(py, pydocstring_core::parse::google::parse_google(input))
+    build_parsed(py, pydocstring_core::parse::parse_google(input))
 }
 
 /// Parse a NumPy-style docstring.
 #[pyfunction]
 fn parse_numpy(py: Python<'_>, input: &str) -> PyResult<Py<PyParsed>> {
-    build_parsed(py, pydocstring_core::parse::numpy::parse_numpy(input))
+    build_parsed(py, pydocstring_core::parse::parse_numpy(input))
 }
 
 /// Parse a plain docstring (no section markers).
 #[pyfunction]
 fn parse_plain(py: Python<'_>, input: &str) -> PyResult<Py<PyParsed>> {
-    build_parsed(py, pydocstring_core::parse::plain::parse_plain(input))
+    build_parsed(py, pydocstring_core::parse::parse_plain(input))
 }
 
 /// Auto-detect the docstring style and parse it.

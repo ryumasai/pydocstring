@@ -256,8 +256,8 @@ impl SyntaxNode {
     }
 
     /// The source range of this node.
-    pub fn range(&self) -> &TextRange {
-        &self.range
+    pub fn range(&self) -> TextRange {
+        self.range
     }
 
     /// The ordered child elements.
@@ -410,8 +410,8 @@ impl SyntaxToken {
     }
 
     /// The source range of this token.
-    pub fn range(&self) -> &TextRange {
-        &self.range
+    pub fn range(&self) -> TextRange {
+        self.range
     }
 
     /// Whether this token is missing from the source (zero-length placeholder).
@@ -456,7 +456,7 @@ pub enum SyntaxElement {
 
 impl SyntaxElement {
     /// The source range of this element.
-    pub fn range(&self) -> &TextRange {
+    pub fn range(&self) -> TextRange {
         match self {
             Self::Node(n) => n.range(),
             Self::Token(t) => t.range(),

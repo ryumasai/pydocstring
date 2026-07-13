@@ -31,9 +31,9 @@ use pydocstring::syntax::SyntaxToken;
 
 fn parse_for_style(style: &str, input: &str) -> Parsed {
     match style {
-        "google" => pydocstring::parse::google::parse_google(input),
-        "numpy" => pydocstring::parse::numpy::parse_numpy(input),
-        "plain" => pydocstring::parse::plain::parse_plain(input),
+        "google" => pydocstring::parse::parse_google(input),
+        "numpy" => pydocstring::parse::parse_numpy(input),
+        "plain" => pydocstring::parse::parse_plain(input),
         other => panic!("unknown corpus style directory: {other}"),
     }
 }
@@ -345,7 +345,7 @@ fn token_children(node: &SyntaxNode, source: &str) -> Vec<(SyntaxKind, String)> 
 #[test]
 fn blank_line_between_sections_is_docstring_level() {
     let input = "Summary.\n\nArgs:\n    x: A.\n\nReturns:\n    int: B.\n";
-    let parsed = pydocstring::parse::google::parse_google(input);
+    let parsed = pydocstring::parse::parse_google(input);
     let root_tokens = token_children(parsed.root(), parsed.source());
 
     // Both blank lines (after the summary, and between the two sections)
@@ -371,7 +371,7 @@ fn blank_line_between_sections_is_docstring_level() {
 #[test]
 fn entry_indentation_is_whitespace_inside_section() {
     let input = "Summary.\n\nArgs:\n    x: A.\n";
-    let parsed = pydocstring::parse::google::parse_google(input);
+    let parsed = pydocstring::parse::parse_google(input);
     let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
     let tokens = token_children(section, parsed.source());
     assert!(
@@ -387,7 +387,7 @@ fn entry_indentation_is_whitespace_inside_section() {
 #[test]
 fn tab_indentation_is_whitespace() {
     let input = "Summary.\n\nArgs:\n\tx: A.\n";
-    let parsed = pydocstring::parse::google::parse_google(input);
+    let parsed = pydocstring::parse::parse_google(input);
     let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
     let tokens = token_children(section, parsed.source());
     assert!(
@@ -399,7 +399,7 @@ fn tab_indentation_is_whitespace() {
 #[test]
 fn no_trailing_newline_token_without_trailing_newline() {
     let input = "Summary.\n\nArgs:\n    x: A.";
-    let parsed = pydocstring::parse::google::parse_google(input);
+    let parsed = pydocstring::parse::parse_google(input);
     let mut tokens = Vec::new();
     collect_tokens(parsed.root(), &mut tokens);
     let last = tokens.last().unwrap().1;
@@ -409,7 +409,7 @@ fn no_trailing_newline_token_without_trailing_newline() {
 #[test]
 fn trailing_newline_becomes_newline_token() {
     let input = "Summary.\n\nArgs:\n    x: A.\n";
-    let parsed = pydocstring::parse::google::parse_google(input);
+    let parsed = pydocstring::parse::parse_google(input);
     let mut tokens = Vec::new();
     collect_tokens(parsed.root(), &mut tokens);
     let (_, last) = tokens.last().unwrap();
@@ -420,7 +420,7 @@ fn trailing_newline_becomes_newline_token() {
 #[test]
 fn consecutive_blank_lines_yield_one_token_each() {
     let input = "Summary.\n\n\n   \nExtended.\n";
-    let parsed = pydocstring::parse::plain::parse_plain(input);
+    let parsed = pydocstring::parse::parse_plain(input);
     let elements: Vec<_> = parsed
         .root()
         .children()
@@ -444,7 +444,7 @@ fn consecutive_blank_lines_yield_one_token_each() {
 #[test]
 fn leading_blank_lines_live_at_root_level() {
     let input = "\n\nSummary.";
-    let parsed = pydocstring::parse::plain::parse_plain(input);
+    let parsed = pydocstring::parse::parse_plain(input);
     let elements: Vec<_> = parsed
         .root()
         .children()
@@ -463,14 +463,14 @@ fn leading_blank_lines_live_at_root_level() {
 
 #[test]
 fn empty_input_has_no_tokens() {
-    let parsed = pydocstring::parse::plain::parse_plain("");
+    let parsed = pydocstring::parse::parse_plain("");
     assert!(parsed.root().children().is_empty());
 }
 
 #[test]
 fn numpy_underline_gaps_are_newlines() {
     let input = "Parameters\n----------\nx : int\n    Desc.\n";
-    let parsed = pydocstring::parse::numpy::parse_numpy(input);
+    let parsed = pydocstring::parse::parse_numpy(input);
     let mut tokens = Vec::new();
     collect_tokens(parsed.root(), &mut tokens);
     let texts: String = tokens.iter().map(|(_, t)| t.text(parsed.source())).collect();
@@ -485,7 +485,7 @@ fn numpy_underline_gaps_are_newlines() {
 #[test]
 fn multi_line_description_yields_one_text_line_token_per_line() {
     let input = "Summary.\n\nArgs:\n    x: First line of desc\n        cont.\n";
-    let parsed = pydocstring::parse::google::parse_google(input);
+    let parsed = pydocstring::parse::parse_google(input);
     let source = parsed.source();
     let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
     let arg = section.find_node(SyntaxKind::ENTRY).unwrap();
@@ -513,7 +513,7 @@ fn multi_line_description_yields_one_text_line_token_per_line() {
 
 #[test]
 fn single_line_summary_is_still_a_block_with_one_text_line() {
-    let parsed = pydocstring::parse::plain::parse_plain("Summary.");
+    let parsed = pydocstring::parse::parse_plain("Summary.");
     let block = TextBlock::cast(&parsed, parsed.root().find_node(SyntaxKind::SUMMARY).unwrap()).unwrap();
     let lines: Vec<_> = block.lines().map(|t| t.text()).collect();
     assert_eq!(lines, vec!["Summary."]);
@@ -523,7 +523,7 @@ fn single_line_summary_is_still_a_block_with_one_text_line() {
 #[test]
 fn logical_text_dedents_indented_continuation() {
     let input = "Summary.\n\nArgs:\n    x: First line of desc\n        cont.\n";
-    let parsed = pydocstring::parse::google::parse_google(input);
+    let parsed = pydocstring::parse::parse_google(input);
     let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
     let arg = section.find_node(SyntaxKind::ENTRY).unwrap();
     let desc = TextBlock::cast(&parsed, arg.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
@@ -535,7 +535,7 @@ fn logical_text_dedents_indented_continuation() {
 #[test]
 fn multi_paragraph_body_contains_blank_line_inside_node() {
     let input = "Summary.\n\nNotes:\n    Paragraph one.\n\n    Paragraph two.\n";
-    let parsed = pydocstring::parse::google::parse_google(input);
+    let parsed = pydocstring::parse::parse_google(input);
     let source = parsed.source();
     let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
     let body = TextBlock::cast(&parsed, section.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();
@@ -562,7 +562,7 @@ fn multi_paragraph_body_contains_blank_line_inside_node() {
 #[test]
 fn content_block_lines_and_logical_text() {
     let src = "Summary.\n\nReferences\n----------\n.. [1] Author A, \"Title\",\n    with a continuation line.\n";
-    let parsed = pydocstring::parse::numpy::parse_numpy(src);
+    let parsed = pydocstring::parse::parse_numpy(src);
     let section = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
     let reference = section.find_node(SyntaxKind::CITATION).unwrap();
     let block = TextBlock::cast(&parsed, reference.find_node(SyntaxKind::DESCRIPTION).unwrap()).unwrap();

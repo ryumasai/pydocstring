@@ -181,8 +181,8 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
 
 fn model_for(style: &str, input: &str) -> Option<Docstring> {
     match style {
-        "google" => pydocstring::parse::google::to_model::to_model(&pydocstring::parse::google::parse_google(input)),
-        "numpy" => pydocstring::parse::numpy::to_model::to_model(&pydocstring::parse::numpy::parse_numpy(input)),
+        "google" => Some(pydocstring::parse::parse_google(input).to_model()),
+        "numpy" => Some(pydocstring::parse::parse_numpy(input).to_model()),
         // Plain has no emitter, so it cannot participate in round trips.
         "plain" => None,
         other => panic!("unknown corpus style directory: {other}"),

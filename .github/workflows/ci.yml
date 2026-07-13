@@ -46,6 +46,9 @@ jobs:
       - name: Clippy
         run: just lint
 
+      - name: Docs (broken intra-doc links are errors)
+        run: just doc
+
       - name: Build
         run: just build
 
