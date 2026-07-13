@@ -444,6 +444,28 @@ class GoogleDocstring:
     def findall(self, pattern: str) -> list[Match]:
         """Find every match of ``pattern`` in document order (non-overlapping)."""
         ...
+    def replace_in(
+        self,
+        anchor: Document | Section | Entry,
+        pattern: str,
+        template: str,
+    ) -> str:
+        """Like :meth:`replace`, but scoped to ``anchor``'s subtree.
+
+        ``anchor`` must be a view of *this* parse result. The anchor's grammar
+        selects the readings, so the same pattern rewrites ``$TYPE``-shaped
+        entries under a ``Raises:`` anchor and ``$NAME``-shaped ones under an
+        ``Args:`` anchor. Raises ``TypeError`` for a non-view anchor and
+        ``ValueError`` for one from a different parse result.
+        """
+        ...
+    def findall_in(
+        self,
+        anchor: Document | Section | Entry,
+        pattern: str,
+    ) -> list[Match]:
+        """Like :meth:`findall`, but scoped to ``anchor``'s subtree."""
+        ...
     def __repr__(self) -> str: ...
 
 # ─── NumPy CST wrappers ──────────────────────────────────────────────────────
@@ -694,6 +716,28 @@ class NumPyDocstring:
     def findall(self, pattern: str) -> list[Match]:
         """Find every match of ``pattern`` in document order (non-overlapping)."""
         ...
+    def replace_in(
+        self,
+        anchor: Document | Section | Entry,
+        pattern: str,
+        template: str,
+    ) -> str:
+        """Like :meth:`replace`, but scoped to ``anchor``'s subtree.
+
+        ``anchor`` must be a view of *this* parse result. The anchor's grammar
+        selects the readings, so the same pattern rewrites ``$TYPE``-shaped
+        entries under a ``Raises:`` anchor and ``$NAME``-shaped ones under an
+        ``Args:`` anchor. Raises ``TypeError`` for a non-view anchor and
+        ``ValueError`` for one from a different parse result.
+        """
+        ...
+    def findall_in(
+        self,
+        anchor: Document | Section | Entry,
+        pattern: str,
+    ) -> list[Match]:
+        """Like :meth:`findall`, but scoped to ``anchor``'s subtree."""
+        ...
     def __repr__(self) -> str: ...
 
 # ─── Plain CST wrapper ───────────────────────────────────────────────────────
@@ -725,6 +769,28 @@ class PlainDocstring:
         ...
     def findall(self, pattern: str) -> list[Match]:
         """Find every match of ``pattern`` in document order (non-overlapping)."""
+        ...
+    def replace_in(
+        self,
+        anchor: Document | Section | Entry,
+        pattern: str,
+        template: str,
+    ) -> str:
+        """Like :meth:`replace`, but scoped to ``anchor``'s subtree.
+
+        ``anchor`` must be a view of *this* parse result. The anchor's grammar
+        selects the readings, so the same pattern rewrites ``$TYPE``-shaped
+        entries under a ``Raises:`` anchor and ``$NAME``-shaped ones under an
+        ``Args:`` anchor. Raises ``TypeError`` for a non-view anchor and
+        ``ValueError`` for one from a different parse result.
+        """
+        ...
+    def findall_in(
+        self,
+        anchor: Document | Section | Entry,
+        pattern: str,
+    ) -> list[Match]:
+        """Like :meth:`findall`, but scoped to ``anchor``'s subtree."""
         ...
     def __repr__(self) -> str: ...
 

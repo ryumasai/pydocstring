@@ -49,6 +49,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `apply_reparsed()` re-parses with the **same** style — editing must not
   silently reinterpret a docstring as another style.
 
+- **Scoped pattern rewrites from Python** — `replace_in(anchor, pattern, template)`
+  and `findall_in(anchor, pattern)`
+  ([#118](https://github.com/ryumasai/pydocstring/issues/118)). Rust has had
+  `replace_in` since 0.3.1; Python only got the document-wide `replace`, so
+  there was no way to say "rewrite this, but only inside the Parameters
+  section". Any `Document`, `Section`, or `Entry` of the same parse result is a
+  valid anchor, and the anchor's grammar selects the reading — the same pattern
+  rewrites `$TYPE`-shaped entries under a `Raises:` anchor and `$NAME`-shaped
+  ones under an `Args:` anchor.
+
 - `Edits::remove_lines_range` (Rust) — the range-anchored form of
   `remove_lines`, which only ever read its node's range. Needed by the Python
   binding, whose handle on a construct is a range; pinned equal to
