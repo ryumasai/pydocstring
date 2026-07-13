@@ -444,6 +444,34 @@ class GoogleDocstring:
     def findall(self, pattern: str) -> list[Match]:
         """Find every match of ``pattern`` in document order (non-overlapping)."""
         ...
+    def replace_in(
+        self,
+        anchor: Document | Section | Entry,
+        pattern: str,
+        template: str,
+    ) -> str:
+        """Like :meth:`replace`, but scoped to ``anchor``'s subtree.
+
+        ``anchor`` is a :class:`Document`, :class:`Section`, or :class:`Entry`
+        view of *this* parse result — a plain docstring has no sections, so only
+        a ``Document`` anchor applies there. Raises ``TypeError`` for anything
+        else, and ``ValueError`` for a view of a different parse result.
+
+        The anchor also selects the *reading*: an entry line is a ``$NAME`` under
+        a parameters section and a ``$TYPE`` under a raises section, so the same
+        pattern reads differently depending on where it is scoped.
+        """
+        ...
+    def findall_in(
+        self,
+        anchor: Document | Section | Entry,
+        pattern: str,
+    ) -> list[Match]:
+        """Like :meth:`findall`, but scoped to ``anchor``'s subtree.
+
+        Same anchor rules as :meth:`replace_in`.
+        """
+        ...
     def __repr__(self) -> str: ...
 
 # ─── NumPy CST wrappers ──────────────────────────────────────────────────────
@@ -694,6 +722,34 @@ class NumPyDocstring:
     def findall(self, pattern: str) -> list[Match]:
         """Find every match of ``pattern`` in document order (non-overlapping)."""
         ...
+    def replace_in(
+        self,
+        anchor: Document | Section | Entry,
+        pattern: str,
+        template: str,
+    ) -> str:
+        """Like :meth:`replace`, but scoped to ``anchor``'s subtree.
+
+        ``anchor`` is a :class:`Document`, :class:`Section`, or :class:`Entry`
+        view of *this* parse result — a plain docstring has no sections, so only
+        a ``Document`` anchor applies there. Raises ``TypeError`` for anything
+        else, and ``ValueError`` for a view of a different parse result.
+
+        The anchor also selects the *reading*: an entry line is a ``$NAME`` under
+        a parameters section and a ``$TYPE`` under a raises section, so the same
+        pattern reads differently depending on where it is scoped.
+        """
+        ...
+    def findall_in(
+        self,
+        anchor: Document | Section | Entry,
+        pattern: str,
+    ) -> list[Match]:
+        """Like :meth:`findall`, but scoped to ``anchor``'s subtree.
+
+        Same anchor rules as :meth:`replace_in`.
+        """
+        ...
     def __repr__(self) -> str: ...
 
 # ─── Plain CST wrapper ───────────────────────────────────────────────────────
@@ -725,6 +781,34 @@ class PlainDocstring:
         ...
     def findall(self, pattern: str) -> list[Match]:
         """Find every match of ``pattern`` in document order (non-overlapping)."""
+        ...
+    def replace_in(
+        self,
+        anchor: Document | Section | Entry,
+        pattern: str,
+        template: str,
+    ) -> str:
+        """Like :meth:`replace`, but scoped to ``anchor``'s subtree.
+
+        ``anchor`` is a :class:`Document`, :class:`Section`, or :class:`Entry`
+        view of *this* parse result — a plain docstring has no sections, so only
+        a ``Document`` anchor applies there. Raises ``TypeError`` for anything
+        else, and ``ValueError`` for a view of a different parse result.
+
+        The anchor also selects the *reading*: an entry line is a ``$NAME`` under
+        a parameters section and a ``$TYPE`` under a raises section, so the same
+        pattern reads differently depending on where it is scoped.
+        """
+        ...
+    def findall_in(
+        self,
+        anchor: Document | Section | Entry,
+        pattern: str,
+    ) -> list[Match]:
+        """Like :meth:`findall`, but scoped to ``anchor``'s subtree.
+
+        Same anchor rules as :meth:`replace_in`.
+        """
         ...
     def __repr__(self) -> str: ...
 

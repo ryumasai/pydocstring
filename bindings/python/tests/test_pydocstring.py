@@ -1913,3 +1913,106 @@ class TestEdits:
         edits = pydocstring.parse(GOOGLE_SRC).edit()
         assert repr(edits) == "Edits(0 pending)"
         assert len(edits) == 0
+
+
+# ─── Scoped rewrite: replace_in / findall_in (#118) ──────────────────────────
+
+SCOPED_SRC = "Summary.\n\nArgs:\n    x: First.\n    y: Second.\n\nRaises:\n    ValueError: Bad.\n"
+NUMPY_SCOPED_SRC = (
+    "Summary.\n\nParameters\n----------\nx : int\n    First.\ny : str\n    Second.\n"
+    "\nRaises\n------\nValueError\n    Bad.\n"
+)
+PLAIN_SCOPED_SRC = "Summary line.\n\nMore detail here.\n"
+
+
+def _section(doc, kind):
+    return next(s for s in doc.sections if s.kind == kind)
+
+
+class TestReplaceIn:
+    def test_unscoped_replace_reaches_every_section(self):
+        """The problem scoping solves: `$NAME: $DESC` also matches Raises."""
+        parsed = pydocstring.parse_google(SCOPED_SRC)
+        out = parsed.replace("$NAME: $DESC", "$NAME: TOUCHED")
+        assert "x: TOUCHED" in out
+        assert "ValueError: TOUCHED" in out
+
+    def test_replace_in_scopes_to_one_section(self):
+        parsed = pydocstring.parse_google(SCOPED_SRC)
+        doc = pydocstring.Document(parsed)
+        args = _section(doc, pydocstring.SectionKind.PARAMETERS)
+
+        out = parsed.replace_in(args, "$NAME: $DESC", "$NAME: TOUCHED")
+        assert "x: TOUCHED" in out
+        assert "y: TOUCHED" in out
+        # The Raises section is untouched.
+        assert "ValueError: Bad." in out
+
+    def test_the_anchor_selects_the_reading(self):
+        """The same shape reads as a type under Raises, a name under Args."""
+        parsed = pydocstring.parse_google(SCOPED_SRC)
+        doc = pydocstring.Document(parsed)
+        raises = _section(doc, pydocstring.SectionKind.RAISES)
+
+        out = parsed.replace_in(raises, "$TYPE: $DESC", "$TYPE: TOUCHED")
+        assert "ValueError: TOUCHED" in out
+        assert "x: First." in out
+
+    def test_an_entry_is_an_anchor_too(self):
+        parsed = pydocstring.parse_google(SCOPED_SRC)
+        doc = pydocstring.Document(parsed)
+        second = _section(doc, pydocstring.SectionKind.PARAMETERS).entries[1]
+
+        out = parsed.replace_in(second, "$NAME: $DESC", "$NAME: ONLY-Y")
+        assert "y: ONLY-Y" in out
+        assert "x: First." in out
+
+    def test_findall_in_scopes_the_search(self):
+        parsed = pydocstring.parse_google(SCOPED_SRC)
+        doc = pydocstring.Document(parsed)
+        args = _section(doc, pydocstring.SectionKind.PARAMETERS)
+
+        assert len(parsed.findall("$NAME: $DESC")) == 3  # includes the Raises entry
+        assert len(parsed.findall_in(args, "$NAME: $DESC")) == 2
+
+    def test_scoping_works_for_numpy_too(self):
+        """The style comes from the parse result, not from the call site."""
+        parsed = pydocstring.parse_numpy(NUMPY_SCOPED_SRC)
+        doc = pydocstring.Document(parsed)
+        params = _section(doc, pydocstring.SectionKind.PARAMETERS)
+        raises = _section(doc, pydocstring.SectionKind.RAISES)
+
+        pattern = "$NAME : $TYPE\n    $DESC"
+        assert len(parsed.findall_in(params, pattern)) == 2
+        assert len(parsed.findall_in(raises, pattern)) == 0
+
+        out = parsed.replace_in(params, pattern, "$NAME : $TYPE\n    TOUCHED")
+        assert out.count("TOUCHED") == 2
+        assert "ValueError\n    Bad." in out
+
+    def test_a_document_is_the_only_anchor_a_plain_docstring_has(self):
+        parsed = pydocstring.parse_plain(PLAIN_SCOPED_SRC)
+        doc = pydocstring.Document(parsed)
+        # A plain docstring has no section markers, so there is nothing narrower
+        # to scope to — but the Document anchor must still dispatch correctly.
+        assert doc.sections == []
+
+        pattern = "$SUMMARY\n\n$REST"
+        assert len(parsed.findall(pattern)) == 1
+        assert len(parsed.findall_in(doc, pattern)) == 1
+        assert parsed.replace_in(doc, pattern, "$SUMMARY\n\nREWRITTEN") == "Summary line.\n\nREWRITTEN"
+
+    def test_a_non_view_anchor_is_rejected(self):
+        parsed = pydocstring.parse_google(SCOPED_SRC)
+        with pytest.raises(TypeError):
+            parsed.replace_in("Args", "$NAME: $DESC", "x")  # ty: ignore[invalid-argument-type]
+
+    def test_an_anchor_from_another_parse_is_rejected(self):
+        """A NodeRef addresses a node by path, so a foreign anchor would
+        silently resolve to some unrelated node of this tree."""
+        parsed = pydocstring.parse_google(SCOPED_SRC)
+        other = pydocstring.Document(pydocstring.parse_google(SCOPED_SRC))
+        with pytest.raises(ValueError):
+            parsed.replace_in(other.sections[0], "$NAME: $DESC", "x")
+        with pytest.raises(ValueError):
+            parsed.findall_in(other.sections[0], "$NAME: $DESC")

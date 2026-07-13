@@ -1236,6 +1236,27 @@ impl PyGoogleDocstring {
     fn findall(&self, py: Python<'_>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
         rewrite_findall(py, &self.nr, CoreStyle::Google, pattern)
     }
+    /// Like ``replace``, but scoped to ``anchor``'s subtree.
+    ///
+    /// ``anchor`` is a ``Document``, ``Section``, or ``Entry`` view of *this*
+    /// parse result — a plain docstring has no sections, so only a ``Document``
+    /// anchor applies there. Raises ``TypeError`` for anything else, and
+    /// ``ValueError`` for a view of a different parse result.
+    ///
+    /// The anchor also selects the *reading*: an entry line is a ``$NAME`` under
+    /// a parameters section and a ``$TYPE`` under a raises section, so the same
+    /// pattern reads differently depending on where it is scoped.
+    fn replace_in(&self, anchor: &Bound<'_, PyAny>, pattern: &str, template: &str) -> PyResult<String> {
+        rewrite_replace_in(&self.nr, CoreStyle::Google, anchor, pattern, template)
+    }
+    /// Like ``findall``, but scoped to ``anchor``'s subtree.
+    ///
+    /// Same anchor rules as ``replace_in``: a ``Document``, ``Section``, or
+    /// ``Entry`` view of *this* parse result. Raises ``TypeError`` for anything
+    /// else, and ``ValueError`` for a view of a different parse result.
+    fn findall_in(&self, py: Python<'_>, anchor: &Bound<'_, PyAny>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
+        rewrite_findall_in(py, &self.nr, CoreStyle::Google, anchor, pattern)
+    }
     fn __repr__(&self) -> &'static str {
         "GoogleDocstring(...)"
     }
@@ -1725,6 +1746,27 @@ impl PyNumPyDocstring {
     fn findall(&self, py: Python<'_>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
         rewrite_findall(py, &self.nr, CoreStyle::NumPy, pattern)
     }
+    /// Like ``replace``, but scoped to ``anchor``'s subtree.
+    ///
+    /// ``anchor`` is a ``Document``, ``Section``, or ``Entry`` view of *this*
+    /// parse result — a plain docstring has no sections, so only a ``Document``
+    /// anchor applies there. Raises ``TypeError`` for anything else, and
+    /// ``ValueError`` for a view of a different parse result.
+    ///
+    /// The anchor also selects the *reading*: an entry line is a ``$NAME`` under
+    /// a parameters section and a ``$TYPE`` under a raises section, so the same
+    /// pattern reads differently depending on where it is scoped.
+    fn replace_in(&self, anchor: &Bound<'_, PyAny>, pattern: &str, template: &str) -> PyResult<String> {
+        rewrite_replace_in(&self.nr, CoreStyle::NumPy, anchor, pattern, template)
+    }
+    /// Like ``findall``, but scoped to ``anchor``'s subtree.
+    ///
+    /// Same anchor rules as ``replace_in``: a ``Document``, ``Section``, or
+    /// ``Entry`` view of *this* parse result. Raises ``TypeError`` for anything
+    /// else, and ``ValueError`` for a view of a different parse result.
+    fn findall_in(&self, py: Python<'_>, anchor: &Bound<'_, PyAny>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
+        rewrite_findall_in(py, &self.nr, CoreStyle::NumPy, anchor, pattern)
+    }
     fn __repr__(&self) -> &'static str {
         "NumPyDocstring(...)"
     }
@@ -1793,6 +1835,27 @@ impl PyPlainDocstring {
     /// pattern.
     fn findall(&self, py: Python<'_>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
         rewrite_findall(py, &self.nr, CoreStyle::Plain, pattern)
+    }
+    /// Like ``replace``, but scoped to ``anchor``'s subtree.
+    ///
+    /// ``anchor`` is a ``Document``, ``Section``, or ``Entry`` view of *this*
+    /// parse result — a plain docstring has no sections, so only a ``Document``
+    /// anchor applies there. Raises ``TypeError`` for anything else, and
+    /// ``ValueError`` for a view of a different parse result.
+    ///
+    /// The anchor also selects the *reading*: an entry line is a ``$NAME`` under
+    /// a parameters section and a ``$TYPE`` under a raises section, so the same
+    /// pattern reads differently depending on where it is scoped.
+    fn replace_in(&self, anchor: &Bound<'_, PyAny>, pattern: &str, template: &str) -> PyResult<String> {
+        rewrite_replace_in(&self.nr, CoreStyle::Plain, anchor, pattern, template)
+    }
+    /// Like ``findall``, but scoped to ``anchor``'s subtree.
+    ///
+    /// Same anchor rules as ``replace_in``: a ``Document``, ``Section``, or
+    /// ``Entry`` view of *this* parse result. Raises ``TypeError`` for anything
+    /// else, and ``ValueError`` for a view of a different parse result.
+    fn findall_in(&self, py: Python<'_>, anchor: &Bound<'_, PyAny>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
+        rewrite_findall_in(py, &self.nr, CoreStyle::Plain, anchor, pattern)
     }
     fn __repr__(&self) -> &'static str {
         "PlainDocstring(...)"
@@ -3691,6 +3754,64 @@ fn rewrite_findall(py: Python<'_>, nr: &NodeRef, style: CoreStyle, pattern: &str
     let pattern = build_pattern(style, pattern)?;
     pattern
         .matches(&nr.parsed)
+        .iter()
+        .map(|m| Py::new(py, PyMatch::from_match(m)))
+        .collect()
+}
+
+/// Resolve a scope anchor: a unified `Document`, `Section`, or `Entry` view.
+///
+/// The anchor must come from the *same* parse result. A `NodeRef` addresses a
+/// node by child-index path, so a foreign anchor would not simply "match
+/// nothing" as it does in the Rust API — the same path would resolve to some
+/// unrelated node of this tree. Hence the identity check.
+fn anchor_ref(nr: &NodeRef, anchor: &Bound<'_, PyAny>) -> PyResult<NodeRef> {
+    let anchor_nr = if let Ok(s) = anchor.cast::<PySection>() {
+        s.get().nr.clone()
+    } else if let Ok(e) = anchor.cast::<PyEntry>() {
+        e.get().nr.clone()
+    } else if let Ok(d) = anchor.cast::<PyDocument>() {
+        d.get().nr.clone()
+    } else {
+        return Err(pyo3::exceptions::PyTypeError::new_err(
+            "anchor must be a Document, Section, or Entry view",
+        ));
+    };
+    if !Arc::ptr_eq(&nr.parsed, &anchor_nr.parsed) {
+        return Err(pyo3::exceptions::PyValueError::new_err(
+            "anchor belongs to a different parse result",
+        ));
+    }
+    Ok(anchor_nr)
+}
+
+/// Shared implementation of ``doc.replace_in``.
+fn rewrite_replace_in(
+    nr: &NodeRef,
+    style: CoreStyle,
+    anchor: &Bound<'_, PyAny>,
+    pattern: &str,
+    template: &str,
+) -> PyResult<String> {
+    let anchor_nr = anchor_ref(nr, anchor)?;
+    let pattern = build_pattern(style, pattern)?;
+    nr.parsed
+        .replace_in(&pattern, anchor_nr.node(), template)
+        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+}
+
+/// Shared implementation of ``doc.findall_in``.
+fn rewrite_findall_in(
+    py: Python<'_>,
+    nr: &NodeRef,
+    style: CoreStyle,
+    anchor: &Bound<'_, PyAny>,
+    pattern: &str,
+) -> PyResult<Vec<Py<PyMatch>>> {
+    let anchor_nr = anchor_ref(nr, anchor)?;
+    let pattern = build_pattern(style, pattern)?;
+    pattern
+        .matches_in(&nr.parsed, anchor_nr.node())
         .iter()
         .map(|m| Py::new(py, PyMatch::from_match(m)))
         .collect()

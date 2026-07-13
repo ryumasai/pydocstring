@@ -136,6 +136,26 @@ Editing must not silently reinterpret a docstring as another style, so
 `apply_reparsed()` re-parses with the original style even if the edited text
 would auto-detect differently.
 
+### Scoped pattern rewrites
+
+`replace()` rewrites every match in the document, which is often too much — the
+pattern `$NAME: $DESC` matches an `Args:` entry *and* a `Raises:` one.
+`replace_in()` scopes the rewrite to a view's subtree:
+
+```python
+from pydocstring import Document, SectionKind, parse_google
+
+parsed = parse_google(source)
+doc = Document(parsed)
+args = next(s for s in doc.sections if s.kind == SectionKind.PARAMETERS)
+
+parsed.replace_in(args, "$NAME: $DESC", "$NAME: TODO")   # Raises: is untouched
+```
+
+The anchor also selects the *reading*: the same shape is a `$NAME` under `Args:`
+and a `$TYPE` under `Raises:`. `findall_in()` scopes a search the same way. Any
+`Document`, `Section`, or `Entry` of the same parse result works as an anchor.
+
 ### Style Detection
 
 ```python
