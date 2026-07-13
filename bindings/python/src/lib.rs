@@ -17,6 +17,7 @@ use pydocstring_core::parse::numpy::nodes as nn;
 use pydocstring_core::parse::plain::nodes as pn;
 use pydocstring_core::parse::text_block::TextBlock;
 use pydocstring_core::parse::token_ref::TokenRef;
+use pydocstring_core::parse::unified as uv;
 use pydocstring_core::parse::visitor::{DocstringVisitor, walk as core_walk, walk_children};
 use pydocstring_core::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use pydocstring_core::text::TextRange;
@@ -27,7 +28,7 @@ use std::sync::Arc;
 
 // ─── TextRange ──────────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "TextRange")]
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "TextRange")]
 #[derive(Clone, Copy)]
 struct PyTextRange {
     #[pyo3(get)]
@@ -61,7 +62,7 @@ impl PyTextRange {
 
 // ─── LineColumn ─────────────────────────────────────────────────────────────
 
-#[pyclass(frozen, skip_from_py_object, name = "LineColumn")]
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "LineColumn")]
 struct PyLineColumn {
     #[pyo3(get)]
     lineno: u32,
@@ -319,7 +320,7 @@ impl NodeRef {
 ///
 /// The field name on the parent object (e.g. `.name`, `.description`) implies
 /// the semantic kind; no redundant `kind` field is exposed.
-#[pyclass(frozen, skip_from_py_object, name = "Token")]
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "Token")]
 struct PyToken {
     /// Address of the token's parent node.
     parent: NodeRef,
@@ -380,7 +381,7 @@ impl PyToken {
 /// Wraps one `Token` per content line; `text` is the raw source slice of the
 /// block's range (byte-identical to the pre-#38 token text), `logical_text`
 /// is the dedented/joined convenience form.
-#[pyclass(frozen, skip_from_py_object, name = "TextBlock")]
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "TextBlock")]
 struct PyTextBlock {
     nr: NodeRef,
 }
@@ -711,7 +712,7 @@ fn numpy_section_kind_to_py(kind: NumPySectionKind) -> PyNumPySectionKind {
 /// kind knowledge lives in one place (the Rust crate).
 macro_rules! lazy_node {
     ($py:ident, $name:literal, $mod:ident :: $view:ident) => {
-        #[pyclass(frozen, skip_from_py_object, name = $name)]
+        #[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = $name)]
         struct $py {
             nr: NodeRef,
         }
@@ -1783,6 +1784,414 @@ fn build_plain_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyPlainD
 }
 
 // =============================================================================
+// Unified (style-independent) views — #116
+// =============================================================================
+//
+// One code path over any docstring style. These wrap `parse::unified`, which
+// reads the same tree as the per-style wrappers above but names things in the
+// style-independent vocabulary: a section's role is `kind` (data), not a
+// nominal type. Like every wrapper here, they hold no conversion knowledge —
+// each getter delegates straight to the core accessor.
+//
+// Missing (zero-length) placeholder tokens are *not* surfaced: these views
+// mirror the core exactly, where `find_token` excludes them, so `None` means
+// "not present" rather than "present but empty". The per-style wrappers remain
+// the CST-fidelity lens.
+
+/// Extract the shared `Arc<Parsed>` from any of the three docstring wrappers.
+fn parsed_of(obj: &Bound<'_, PyAny>) -> PyResult<Arc<Parsed>> {
+    if let Ok(d) = obj.cast::<PyGoogleDocstring>() {
+        return Ok(Arc::clone(&d.get().nr.parsed));
+    }
+    if let Ok(d) = obj.cast::<PyNumPyDocstring>() {
+        return Ok(Arc::clone(&d.get().nr.parsed));
+    }
+    if let Ok(d) = obj.cast::<PyPlainDocstring>() {
+        return Ok(Arc::clone(&d.get().nr.parsed));
+    }
+    Err(pyo3::exceptions::PyTypeError::new_err(
+        "Document() expects a GoogleDocstring, NumPyDocstring, or PlainDocstring \
+         (the result of parse() / parse_google() / parse_numpy() / parse_plain())",
+    ))
+}
+
+// ─── Document ────────────────────────────────────────────────────────────────
+
+/// Style-independent view of a parsed docstring.
+///
+/// Construct from any parse result, whatever the style::
+///
+///     doc = pydocstring.Document(pydocstring.parse(src))
+///     for section in doc.sections:
+///         if section.kind == pydocstring.SectionKind.PARAMETERS:
+///             for entry in section.entries:
+///                 print(entry.name.text)
+///
+/// The same loop works for Google and NumPy sources: `"Args:"` and
+/// `"Parameters"` both resolve to `SectionKind.PARAMETERS`.
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "Document")]
+struct PyDocument {
+    nr: NodeRef,
+}
+
+impl PyDocument {
+    fn view(&self) -> uv::Document<'_> {
+        uv::Document::new(&self.nr.parsed)
+    }
+}
+
+#[pymethods]
+impl PyDocument {
+    #[new]
+    fn new(parsed: &Bound<'_, PyAny>) -> PyResult<Self> {
+        Ok(Self {
+            nr: NodeRef::root(parsed_of(parsed)?),
+        })
+    }
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        self.nr.py_range(py)
+    }
+    /// The style the docstring was parsed as.
+    #[getter]
+    fn style(&self) -> PyStyle {
+        match self.view().style() {
+            CoreStyle::Google => PyStyle::Google,
+            CoreStyle::NumPy => PyStyle::NumPy,
+            // `Style` is #[non_exhaustive]; surface future styles as PLAIN
+            // until the Python enum grows a matching member.
+            _ => PyStyle::Plain,
+        }
+    }
+    #[getter]
+    fn source(&self) -> &str {
+        self.nr.parsed.source()
+    }
+    #[getter]
+    fn summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().summary())
+    }
+    #[getter]
+    fn extended_summary(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().extended_summary())
+    }
+    #[getter]
+    fn sections(&self, py: Python<'_>) -> PyResult<Vec<Py<PySection>>> {
+        self.view()
+            .sections()
+            .map(|s| self.nr.wrap_child(py, s.syntax()))
+            .collect()
+    }
+    #[getter]
+    fn directives(&self, py: Python<'_>) -> PyResult<Vec<Py<PyDirective>>> {
+        self.view()
+            .directives()
+            .map(|d| self.nr.wrap_child(py, d.syntax()))
+            .collect()
+    }
+    /// Stray-prose paragraph blocks between sections, in source order.
+    #[getter]
+    fn paragraphs(&self, py: Python<'_>) -> PyResult<Vec<Py<PyTextBlock>>> {
+        self.nr.blocks(py, self.view().paragraphs())
+    }
+    fn __repr__(&self) -> String {
+        format!("Document(style={:?})", self.view().style())
+    }
+}
+
+// ─── Section ─────────────────────────────────────────────────────────────────
+
+/// Style-independent view of one section.
+///
+/// `kind` is the section's role as *data* — `"Args:"` (Google) and
+/// `"Parameters"` (NumPy) both resolve to `SectionKind.PARAMETERS` — so callers
+/// never branch on style.
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "Section")]
+struct PySection {
+    nr: NodeRef,
+}
+
+impl From<NodeRef> for PySection {
+    fn from(nr: NodeRef) -> Self {
+        Self { nr }
+    }
+}
+
+impl PySection {
+    fn view(&self) -> uv::Section<'_> {
+        uv::Section::cast(&self.nr.parsed, self.nr.node()).expect("NodeRef addresses a SECTION node")
+    }
+}
+
+#[pymethods]
+impl PySection {
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        self.nr.py_range(py)
+    }
+    /// The header text as written (e.g. `"Args"`, `"Parameters"`).
+    #[getter]
+    fn header_name(&self) -> &str {
+        self.view().header_name()
+    }
+    /// The style-independent role of this section.
+    #[getter]
+    fn kind(&self) -> PySectionKind {
+        py_section_kind_of(&self.view().kind()).0
+    }
+    /// The header text of an unrecognised section (`kind == UNKNOWN`), else
+    /// `None`.
+    #[getter]
+    fn unknown_name(&self) -> Option<String> {
+        py_section_kind_of(&self.view().kind()).1
+    }
+    #[getter]
+    fn entries(&self, py: Python<'_>) -> PyResult<Vec<Py<PyEntry>>> {
+        self.view()
+            .entries()
+            .map(|e| self.nr.wrap_child(py, e.syntax()))
+            .collect()
+    }
+    /// Free-text body block, for sections that carry prose rather than entries.
+    #[getter]
+    fn body(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().body())
+    }
+    #[getter]
+    fn citations(&self, py: Python<'_>) -> PyResult<Vec<Py<PyCitation>>> {
+        self.view()
+            .citations()
+            .map(|c| self.nr.wrap_child(py, c.syntax()))
+            .collect()
+    }
+    fn __repr__(&self) -> String {
+        format!("Section({:?})", self.view().header_name())
+    }
+}
+
+// ─── Entry ───────────────────────────────────────────────────────────────────
+
+/// Style-independent view of one entry: a parameter, return, yield, exception,
+/// warning, attribute, method, or "See Also" item.
+///
+/// All roles share one type — the role is the parent section's `kind`. Every
+/// accessor is optional, so reading an entry never raises for a role that does
+/// not carry that piece (unlike the per-style wrappers, where a mismatched
+/// accessor panics).
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "Entry")]
+struct PyEntry {
+    nr: NodeRef,
+}
+
+impl From<NodeRef> for PyEntry {
+    fn from(nr: NodeRef) -> Self {
+        Self { nr }
+    }
+}
+
+impl PyEntry {
+    fn view(&self) -> uv::Entry<'_> {
+        uv::Entry::cast(&self.nr.parsed, self.nr.node()).expect("NodeRef addresses an ENTRY node")
+    }
+}
+
+#[pymethods]
+impl PyEntry {
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        self.nr.py_range(py)
+    }
+    /// The first name, if any. Exception / warning entries carry a `type`
+    /// instead of a name.
+    #[getter]
+    fn name(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().name())
+    }
+    /// All names — an entry can declare several comma-separated ones.
+    #[getter]
+    fn names(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
+        self.nr.tokens(py, self.view().names())
+    }
+    /// The type annotation: a parameter / attribute type, a return / yield
+    /// type, or the exception type of a `Raises` entry.
+    #[getter]
+    fn type_annotation(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().type_annotation())
+    }
+    #[getter]
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().description())
+    }
+    /// Whether the entry carries at least one `optional` marker.
+    #[getter]
+    fn is_optional(&self) -> bool {
+        self.view().is_optional()
+    }
+    /// Every `optional` marker, one per occurrence, in source order.
+    #[getter]
+    fn optionals(&self, py: Python<'_>) -> PyResult<Vec<Py<PyToken>>> {
+        self.nr.tokens(py, self.view().optionals())
+    }
+    /// Every `default …` marker, one per occurrence, in source order.
+    #[getter]
+    fn defaults(&self, py: Python<'_>) -> PyResult<Vec<Py<PyDefaultMarker>>> {
+        self.view()
+            .defaults()
+            .map(|d| self.nr.wrap_child(py, d.syntax()))
+            .collect()
+    }
+    /// The first `default …` marker's value — the same first-occurrence-wins
+    /// rule the model layer applies. Use `defaults` to see every occurrence.
+    #[getter]
+    fn default_value(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().default_value())
+    }
+    fn __repr__(&self) -> String {
+        let view = self.view();
+        let names = view.names().map(|n| n.text()).collect::<Vec<_>>().join(", ");
+        format!("Entry({names:?})")
+    }
+}
+
+// ─── DefaultMarker ───────────────────────────────────────────────────────────
+
+/// One `default …` marker inside a type annotation (`default X`, `default=X`,
+/// `default: X`).
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "DefaultMarker")]
+struct PyDefaultMarker {
+    nr: NodeRef,
+}
+
+impl From<NodeRef> for PyDefaultMarker {
+    fn from(nr: NodeRef) -> Self {
+        Self { nr }
+    }
+}
+
+impl PyDefaultMarker {
+    fn view(&self) -> uv::DefaultMarker<'_> {
+        uv::DefaultMarker::cast(&self.nr.parsed, self.nr.node()).expect("NodeRef addresses a DEFAULT node")
+    }
+}
+
+#[pymethods]
+impl PyDefaultMarker {
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        self.nr.py_range(py)
+    }
+    /// The `default` keyword token.
+    #[getter]
+    fn keyword(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().keyword().syntax())
+    }
+    /// The `=` / `:` separator, if written.
+    #[getter]
+    fn separator(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().separator())
+    }
+    #[getter]
+    fn value(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().value())
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "DefaultMarker({:?})",
+            self.view().value().map(|v| v.text()).unwrap_or_default()
+        )
+    }
+}
+
+// ─── Directive ───────────────────────────────────────────────────────────────
+
+/// Style-independent view of a directive (e.g. `.. deprecated:: 1.6.0`).
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "Directive")]
+struct PyDirective {
+    nr: NodeRef,
+}
+
+impl From<NodeRef> for PyDirective {
+    fn from(nr: NodeRef) -> Self {
+        Self { nr }
+    }
+}
+
+impl PyDirective {
+    fn view(&self) -> uv::Directive<'_> {
+        uv::Directive::cast(&self.nr.parsed, self.nr.node()).expect("NodeRef addresses a DIRECTIVE node")
+    }
+}
+
+#[pymethods]
+impl PyDirective {
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        self.nr.py_range(py)
+    }
+    /// The directive name (e.g. `deprecated`).
+    #[getter]
+    fn name(&self, py: Python<'_>) -> PyResult<Py<PyToken>> {
+        self.nr.token(py, self.view().name().syntax())
+    }
+    /// The directive argument (e.g. the version of a `.. deprecated::`).
+    #[getter]
+    fn argument(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().argument())
+    }
+    #[getter]
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().description())
+    }
+    fn __repr__(&self) -> String {
+        format!("Directive({:?})", self.view().name().text())
+    }
+}
+
+// ─── Citation ────────────────────────────────────────────────────────────────
+
+/// Style-independent view of a citation in a References section
+/// (`.. [label] content`, or a plain reference line).
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "Citation")]
+struct PyCitation {
+    nr: NodeRef,
+}
+
+impl From<NodeRef> for PyCitation {
+    fn from(nr: NodeRef) -> Self {
+        Self { nr }
+    }
+}
+
+impl PyCitation {
+    fn view(&self) -> uv::Citation<'_> {
+        uv::Citation::cast(&self.nr.parsed, self.nr.node()).expect("NodeRef addresses a CITATION node")
+    }
+}
+
+#[pymethods]
+impl PyCitation {
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        self.nr.py_range(py)
+    }
+    /// The citation label (`1`, `CIT2002`, `#f1`, …), if present.
+    #[getter]
+    fn label(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
+        self.nr.token_opt(py, self.view().label())
+    }
+    #[getter]
+    fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
+        self.nr.block_opt(py, self.view().description())
+    }
+    fn __repr__(&self) -> String {
+        format!(
+            "Citation({:?})",
+            self.view().label().map(|l| l.text()).unwrap_or_default()
+        )
+    }
+}
+
+// =============================================================================
 // Model IR types
 // =============================================================================
 
@@ -1803,7 +2212,7 @@ fn ensure_str_list(py: Python<'_>, list: &Py<PyList>, message: &str) -> PyResult
 ///
 /// Mirrors the core `model::Directive`: a deprecation notice is a directive
 /// with `name == "deprecated"` whose `argument` is the version.
-#[pyclass(name = "Directive")]
+#[pyclass(module = "pydocstring.model", name = "Directive")]
 struct PyModelDirective {
     #[pyo3(get, set)]
     name: Py<PyString>,
@@ -1865,7 +2274,7 @@ impl TryInto<model::Directive> for &PyModelDirective {
     }
 }
 
-#[pyclass(name = "Parameter")]
+#[pyclass(module = "pydocstring.model", name = "Parameter")]
 struct PyModelParameter {
     names: Py<PyList>,
     #[pyo3(get, set)]
@@ -1970,7 +2379,7 @@ impl TryInto<model::Parameter> for &PyModelParameter {
     }
 }
 
-#[pyclass(name = "Return")]
+#[pyclass(module = "pydocstring.model", name = "Return")]
 struct PyModelReturn {
     #[pyo3(get, set)]
     name: Option<Py<PyString>>,
@@ -2055,7 +2464,7 @@ impl TryInto<model::Return> for &PyModelReturn {
     }
 }
 
-#[pyclass(name = "ExceptionEntry")]
+#[pyclass(module = "pydocstring.model", name = "ExceptionEntry")]
 struct PyModelExceptionEntry {
     #[pyo3(get, set)]
     type_name: Py<PyString>,
@@ -2111,7 +2520,7 @@ impl TryInto<model::ExceptionEntry> for &PyModelExceptionEntry {
     }
 }
 
-#[pyclass(name = "SeeAlsoEntry")]
+#[pyclass(module = "pydocstring.model", name = "SeeAlsoEntry")]
 struct PyModelSeeAlsoEntry {
     names: Py<PyList>,
     #[pyo3(get, set)]
@@ -2181,7 +2590,7 @@ impl TryInto<model::SeeAlsoEntry> for &PyModelSeeAlsoEntry {
     }
 }
 
-#[pyclass(name = "Reference")]
+#[pyclass(module = "pydocstring.model", name = "Reference")]
 struct PyModelReference {
     #[pyo3(get, set)]
     label: Option<Py<PyString>>,
@@ -2246,7 +2655,7 @@ impl TryInto<model::Reference> for &PyModelReference {
     }
 }
 
-#[pyclass(name = "Attribute")]
+#[pyclass(module = "pydocstring.model", name = "Attribute")]
 struct PyModelAttribute {
     names: Py<PyList>,
     #[pyo3(get, set)]
@@ -2331,7 +2740,7 @@ impl TryInto<model::Attribute> for &PyModelAttribute {
     }
 }
 
-#[pyclass(name = "Method")]
+#[pyclass(module = "pydocstring.model", name = "Method")]
 struct PyModelMethod {
     #[pyo3(get, set)]
     name: Py<PyString>,
@@ -2405,7 +2814,7 @@ impl TryInto<model::Method> for &PyModelMethod {
 
 // ─── SectionKind ─────────────────────────────────────────────────────────────
 
-#[pyclass(from_py_object, eq, eq_int, frozen, hash, name = "SectionKind")]
+#[pyclass(from_py_object, eq, eq_int, frozen, hash, module = "pydocstring", name = "SectionKind")]
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 enum PySectionKind {
     #[pyo3(name = "PARAMETERS")]
@@ -2578,7 +2987,7 @@ fn model_section_kind_of(kind: PySectionKind, unknown_name: Option<String>) -> P
 
 /// A single body block within a [`Section`], mirroring the core
 /// [`model::Block`]: a prose paragraph or a typed entry, in source order.
-#[pyclass(name = "Block")]
+#[pyclass(module = "pydocstring.model", name = "Block")]
 enum PyModelBlock {
     Paragraph { text: Py<PyString> },
     Parameter { value: Py<PyModelParameter> },
@@ -2644,7 +3053,7 @@ impl PyModelBlock {
 
 /// A docstring section: a [`SectionKind`] paired with a flat sequence of
 /// [`Block`]s in source order, mirroring the core [`model::Section`].
-#[pyclass(name = "Section")]
+#[pyclass(module = "pydocstring.model", name = "Section")]
 struct PyModelSection {
     kind: PySectionKind,
     blocks: Py<PyList>,
@@ -2757,7 +3166,7 @@ impl TryInto<model::Section> for &PyModelSection {
 
 // ─── Model Docstring ─────────────────────────────────────────────────────────
 
-#[pyclass(name = "Docstring")]
+#[pyclass(module = "pydocstring.model", name = "Docstring")]
 struct PyModelDocstring {
     summary: Option<Py<PyString>>,
     extended_summary: Option<Py<PyString>>,
@@ -3002,7 +3411,7 @@ struct CaptureData {
 
 /// One metavariable capture of a `Match`: the original target bytes it bound
 /// (`text`) and their byte range. Frozen, read-only.
-#[pyclass(frozen, skip_from_py_object, name = "Capture")]
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "Capture")]
 struct PyCapture {
     data: CaptureData,
 }
@@ -3037,7 +3446,7 @@ impl PyCapture {
 /// One non-overlapping match of a pattern against a docstring: the matched
 /// span (`range` / `text`) and its metavariable `captures`. Frozen value
 /// snapshot — safe to keep after the source is dropped.
-#[pyclass(frozen, skip_from_py_object, name = "Match")]
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "Match")]
 struct PyMatch {
     start: u32,
     end: u32,
@@ -3222,7 +3631,7 @@ fn py_emit_sphinx(py: Python<'_>, doc: Py<PyModelDocstring>, base_indent: usize)
 /// Context passed to every ``enter_*` / `exit_*`` method during a ``walk()`` call.
 ///
 /// Provides source-location helpers for the docstring currently being walked.
-#[pyclass(frozen, skip_from_py_object, name = "WalkContext")]
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "WalkContext")]
 struct PyWalkContext {
     source: String,
     line_starts: Vec<u32>,
@@ -3968,18 +4377,41 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyNumPyMethod>()?;
     // Plain CST wrapper
     m.add_class::<PyPlainDocstring>()?;
-    // Model IR
+    // Unified (style-independent) views — the recommended read lens (#116)
+    m.add_class::<PyDocument>()?;
+    m.add_class::<PySection>()?;
+    m.add_class::<PyEntry>()?;
+    m.add_class::<PyDefaultMarker>()?;
+    m.add_class::<PyDirective>()?;
+    m.add_class::<PyCitation>()?;
+    // Section vocabulary — shared by the unified view (`section.kind`) and the
+    // model, so it stays at the top level and is re-exported from `model`.
     m.add_class::<PySectionKind>()?;
-    m.add_class::<PyModelDocstring>()?;
-    m.add_class::<PyModelSection>()?;
-    m.add_class::<PyModelBlock>()?;
-    m.add_class::<PyModelParameter>()?;
-    m.add_class::<PyModelReturn>()?;
-    m.add_class::<PyModelExceptionEntry>()?;
-    m.add_class::<PyModelSeeAlsoEntry>()?;
-    m.add_class::<PyModelReference>()?;
-    m.add_class::<PyModelAttribute>()?;
-    m.add_class::<PyModelMethod>()?;
-    m.add_class::<PyModelDirective>()?;
+
+    // Model IR — namespaced under `model`, mirroring the Rust crate's module
+    // split. The two layers each define a `Section` and a `Directive`; Rust
+    // keeps them apart with `model::` vs `parse::unified::`, and flattening
+    // both into one Python namespace is what made them collide. The top level
+    // is the CST / unified / edit surface; the model is a separate layer.
+    let model_mod = PyModule::new(m.py(), "model")?;
+    model_mod.add_class::<PySectionKind>()?;
+    model_mod.add_class::<PyModelDocstring>()?;
+    model_mod.add_class::<PyModelSection>()?;
+    model_mod.add_class::<PyModelBlock>()?;
+    model_mod.add_class::<PyModelParameter>()?;
+    model_mod.add_class::<PyModelReturn>()?;
+    model_mod.add_class::<PyModelExceptionEntry>()?;
+    model_mod.add_class::<PyModelSeeAlsoEntry>()?;
+    model_mod.add_class::<PyModelReference>()?;
+    model_mod.add_class::<PyModelAttribute>()?;
+    model_mod.add_class::<PyModelMethod>()?;
+    model_mod.add_class::<PyModelDirective>()?;
+    m.add_submodule(&model_mod)?;
+    // A submodule is only an attribute until it is in `sys.modules`; without
+    // this, `from pydocstring._pydocstring.model import Docstring` fails.
+    m.py()
+        .import("sys")?
+        .getattr("modules")?
+        .set_item("pydocstring._pydocstring.model", &model_mod)?;
     Ok(())
 }

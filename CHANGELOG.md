@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **The unified view is now available from Python** — `Document` → `Section` →
+  `Entry`, the style-independent read lens that Rust has had all along
+  ([#116](https://github.com/ryumasai/pydocstring/issues/116),
+  reported as [#115](https://github.com/ryumasai/pydocstring/issues/115)).
+  One code path reads every style: `Args:` and `Parameters` both resolve to
+  `SectionKind.PARAMETERS`, so a section's role is *data*, not a type to
+  dispatch on.
+
+  ```python
+  doc = pydocstring.Document(pydocstring.parse(src))
+  for section in doc.sections:
+      if section.kind == pydocstring.SectionKind.PARAMETERS:
+          for entry in section.entries:
+              print(entry.name.text)
+  ```
+
+  Every view keeps its byte range, so results double as edit anchors. Entry
+  accessors are all optional, so reading an entry never raises for a role that
+  does not carry that piece — a `Raises:` entry has `name is None` and its
+  exception type in `type_annotation`.
+
+  Also exposed: `DefaultMarker`, `Directive`, `Citation`.
+
+### Changed
+
+- **BREAKING (Python): the model IR moved to `pydocstring.model`.** The Rust
+  crate has always kept `model::Section` and `parse::unified::Section` apart by
+  module; the Python bindings flattened both layers into one namespace, which is
+  why they collided the moment the unified view was exposed. `Docstring`,
+  `Section`, `Block`, `Parameter`, `Return`, `ExceptionEntry`, `SeeAlsoEntry`,
+  `Reference`, `Attribute`, `Method`, and `Directive` now live under
+  `pydocstring.model`; the top level carries the CST / unified / edit surface.
+  `SectionKind` is shared vocabulary and stays at the top level (and is
+  re-exported from `pydocstring.model`).
+
+  ```python
+  # before
+  from pydocstring import Docstring, Parameter
+  # after
+  from pydocstring.model import Docstring, Parameter
+  ```
+
 ## [0.3.1] - 2026-07-10
 
 **The edit API release** — phase 3 of the v2 roadmap
