@@ -11,9 +11,9 @@ Produces a **unified syntax tree** with **byte-precise source locations** on eve
 
 ## Features
 
+- **One code path for every style** — the unified view (`Document` → `Section` → `Entry`) reads Google and NumPy docstrings with no style branching
 - **Full syntax tree** — builds a complete AST, not just extracted fields; traverse it with `walk()`
-- **Typed objects per style** — style-specific classes like `GoogleArg`, `NumPyParameter`
-- **Byte-precise source locations** — every token carries its exact byte range for pinpoint diagnostics
+- **Byte-precise source locations** — every view carries its exact byte range, for pinpoint diagnostics and as an anchor for edits
 - **Powered by Rust** — native extension with no Python runtime overhead
 - **Error-resilient** — never raises exceptions; malformed input still yields a best-effort tree
 - **Style auto-detection** — hand it a docstring, get back `Style.GOOGLE`, `Style.NUMPY`, or `Style.PLAIN`
@@ -26,36 +26,55 @@ pip install pydocstring-rs
 
 ## Usage
 
-### Unified Parse (auto-detect)
+### Reading a docstring (the unified view)
 
-Use `parse()` when you don't know the style in advance.
-The returned object has a `.style` property so you can dispatch without `isinstance` checks:
-
-```python
-from pydocstring import parse, Style
-
-doc = parse(source)
-
-match doc.style:
-    case Style.GOOGLE:
-        for arg in doc.sections[0].args:
-            print(arg.name.text, arg.description.text)
-    case Style.NUMPY:
-        for param in doc.sections[0].parameters:
-            print([n.text for n in param.names], param.description.text)
-    case Style.PLAIN:
-        print(doc.summary.text)
-```
-
-When you only need the style-independent model, no dispatch is necessary:
+`parse()` auto-detects the style; `Document` gives you a style-independent view
+of the result. This is the recommended way to read a docstring:
 
 ```python
-model = parse(source).to_model()  # works for all three styles
+from pydocstring import Document, SectionKind, parse
+
+doc = Document(parse(source))
+
+for section in doc.sections:
+    if section.kind == SectionKind.PARAMETERS:
+        for entry in section.entries:
+            print(entry.name.text, entry.description.logical_text)
 ```
 
-If you already know the style, prefer the explicit functions `parse_google()`,
-`parse_numpy()`, or `parse_plain()` — they return a concrete type and are
-slightly more efficient.
+The same loop reads both of these, unchanged — `Args:` and `Parameters` both
+resolve to `SectionKind.PARAMETERS`, so the role of a section is *data*, not a
+type you have to dispatch on:
+
+```python
+"""Summary.              """Summary.
+
+Args:                    Parameters
+    x (int): The value.  ----------
+"""                      x : int
+                             The value.
+                         """
+```
+
+Every view keeps its byte range, so the results double as edit anchors:
+
+```python
+entry = doc.sections[0].entries[0]
+r = entry.description.range
+edited = source[:r.start] + "A better description." + source[r.end:]
+```
+
+Everything outside that range is preserved byte-for-byte — the NumPy version
+keeps its indentation, the Google version keeps its `x (int): ` prefix.
+
+Accessors on `Entry` are all optional (`name`, `type_annotation`,
+`description`, …), so reading an entry never raises for a role that does not
+carry that piece: a `Raises:` entry simply has `name is None` and its exception
+type in `type_annotation`.
+
+If you already know the style, `parse_google()`, `parse_numpy()`, and
+`parse_plain()` return a concrete type and are slightly more efficient;
+`Document` accepts any of them.
 
 ### Style Detection
 
@@ -232,12 +251,14 @@ token = doc.summary
 print(token.range.start, token.range.end)  # 0 8
 ```
 
-### Style-Independent Model (IR)
+### Model IR (`pydocstring.model`)
 
-Convert any parsed docstring into a style-independent intermediate representation for analysis or transformation:
+`to_model()` produces the **model IR**: owned, interpreted data with the source
+positions dropped. It lives in its own namespace, mirroring the Rust crate:
 
 ```python
-from pydocstring import parse_google, Block, SectionKind
+from pydocstring import SectionKind, parse_google
+from pydocstring.model import Block
 
 parsed = parse_google("Summary.\n\nArgs:\n    x (int): The value.\n")
 doc = parsed.to_model()
@@ -259,12 +280,20 @@ A section body is a flat sequence of `Block`s in source order: prose
 `Block.Return`, `Block.Exception`, `Block.Attribute`, `Block.Method`,
 `Block.SeeAlso`, `Block.Reference`).
 
+**Model or unified view?** The dividing line is byte positions. The model drops
+them, which is what lets it apply semantics the tree cannot express (merging
+consecutive lines into one paragraph, for instance) — and it is why the model is
+a one-way projection: use it to inspect, transform, and re-emit. To *edit* a
+docstring in place, use the position-preserving `Document` view above; re-emitting
+from the model rewrites the whole docstring, including the parts you did not touch.
+
 ### Emitting (Code Generation)
 
-Re-emit a `Docstring` model in any style — useful for style conversion or formatting:
+Re-emit a model `Docstring` in any style — useful for style conversion or formatting:
 
 ```python
-from pydocstring import Docstring, Section, SectionKind, Block, Parameter, emit_google, emit_numpy
+from pydocstring import SectionKind, emit_google, emit_numpy
+from pydocstring.model import Block, Docstring, Parameter, Section
 
 doc = Docstring(
     summary="Brief summary.",
@@ -318,9 +347,27 @@ print(numpy_text)  # Contains "Parameters\n----------"
 
 ### Objects
 
+#### Unified views — the style-independent read lens
+
+| Class           | Key Properties                                                                                        |
+|-----------------|-------------------------------------------------------------------------------------------------------|
+| `Document`      | `Document(parsed)`; `style`, `summary`, `extended_summary`, `sections`, `directives`, `paragraphs`, `source`, `range` |
+| `Section`       | `kind` (`SectionKind`), `header_name`, `unknown_name`, `entries`, `body`, `citations`, `range`        |
+| `Entry`         | `name`, `names`, `type_annotation`, `description`, `is_optional`, `optionals`, `defaults`, `default_value`, `range` |
+| `DefaultMarker` | `keyword`, `separator`, `value`, `range`                                                              |
+| `Directive`     | `name`, `argument`, `description`, `range`                                                            |
+| `Citation`      | `label`, `description`, `range`                                                                       |
+
+Every accessor is optional, so no read raises for a role that does not carry
+that piece. `None` means "not present" — unlike the per-style wrappers below,
+these views do not surface zero-length missing placeholders.
+
+#### Core types and per-style CST wrappers
+
 | Class                | Key Properties                                                                                                   |
 |----------------------|------------------------------------------------------------------------------------------------------------------|
 | `Style`              | `GOOGLE`, `NUMPY`, `PLAIN` (enum)                                                                                |
+| `SectionKind`        | `PARAMETERS`, `RETURNS`, `RAISES`, `NOTES`, … (enum, 24 variants — shared by `Section.kind` and the model)       |
 | `GoogleSectionKind`  | `ARGS`, `RETURNS`, `YIELDS`, `RAISES`, `NOTES`, `EXAMPLES`, … (enum)                                            |
 | `NumPySectionKind`   | `PARAMETERS`, `RETURNS`, `YIELDS`, `RAISES`, `NOTES`, `EXAMPLES`, … (enum)                                      |
 | `GoogleDocstring`    | `style`, `summary`, `extended_summary`, `paragraphs`, `sections`, `deprecation`, `source`, `pretty_print()`, `to_model()` |
@@ -350,18 +397,25 @@ print(numpy_text)  # Contains "Parameters\n----------"
 | `TextRange`          | `start`, `end`, `is_empty()`                                                                                     |
 | `Visitor`            | Base class; subclass and override `enter_*` / `exit_*` methods                                                   |
 | `WalkContext`        | `line_col(offset)` — passed as second arg to every `enter_*` / `exit_*` hook                                    |
-| `SectionKind`        | `PARAMETERS`, `RETURNS`, `RAISES`, `NOTES`, … (enum, 24 variants — model IR)                                    |
-| `Docstring`          | `summary`, `extended_summary`, `directives`, `deprecation` (computed), `sections`                                |
-| `Section` (model)    | `kind`, `blocks`, `unknown_name`                                                                                 |
-| `Block` (model)      | variants `Paragraph` (`text`), `Parameter`/`Return`/`Exception`/`Attribute`/`Method`/`SeeAlso`/`Reference` (`value`) |
-| `Parameter`          | `names`, `type_annotation`, `description`, `is_optional`, `default_value`                                        |
-| `Return`             | `name`, `type_annotation`, `description`                                                                         |
-| `ExceptionEntry`     | `type_name`, `description`                                                                                       |
-| `Attribute`          | `name`, `type_annotation`, `description`                                                                         |
-| `Method`             | `name`, `type_annotation`, `description`                                                                         |
-| `SeeAlsoEntry`       | `names`, `description`                                                                                           |
-| `Reference`          | `label`, `content`                                                                                              |
-| `Directive`          | `name`, `argument`, `description`                                                                                |
+
+#### Model IR — `pydocstring.model`
+
+Position-free. `SectionKind` is shared with the unified view and stays at the
+top level; everything else lives under `pydocstring.model`.
+
+| Class                | Key Properties                                                                                                   |
+|----------------------|------------------------------------------------------------------------------------------------------------------|
+| `model.Docstring`    | `summary`, `extended_summary`, `directives`, `deprecation` (computed), `sections`                                |
+| `model.Section`      | `kind`, `blocks`, `unknown_name`                                                                                 |
+| `model.Block`        | variants `Paragraph` (`text`), `Parameter`/`Return`/`Exception`/`Attribute`/`Method`/`SeeAlso`/`Reference` (`value`) |
+| `model.Parameter`    | `names`, `type_annotation`, `description`, `is_optional`, `default_value`                                        |
+| `model.Return`       | `name`, `type_annotation`, `description`                                                                         |
+| `model.ExceptionEntry` | `type_name`, `description`                                                                                     |
+| `model.Attribute`    | `name`, `type_annotation`, `description`                                                                         |
+| `model.Method`       | `name`, `type_annotation`, `description`                                                                         |
+| `model.SeeAlsoEntry` | `names`, `description`                                                                                           |
+| `model.Reference`    | `label`, `content`                                                                                              |
+| `model.Directive`    | `name`, `argument`, `description`                                                                                |
 
 ## Development
 

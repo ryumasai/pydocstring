@@ -21,6 +21,7 @@ from __future__ import annotations
 from typing import TypeVar
 
 from ._visitor import Visitor
+from .model import Docstring
 
 _VisitorT = TypeVar("_VisitorT", bound="Visitor")
 
@@ -718,103 +719,14 @@ class PlainDocstring:
         ...
     def __repr__(self) -> str: ...
 
-# ─── Model IR ────────────────────────────────────────────────────────────────
-
-class Directive:
-    """A document-level rST directive (``.. name:: argument`` + body).
-
-    A deprecation notice is a directive with ``name == "deprecated"`` whose
-    ``argument`` is the version.
-    """
-
-    name: str
-    argument: str | None
-    description: str | None
-    def __init__(
-        self,
-        name: str,
-        *,
-        argument: str | None = None,
-        description: str | None = None,
-    ) -> None: ...
-    def __repr__(self) -> str: ...
-
-class Parameter:
-    names: list[str]
-    type_annotation: str | None
-    description: str | None
-    is_optional: bool
-    default_value: str | None
-    def __init__(
-        self,
-        names: list[str],
-        *,
-        type_annotation: str | None = None,
-        description: str | None = None,
-        is_optional: bool = False,
-        default_value: str | None = None,
-    ) -> None: ...
-    def __repr__(self) -> str: ...
-
-class Return:
-    name: str | None
-    type_annotation: str | None
-    description: str | None
-    def __init__(
-        self,
-        *,
-        name: str | None = None,
-        type_annotation: str | None = None,
-        description: str | None = None,
-    ) -> None: ...
-    def __repr__(self) -> str: ...
-
-class ExceptionEntry:
-    type_name: str
-    description: str | None
-    def __init__(self, type_name: str, *, description: str | None = None) -> None: ...
-    def __repr__(self) -> str: ...
-
-class SeeAlsoEntry:
-    names: list[str]
-    description: str | None
-    def __init__(self, names: list[str], *, description: str | None = None) -> None: ...
-    def __repr__(self) -> str: ...
-
-class Reference:
-    label: str | None
-    content: str | None
-    def __init__(self, *, label: str | None = None, content: str | None = None) -> None: ...
-    def __repr__(self) -> str: ...
-
-class Attribute:
-    names: list[str]
-    type_annotation: str | None
-    description: str | None
-    def __init__(
-        self,
-        names: list[str],
-        *,
-        type_annotation: str | None = None,
-        description: str | None = None,
-    ) -> None: ...
-    def __repr__(self) -> str: ...
-
-class Method:
-    name: str
-    type_annotation: str | None
-    description: str | None
-    def __init__(
-        self,
-        name: str,
-        *,
-        type_annotation: str | None = None,
-        description: str | None = None,
-    ) -> None: ...
-    def __repr__(self) -> str: ...
+# ─── Section kinds (shared with the model IR) ───────────────────────────────
 
 class SectionKind:
-    """Style-independent section kind for the model IR."""
+    """Style-independent section kind.
+
+    Shared vocabulary: it is what ``Section.kind`` resolves a header name to in
+    the unified view, and what a :class:`pydocstring.model.Section` carries.
+    """
 
     PARAMETERS: SectionKind
     KEYWORD_PARAMETERS: SectionKind
@@ -842,93 +754,135 @@ class SectionKind:
     UNKNOWN: SectionKind
     def __repr__(self) -> str: ...
 
-class Block:
-    """A body block within a :class:`Section`, mirroring the core ``model::Block``.
+# ─── Unified views — the style-independent read lens ─────────────────────────
 
-    A structured section body is a flat sequence of blocks in source order:
-    prose :class:`Block.Paragraph`\\ s interleaved with typed entries. Match a
-    block with ``isinstance(block, Block.Parameter)`` etc.; the entry variants
-    expose the wrapped model object as ``.value``, and ``Paragraph`` exposes
-    ``.text``.
+class Document:
+    """Style-independent view of a parsed docstring.
+
+    One code path for every style: ``"Args:"`` (Google) and ``"Parameters"``
+    (NumPy) both resolve to ``SectionKind.PARAMETERS``, so callers never branch
+    on style::
+
+        doc = pydocstring.Document(pydocstring.parse(src))
+        for section in doc.sections:
+            if section.kind == pydocstring.SectionKind.PARAMETERS:
+                for entry in section.entries:
+                    print(entry.name.text)
+
+    Every view keeps its byte range, so results are usable directly as edit
+    anchors. Unlike the per-style CST wrappers, these views never surface
+    zero-length missing placeholders: ``None`` means "not present".
     """
 
-    class Paragraph(Block):
-        text: str
-        def __init__(self, text: str) -> None: ...
-
-    class Parameter(Block):
-        value: Parameter
-        def __init__(self, value: Parameter) -> None: ...
-
-    class Return(Block):
-        value: Return
-        def __init__(self, value: Return) -> None: ...
-
-    class Exception(Block):
-        value: ExceptionEntry
-        def __init__(self, value: ExceptionEntry) -> None: ...
-
-    class Attribute(Block):
-        value: Attribute
-        def __init__(self, value: Attribute) -> None: ...
-
-    class Method(Block):
-        value: Method
-        def __init__(self, value: Method) -> None: ...
-
-    class SeeAlso(Block):
-        value: SeeAlsoEntry
-        def __init__(self, value: SeeAlsoEntry) -> None: ...
-
-    class Reference(Block):
-        value: Reference
-        def __init__(self, value: Reference) -> None: ...
+    def __init__(self, parsed: GoogleDocstring | NumPyDocstring | PlainDocstring) -> None: ...
+    @property
+    def range(self) -> TextRange: ...
+    @property
+    def style(self) -> Style: ...
+    @property
+    def source(self) -> str: ...
+    @property
+    def summary(self) -> TextBlock | None: ...
+    @property
+    def extended_summary(self) -> TextBlock | None: ...
+    @property
+    def sections(self) -> list[Section]: ...
+    @property
+    def directives(self) -> list[Directive]: ...
+    @property
+    def paragraphs(self) -> list[TextBlock]:
+        """Stray-prose paragraph blocks between sections, in source order."""
+    def __repr__(self) -> str: ...
 
 class Section:
-    """A docstring section in the model IR: a :class:`SectionKind` paired with a
-    flat sequence of :class:`Block`\\ s in source order.
+    """Style-independent view of one section.
 
-    Filter ``blocks`` by variant to read typed entries, e.g.
-    ``[b.value for b in section.blocks if isinstance(b, Block.Parameter)]``.
-    ``unknown_name`` carries the header text of an unrecognised free-text
-    section (``SectionKind.UNKNOWN``).
+    ``kind`` is the section's role as *data*, resolved from the header name via
+    the source style's section-name table.
     """
+    @property
+    def range(self) -> TextRange: ...
+    @property
+    def header_name(self) -> str:
+        """The header text as written (e.g. ``"Args"``, ``"Parameters"``)."""
     @property
     def kind(self) -> SectionKind: ...
     @property
-    def blocks(self) -> list[Block]: ...
+    def unknown_name(self) -> str | None:
+        """Header text of an unrecognised section (``kind == UNKNOWN``), else ``None``."""
     @property
-    def unknown_name(self) -> str | None: ...
-    def __init__(
-        self,
-        kind: SectionKind,
-        blocks: list[Block] | None = None,
-        *,
-        unknown_name: str | None = None,
-    ) -> None: ...
+    def entries(self) -> list[Entry]: ...
+    @property
+    def body(self) -> TextBlock | None:
+        """Free-text body, for sections carrying prose rather than entries."""
+    @property
+    def citations(self) -> list[Citation]: ...
     def __repr__(self) -> str: ...
 
-class Docstring:
-    """High-level docstring model used for emit / round-trip."""
+class Entry:
+    """Style-independent view of one entry: a parameter, return, yield,
+    exception, warning, attribute, method, or "See Also" item.
 
-    summary: str | None
-    extended_summary: str | None
-    directives: list[Directive]
-    sections: list[Section]
+    All roles share one type — the role is the parent section's ``kind``. Every
+    accessor is optional, so reading an entry never raises for a role that does
+    not carry that piece.
+    """
     @property
-    def deprecation(self) -> Directive | None:
-        """Computed convenience: the first directive named ``deprecated``.
+    def range(self) -> TextRange: ...
+    @property
+    def name(self) -> Token | None:
+        """The first name. ``None`` for entries that carry a type instead (Raises)."""
+    @property
+    def names(self) -> list[Token]:
+        """All names — an entry can declare several comma-separated ones."""
+    @property
+    def type_annotation(self) -> Token | None: ...
+    @property
+    def description(self) -> TextBlock | None: ...
+    @property
+    def is_optional(self) -> bool: ...
+    @property
+    def optionals(self) -> list[Token]: ...
+    @property
+    def defaults(self) -> list[DefaultMarker]:
+        """Every ``default …`` marker, one per occurrence, in source order."""
+    @property
+    def default_value(self) -> Token | None:
+        """The first ``default …`` value — first occurrence wins, as in the model."""
+    def __repr__(self) -> str: ...
 
-        Read-only — edit ``directives`` to change it.
-        """
-    def __init__(
-        self,
-        *,
-        summary: str | None = None,
-        extended_summary: str | None = None,
-        directives: list[Directive] | None = None,
-        sections: list[Section] | None = None,
-    ) -> None: ...
+class DefaultMarker:
+    """One ``default …`` marker inside a type annotation."""
+    @property
+    def range(self) -> TextRange: ...
+    @property
+    def keyword(self) -> Token: ...
+    @property
+    def separator(self) -> Token | None: ...
+    @property
+    def value(self) -> Token | None: ...
+    def __repr__(self) -> str: ...
+
+class Directive:
+    """Style-independent view of a directive (e.g. ``.. deprecated:: 1.6.0``)."""
+    @property
+    def range(self) -> TextRange: ...
+    @property
+    def name(self) -> Token: ...
+    @property
+    def argument(self) -> Token | None: ...
+    @property
+    def description(self) -> TextBlock | None: ...
+    def __repr__(self) -> str: ...
+
+class Citation:
+    """Style-independent view of a citation in a References section."""
+    @property
+    def range(self) -> TextRange: ...
+    @property
+    def label(self) -> Token | None: ...
+    @property
+    def description(self) -> TextBlock | None: ...
     def __repr__(self) -> str: ...
 
 # ─── Functions ───────────────────────────────────────────────────────────────

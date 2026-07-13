@@ -1,9 +1,10 @@
-from ._pydocstring import Attribute
-from ._pydocstring import Block
+from . import model
 from ._pydocstring import Capture
+from ._pydocstring import Citation
+from ._pydocstring import DefaultMarker
 from ._pydocstring import Directive
-from ._pydocstring import Docstring
-from ._pydocstring import ExceptionEntry
+from ._pydocstring import Document
+from ._pydocstring import Entry
 from ._pydocstring import GoogleArg
 from ._pydocstring import GoogleAttribute
 from ._pydocstring import GoogleDeprecation
@@ -20,7 +21,6 @@ from ._pydocstring import GoogleWarning
 from ._pydocstring import GoogleYield
 from ._pydocstring import LineColumn
 from ._pydocstring import Match
-from ._pydocstring import Method
 from ._pydocstring import NumPyAttribute
 from ._pydocstring import NumPyDeprecation
 from ._pydocstring import NumPyDirective
@@ -35,14 +35,10 @@ from ._pydocstring import NumPySectionKind
 from ._pydocstring import NumPySeeAlsoItem
 from ._pydocstring import NumPyWarning
 from ._pydocstring import NumPyYields
-from ._pydocstring import Parameter
 from ._pydocstring import PatternError
 from ._pydocstring import PlainDocstring
-from ._pydocstring import Reference
-from ._pydocstring import Return
 from ._pydocstring import Section
 from ._pydocstring import SectionKind
-from ._pydocstring import SeeAlsoEntry
 from ._pydocstring import Style
 from ._pydocstring import TextBlock
 from ._pydocstring import TextRange
@@ -71,6 +67,15 @@ __all__ = [
     "SectionKind",
     "GoogleSectionKind",
     "NumPySectionKind",
+    # ── Unified views — the style-independent read lens ───────────────────
+    "Document",
+    "Section",
+    "Entry",
+    "DefaultMarker",
+    "Directive",
+    "Citation",
+    # ── Model IR (position-free); see pydocstring.model ────────────────────
+    "model",
     # ── Google CST wrappers ───────────────────────────────────────────────
     "GoogleDocstring",
     "GoogleSection",
@@ -105,18 +110,6 @@ __all__ = [
     "Match",
     "Capture",
     "PatternError",
-    # ── Model IR ──────────────────────────────────────────────────────────
-    "Docstring",
-    "Section",
-    "Block",
-    "Parameter",
-    "Return",
-    "ExceptionEntry",
-    "SeeAlsoEntry",
-    "Reference",
-    "Attribute",
-    "Method",
-    "Directive",
     # ── Visitor ───────────────────────────────────────────────────────────
     "Visitor",
     # ── Functions ─────────────────────────────────────────────────────────

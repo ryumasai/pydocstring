@@ -10,7 +10,7 @@ def _entries(section, variant):
 
 def _paragraph(section):
     """The joined text of a section's `Block.Paragraph` blocks (its prose body)."""
-    texts = [b.text for b in section.blocks if isinstance(b, pydocstring.Block.Paragraph)]
+    texts = [b.text for b in section.blocks if isinstance(b, pydocstring.model.Block.Paragraph)]
     return "\n".join(texts) if texts else None
 
 
@@ -594,7 +594,7 @@ class TestLineColumn:
 
 class TestModelTypes:
     def test_parameter_construction(self):
-        p = pydocstring.Parameter(["x"], type_annotation="int", description="The value.")
+        p = pydocstring.model.Parameter(["x"], type_annotation="int", description="The value.")
         assert p.names == ["x"]
         assert p.type_annotation == "int"
         assert p.description == "The value."
@@ -602,7 +602,7 @@ class TestModelTypes:
         assert p.default_value is None
 
     def test_parameter_mutability(self):
-        p = pydocstring.Parameter(["x"])
+        p = pydocstring.model.Parameter(["x"])
         p.names = ["x", "y"]
         p.type_annotation = "str"
         p.is_optional = True
@@ -612,116 +612,116 @@ class TestModelTypes:
 
     def test_parameter_construction_validates_names(self):
         with pytest.raises(TypeError):
-            pydocstring.Parameter([1, 2])  # ty: ignore[invalid-argument-type]
+            pydocstring.model.Parameter([1, 2])  # ty: ignore[invalid-argument-type]
 
     def test_attribute_names_setter_validates(self):
-        a = pydocstring.Attribute(names=["x"])
+        a = pydocstring.model.Attribute(names=["x"])
         with pytest.raises(TypeError):
             a.names = [1]  # ty: ignore[invalid-assignment]
 
     def test_parameter_names_setter_validates(self):
-        p = pydocstring.Parameter(["x"])
+        p = pydocstring.model.Parameter(["x"])
         with pytest.raises(TypeError):
             p.names = [1, 2]  # ty: ignore[invalid-assignment]
         assert p.names == ["x"]
 
     def test_parameter_repr(self):
-        p = pydocstring.Parameter(["x", "y"])
+        p = pydocstring.model.Parameter(["x", "y"])
         assert repr(p) == "Parameter(names=['x', 'y'])"
 
     def test_return_construction(self):
-        r = pydocstring.Return(type_annotation="int", description="The result.")
+        r = pydocstring.model.Return(type_annotation="int", description="The result.")
         assert r.name is None
         assert r.type_annotation == "int"
         assert r.description == "The result."
 
     def test_exception_entry_construction(self):
-        e = pydocstring.ExceptionEntry("ValueError", description="If x is negative.")
+        e = pydocstring.model.ExceptionEntry("ValueError", description="If x is negative.")
         assert e.type_name == "ValueError"
         assert e.description == "If x is negative."
 
     def test_directive_construction(self):
-        d = pydocstring.Directive("deprecated", argument="1.6.0", description="Use new_func instead.")
+        d = pydocstring.model.Directive("deprecated", argument="1.6.0", description="Use new_func instead.")
         assert d.name == "deprecated"
         assert d.argument == "1.6.0"
         assert d.description == "Use new_func instead."
 
     def test_directive_defaults_and_repr(self):
-        d = pydocstring.Directive("versionadded")
+        d = pydocstring.model.Directive("versionadded")
         assert d.argument is None
         assert d.description is None
         assert repr(d) == 'Directive("versionadded")'
 
     def test_see_also_entry_construction_validates_names(self):
         with pytest.raises(TypeError):
-            pydocstring.SeeAlsoEntry(names=[1])  # ty: ignore[invalid-argument-type]
+            pydocstring.model.SeeAlsoEntry(names=[1])  # ty: ignore[invalid-argument-type]
 
     def test_attribute_construction(self):
-        a = pydocstring.Attribute(["name"], type_annotation="str", description="The name.")
+        a = pydocstring.model.Attribute(["name"], type_annotation="str", description="The name.")
         assert a.names == ["name"]
         assert a.type_annotation == "str"
 
     def test_attribute_construction_multiple_names(self):
-        a = pydocstring.Attribute(["jac", "hess"], type_annotation="ndarray")
+        a = pydocstring.model.Attribute(["jac", "hess"], type_annotation="ndarray")
         assert a.names == ["jac", "hess"]
 
     def test_attribute_construction_validates_names(self):
         with pytest.raises(TypeError):
-            pydocstring.Attribute(names=[1])  # ty: ignore[invalid-argument-type]
+            pydocstring.model.Attribute(names=[1])  # ty: ignore[invalid-argument-type]
 
     def test_method_construction(self):
-        m = pydocstring.Method("run", description="Run the task.")
+        m = pydocstring.model.Method("run", description="Run the task.")
         assert m.name == "run"
         assert m.type_annotation is None
         assert m.description == "Run the task."
 
     def test_see_also_entry_construction(self):
-        s = pydocstring.SeeAlsoEntry(["foo", "bar"], description="Related functions.")
+        s = pydocstring.model.SeeAlsoEntry(["foo", "bar"], description="Related functions.")
         assert s.names == ["foo", "bar"]
         assert s.description == "Related functions."
 
     def test_see_also_entry_names_setter_validates(self):
-        s = pydocstring.SeeAlsoEntry(["foo"])
+        s = pydocstring.model.SeeAlsoEntry(["foo"])
         with pytest.raises(TypeError):
             s.names = [1]  # ty: ignore[invalid-assignment]
         assert s.names == ["foo"]
 
     def test_reference_construction(self):
-        r = pydocstring.Reference(label="1", content="Doe et al. 2020")
+        r = pydocstring.model.Reference(label="1", content="Doe et al. 2020")
         assert r.label == "1"
         assert r.content == "Doe et al. 2020"
 
 
 class TestSection:
     def test_parameters_section(self):
-        p = pydocstring.Parameter(["x"], type_annotation="int", description="Value.")
-        sec = pydocstring.Section(pydocstring.SectionKind.PARAMETERS, [pydocstring.Block.Parameter(p)])
+        p = pydocstring.model.Parameter(["x"], type_annotation="int", description="Value.")
+        sec = pydocstring.model.Section(pydocstring.SectionKind.PARAMETERS, [pydocstring.model.Block.Parameter(p)])
         assert sec.kind == pydocstring.SectionKind.PARAMETERS
-        params = _entries(sec, pydocstring.Block.Parameter)
+        params = _entries(sec, pydocstring.model.Block.Parameter)
         assert len(params) == 1
         assert params[0].names == ["x"]
         assert params[0].type_annotation == "int"
 
     def test_returns_section(self):
-        r = pydocstring.Return(type_annotation="bool", description="Success.")
-        sec = pydocstring.Section(pydocstring.SectionKind.RETURNS, [pydocstring.Block.Return(r)])
+        r = pydocstring.model.Return(type_annotation="bool", description="Success.")
+        sec = pydocstring.model.Section(pydocstring.SectionKind.RETURNS, [pydocstring.model.Block.Return(r)])
         assert sec.kind == pydocstring.SectionKind.RETURNS
-        rets = _entries(sec, pydocstring.Block.Return)
+        rets = _entries(sec, pydocstring.model.Block.Return)
         assert len(rets) == 1
         assert rets[0].type_annotation == "bool"
 
     def test_raises_section(self):
-        e = pydocstring.ExceptionEntry("ValueError", description="Bad value.")
-        sec = pydocstring.Section(pydocstring.SectionKind.RAISES, [pydocstring.Block.Exception(e)])
+        e = pydocstring.model.ExceptionEntry("ValueError", description="Bad value.")
+        sec = pydocstring.model.Section(pydocstring.SectionKind.RAISES, [pydocstring.model.Block.Exception(e)])
         assert sec.kind == pydocstring.SectionKind.RAISES
-        exceptions = _entries(sec, pydocstring.Block.Exception)
+        exceptions = _entries(sec, pydocstring.model.Block.Exception)
         assert len(exceptions) == 1
         assert exceptions[0].type_name == "ValueError"
 
     def test_free_text_section(self):
-        sec = pydocstring.Section(
+        sec = pydocstring.model.Section(
             pydocstring.SectionKind.NOTES,
-            [pydocstring.Block.Paragraph("Some notes here.")],
+            [pydocstring.model.Block.Paragraph("Some notes here.")],
         )
         assert sec.kind == pydocstring.SectionKind.NOTES
         assert _paragraph(sec) == "Some notes here."
@@ -729,29 +729,31 @@ class TestSection:
     def test_prose_and_entries_interleave(self):
         # A structured section body is a flat block sequence: prose paragraphs
         # interleaved with typed entries, in order (#105).
-        sec = pydocstring.Section(
+        sec = pydocstring.model.Section(
             pydocstring.SectionKind.RETURNS,
             [
-                pydocstring.Block.Paragraph("If data is array-like, returns X."),
-                pydocstring.Block.Return(pydocstring.Return(type_annotation="ndarray", description="the rep.")),
+                pydocstring.model.Block.Paragraph("If data is array-like, returns X."),
+                pydocstring.model.Block.Return(
+                    pydocstring.model.Return(type_annotation="ndarray", description="the rep.")
+                ),
             ],
         )
         assert [type(b).__name__ for b in sec.blocks] == ["Paragraph", "Return"]
         assert _paragraph(sec) == "If data is array-like, returns X."
-        assert _entries(sec, pydocstring.Block.Return)[0].type_annotation == "ndarray"
+        assert _entries(sec, pydocstring.model.Block.Return)[0].type_annotation == "ndarray"
 
     def test_empty_section_has_no_blocks(self):
-        sec = pydocstring.Section(pydocstring.SectionKind.PARAMETERS)
+        sec = pydocstring.model.Section(pydocstring.SectionKind.PARAMETERS)
         assert list(sec.blocks) == []
-        assert _entries(sec, pydocstring.Block.Return) == []
+        assert _entries(sec, pydocstring.model.Block.Return) == []
         assert _paragraph(sec) is None
 
     def test_unknown_section_requires_name(self):
         with pytest.raises(ValueError, match="unknown_name"):
-            pydocstring.Section(pydocstring.SectionKind.UNKNOWN)
-        sec = pydocstring.Section(
+            pydocstring.model.Section(pydocstring.SectionKind.UNKNOWN)
+        sec = pydocstring.model.Section(
             pydocstring.SectionKind.UNKNOWN,
-            [pydocstring.Block.Paragraph("text")],
+            [pydocstring.model.Block.Paragraph("text")],
             unknown_name="Custom",
         )
         assert sec.kind == pydocstring.SectionKind.UNKNOWN
@@ -763,16 +765,16 @@ class TestSection:
 
     def test_unknown_name_rejected_for_non_unknown_kind(self):
         with pytest.raises(TypeError, match="unknown_name"):
-            pydocstring.Section(pydocstring.SectionKind.PARAMETERS, unknown_name="Nope")
+            pydocstring.model.Section(pydocstring.SectionKind.PARAMETERS, unknown_name="Nope")
 
     def test_blocks_must_be_block_instances(self):
         with pytest.raises(TypeError):
-            pydocstring.Section(pydocstring.SectionKind.PARAMETERS, ["not a block"])  # ty: ignore[invalid-argument-type]
+            pydocstring.model.Section(pydocstring.SectionKind.PARAMETERS, ["not a block"])  # ty: ignore[invalid-argument-type]
 
 
 class TestDocstringModel:
     def test_construction(self):
-        doc = pydocstring.Docstring(summary="Brief summary.")
+        doc = pydocstring.model.Docstring(summary="Brief summary.")
         assert doc.summary == "Brief summary."
         assert doc.extended_summary is None
         assert doc.directives == []
@@ -780,63 +782,63 @@ class TestDocstringModel:
         assert doc.sections == []
 
     def test_mutability(self):
-        doc = pydocstring.Docstring(summary="Old.")
+        doc = pydocstring.model.Docstring(summary="Old.")
         doc.summary = "New."
         assert doc.summary == "New."
 
     def test_repr_renders_summary(self):
-        assert repr(pydocstring.Docstring(summary="Hi.")) == 'Docstring(summary="Hi.")'
-        assert repr(pydocstring.Docstring()) == "Docstring(summary=None)"
+        assert repr(pydocstring.model.Docstring(summary="Hi.")) == 'Docstring(summary="Hi.")'
+        assert repr(pydocstring.model.Docstring()) == "Docstring(summary=None)"
 
     def test_with_sections(self):
-        p = pydocstring.Parameter(["x"], type_annotation="int")
-        sec = pydocstring.Section(pydocstring.SectionKind.PARAMETERS, [pydocstring.Block.Parameter(p)])
-        doc = pydocstring.Docstring(summary="Brief.", sections=[sec])
+        p = pydocstring.model.Parameter(["x"], type_annotation="int")
+        sec = pydocstring.model.Section(pydocstring.SectionKind.PARAMETERS, [pydocstring.model.Block.Parameter(p)])
+        doc = pydocstring.model.Docstring(summary="Brief.", sections=[sec])
         assert len(doc.sections) == 1
         assert doc.sections[0].kind == pydocstring.SectionKind.PARAMETERS
 
-        params = _entries(doc.sections[0], pydocstring.Block.Parameter)
+        params = _entries(doc.sections[0], pydocstring.model.Block.Parameter)
         assert len(params) == 1
         params[0].description = "foo"
         assert params[0].description == "foo"
 
     def test_with_directives(self):
-        dep = pydocstring.Directive("deprecated", argument="2.0", description="Removed.")
-        doc = pydocstring.Docstring(directives=[dep])
+        dep = pydocstring.model.Directive("deprecated", argument="2.0", description="Removed.")
+        doc = pydocstring.model.Docstring(directives=[dep])
         assert [d.name for d in doc.directives] == ["deprecated"]
         assert doc.deprecation is not None
         assert doc.deprecation.argument == "2.0"
         assert doc.deprecation.description == "Removed."
 
     def test_deprecation_is_computed_first_match(self):
-        doc = pydocstring.Docstring()
+        doc = pydocstring.model.Docstring()
         assert doc.deprecation is None
         doc.directives = [
-            pydocstring.Directive("versionadded", argument="1.0"),
-            pydocstring.Directive("deprecated", argument="2.0"),
-            pydocstring.Directive("deprecated", argument="3.0"),
+            pydocstring.model.Directive("versionadded", argument="1.0"),
+            pydocstring.model.Directive("deprecated", argument="2.0"),
+            pydocstring.model.Directive("deprecated", argument="3.0"),
         ]
         assert doc.deprecation is not None
         assert doc.deprecation.argument == "2.0"
 
     def test_deprecation_is_read_only(self):
-        doc = pydocstring.Docstring()
+        doc = pydocstring.model.Docstring()
         with pytest.raises(AttributeError):
-            doc.deprecation = pydocstring.Directive("deprecated")  # ty: ignore[invalid-assignment]
+            doc.deprecation = pydocstring.model.Directive("deprecated")  # ty: ignore[invalid-assignment]
 
     def test_deprecation_kwarg_removed(self):
         with pytest.raises(TypeError):
-            pydocstring.Docstring(deprecation=pydocstring.Directive("deprecated"))  # ty: ignore[unknown-argument]
+            pydocstring.model.Docstring(deprecation=pydocstring.model.Directive("deprecated"))  # ty: ignore[unknown-argument]
 
     def test_directives_validated(self):
         with pytest.raises(TypeError):
-            pydocstring.Docstring(directives=["not a directive"])  # ty: ignore[invalid-argument-type]
-        doc = pydocstring.Docstring()
+            pydocstring.model.Docstring(directives=["not a directive"])  # ty: ignore[invalid-argument-type]
+        doc = pydocstring.model.Docstring()
         with pytest.raises(TypeError):
             doc.directives = ["not a directive"]  # ty: ignore[invalid-assignment]
 
     def test_sections_setter_validated(self):
-        doc = pydocstring.Docstring()
+        doc = pydocstring.model.Docstring()
         with pytest.raises(TypeError):
             doc.sections = ["not a section"]  # ty: ignore[invalid-assignment]
 
@@ -849,7 +851,7 @@ class TestToModel:
         assert model.summary == "Summary."
         assert len(model.sections) == 1
         assert model.sections[0].kind == pydocstring.SectionKind.PARAMETERS
-        params = _entries(model.sections[0], pydocstring.Block.Parameter)
+        params = _entries(model.sections[0], pydocstring.model.Block.Parameter)
         assert len(params) == 1
         assert params[0].names == ["x"]
         assert params[0].type_annotation == "int"
@@ -863,7 +865,7 @@ class TestToModel:
         assert model.summary == "Summary."
         assert len(model.sections) == 1
         assert model.sections[0].kind == pydocstring.SectionKind.PARAMETERS
-        params = _entries(model.sections[0], pydocstring.Block.Parameter)
+        params = _entries(model.sections[0], pydocstring.model.Block.Parameter)
         assert len(params) == 1
         assert params[0].names == ["x"]
         assert params[0].type_annotation == "int"
@@ -894,14 +896,14 @@ class TestToModel:
         doc = pydocstring.parse_google("Summary.\n\nRaises:\n    ValueError: Bad input.\n")
         model = doc.to_model()
         assert model.sections[0].kind == pydocstring.SectionKind.RAISES
-        exceptions = _entries(model.sections[0], pydocstring.Block.Exception)
+        exceptions = _entries(model.sections[0], pydocstring.model.Block.Exception)
         assert exceptions[0].type_name == "ValueError"
 
     def test_google_to_model_returns(self):
         doc = pydocstring.parse_google("Summary.\n\nReturns:\n    int: The result.\n")
         model = doc.to_model()
         assert model.sections[0].kind == pydocstring.SectionKind.RETURNS
-        rets = _entries(model.sections[0], pydocstring.Block.Return)
+        rets = _entries(model.sections[0], pydocstring.model.Block.Return)
         assert len(rets) == 1
         assert rets[0].type_annotation == "int"
 
@@ -916,9 +918,9 @@ class TestToModel:
         assert dep.description == "Use new_func instead."
 
     def test_emit_docstring_with_directive(self):
-        doc = pydocstring.Docstring(
+        doc = pydocstring.model.Docstring(
             summary="Summary.",
-            directives=[pydocstring.Directive("deprecated", argument="2.0", description="Gone.")],
+            directives=[pydocstring.model.Directive("deprecated", argument="2.0", description="Gone.")],
         )
         emitted = pydocstring.emit_google(doc)
         assert ".. deprecated:: 2.0" in emitted
@@ -1473,7 +1475,7 @@ class TestMissingnessGrammarAsymmetries:
         model = pydocstring.parse_numpy(
             "Summary.\n\nAttributes\n----------\njac, hess : ndarray\n    Derivatives.\n"
         ).to_model()
-        attrs = _entries(model.sections[0], pydocstring.Block.Attribute)
+        attrs = _entries(model.sections[0], pydocstring.model.Block.Attribute)
         assert attrs is not None
         assert attrs[0].names == ["jac", "hess"]
 
@@ -1550,3 +1552,174 @@ class TestRewrite:
         doc = pydocstring.parse_google("Summary.\n\nArgs:\n    x (int): The value.\n")
         with pytest.raises(ValueError):
             doc.replace("$NAME ($TYPE): $DESC", "$NOPE")
+
+
+# ─── Unified views (#116) ────────────────────────────────────────────────────
+
+# The same docstring, written in each style. The point of the unified view is
+# that one code path reads all of them.
+GOOGLE_SRC = "Summary.\n\nArgs:\n    x (int): The value.\n    y: Another.\n"
+NUMPY_SRC = "Summary.\n\nParameters\n----------\nx : int\n    The value.\ny\n    Another.\n"
+
+
+def _document(src):
+    return pydocstring.Document(pydocstring.parse(src))
+
+
+def _parameters(doc):
+    return [
+        entry
+        for section in doc.sections
+        if section.kind == pydocstring.SectionKind.PARAMETERS
+        for entry in section.entries
+    ]
+
+
+class TestUnifiedView:
+    @pytest.mark.parametrize("src", [GOOGLE_SRC, NUMPY_SRC], ids=["google", "numpy"])
+    def test_one_code_path_reads_every_style(self, src):
+        """The #115 promise: no style branching, same result."""
+        entries = _parameters(_document(src))
+        assert [e.name.text for e in entries] == ["x", "y"]
+        assert [e.type_annotation.text if e.type_annotation else None for e in entries] == ["int", None]
+        assert [e.description.logical_text for e in entries] == ["The value.", "Another."]
+
+    @pytest.mark.parametrize(
+        ("src", "header"),
+        [(GOOGLE_SRC, "Args"), (NUMPY_SRC, "Parameters")],
+        ids=["google", "numpy"],
+    )
+    def test_kind_is_style_independent_but_header_name_is_verbatim(self, src, header):
+        section = _document(src).sections[0]
+        assert section.kind == pydocstring.SectionKind.PARAMETERS
+        assert section.header_name == header
+        assert section.unknown_name is None
+
+    @pytest.mark.parametrize("src", [GOOGLE_SRC, NUMPY_SRC], ids=["google", "numpy"])
+    def test_ranges_are_edit_anchors(self, src):
+        """A range splice rewrites one description and moves nothing else."""
+        entry = next(e for e in _parameters(_document(src)) if e.name.text == "y")
+        r = entry.description.range
+        edited = src[: r.start] + "The other value." + src[r.end :]
+        assert edited == src.replace("Another.", "The other value.")
+        # Everything outside the splice is byte-identical, including the
+        # style's own indentation and punctuation.
+        assert edited.count("\n") == src.count("\n")
+
+    def test_document_style_and_source(self):
+        doc = _document(GOOGLE_SRC)
+        assert doc.style == pydocstring.Style.GOOGLE
+        assert doc.source == GOOGLE_SRC
+        assert doc.summary.text == "Summary."
+        assert doc.extended_summary is None
+
+    def test_mismatched_role_reads_none_instead_of_raising(self):
+        """Every Entry accessor is optional — no panic-on-miscast path."""
+        src = "Summary.\n\nRaises:\n    ValueError: If bad.\n"
+        section = _document(src).sections[0]
+        assert section.kind == pydocstring.SectionKind.RAISES
+        entry = section.entries[0]
+        # A Raises entry carries a type, not a name.
+        assert entry.name is None
+        assert entry.names == []
+        assert entry.type_annotation.text == "ValueError"
+        assert entry.description.logical_text == "If bad."
+        assert entry.default_value is None
+        assert entry.defaults == []
+        assert entry.is_optional is False
+
+    def test_optional_and_defaults(self):
+        src = "Summary.\n\nParameters\n----------\nx : int, optional, default 1\n    Desc.\n"
+        entry = _parameters(_document(src))[0]
+        assert entry.is_optional is True
+        assert [t.text for t in entry.optionals] == ["optional"]
+        assert entry.default_value.text == "1"
+        marker = entry.defaults[0]
+        assert marker.keyword.text == "default"
+        assert marker.value.text == "1"
+
+    def test_repeated_defaults_expose_every_occurrence(self):
+        src = "Summary.\n\nParameters\n----------\nx : int, default 1, default 2\n    Desc.\n"
+        entry = _parameters(_document(src))[0]
+        assert [m.value.text for m in entry.defaults] == ["1", "2"]
+        # First occurrence wins, matching the model's normalization rule.
+        assert entry.default_value.text == "1"
+
+    def test_comma_separated_names(self):
+        src = "Summary.\n\nArgs:\n    x, y (int): The values.\n"
+        entry = _parameters(_document(src))[0]
+        assert [t.text for t in entry.names] == ["x", "y"]
+        assert entry.name.text == "x"
+
+    def test_free_text_section_body(self):
+        src = "Summary.\n\nNotes\n-----\nSome prose.\n"
+        section = _document(src).sections[0]
+        assert section.kind == pydocstring.SectionKind.NOTES
+        assert section.entries == []
+        assert section.body.logical_text == "Some prose."
+
+    def test_unknown_section_carries_its_header_text(self):
+        src = "Summary.\n\nFrobnicate\n----------\nSome prose.\n"
+        section = _document(src).sections[0]
+        assert section.kind == pydocstring.SectionKind.UNKNOWN
+        assert section.unknown_name == "Frobnicate"
+        assert section.header_name == "Frobnicate"
+
+    def test_directives(self):
+        # A directive is only parsed as one in a sectioned style; a docstring
+        # that is nothing but a directive detects as Plain, whose parser reads
+        # it as extended summary.
+        src = "Summary.\n\n.. deprecated:: 1.6.0\n    Use something else.\n\nArgs:\n    x: The value.\n"
+        directive = _document(src).directives[0]
+        assert directive.name.text == "deprecated"
+        assert directive.argument.text == "1.6.0"
+        assert directive.description.logical_text == "Use something else."
+
+    def test_citations(self):
+        src = "Summary.\n\nReferences\n----------\n.. [1] The citation.\n"
+        section = _document(src).sections[0]
+        assert section.kind == pydocstring.SectionKind.REFERENCES
+        citation = section.citations[0]
+        assert citation.label.text == "1"
+        assert citation.description.logical_text == "The citation."
+
+    def test_plain_docstring_has_no_sections(self):
+        doc = _document("Just a summary.\n")
+        assert doc.style == pydocstring.Style.PLAIN
+        assert doc.sections == []
+        assert doc.summary.text == "Just a summary."
+
+    def test_type_annotation_is_none_not_a_missing_placeholder(self):
+        """The unified view mirrors the core: None means "not present"."""
+        entry = _parameters(_document("Summary.\n\nArgs:\n    x ():  Desc.\n"))[0]
+        assert entry.type_annotation is None
+
+    def test_construction_rejects_a_non_docstring(self):
+        with pytest.raises(TypeError):
+            pydocstring.Document("Summary.\n")
+
+    def test_accepts_a_style_forced_parse(self):
+        doc = pydocstring.Document(pydocstring.parse_numpy(NUMPY_SRC))
+        assert [e.name.text for e in _parameters(doc)] == ["x", "y"]
+
+    def test_repr(self):
+        doc = _document(GOOGLE_SRC)
+        assert repr(doc.sections[0]) == 'Section("Args")'
+        assert repr(doc.sections[0].entries[0]) == 'Entry("x")'
+
+
+class TestModelNamespace:
+    def test_model_is_a_separate_layer_from_the_unified_view(self):
+        """Both layers define `Section`; they are distinct types."""
+        assert pydocstring.Section is not pydocstring.model.Section
+        assert pydocstring.Directive is not pydocstring.model.Directive
+        assert pydocstring.Section.__module__ == "pydocstring"
+        assert pydocstring.model.Section.__module__ == "pydocstring.model"
+
+    def test_section_kind_is_shared_vocabulary(self):
+        assert pydocstring.SectionKind is pydocstring.model.SectionKind
+
+    def test_to_model_returns_the_model_type(self):
+        doc = pydocstring.parse(GOOGLE_SRC).to_model()
+        assert isinstance(doc, pydocstring.model.Docstring)
+        assert doc.sections[0].kind == pydocstring.SectionKind.PARAMETERS

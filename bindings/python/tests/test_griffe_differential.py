@@ -237,7 +237,7 @@ _PARAM_KINDS = {
 }
 
 
-def _entries(section: pydocstring.Section, cls: type) -> list:
+def _entries(section: pydocstring.model.Section, cls: type) -> list:
     """The `.value` of every block in `section` of the given `Block` variant.
 
     Prose `Block.Paragraph`s are ignored — the role map compares typed entries
@@ -247,7 +247,7 @@ def _entries(section: pydocstring.Section, cls: type) -> list:
     return [block.value for block in section.blocks if isinstance(block, cls)]  # ty: ignore[unresolved-attribute]
 
 
-def our_role_map(model: pydocstring.Docstring) -> dict[str, list[tuple]]:
+def our_role_map(model: pydocstring.model.Docstring) -> dict[str, list[tuple]]:
     role_map: dict[str, list[tuple]] = {
         "parameters": [],
         "attributes": [],
@@ -256,10 +256,10 @@ def our_role_map(model: pydocstring.Docstring) -> dict[str, list[tuple]]:
     }
     for section in model.sections:
         kind = section.kind
-        parameters = _entries(section, pydocstring.Block.Parameter)
-        attributes = _entries(section, pydocstring.Block.Attribute)
-        exceptions = _entries(section, pydocstring.Block.Exception)
-        returns = _entries(section, pydocstring.Block.Return)
+        parameters = _entries(section, pydocstring.model.Block.Parameter)
+        attributes = _entries(section, pydocstring.model.Block.Attribute)
+        exceptions = _entries(section, pydocstring.model.Block.Exception)
+        returns = _entries(section, pydocstring.model.Block.Return)
         if kind in _PARAM_KINDS and parameters:
             for prm in parameters:
                 for name in prm.names:  # expand multi-name groups
