@@ -1597,10 +1597,21 @@ class TestUnifiedView:
 
     @pytest.mark.parametrize("src", [GOOGLE_SRC, NUMPY_SRC], ids=["google", "numpy"])
     def test_ranges_are_edit_anchors(self, src):
-        """A range splice rewrites one description and moves nothing else."""
+        """A range splice rewrites one description and moves nothing else.
+
+        Ranges are **byte** offsets into the UTF-8 source, so the splice is on
+        `src.encode()`. The summary carries a non-ASCII character precisely so
+        that slicing the `str` instead would land in the wrong place and fail
+        this test.
+        """
+        src = src.replace("Summary.", "Résumé.")
+        assert len(src.encode()) != len(src), "fixture must be non-ASCII to pin byte semantics"
+
         entry = next(e for e in _parameters(_document(src)) if e.name.text == "y")
         r = entry.description.range
-        edited = src[: r.start] + "The other value." + src[r.end :]
+
+        raw = src.encode()
+        edited = (raw[: r.start] + b"The other value." + raw[r.end :]).decode()
         assert edited == src.replace("Another.", "The other value.")
         # Everything outside the splice is byte-identical, including the
         # style's own indentation and punctuation.

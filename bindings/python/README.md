@@ -56,16 +56,22 @@ Args:                    Parameters
                          """
 ```
 
-Every view keeps its byte range, so the results double as edit anchors:
+Every view keeps its range, so the results double as edit anchors:
 
 ```python
 entry = doc.sections[0].entries[0]
 r = entry.description.range
-edited = source[:r.start] + "A better description." + source[r.end:]
+
+raw = source.encode()
+edited = (raw[:r.start] + b"A better description." + raw[r.end:]).decode()
 ```
 
 Everything outside that range is preserved byte-for-byte — the NumPy version
 keeps its indentation, the Google version keeps its `x (int): ` prefix.
+
+> **Ranges are byte offsets into the UTF-8 source, not character indices.** Slice
+> `source.encode()`, not `source`: with any non-ASCII character before the range,
+> `source[:r.start]` cuts in the wrong place.
 
 Accessors on `Entry` are all optional (`name`, `type_annotation`,
 `description`, …), so reading an entry never raises for a role that does not
@@ -411,7 +417,7 @@ top level; everything else lives under `pydocstring.model`.
 | `model.Parameter`    | `names`, `type_annotation`, `description`, `is_optional`, `default_value`                                        |
 | `model.Return`       | `name`, `type_annotation`, `description`                                                                         |
 | `model.ExceptionEntry` | `type_name`, `description`                                                                                     |
-| `model.Attribute`    | `name`, `type_annotation`, `description`                                                                         |
+| `model.Attribute`    | `names`, `type_annotation`, `description`                                                                        |
 | `model.Method`       | `name`, `type_annotation`, `description`                                                                         |
 | `model.SeeAlsoEntry` | `names`, `description`                                                                                           |
 | `model.Reference`    | `label`, `content`                                                                                              |
