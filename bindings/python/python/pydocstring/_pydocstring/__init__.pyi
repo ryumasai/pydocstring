@@ -430,6 +430,9 @@ class GoogleDocstring:
     def style(self) -> Style: ...
     def pretty_print(self) -> str: ...
     def to_model(self) -> Docstring: ...
+    def edit(self) -> Edits:
+        """Start an empty edit list anchored on this parse result."""
+        ...
     def replace(self, pattern: str, template: str) -> str:
         """Replace every match of ``pattern`` with ``template``, returning new source.
 
@@ -677,6 +680,9 @@ class NumPyDocstring:
     def style(self) -> Style: ...
     def pretty_print(self) -> str: ...
     def to_model(self) -> Docstring: ...
+    def edit(self) -> Edits:
+        """Start an empty edit list anchored on this parse result."""
+        ...
     def replace(self, pattern: str, template: str) -> str:
         """Replace every match of ``pattern`` with ``template``, returning new source.
 
@@ -706,6 +712,9 @@ class PlainDocstring:
     def style(self) -> Style: ...
     def pretty_print(self) -> str: ...
     def to_model(self) -> Docstring: ...
+    def edit(self) -> Edits:
+        """Start an empty edit list anchored on this parse result."""
+        ...
     def replace(self, pattern: str, template: str) -> str:
         """Replace every match of ``pattern`` with ``template``, returning new source.
 
@@ -792,6 +801,9 @@ class Document:
     @property
     def paragraphs(self) -> list[TextBlock]:
         """Stray-prose paragraph blocks between sections, in source order."""
+    def edit(self) -> Edits:
+        """Start an empty edit list anchored on this docstring."""
+        ...
     def __repr__(self) -> str: ...
 
 class Section:
@@ -883,6 +895,72 @@ class Citation:
     def label(self) -> Token | None: ...
     @property
     def description(self) -> TextBlock | None: ...
+    def __repr__(self) -> str: ...
+
+# ─── Editing — anchored splice edits ─────────────────────────────────────────
+
+class EditError(ValueError):
+    """Raised by :meth:`Edits.apply` when the edit list is invalid.
+
+    Either a range is out of bounds, or two edits overlap (touching ranges are
+    fine). A ``ValueError`` subclass.
+    """
+
+class Edits:
+    """A list of pending edits anchored on one parse result.
+
+    Everything an edit does not touch is preserved byte-for-byte: an empty edit
+    list reproduces the source exactly, and replacing an element with its own
+    text is the identity. Anchor edits on the ``range`` of any view::
+
+        doc = pydocstring.Document(pydocstring.parse(src))
+        edits = doc.edit()
+        for section in doc.sections:
+            if section.kind == pydocstring.SectionKind.PARAMETERS:
+                for entry in section.entries:
+                    edits.replace(entry.description.range, "Better.")
+        result = edits.apply()
+    """
+
+    def replace(self, range: TextRange, text: str) -> None:
+        """Replace the bytes of ``range`` with ``text``.
+
+        A zero-length range inserts at that offset — which is how a missing
+        placeholder token (``token.is_missing()``) works as an insertion anchor.
+        Empty ``text`` deletes. Ranges are validated by ``apply()``, not here.
+        """
+        ...
+    def insert(self, at: int, text: str) -> None:
+        """Insert ``text`` at byte offset ``at``.
+
+        Multiple inserts at the same offset are applied in call order.
+        """
+        ...
+    def delete(self, range: TextRange) -> None:
+        """Delete the bytes of ``range``."""
+        ...
+    def remove_lines(self, range: TextRange) -> None:
+        """Delete ``range`` together with the whole line(s) it occupies.
+
+        Takes the leading indentation, the trailing newline, and one adjacent
+        trailing blank line if the tree has one there.
+        """
+        ...
+    def apply(self) -> str:
+        """Validate the edit list and splice it into a new source string.
+
+        Non-consuming: the list can be applied again or added to afterwards.
+        Raises :class:`EditError` for an out-of-bounds or overlapping edit.
+        """
+        ...
+    def apply_reparsed(self) -> GoogleDocstring | NumPyDocstring | PlainDocstring:
+        """``apply()`` the edits, then re-parse the result.
+
+        The style is deliberately **not** re-detected: editing must not silently
+        reinterpret the docstring as another style.
+        """
+        ...
+    def __len__(self) -> int: ...
     def __repr__(self) -> str: ...
 
 # ─── Functions ───────────────────────────────────────────────────────────────

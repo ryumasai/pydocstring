@@ -6,6 +6,7 @@ use pydocstring_core::matcher::Match;
 use pydocstring_core::parse::Style as CoreStyle;
 use pydocstring_core::pattern::Pattern;
 
+use pydocstring_core::edit::Edits as CoreEdits;
 use pydocstring_core::emit::EmitOptions;
 use pydocstring_core::model;
 use pydocstring_core::parse::DefaultMarker;
@@ -21,6 +22,7 @@ use pydocstring_core::parse::unified as uv;
 use pydocstring_core::parse::visitor::{DocstringVisitor, walk as core_walk, walk_children};
 use pydocstring_core::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use pydocstring_core::text::TextRange;
+use pydocstring_core::text::TextSize;
 
 use std::convert::{TryFrom, TryInto};
 use std::ops::Deref;
@@ -1214,6 +1216,13 @@ impl PyGoogleDocstring {
             .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
     }
+    /// Start an empty edit list anchored on this parse result.
+    ///
+    /// Anchor edits on the ``range`` of any view; everything an edit does not
+    /// touch is preserved byte-for-byte.
+    fn edit(&self) -> PyEdits {
+        PyEdits::new(Arc::clone(&self.nr.parsed))
+    }
     /// Replace every match of ``pattern`` (a Google-style pattern with
     /// ``$NAME`` / ``$$$NAME`` metavariables) with ``template``, returning the
     /// new source. Captured content is substituted byte-for-byte; everything
@@ -1696,6 +1705,13 @@ impl PyNumPyDocstring {
             .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
     }
+    /// Start an empty edit list anchored on this parse result.
+    ///
+    /// Anchor edits on the ``range`` of any view; everything an edit does not
+    /// touch is preserved byte-for-byte.
+    fn edit(&self) -> PyEdits {
+        PyEdits::new(Arc::clone(&self.nr.parsed))
+    }
     /// Replace every match of ``pattern`` (a NumPy-style pattern with
     /// ``$NAME`` / ``$$$NAME`` metavariables) with ``template``, returning the
     /// new source. Captured content is substituted byte-for-byte; everything
@@ -1757,6 +1773,13 @@ impl PyPlainDocstring {
             .map(|doc| PyModelDocstring::try_from(&doc))
             .transpose()?
             .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("failed to convert to model"))
+    }
+    /// Start an empty edit list anchored on this parse result.
+    ///
+    /// Anchor edits on the ``range`` of any view; everything an edit does not
+    /// touch is preserved byte-for-byte.
+    fn edit(&self) -> PyEdits {
+        PyEdits::new(Arc::clone(&self.nr.parsed))
     }
     /// Replace every match of ``pattern`` (a plain-style pattern with
     /// ``$NAME`` / ``$$$NAME`` metavariables) with ``template``, returning the
@@ -1893,6 +1916,10 @@ impl PyDocument {
     #[getter]
     fn paragraphs(&self, py: Python<'_>) -> PyResult<Vec<Py<PyTextBlock>>> {
         self.nr.blocks(py, self.view().paragraphs())
+    }
+    /// Start an empty edit list anchored on this docstring.
+    fn edit(&self) -> PyEdits {
+        PyEdits::new(Arc::clone(&self.nr.parsed))
     }
     fn __repr__(&self) -> String {
         format!("Document(style={:?})", self.view().style())
@@ -2188,6 +2215,136 @@ impl PyCitation {
             "Citation({:?})",
             self.view().label().map(|l| l.text()).unwrap_or_default()
         )
+    }
+}
+
+// =============================================================================
+// Edits — anchored splice edits (#117)
+// =============================================================================
+
+pyo3::create_exception!(
+    _pydocstring,
+    EditError,
+    pyo3::exceptions::PyValueError,
+    "Raised by Edits.apply() when the edit list is invalid — a range is out of \
+     bounds, or two edits overlap (a ValueError subclass)."
+);
+
+/// One recorded operation. Kept as an operation rather than a resolved splice
+/// so that `remove_lines`'s line-extent expansion stays in the core.
+enum Splice {
+    Replace(TextRange, String),
+    RemoveLines(TextRange),
+}
+
+/// A list of pending edits anchored on one parse result.
+///
+/// Everything an edit does not touch is preserved byte-for-byte: an empty edit
+/// list reproduces the source exactly, and replacing an element with its own
+/// text is the identity. Anchor edits on the `range` of any view::
+///
+///     doc = pydocstring.Document(pydocstring.parse(src))
+///     edits = doc.edit()
+///     for section in doc.sections:
+///         if section.kind == pydocstring.SectionKind.PARAMETERS:
+///             for entry in section.entries:
+///                 edits.replace(entry.description.range, "Better.")
+///     result = edits.apply()
+///
+/// `Edits` borrows `&Parsed` in Rust, but what it accumulates is position plus
+/// text — nothing that needs a borrow to *store*. So this holds the shared
+/// `Arc<Parsed>` and the recorded operations, and rebuilds the borrowed core
+/// builder inside `apply()`, replaying them into it. Validation therefore stays
+/// exactly where it is: in the core `apply()`.
+#[pyclass(module = "pydocstring", name = "Edits")]
+struct PyEdits {
+    parsed: Arc<Parsed>,
+    splices: Vec<Splice>,
+}
+
+impl PyEdits {
+    fn new(parsed: Arc<Parsed>) -> Self {
+        Self {
+            parsed,
+            splices: Vec::new(),
+        }
+    }
+
+    /// Rebuild the core builder and replay the recorded operations into it.
+    fn build(&self) -> CoreEdits<'_> {
+        let mut edits = self.parsed.edit();
+        for splice in &self.splices {
+            match splice {
+                Splice::Replace(range, text) => edits.replace(*range, text.clone()),
+                Splice::RemoveLines(range) => edits.remove_lines_range(*range),
+            };
+        }
+        edits
+    }
+}
+
+/// Read a Python `TextRange` back into the core type.
+fn core_range(range: &Bound<'_, PyTextRange>) -> TextRange {
+    let r = range.get();
+    TextRange::new(TextSize::from(r.start), TextSize::from(r.end))
+}
+
+#[pymethods]
+impl PyEdits {
+    /// Replace the bytes of ``range`` with ``text``.
+    ///
+    /// A zero-length range inserts at that offset — which is how a missing
+    /// placeholder token (``token.is_missing()``) works as an insertion anchor.
+    /// Empty ``text`` deletes. Ranges are validated by ``apply()``, not here.
+    fn replace(&mut self, range: &Bound<'_, PyTextRange>, text: String) {
+        self.splices.push(Splice::Replace(core_range(range), text));
+    }
+    /// Insert ``text`` at byte offset ``at``.
+    ///
+    /// Multiple inserts at the same offset are applied in call order.
+    fn insert(&mut self, at: u32, text: String) {
+        let at = TextSize::from(at);
+        self.splices.push(Splice::Replace(TextRange::new(at, at), text));
+    }
+    /// Delete the bytes of ``range``.
+    ///
+    /// To remove a construct together with its line layout, use
+    /// ``remove_lines()``.
+    fn delete(&mut self, range: &Bound<'_, PyTextRange>) {
+        self.splices.push(Splice::Replace(core_range(range), String::new()));
+    }
+    /// Delete ``range`` together with the whole line(s) it occupies: its
+    /// leading indentation, its trailing newline, and one adjacent trailing
+    /// blank line if the tree has one there.
+    fn remove_lines(&mut self, range: &Bound<'_, PyTextRange>) {
+        self.splices.push(Splice::RemoveLines(core_range(range)));
+    }
+    /// Validate the edit list and splice it into a new source string.
+    ///
+    /// Non-consuming: the list can be applied again or added to afterwards.
+    /// Raises ``EditError`` if a range is out of bounds or two edits overlap
+    /// (touching ranges are fine).
+    fn apply(&self) -> PyResult<String> {
+        self.build().apply().map_err(|e| EditError::new_err(e.to_string()))
+    }
+    /// ``apply()`` the edits, then re-parse the result.
+    ///
+    /// The style is deliberately **not** re-detected: editing must not silently
+    /// reinterpret the docstring as another style, even if the edited text would
+    /// auto-detect differently. Returns the same wrapper type as the original.
+    fn apply_reparsed(&self, py: Python<'_>) -> PyResult<ParsedDocstring> {
+        let parsed = self
+            .build()
+            .apply_reparsed()
+            .map_err(|e| EditError::new_err(e.to_string()))?;
+        wrap_parsed(py, parsed)
+    }
+    /// The number of pending edits.
+    fn __len__(&self) -> usize {
+        self.splices.len()
+    }
+    fn __repr__(&self) -> String {
+        format!("Edits({} pending)", self.splices.len())
     }
 }
 
@@ -3561,22 +3718,25 @@ fn parse_plain(py: Python<'_>, input: &str) -> PyResult<Py<PyPlainDocstring>> {
     build_plain_docstring(py, pydocstring_core::parse::plain::parse_plain(input))
 }
 
+/// Wrap a parse result in the Python wrapper matching its style.
+fn wrap_parsed(py: Python<'_>, parsed: Parsed) -> PyResult<ParsedDocstring> {
+    match parsed.style() {
+        CoreStyle::Google => Ok(ParsedDocstring::Google(build_google_docstring(py, parsed)?)),
+        CoreStyle::NumPy => Ok(ParsedDocstring::NumPy(build_numpy_docstring(py, parsed)?)),
+        CoreStyle::Plain => Ok(ParsedDocstring::Plain(build_plain_docstring(py, parsed)?)),
+        // `Style` is #[non_exhaustive]; surface future styles as Plain until
+        // the Python surface grows a matching wrapper.
+        _ => Ok(ParsedDocstring::Plain(build_plain_docstring(py, parsed)?)),
+    }
+}
+
 /// Auto-detect the docstring style and parse it.
 ///
 /// Returns a `GoogleDocstring`, `NumPyDocstring`, or `PlainDocstring`.
 /// Use `.style` on the result to distinguish them without `isinstance` checks.
 #[pyfunction]
 fn parse(py: Python<'_>, input: &str) -> PyResult<ParsedDocstring> {
-    use pydocstring_core::parse::Style;
-    let parsed = pydocstring_core::parse::parse(input);
-    match parsed.style() {
-        Style::Google => Ok(ParsedDocstring::Google(build_google_docstring(py, parsed)?)),
-        Style::NumPy => Ok(ParsedDocstring::NumPy(build_numpy_docstring(py, parsed)?)),
-        Style::Plain => Ok(ParsedDocstring::Plain(build_plain_docstring(py, parsed)?)),
-        // `Style` is #[non_exhaustive]; surface future styles as Plain until
-        // the Python surface grows a matching wrapper.
-        _ => Ok(ParsedDocstring::Plain(build_plain_docstring(py, parsed)?)),
-    }
+    wrap_parsed(py, pydocstring_core::parse::parse(input))
 }
 
 /// Detect the docstring style without fully parsing.
@@ -4384,6 +4544,9 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyDefaultMarker>()?;
     m.add_class::<PyDirective>()?;
     m.add_class::<PyCitation>()?;
+    // Anchored splice edits (#117)
+    m.add_class::<PyEdits>()?;
+    m.add("EditError", m.py().get_type::<EditError>())?;
     // Section vocabulary — shared by the unified view (`section.kind`) and the
     // model, so it stays at the top level and is re-exported from `model`.
     m.add_class::<PySectionKind>()?;

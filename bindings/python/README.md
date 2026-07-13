@@ -82,6 +82,60 @@ If you already know the style, `parse_google()`, `parse_numpy()`, and
 `parse_plain()` return a concrete type and are slightly more efficient;
 `Document` accepts any of them.
 
+### Editing
+
+`edit()` starts a list of anchored splices. Everything an edit does not touch is
+preserved byte-for-byte — this is not a re-render:
+
+```python
+from pydocstring import Document, SectionKind, parse
+
+parsed = parse(source)
+doc = Document(parsed)
+edits = parsed.edit()
+
+for section in doc.sections:
+    if section.kind == SectionKind.PARAMETERS:
+        for entry in section.entries:
+            if entry.name.text == "y":
+                edits.replace(entry.description.range, "The other value.")
+
+result = edits.apply()
+```
+
+Scoping a rewrite to one section is the `if` in that loop. The same code runs
+over a Google or a NumPy docstring, and each keeps its own layout:
+
+```diff
+ Summary.                        Summary.
+
+ Args:                           Parameters
+     x (int): The value.         ----------
+-    y: Another.                 x : int
++    y: The other value.             The value.
+                                 y
+                                -    Another.
+                                +    The other value.
+```
+
+| Method                     | Effect                                                                    |
+|----------------------------|---------------------------------------------------------------------------|
+| `replace(range, text)`     | Replace the bytes of `range`. A zero-length range inserts.                |
+| `insert(at, text)`         | Insert at byte offset `at`.                                               |
+| `delete(range)`            | Delete the bytes of `range`.                                              |
+| `remove_lines(range)`      | Delete `range` with its whole line(s): indentation, newline, and one adjacent trailing blank line. |
+| `apply()`                  | Validate and splice; returns the new source. Non-consuming.               |
+| `apply_reparsed()`         | `apply()`, then re-parse — **with the same style**, never re-detected.    |
+
+Two laws hold, and are property-tested over the corpus: an empty edit list
+reproduces the source exactly, and replacing an element with its own text is the
+identity. `apply()` raises `EditError` (a `ValueError`) if a range is out of
+bounds or two edits overlap.
+
+Editing must not silently reinterpret a docstring as another style, so
+`apply_reparsed()` re-parses with the original style even if the edited text
+would auto-detect differently.
+
 ### Style Detection
 
 ```python
@@ -367,6 +421,15 @@ print(numpy_text)  # Contains "Parameters\n----------"
 Every accessor is optional, so no read raises for a role that does not carry
 that piece. `None` means "not present" — unlike the per-style wrappers below,
 these views do not surface zero-length missing placeholders.
+
+#### Editing
+
+| Class       | Members                                                                                  |
+|-------------|------------------------------------------------------------------------------------------|
+| `Edits`     | `replace(range, text)`, `insert(at, text)`, `delete(range)`, `remove_lines(range)`, `apply()`, `apply_reparsed()`, `len()` |
+| `EditError` | Raised by `apply()` for an out-of-bounds or overlapping edit (a `ValueError`)             |
+
+Start one with `parsed.edit()` or `doc.edit()`.
 
 #### Core types and per-style CST wrappers
 

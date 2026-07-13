@@ -221,15 +221,26 @@ impl<'a> Edits<'a> {
     ///
     /// The expanded extent is recorded as a single [`delete`](Edits::delete).
     pub fn remove_lines(&mut self, node: &SyntaxNode) -> &mut Self {
+        self.remove_lines_range(*node.range())
+    }
+
+    /// Delete `range` together with the whole line(s) it occupies.
+    ///
+    /// The range-anchored form of [`remove_lines`](Edits::remove_lines), which
+    /// only ever reads its node's range: the blank-line step (3) resolves
+    /// against the whole tree, not against the node. Use this when you hold a
+    /// span rather than a node — e.g. across an FFI boundary, where the
+    /// caller's handle is a range.
+    pub fn remove_lines_range(&mut self, range: TextRange) -> &mut Self {
         let source = self.parsed.source();
         let bytes = source.as_bytes();
-        let mut start = usize::from(node.range().start());
-        let mut end = usize::from(node.range().end());
+        let mut start = usize::from(range.start());
+        let mut end = usize::from(range.end());
         if start > end || end > bytes.len() || !source.is_char_boundary(start) || !source.is_char_boundary(end) {
             // Foreign/corrupt range (out of bounds, inverted, or splitting a
             // multi-byte character in a user-built tree): record it as-is and
             // let apply() report OutOfBounds instead of panicking here.
-            return self.delete(*node.range());
+            return self.delete(range);
         }
 
         // 1. Expand start over the first line's leading indentation.
