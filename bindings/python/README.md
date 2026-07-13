@@ -445,17 +445,18 @@ Reached with `.syntax`, from a parse result or from any unified view.
 
 Start one with `parsed.edit()` or `doc.edit()`.
 
-#### Core types and per-style CST wrappers
+#### Core types
 
-| Class                | Key Properties                                                                                                   |
-|----------------------|------------------------------------------------------------------------------------------------------------------|
-| `Style`         | `GOOGLE`, `NUMPY`, `PLAIN` (enum)                                                                     |
-| `SectionKind`   | `PARAMETERS`, `RETURNS`, `RAISES`, `NOTES`, … (24 variants — shared by `Section.kind` and the model)  |
-| `Parsed`        | `style`, `source`, `syntax`, `range`, `pretty_print()`, `to_model()`, `edit()`, `replace()`, `replace_in()`, `findall()`, `findall_in()` |
-| `Token`              | `text`, `range`, `is_missing()`                                                                                  |
-| `TextRange`          | `start`, `end`, `is_empty()`                                                                                     |
-| `Visitor`            | Base class; subclass and override `enter_*` / `exit_*` methods                                                   |
-| `WalkContext`        | `line_col(offset)` — passed as second arg to every `enter_*` / `exit_*` hook                                    |
+| Class         | Key members                                                                                                                             |
+|---------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| `Parsed`      | `style`, `source`, `syntax`, `range`, `pretty_print()`, `to_model()`, `edit()`, `replace()`, `replace_in()`, `findall()`, `findall_in()` |
+| `Style`       | `GOOGLE`, `NUMPY`, `PLAIN` (enum)                                                                                                       |
+| `SectionKind` | `PARAMETERS`, `RETURNS`, `RAISES`, `NOTES`, … (24 variants — shared by `Section.kind` and the model)                                    |
+| `Token`       | `kind`, `text`, `range`, `is_missing()`                                                                                                 |
+| `TextRange`   | `start`, `end`, `is_empty()`                                                                                                            |
+| `TextBlock`   | `text`, `logical_text`, `range`, `lines`, `is_missing()`                                                                                |
+| `Visitor`     | Base class; subclass and override any of `enter_node`, `leave_node`, `visit_token`                                                      |
+| `WalkContext` | `line_col(offset)` — passed as the second argument to every hook                                                                        |
 
 #### Model IR — `pydocstring.model`
 
