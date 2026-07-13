@@ -1918,6 +1918,11 @@ class TestEdits:
 # ─── Scoped rewrite: replace_in / findall_in (#118) ──────────────────────────
 
 SCOPED_SRC = "Summary.\n\nArgs:\n    x: First.\n    y: Second.\n\nRaises:\n    ValueError: Bad.\n"
+NUMPY_SCOPED_SRC = (
+    "Summary.\n\nParameters\n----------\nx : int\n    First.\ny : str\n    Second.\n"
+    "\nRaises\n------\nValueError\n    Bad.\n"
+)
+PLAIN_SCOPED_SRC = "Summary line.\n\nMore detail here.\n"
 
 
 def _section(doc, kind):
@@ -1969,6 +1974,33 @@ class TestReplaceIn:
 
         assert len(parsed.findall("$NAME: $DESC")) == 3  # includes the Raises entry
         assert len(parsed.findall_in(args, "$NAME: $DESC")) == 2
+
+    def test_scoping_works_for_numpy_too(self):
+        """The style comes from the parse result, not from the call site."""
+        parsed = pydocstring.parse_numpy(NUMPY_SCOPED_SRC)
+        doc = pydocstring.Document(parsed)
+        params = _section(doc, pydocstring.SectionKind.PARAMETERS)
+        raises = _section(doc, pydocstring.SectionKind.RAISES)
+
+        pattern = "$NAME : $TYPE\n    $DESC"
+        assert len(parsed.findall_in(params, pattern)) == 2
+        assert len(parsed.findall_in(raises, pattern)) == 0
+
+        out = parsed.replace_in(params, pattern, "$NAME : $TYPE\n    TOUCHED")
+        assert out.count("TOUCHED") == 2
+        assert "ValueError\n    Bad." in out
+
+    def test_a_document_is_the_only_anchor_a_plain_docstring_has(self):
+        parsed = pydocstring.parse_plain(PLAIN_SCOPED_SRC)
+        doc = pydocstring.Document(parsed)
+        # A plain docstring has no section markers, so there is nothing narrower
+        # to scope to — but the Document anchor must still dispatch correctly.
+        assert doc.sections == []
+
+        pattern = "$SUMMARY\n\n$REST"
+        assert len(parsed.findall(pattern)) == 1
+        assert len(parsed.findall_in(doc, pattern)) == 1
+        assert parsed.replace_in(doc, pattern, "$SUMMARY\n\nREWRITTEN") == "Summary line.\n\nREWRITTEN"
 
     def test_a_non_view_anchor_is_rejected(self):
         parsed = pydocstring.parse_google(SCOPED_SRC)

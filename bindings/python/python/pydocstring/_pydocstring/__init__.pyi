@@ -452,11 +452,14 @@ class GoogleDocstring:
     ) -> str:
         """Like :meth:`replace`, but scoped to ``anchor``'s subtree.
 
-        ``anchor`` must be a view of *this* parse result. The anchor's grammar
-        selects the readings, so the same pattern rewrites ``$TYPE``-shaped
-        entries under a ``Raises:`` anchor and ``$NAME``-shaped ones under an
-        ``Args:`` anchor. Raises ``TypeError`` for a non-view anchor and
-        ``ValueError`` for one from a different parse result.
+        ``anchor`` is a :class:`Document`, :class:`Section`, or :class:`Entry`
+        view of *this* parse result — a plain docstring has no sections, so only
+        a ``Document`` anchor applies there. Raises ``TypeError`` for anything
+        else, and ``ValueError`` for a view of a different parse result.
+
+        The anchor also selects the *reading*: an entry line is a ``$NAME`` under
+        a parameters section and a ``$TYPE`` under a raises section, so the same
+        pattern reads differently depending on where it is scoped.
         """
         ...
     def findall_in(
@@ -464,7 +467,10 @@ class GoogleDocstring:
         anchor: Document | Section | Entry,
         pattern: str,
     ) -> list[Match]:
-        """Like :meth:`findall`, but scoped to ``anchor``'s subtree."""
+        """Like :meth:`findall`, but scoped to ``anchor``'s subtree.
+
+        Same anchor rules as :meth:`replace_in`.
+        """
         ...
     def __repr__(self) -> str: ...
 
@@ -724,11 +730,14 @@ class NumPyDocstring:
     ) -> str:
         """Like :meth:`replace`, but scoped to ``anchor``'s subtree.
 
-        ``anchor`` must be a view of *this* parse result. The anchor's grammar
-        selects the readings, so the same pattern rewrites ``$TYPE``-shaped
-        entries under a ``Raises:`` anchor and ``$NAME``-shaped ones under an
-        ``Args:`` anchor. Raises ``TypeError`` for a non-view anchor and
-        ``ValueError`` for one from a different parse result.
+        ``anchor`` is a :class:`Document`, :class:`Section`, or :class:`Entry`
+        view of *this* parse result — a plain docstring has no sections, so only
+        a ``Document`` anchor applies there. Raises ``TypeError`` for anything
+        else, and ``ValueError`` for a view of a different parse result.
+
+        The anchor also selects the *reading*: an entry line is a ``$NAME`` under
+        a parameters section and a ``$TYPE`` under a raises section, so the same
+        pattern reads differently depending on where it is scoped.
         """
         ...
     def findall_in(
@@ -736,7 +745,10 @@ class NumPyDocstring:
         anchor: Document | Section | Entry,
         pattern: str,
     ) -> list[Match]:
-        """Like :meth:`findall`, but scoped to ``anchor``'s subtree."""
+        """Like :meth:`findall`, but scoped to ``anchor``'s subtree.
+
+        Same anchor rules as :meth:`replace_in`.
+        """
         ...
     def __repr__(self) -> str: ...
 
@@ -778,11 +790,14 @@ class PlainDocstring:
     ) -> str:
         """Like :meth:`replace`, but scoped to ``anchor``'s subtree.
 
-        ``anchor`` must be a view of *this* parse result. The anchor's grammar
-        selects the readings, so the same pattern rewrites ``$TYPE``-shaped
-        entries under a ``Raises:`` anchor and ``$NAME``-shaped ones under an
-        ``Args:`` anchor. Raises ``TypeError`` for a non-view anchor and
-        ``ValueError`` for one from a different parse result.
+        ``anchor`` is a :class:`Document`, :class:`Section`, or :class:`Entry`
+        view of *this* parse result — a plain docstring has no sections, so only
+        a ``Document`` anchor applies there. Raises ``TypeError`` for anything
+        else, and ``ValueError`` for a view of a different parse result.
+
+        The anchor also selects the *reading*: an entry line is a ``$NAME`` under
+        a parameters section and a ``$TYPE`` under a raises section, so the same
+        pattern reads differently depending on where it is scoped.
         """
         ...
     def findall_in(
@@ -790,7 +805,10 @@ class PlainDocstring:
         anchor: Document | Section | Entry,
         pattern: str,
     ) -> list[Match]:
-        """Like :meth:`findall`, but scoped to ``anchor``'s subtree."""
+        """Like :meth:`findall`, but scoped to ``anchor``'s subtree.
+
+        Same anchor rules as :meth:`replace_in`.
+        """
         ...
     def __repr__(self) -> str: ...
 

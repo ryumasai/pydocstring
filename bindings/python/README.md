@@ -143,6 +143,8 @@ pattern `$NAME: $DESC` matches an `Args:` entry *and* a `Raises:` one.
 `replace_in()` scopes the rewrite to a view's subtree:
 
 ```python
+from pydocstring import Document, SectionKind, parse_google
+
 parsed = parse_google(source)
 doc = Document(parsed)
 args = next(s for s in doc.sections if s.kind == SectionKind.PARAMETERS)

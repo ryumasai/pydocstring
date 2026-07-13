@@ -1236,16 +1236,24 @@ impl PyGoogleDocstring {
     fn findall(&self, py: Python<'_>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
         rewrite_findall(py, &self.nr, CoreStyle::Google, pattern)
     }
-    /// Like ``replace``, but scoped to ``anchor``'s subtree — a ``Document``,
-    /// ``Section``, or ``Entry`` view of *this* parse result.
+    /// Like ``replace``, but scoped to ``anchor``'s subtree.
     ///
-    /// The anchor's grammar selects the readings, so the same pattern rewrites
-    /// ``$TYPE``-shaped entries under a ``Raises:`` anchor and ``$NAME``-shaped
-    /// ones under an ``Args:`` anchor.
+    /// ``anchor`` is a ``Document``, ``Section``, or ``Entry`` view of *this*
+    /// parse result — a plain docstring has no sections, so only a ``Document``
+    /// anchor applies there. Raises ``TypeError`` for anything else, and
+    /// ``ValueError`` for a view of a different parse result.
+    ///
+    /// The anchor also selects the *reading*: an entry line is a ``$NAME`` under
+    /// a parameters section and a ``$TYPE`` under a raises section, so the same
+    /// pattern reads differently depending on where it is scoped.
     fn replace_in(&self, anchor: &Bound<'_, PyAny>, pattern: &str, template: &str) -> PyResult<String> {
         rewrite_replace_in(&self.nr, CoreStyle::Google, anchor, pattern, template)
     }
     /// Like ``findall``, but scoped to ``anchor``'s subtree.
+    ///
+    /// Same anchor rules as ``replace_in``: a ``Document``, ``Section``, or
+    /// ``Entry`` view of *this* parse result. Raises ``TypeError`` for anything
+    /// else, and ``ValueError`` for a view of a different parse result.
     fn findall_in(&self, py: Python<'_>, anchor: &Bound<'_, PyAny>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
         rewrite_findall_in(py, &self.nr, CoreStyle::Google, anchor, pattern)
     }
@@ -1738,16 +1746,24 @@ impl PyNumPyDocstring {
     fn findall(&self, py: Python<'_>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
         rewrite_findall(py, &self.nr, CoreStyle::NumPy, pattern)
     }
-    /// Like ``replace``, but scoped to ``anchor``'s subtree — a ``Document``,
-    /// ``Section``, or ``Entry`` view of *this* parse result.
+    /// Like ``replace``, but scoped to ``anchor``'s subtree.
     ///
-    /// The anchor's grammar selects the readings, so the same pattern rewrites
-    /// ``$TYPE``-shaped entries under a ``Raises:`` anchor and ``$NAME``-shaped
-    /// ones under an ``Args:`` anchor.
+    /// ``anchor`` is a ``Document``, ``Section``, or ``Entry`` view of *this*
+    /// parse result — a plain docstring has no sections, so only a ``Document``
+    /// anchor applies there. Raises ``TypeError`` for anything else, and
+    /// ``ValueError`` for a view of a different parse result.
+    ///
+    /// The anchor also selects the *reading*: an entry line is a ``$NAME`` under
+    /// a parameters section and a ``$TYPE`` under a raises section, so the same
+    /// pattern reads differently depending on where it is scoped.
     fn replace_in(&self, anchor: &Bound<'_, PyAny>, pattern: &str, template: &str) -> PyResult<String> {
         rewrite_replace_in(&self.nr, CoreStyle::NumPy, anchor, pattern, template)
     }
     /// Like ``findall``, but scoped to ``anchor``'s subtree.
+    ///
+    /// Same anchor rules as ``replace_in``: a ``Document``, ``Section``, or
+    /// ``Entry`` view of *this* parse result. Raises ``TypeError`` for anything
+    /// else, and ``ValueError`` for a view of a different parse result.
     fn findall_in(&self, py: Python<'_>, anchor: &Bound<'_, PyAny>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
         rewrite_findall_in(py, &self.nr, CoreStyle::NumPy, anchor, pattern)
     }
@@ -1820,16 +1836,24 @@ impl PyPlainDocstring {
     fn findall(&self, py: Python<'_>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
         rewrite_findall(py, &self.nr, CoreStyle::Plain, pattern)
     }
-    /// Like ``replace``, but scoped to ``anchor``'s subtree — a ``Document``,
-    /// ``Section``, or ``Entry`` view of *this* parse result.
+    /// Like ``replace``, but scoped to ``anchor``'s subtree.
     ///
-    /// The anchor's grammar selects the readings, so the same pattern rewrites
-    /// ``$TYPE``-shaped entries under a ``Raises:`` anchor and ``$NAME``-shaped
-    /// ones under an ``Args:`` anchor.
+    /// ``anchor`` is a ``Document``, ``Section``, or ``Entry`` view of *this*
+    /// parse result — a plain docstring has no sections, so only a ``Document``
+    /// anchor applies there. Raises ``TypeError`` for anything else, and
+    /// ``ValueError`` for a view of a different parse result.
+    ///
+    /// The anchor also selects the *reading*: an entry line is a ``$NAME`` under
+    /// a parameters section and a ``$TYPE`` under a raises section, so the same
+    /// pattern reads differently depending on where it is scoped.
     fn replace_in(&self, anchor: &Bound<'_, PyAny>, pattern: &str, template: &str) -> PyResult<String> {
         rewrite_replace_in(&self.nr, CoreStyle::Plain, anchor, pattern, template)
     }
     /// Like ``findall``, but scoped to ``anchor``'s subtree.
+    ///
+    /// Same anchor rules as ``replace_in``: a ``Document``, ``Section``, or
+    /// ``Entry`` view of *this* parse result. Raises ``TypeError`` for anything
+    /// else, and ``ValueError`` for a view of a different parse result.
     fn findall_in(&self, py: Python<'_>, anchor: &Bound<'_, PyAny>, pattern: &str) -> PyResult<Vec<Py<PyMatch>>> {
         rewrite_findall_in(py, &self.nr, CoreStyle::Plain, anchor, pattern)
     }
