@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+**The style-independent release** — phase 4 of the v2 roadmap
+([#48](https://github.com/ryumasai/pydocstring/issues/48)), triggered by an
+external report that style-independent rewrites were impossible from Python
+([#115](https://github.com/ryumasai/pydocstring/issues/115)). They were, and
+the reason was that the whole surface was organized by *style*: 27 per-style
+wrapper classes, a 55-hook per-style visitor, and a model whose section type
+baked the role into its shape.
+
+All of it collapses into one code path. `parse()`, `parse_google()`,
+`parse_numpy()` and `parse_plain()` return the same `Parsed`, read through
+three lenses — **semantic** (`Document` → `Section` → `Entry`), **faithful**
+(the raw CST), **normalized** (`to_model()`) — and edited through anchored
+byte-range splices that preserve every byte they do not touch. A section's
+role is *data* (`kind`), not a type to dispatch on. Net ≈ −3,400 lines.
+
+This is a breaking release, deliberately and all at once: see the migration
+notes under **Changed** and **Removed**.
+
 ### Added
 
 - **The unified view is now available from Python** — `Document` → `Section` →
@@ -56,10 +74,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `kind`.
 
   Python previously had no generic node type at all: the only way into the tree
-  was `walk()`, which hands back the 26 per-style wrapper classes. But the tree's
+  was `walk()`, which hands back the 27 per-style wrapper classes. But the tree's
   vocabulary is already style-independent — a Google entry and a NumPy entry are
-  both `SyntaxKind.ENTRY` — so two classes replace twenty-six, and the result is
-  *more* capable.
+  both `SyntaxKind.ENTRY` — so two classes replace twenty-seven, and the result
+  is *more* capable.
 
   This is the **faithful** lens: it keeps punctuation, trivia, and the zero-length
   missing placeholders the unified view deliberately hides. It is what
@@ -80,10 +98,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rewrites `$TYPE`-shaped entries under a `Raises:` anchor and `$NAME`-shaped
   ones under an `Args:` anchor.
 
+- **`Parsed::to_model()` (Rust)** — the normalized lens, dispatched on the
+  parsed style. Rust previously had no style-independent way to reach the
+  model: you had to call `parse::google::to_model::to_model` and match on the
+  style yourself. The dispatch existed only inside the Python binding, so the
+  "one code path" promise held in Python and not in Rust. It is infallible —
+  the per-style converters returned `None` only on a style mismatch, which the
+  dispatch rules out.
+
+- **`parse::{parse_google, parse_numpy, parse_plain}` (Rust)** are re-exported
+  next to `parse` and `detect_style`, so nothing reaches into a per-style
+  module any more.
+
 - `Edits::remove_lines_range` (Rust) — the range-anchored form of
   `remove_lines`, which only ever read its node's range. Needed by the Python
   binding, whose handle on a construct is a range; pinned equal to
   `remove_lines` for every node of the corpus.
+
+- **Value semantics on the Python view types.** `TextRange`, `Node` and
+  `LineColumn` now compare and hash by value, as `Token` already did. Views are
+  handed out as a fresh wrapper on every access, so `entry.range ==
+  entry.range` was `False` and `{r, r}` held two elements — on the type that
+  anchors every edit.
 
 ### Fixed
 
@@ -95,6 +131,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   of this kind are *present*?"), and now agree; `find_missing` remains the only
   accessor that returns a placeholder. Caught by CodeRabbit on
   [#127](https://github.com/ryumasai/pydocstring/pull/127).
+
+- **`emit_sphinx` dropped blocks.** It filtered a section's blocks by the
+  section's `kind`, so prose paragraphs inside a structured section were
+  silently discarded. Every block is now emitted, in source order.
+
+- **Two examples on the crates.io front page did not compile** — and had not
+  since 0.3.0. `README.md` was prose that nothing checked; its model examples
+  still used the pre-0.4 `Section::Parameters(…)` enum. The README's Rust
+  examples are now compiled as doctests (`#[cfg(doctest)] #[doc =
+  include_str!("../README.md")]`), so this class of rot fails CI instead of
+  shipping. `just doc` (with `RUSTDOCFLAGS=-D warnings`) joins CI too, which
+  also cleared four broken intra-doc links in `matcher` / `rewrite`.
+
+- **Python packaging:** `include = ["LICENSE"]` was installing a bare `LICENSE`
+  file into the site-packages *root*; the license already ships correctly under
+  `dist-info/licenses/`. The project now declares the PEP 639
+  `license = "MIT"` expression. `Style` was the one `#[pyclass]` without a
+  `module`, so it reported `__module__ == "builtins"`.
+
 ### Removed
 
 - **BREAKING: the per-style CST wrappers have left the public API**
@@ -105,36 +160,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   carried a panic-on-miscast path, and forced every new construct to be plumbed
   through eight surfaces.
 
-  - **Python:** the 26 wrapper classes are gone. `parse()`, `parse_google()`,
+  - **Python:** all 27 wrapper classes are gone, along with the two
+    `GoogleSectionKind` / `NumPySectionKind` enums — 29 names out of `__all__`.
+    `parse()`, `parse_google()`,
     `parse_numpy()` and `parse_plain()` all return a single **`Parsed`**
     (`style`, `source`, `syntax`, `pretty_print()`, `to_model()`, `edit()`,
     `replace()`, `replace_in()`, `findall()`, `findall_in()`) — no more
     `isinstance` dance over three types.
-  - **Rust:** `parse::google::nodes`, `parse::numpy::nodes`,
-    `parse::plain::nodes` and the per-style `kind` modules are now
-    `pub(crate)`. `parse::visitor` (the typed `DocstringVisitor`) is **deleted**:
-    its only consumer was the Python `walk()`, which is now generic. The generic
-    `syntax::walk_tree` / `syntax::Visitor` were already there.
+  - **Rust:** the `parse::{google, numpy, plain}` modules are **`pub(crate)` in
+    full** — nodes, `kind`, `parser` and `to_model` alike. Reach a parser as
+    `parse::parse_google` and the model as `parsed.to_model()` (both new, see
+    **Added**); nothing else in them was ever meant to be public. This also
+    removes four redundant paths to `TextBlock`. `parse::visitor` (the typed
+    `DocstringVisitor`) is **deleted**: its only consumer was the Python
+    `walk()`, which is now generic. The generic `syntax::walk_tree` /
+    `syntax::Visitor` were already there.
 
   Read a docstring through the unified view (`Document` → `Section` → `Entry`),
   the raw CST (`.syntax`), or the model (`to_model()`).
 
 - **BREAKING: `walk()` / `Visitor` are generic over the CST.** The per-style
-  hooks (`enter_google_arg`, `enter_numpy_parameter`, … — 52 of them) are
+  hooks (`enter_google_arg`, `enter_numpy_parameter`, … — 55 of them) are
   replaced by three: `enter_node(node, ctx)`, `leave_node(node, ctx)`,
   `visit_token(token, ctx)`. Dispatch on `node.kind` / `token.kind`. `walk()`
   now also accepts a `Node`, so a subtree can be walked.
 
   ```python
   class NameCollector(pydocstring.Visitor):
+      def __init__(self):
+          self.names = []
+
       def visit_token(self, token, ctx):
           if token.kind == pydocstring.SyntaxKind.NAME:
               self.names.append(token.text)
+
+  # `walk()` returns the visitor, so results can be read straight off the call.
+  names = pydocstring.walk(pydocstring.parse(src), NameCollector()).names
   ```
 
   A deprecation cycle was considered and rejected: a deprecated-but-public
   wrapper still has to be *maintained*, so the FIELD work in 0.5.0 would have
-  had to be plumbed through all 26 classes anyway, and the debt would have
+  had to be plumbed through all 27 classes anyway, and the debt would have
   survived the entire phase it hurts most. Breaking the public API once,
   properly, beats breaking it twice.
 
@@ -148,6 +214,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   never carried any of these aliases.
 
 ### Changed
+
+- **BREAKING: a model `Section` is now a kind plus a flat sequence of blocks**
+  ([#105](https://github.com/ryumasai/pydocstring/issues/105),
+  [#106](https://github.com/ryumasai/pydocstring/issues/106)). The old
+  `enum Section { Parameters(Vec<Parameter>), Returns(Vec<Return>), FreeText { … }, … }`
+  keyed the body's *shape* off the section's role, so a `Returns` section could
+  not hold a prose paragraph and a `Parameters` one could not hold anything but
+  parameters — which real docstrings do all the time. It is now:
+
+  ```rust
+  pub struct Section { pub kind: SectionKind, pub blocks: Vec<Block> }
+
+  #[non_exhaustive]
+  pub enum Block { Paragraph(String), Parameter(Parameter), Return(Return), … }
+  ```
+
+  This is the same unification as the CST and the unified view: the role is
+  `kind` (data), and the body is one sequence in source order. It is what lets
+  0.5.0 add reST fields and literal blocks as new `Block` variants without
+  touching `Section`.
+
+  - **Rust:** `match` on `section.kind`, then read `section.blocks` (each
+    `Block` has an `as_parameter()` / `as_return()` / … accessor). Build one
+    with `Section::new(kind, blocks)` or a role-named constructor
+    (`Section::parameters(…)`, `Section::returns(…)`, …). `Section` is
+    `#[non_exhaustive]`, as 0.3.0 promised the enum would be — struct-literal
+    construction is no longer possible, so a future field is not a break. The
+    rest of the model IR stays literal-constructible on purpose: those are
+    values you build to feed `emit`.
+  - **Python:** `Section(kind=…, parameters=[…])` and the `.parameters` /
+    `.returns` / `.body` getters are gone; construct `Section(kind=…,
+    blocks=[…])` and read `section.blocks`. (This supersedes the migration
+    advice given for 0.3.0.)
+
+  ```python
+  # before
+  for p in section.parameters or []:
+      print(p.names)
+  # after — `Block` is a variant type: match it, then read `.value`
+  for block in section.blocks:
+      if isinstance(block, model.Block.Parameter):
+          print(block.value.names)
+  ```
+
+- **BREAKING: bare prose lines in a structured NumPy section read as a
+  paragraph** ([#104](https://github.com/ryumasai/pydocstring/issues/104)). A
+  run of base-indent lines carrying no entry — an intro sentence above a
+  `Returns` list, say — used to convert to one type-only entry *per line*.
+  `to_model()` now reads them as a single `Block::Paragraph`, which is the
+  minimal non-destructive reading (and the docutils one) where napoleon would
+  reflow or eat text. Only the model changes; the CST always kept the lines
+  verbatim.
+
+- **BREAKING (Rust): `range()` returns `TextRange` by value.** `TextRange` is
+  `Copy`, but the `parse` and `syntax` layers returned `&TextRange` while
+  `pattern` and `matcher` returned it by value — the crate was paying for its
+  own inconsistency with `*x.range()` derefs at every call site. Drop the `*`.
+
+- **BREAKING (Python): kind enums no longer compare equal to bare integers.**
+  `SectionKind.PARAMETERS == 0` was `True` and `Style.GOOGLE == 0` was `False`;
+  the three enums agree now, and none of them compares to an `int`.
+
+- **Emit: adjacent prose paragraphs are separated by a blank line**, so the
+  paragraph split survives a re-parse.
 
 - **BREAKING (Python): the model IR moved to `pydocstring.model`.** The Rust
   crate has always kept `model::Section` and `parse::unified::Section` apart by
@@ -929,6 +1059,7 @@ infrastructure ([#59](https://github.com/ryumasai/pydocstring/issues/59)).
 - Zero external crate dependencies
 - Python bindings via PyO3 (`pydocstring-rs`)
 
+[Unreleased]: https://github.com/ryumasai/pydocstring/compare/v0.3.1...HEAD
 [0.3.1]: https://github.com/ryumasai/pydocstring/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ryumasai/pydocstring/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/ryumasai/pydocstring/compare/v0.1.15...v0.2.0
