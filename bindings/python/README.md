@@ -156,6 +156,41 @@ The anchor also selects the *reading*: the same shape is a `$NAME` under `Args:`
 and a `$TYPE` under `Raises:`. `findall_in()` scopes a search the same way. Any
 `Document`, `Section`, or `Entry` of the same parse result works as an anchor.
 
+### The raw CST
+
+The unified view is a *semantic* lens: it answers "is there a type?", and folds
+away punctuation, whitespace, and the parser's zero-length placeholders. When
+you need the tree exactly as parsed, go down to the CST with `.syntax` — from a
+parse result, or from any view:
+
+```python
+from pydocstring import Document, SyntaxKind, parse
+
+entry = Document(parse(source)).sections[0].entries[0]
+node = entry.syntax                       # -> Node(ENTRY, ...)
+
+node.kind                                 # SyntaxKind.ENTRY
+node.children                             # [Token(NAME), Token(WHITESPACE), ..., Node(DESCRIPTION)]
+node.find_token(SyntaxKind.TYPE)          # the type token, if written
+```
+
+The tree's vocabulary is style-independent — a Google entry and a NumPy entry are
+both `SyntaxKind.ENTRY` — so one traversal walks any docstring.
+
+The CST is what tells apart cases the semantic lens equates. Both of these report
+`entry.type_annotation is None`, but they are not the same docstring:
+
+```python
+node.find_missing(SyntaxKind.TYPE)   # x ():  -> a zero-length placeholder
+node.find_missing(SyntaxKind.TYPE)   # x:     -> None; no type token at all
+```
+
+A missing placeholder's range is an *insertion anchor*: `edits.replace(placeholder.range, "int")`
+writes the type exactly where it belongs.
+
+Every byte of the source is covered by exactly one token, so concatenating the
+tree's non-missing leaves reproduces the input.
+
 ### Style Detection
 
 ```python
@@ -441,6 +476,16 @@ print(numpy_text)  # Contains "Parameters\n----------"
 Every accessor is optional, so no read raises for a role that does not carry
 that piece. `None` means "not present" — unlike the per-style wrappers below,
 these views do not surface zero-length missing placeholders.
+
+#### Raw CST — the fidelity lens
+
+Reached with `.syntax`, from a parse result or from any unified view.
+
+| Class        | Key members                                                                                 |
+|--------------|----------------------------------------------------------------------------------------------|
+| `Node`       | `kind`, `range`, `text`, `children`, `nodes(kind)`, `tokens(kind)`, `find_node(kind)`, `find_token(kind)`, `find_missing(kind)` |
+| `Token`      | `kind`, `text`, `range`, `is_missing()`                                                     |
+| `SyntaxKind` | `ENTRY`, `SECTION`, `NAME`, `TYPE`, `DESCRIPTION`, `COLON`, … (31 kinds, plus `UNKNOWN`)    |
 
 #### Editing
 

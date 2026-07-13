@@ -206,6 +206,11 @@ impl NodeRef {
         Py::new(py, PyTextRange::from(*self.node().range()))
     }
 
+    /// Wrap the addressed node itself in the raw-CST `Node` view (#126).
+    fn py_node(&self, py: Python<'_>) -> PyResult<Py<PyNode>> {
+        Py::new(py, PyNode::from(self.clone()))
+    }
+
     // ── Token helpers ────────────────────────────────────────────────────
 
     /// Address a token returned by a core accessor on this node.
@@ -317,11 +322,8 @@ impl NodeRef {
 /// A typed token: a text fragment plus its byte range in the source.
 ///
 /// Lazy view of a tree leaf — holds the parent node's [`NodeRef`] plus the
-/// token's child index, and resolves `text` / `range` through the core tree
-/// on access.
-///
-/// The field name on the parent object (e.g. `.name`, `.description`) implies
-/// the semantic kind; no redundant `kind` field is exposed.
+/// token's child index, and resolves `kind` / `text` / `range` through the core
+/// tree on access.
 #[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "Token")]
 struct PyToken {
     /// Address of the token's parent node.
@@ -341,6 +343,10 @@ impl PyToken {
 
 #[pymethods]
 impl PyToken {
+    #[getter]
+    fn kind(&self) -> PySyntaxKind {
+        py_syntax_kind_of(self.resolve().kind())
+    }
     #[getter]
     fn text(&self) -> &str {
         self.resolve().text(self.parent.parsed.source())
@@ -1203,6 +1209,11 @@ impl PyGoogleDocstring {
     fn source(&self) -> &str {
         self.nr.parsed.source()
     }
+    /// The root CST node — the escape hatch down to the faithful lens.
+    #[getter]
+    fn syntax(&self, py: Python<'_>) -> PyResult<Py<PyNode>> {
+        self.nr.py_node(py)
+    }
     #[getter]
     fn style(&self) -> PyStyle {
         PyStyle::Google
@@ -1713,6 +1724,11 @@ impl PyNumPyDocstring {
     fn source(&self) -> &str {
         self.nr.parsed.source()
     }
+    /// The root CST node — the escape hatch down to the faithful lens.
+    #[getter]
+    fn syntax(&self, py: Python<'_>) -> PyResult<Py<PyNode>> {
+        self.nr.py_node(py)
+    }
     #[getter]
     fn style(&self) -> PyStyle {
         PyStyle::NumPy
@@ -1803,6 +1819,11 @@ impl PyPlainDocstring {
     fn source(&self) -> &str {
         self.nr.parsed.source()
     }
+    /// The root CST node — the escape hatch down to the faithful lens.
+    #[getter]
+    fn syntax(&self, py: Python<'_>) -> PyResult<Py<PyNode>> {
+        self.nr.py_node(py)
+    }
     #[getter]
     fn style(&self) -> PyStyle {
         PyStyle::Plain
@@ -1867,6 +1888,257 @@ fn build_plain_docstring(py: Python<'_>, parsed: Parsed) -> PyResult<Py<PyPlainD
     pn::PlainDocstring::cast(&arc, arc.root())
         .ok_or_else(|| pyo3::exceptions::PyValueError::new_err("root is not a DOCUMENT node"))?;
     Py::new(py, PyPlainDocstring::from(NodeRef::root(arc)))
+}
+
+// =============================================================================
+// Raw CST — the fidelity lens (#126)
+// =============================================================================
+//
+// The tree's vocabulary is already style-independent, so one `Node` type walks
+// any docstring. This is the lens that keeps *everything*: punctuation, trivia,
+// and the zero-length missing placeholders the unified view deliberately hides
+// (`find_missing(SyntaxKind.TYPE)` is what distinguishes `x ():` from `x:`).
+
+/// The kind of a CST node or token.
+#[pyclass(from_py_object, eq, eq_int, frozen, hash, module = "pydocstring", name = "SyntaxKind")]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+enum PySyntaxKind {
+    #[pyo3(name = "NAME")]
+    Name,
+    #[pyo3(name = "TYPE")]
+    Type,
+    #[pyo3(name = "COLON")]
+    Colon,
+    #[pyo3(name = "COMMA")]
+    Comma,
+    #[pyo3(name = "DESCRIPTION")]
+    Description,
+    #[pyo3(name = "OPEN_BRACKET")]
+    OpenBracket,
+    #[pyo3(name = "CLOSE_BRACKET")]
+    CloseBracket,
+    #[pyo3(name = "OPTIONAL")]
+    Optional,
+    #[pyo3(name = "SUMMARY")]
+    Summary,
+    #[pyo3(name = "EXTENDED_SUMMARY")]
+    ExtendedSummary,
+    #[pyo3(name = "TEXT_LINE")]
+    TextLine,
+    #[pyo3(name = "WHITESPACE")]
+    Whitespace,
+    #[pyo3(name = "NEWLINE")]
+    Newline,
+    #[pyo3(name = "BLANK_LINE")]
+    BlankLine,
+    #[pyo3(name = "UNDERLINE")]
+    Underline,
+    #[pyo3(name = "DIRECTIVE_MARKER")]
+    DirectiveMarker,
+    #[pyo3(name = "DIRECTIVE_NAME")]
+    DirectiveName,
+    #[pyo3(name = "DOUBLE_COLON")]
+    DoubleColon,
+    #[pyo3(name = "ARGUMENT")]
+    Argument,
+    #[pyo3(name = "DEFAULT_KEYWORD")]
+    DefaultKeyword,
+    #[pyo3(name = "DEFAULT_SEPARATOR")]
+    DefaultSeparator,
+    #[pyo3(name = "DEFAULT_VALUE")]
+    DefaultValue,
+    #[pyo3(name = "LABEL")]
+    Label,
+    #[pyo3(name = "DOCUMENT")]
+    Document,
+    #[pyo3(name = "SECTION")]
+    Section,
+    #[pyo3(name = "SECTION_HEADER")]
+    SectionHeader,
+    #[pyo3(name = "ENTRY")]
+    Entry,
+    #[pyo3(name = "DIRECTIVE")]
+    Directive,
+    #[pyo3(name = "CITATION")]
+    Citation,
+    #[pyo3(name = "DEFAULT")]
+    Default,
+    #[pyo3(name = "PARAGRAPH")]
+    Paragraph,
+    /// A kind this build of the Python bindings does not know about.
+    ///
+    /// `SyntaxKind` is `#[non_exhaustive]` in the crate, so a newer core can
+    /// produce kinds this enum has no member for. Reading one yields `UNKNOWN`;
+    /// it cannot be used as a query argument.
+    #[pyo3(name = "UNKNOWN")]
+    Unknown,
+}
+
+macro_rules! syntax_kind_map {
+    ($($py:ident <=> $core:ident),+ $(,)?) => {
+        /// Core kind → Python kind. Total: an unrecognised kind reads as `UNKNOWN`.
+        fn py_syntax_kind_of(kind: SyntaxKind) -> PySyntaxKind {
+            match kind {
+                $(SyntaxKind::$core => PySyntaxKind::$py,)+
+                // `SyntaxKind` is #[non_exhaustive].
+                _ => PySyntaxKind::Unknown,
+            }
+        }
+
+        /// Python kind → core kind, for query arguments.
+        fn core_syntax_kind_of(kind: PySyntaxKind) -> PyResult<SyntaxKind> {
+            Ok(match kind {
+                $(PySyntaxKind::$py => SyntaxKind::$core,)+
+                PySyntaxKind::Unknown => {
+                    return Err(pyo3::exceptions::PyValueError::new_err(
+                        "SyntaxKind.UNKNOWN is a read-only result and cannot be used as a query",
+                    ));
+                }
+            })
+        }
+    };
+}
+
+syntax_kind_map! {
+    Name <=> NAME,
+    Type <=> TYPE,
+    Colon <=> COLON,
+    Comma <=> COMMA,
+    Description <=> DESCRIPTION,
+    OpenBracket <=> OPEN_BRACKET,
+    CloseBracket <=> CLOSE_BRACKET,
+    Optional <=> OPTIONAL,
+    Summary <=> SUMMARY,
+    ExtendedSummary <=> EXTENDED_SUMMARY,
+    TextLine <=> TEXT_LINE,
+    Whitespace <=> WHITESPACE,
+    Newline <=> NEWLINE,
+    BlankLine <=> BLANK_LINE,
+    Underline <=> UNDERLINE,
+    DirectiveMarker <=> DIRECTIVE_MARKER,
+    DirectiveName <=> DIRECTIVE_NAME,
+    DoubleColon <=> DOUBLE_COLON,
+    Argument <=> ARGUMENT,
+    DefaultKeyword <=> DEFAULT_KEYWORD,
+    DefaultSeparator <=> DEFAULT_SEPARATOR,
+    DefaultValue <=> DEFAULT_VALUE,
+    Label <=> LABEL,
+    Document <=> DOCUMENT,
+    Section <=> SECTION,
+    SectionHeader <=> SECTION_HEADER,
+    Entry <=> ENTRY,
+    Directive <=> DIRECTIVE,
+    Citation <=> CITATION,
+    Default <=> DEFAULT,
+    Paragraph <=> PARAGRAPH,
+}
+
+/// A node of the concrete syntax tree.
+///
+/// The faithful lens: it keeps every byte, including punctuation, trivia, and
+/// zero-length missing placeholders. Reach it from any unified view with
+/// `.syntax`, or from a parse result with `.syntax`.
+#[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "Node")]
+struct PyNode {
+    nr: NodeRef,
+}
+
+impl From<NodeRef> for PyNode {
+    fn from(nr: NodeRef) -> Self {
+        Self { nr }
+    }
+}
+
+#[pymethods]
+impl PyNode {
+    #[getter]
+    fn kind(&self) -> PySyntaxKind {
+        py_syntax_kind_of(self.nr.node().kind())
+    }
+    #[getter]
+    fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
+        self.nr.py_range(py)
+    }
+    /// The raw source slice of this node's range.
+    #[getter]
+    fn text(&self) -> &str {
+        self.nr.node().range().source_text(self.nr.parsed.source())
+    }
+    /// Every child, in source order: a mix of `Node` and `Token`.
+    #[getter]
+    fn children(&self, py: Python<'_>) -> PyResult<Vec<Py<PyAny>>> {
+        self.nr
+            .node()
+            .children()
+            .iter()
+            .enumerate()
+            .map(|(index, child)| match child {
+                SyntaxElement::Node(n) => Ok(self.nr.wrap_child::<PyNode>(py, n)?.into_any()),
+                SyntaxElement::Token(_) => Py::new(
+                    py,
+                    PyToken {
+                        parent: self.nr.clone(),
+                        index: index as u32,
+                    },
+                )
+                .map(|t| t.into_any()),
+            })
+            .collect()
+    }
+    /// Direct child nodes of `kind`, in source order.
+    fn nodes(&self, py: Python<'_>, kind: PySyntaxKind) -> PyResult<Vec<Py<PyNode>>> {
+        let kind = core_syntax_kind_of(kind)?;
+        self.nr
+            .node()
+            .nodes(kind)
+            .map(|n| self.nr.wrap_child::<PyNode>(py, n))
+            .collect()
+    }
+    /// Direct child tokens of `kind`, in source order. Missing placeholders are
+    /// excluded — use `find_missing()` for those.
+    fn tokens(&self, py: Python<'_>, kind: PySyntaxKind) -> PyResult<Vec<Py<PyToken>>> {
+        let kind = core_syntax_kind_of(kind)?;
+        self.nr
+            .node()
+            .tokens(kind)
+            .map(|t| self.nr.token(py, t))
+            .collect()
+    }
+    /// The first direct child node of `kind`.
+    fn find_node(&self, py: Python<'_>, kind: PySyntaxKind) -> PyResult<Option<Py<PyNode>>> {
+        let kind = core_syntax_kind_of(kind)?;
+        self.nr
+            .node()
+            .find_node(kind)
+            .map(|n| self.nr.wrap_child::<PyNode>(py, n))
+            .transpose()
+    }
+    /// The first present (non-missing) direct child token of `kind`.
+    fn find_token(&self, py: Python<'_>, kind: PySyntaxKind) -> PyResult<Option<Py<PyToken>>> {
+        let kind = core_syntax_kind_of(kind)?;
+        self.nr
+            .node()
+            .find_token(kind)
+            .map(|t| self.nr.token(py, t))
+            .transpose()
+    }
+    /// The first *missing* (zero-length) direct child token of `kind`.
+    ///
+    /// This is what tells `x ():` — an empty type between brackets, so a
+    /// placeholder exists — apart from `x:`, where the grammar produced no type
+    /// token at all. The placeholder's range is the insertion anchor.
+    fn find_missing(&self, py: Python<'_>, kind: PySyntaxKind) -> PyResult<Option<Py<PyToken>>> {
+        let kind = core_syntax_kind_of(kind)?;
+        self.nr
+            .node()
+            .find_missing(kind)
+            .map(|t| self.nr.token(py, t))
+            .transpose()
+    }
+    fn __repr__(&self) -> String {
+        let node = self.nr.node();
+        format!("Node({:?}, {}..{})", node.kind(), node.range().start(), node.range().end())
+    }
 }
 
 // =============================================================================
@@ -1984,6 +2256,11 @@ impl PyDocument {
     fn edit(&self) -> PyEdits {
         PyEdits::new(Arc::clone(&self.nr.parsed))
     }
+    /// The underlying CST node — the escape hatch down to the faithful lens.
+    #[getter]
+    fn syntax(&self, py: Python<'_>) -> PyResult<Py<PyNode>> {
+        self.nr.py_node(py)
+    }
     fn __repr__(&self) -> String {
         format!("Document(style={:?})", self.view().style())
     }
@@ -2053,6 +2330,11 @@ impl PySection {
             .citations()
             .map(|c| self.nr.wrap_child(py, c.syntax()))
             .collect()
+    }
+    /// The underlying CST node — the escape hatch down to the faithful lens.
+    #[getter]
+    fn syntax(&self, py: Python<'_>) -> PyResult<Py<PyNode>> {
+        self.nr.py_node(py)
     }
     fn __repr__(&self) -> String {
         format!("Section({:?})", self.view().header_name())
@@ -2136,6 +2418,11 @@ impl PyEntry {
     fn default_value(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
         self.nr.token_opt(py, self.view().default_value())
     }
+    /// The underlying CST node — the escape hatch down to the faithful lens.
+    #[getter]
+    fn syntax(&self, py: Python<'_>) -> PyResult<Py<PyNode>> {
+        self.nr.py_node(py)
+    }
     fn __repr__(&self) -> String {
         let view = self.view();
         let names = view.names().map(|n| n.text()).collect::<Vec<_>>().join(", ");
@@ -2183,6 +2470,11 @@ impl PyDefaultMarker {
     #[getter]
     fn value(&self, py: Python<'_>) -> PyResult<Option<Py<PyToken>>> {
         self.nr.token_opt(py, self.view().value())
+    }
+    /// The underlying CST node — the escape hatch down to the faithful lens.
+    #[getter]
+    fn syntax(&self, py: Python<'_>) -> PyResult<Py<PyNode>> {
+        self.nr.py_node(py)
     }
     fn __repr__(&self) -> String {
         format!(
@@ -2232,6 +2524,11 @@ impl PyDirective {
     fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
         self.nr.block_opt(py, self.view().description())
     }
+    /// The underlying CST node — the escape hatch down to the faithful lens.
+    #[getter]
+    fn syntax(&self, py: Python<'_>) -> PyResult<Py<PyNode>> {
+        self.nr.py_node(py)
+    }
     fn __repr__(&self) -> String {
         format!("Directive({:?})", self.view().name().text())
     }
@@ -2272,6 +2569,11 @@ impl PyCitation {
     #[getter]
     fn description(&self, py: Python<'_>) -> PyResult<Option<Py<PyTextBlock>>> {
         self.nr.block_opt(py, self.view().description())
+    }
+    /// The underlying CST node — the escape hatch down to the faithful lens.
+    #[getter]
+    fn syntax(&self, py: Python<'_>) -> PyResult<Py<PyNode>> {
+        self.nr.py_node(py)
     }
     fn __repr__(&self) -> String {
         format!(
@@ -4658,6 +4960,9 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyNumPyMethod>()?;
     // Plain CST wrapper
     m.add_class::<PyPlainDocstring>()?;
+    // Raw CST — the fidelity lens (#126)
+    m.add_class::<PySyntaxKind>()?;
+    m.add_class::<PyNode>()?;
     // Unified (style-independent) views — the recommended read lens (#116)
     m.add_class::<PyDocument>()?;
     m.add_class::<PySection>()?;
