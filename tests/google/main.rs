@@ -3,24 +3,24 @@
 //! Division of labor: exhaustive input coverage lives in tests/corpus/google/
 //! and tests/snapshots.rs (full CST and emit pinned per corpus file). The
 //! modules here pin deliberate spec decisions and the typed-accessor contract.
+//!
+//! The per-style wrappers (`GoogleArg`, `GoogleSection`, …) are crate-private
+//! (#119); these tests read the tree through the public lenses only: the
+//! unified view ([`Document`] / [`Section`] / [`Entry`] / [`Citation`] /
+//! [`Directive`]) and the raw CST reachable via `.syntax()`.
 
-pub use pydocstring::parse::google::GoogleArg;
-pub use pydocstring::parse::google::GoogleAttribute;
-pub use pydocstring::parse::google::GoogleDocstring;
-pub use pydocstring::parse::google::GoogleException;
-pub use pydocstring::parse::google::GoogleMethod;
-pub use pydocstring::parse::google::GoogleReference;
-pub use pydocstring::parse::google::GoogleReturn;
-pub use pydocstring::parse::google::GoogleSection;
-pub use pydocstring::parse::google::GoogleSectionKind;
-pub use pydocstring::parse::google::GoogleSeeAlsoItem;
-pub use pydocstring::parse::google::GoogleWarning;
-pub use pydocstring::parse::google::GoogleYield;
-pub use pydocstring::parse::google::TextBlock;
+pub use pydocstring::model::FreeSectionKind;
+pub use pydocstring::model::SectionKind;
+pub use pydocstring::parse::TextBlock;
 pub use pydocstring::parse::google::parse_google;
+pub use pydocstring::parse::unified::Citation;
+pub use pydocstring::parse::unified::Directive;
+pub use pydocstring::parse::unified::Document;
+pub use pydocstring::parse::unified::Entry;
+pub use pydocstring::parse::unified::Section;
 pub use pydocstring::syntax::Parsed;
 pub use pydocstring::syntax::SyntaxKind;
-pub use pydocstring::syntax::SyntaxToken;
+pub use pydocstring::syntax::SyntaxNode;
 pub use pydocstring::text::TextSize;
 
 mod args;
@@ -36,111 +36,90 @@ mod summary;
 // Shared helpers
 // =============================================================================
 
-/// Get the typed GoogleDocstring wrapper from a Parsed result.
-pub fn doc(result: &Parsed) -> GoogleDocstring<'_> {
-    GoogleDocstring::cast(result, result.root()).unwrap()
+/// Get the style-independent `Document` view of a `Parsed` result.
+pub fn doc(result: &Parsed) -> Document<'_> {
+    Document::new(result)
 }
 
-pub fn all_sections<'a>(result: &'a Parsed) -> Vec<GoogleSection<'a>> {
+pub fn all_sections(result: &Parsed) -> Vec<Section<'_>> {
     doc(result).sections().collect()
 }
 
-pub fn args<'a>(result: &'a Parsed) -> Vec<GoogleArg<'a>> {
+/// The `SECTION_HEADER` node of a section (raw CST: the unified view exposes
+/// only the header *name*).
+pub fn header<'a>(section: &Section<'a>) -> &'a SyntaxNode {
+    section
+        .syntax()
+        .find_node(SyntaxKind::SECTION_HEADER)
+        .expect("SECTION must have a SECTION_HEADER child")
+}
+
+/// All entries of every section whose kind is `kind`, in source order.
+pub fn entries_of(result: &Parsed, kind: SectionKind) -> Vec<Entry<'_>> {
     doc(result)
         .sections()
-        .filter(|s| matches!(s.section_kind(), GoogleSectionKind::Args))
-        .flat_map(|s| s.args().collect::<Vec<_>>())
+        .filter(|s| s.kind() == kind)
+        .flat_map(|s| s.entries().collect::<Vec<_>>())
         .collect()
 }
 
-pub fn returns<'a>(result: &'a Parsed) -> Option<GoogleReturn<'a>> {
-    doc(result)
-        .sections()
-        .filter(|s| matches!(s.section_kind(), GoogleSectionKind::Returns))
-        .find_map(|s| s.returns())
+/// The body text of the first section whose kind is `kind`.
+pub fn body_of(result: &Parsed, kind: SectionKind) -> Option<TextBlock<'_>> {
+    doc(result).sections().find(|s| s.kind() == kind).and_then(|s| s.body())
 }
 
-pub fn yields<'a>(result: &'a Parsed) -> Option<GoogleYield<'a>> {
-    doc(result)
-        .sections()
-        .filter(|s| matches!(s.section_kind(), GoogleSectionKind::Yields))
-        .find_map(|s| s.yields())
+pub fn args(result: &Parsed) -> Vec<Entry<'_>> {
+    entries_of(result, SectionKind::Parameters)
 }
 
-pub fn raises<'a>(result: &'a Parsed) -> Vec<GoogleException<'a>> {
+pub fn returns(result: &Parsed) -> Option<Entry<'_>> {
+    entries_of(result, SectionKind::Returns).into_iter().next()
+}
+
+pub fn yields(result: &Parsed) -> Option<Entry<'_>> {
+    entries_of(result, SectionKind::Yields).into_iter().next()
+}
+
+pub fn raises(result: &Parsed) -> Vec<Entry<'_>> {
+    entries_of(result, SectionKind::Raises)
+}
+
+pub fn attributes(result: &Parsed) -> Vec<Entry<'_>> {
+    entries_of(result, SectionKind::Attributes)
+}
+
+pub fn keyword_args(result: &Parsed) -> Vec<Entry<'_>> {
+    entries_of(result, SectionKind::KeywordParameters)
+}
+
+pub fn receives(result: &Parsed) -> Vec<Entry<'_>> {
+    entries_of(result, SectionKind::Receives)
+}
+
+pub fn warns(result: &Parsed) -> Vec<Entry<'_>> {
+    entries_of(result, SectionKind::Warns)
+}
+
+pub fn see_also(result: &Parsed) -> Vec<Entry<'_>> {
+    entries_of(result, SectionKind::SeeAlso)
+}
+
+pub fn methods(result: &Parsed) -> Vec<Entry<'_>> {
+    entries_of(result, SectionKind::Methods)
+}
+
+pub fn references(result: &Parsed) -> Vec<Citation<'_>> {
     doc(result)
         .sections()
-        .filter(|s| matches!(s.section_kind(), GoogleSectionKind::Raises))
-        .flat_map(|s| s.exceptions().collect::<Vec<_>>())
+        .filter(|s| s.kind() == SectionKind::References)
+        .flat_map(|s| s.citations().collect::<Vec<_>>())
         .collect()
 }
 
-pub fn attributes<'a>(result: &'a Parsed) -> Vec<GoogleAttribute<'a>> {
-    doc(result)
-        .sections()
-        .filter(|s| matches!(s.section_kind(), GoogleSectionKind::Attributes))
-        .flat_map(|s| s.attributes().collect::<Vec<_>>())
-        .collect()
+pub fn notes(result: &Parsed) -> Option<TextBlock<'_>> {
+    body_of(result, SectionKind::FreeText(FreeSectionKind::Notes))
 }
 
-pub fn keyword_args<'a>(result: &'a Parsed) -> Vec<GoogleArg<'a>> {
-    doc(result)
-        .sections()
-        .filter(|s| matches!(s.section_kind(), GoogleSectionKind::KeywordArgs))
-        .flat_map(|s| s.args().collect::<Vec<_>>())
-        .collect()
-}
-
-pub fn receives<'a>(result: &'a Parsed) -> Vec<GoogleArg<'a>> {
-    doc(result)
-        .sections()
-        .filter(|s| matches!(s.section_kind(), GoogleSectionKind::Receives))
-        .flat_map(|s| s.args().collect::<Vec<_>>())
-        .collect()
-}
-
-pub fn warns<'a>(result: &'a Parsed) -> Vec<GoogleWarning<'a>> {
-    doc(result)
-        .sections()
-        .filter(|s| matches!(s.section_kind(), GoogleSectionKind::Warns))
-        .flat_map(|s| s.warnings().collect::<Vec<_>>())
-        .collect()
-}
-
-pub fn see_also<'a>(result: &'a Parsed) -> Vec<GoogleSeeAlsoItem<'a>> {
-    doc(result)
-        .sections()
-        .filter(|s| matches!(s.section_kind(), GoogleSectionKind::SeeAlso))
-        .flat_map(|s| s.see_also_items().collect::<Vec<_>>())
-        .collect()
-}
-
-pub fn methods<'a>(result: &'a Parsed) -> Vec<GoogleMethod<'a>> {
-    doc(result)
-        .sections()
-        .filter(|s| matches!(s.section_kind(), GoogleSectionKind::Methods))
-        .flat_map(|s| s.methods().collect::<Vec<_>>())
-        .collect()
-}
-
-pub fn references<'a>(result: &'a Parsed) -> Vec<GoogleReference<'a>> {
-    doc(result)
-        .sections()
-        .filter(|s| matches!(s.section_kind(), GoogleSectionKind::References))
-        .flat_map(|s| s.references().collect::<Vec<_>>())
-        .collect()
-}
-
-pub fn notes<'a>(result: &'a Parsed) -> Option<TextBlock<'a>> {
-    doc(result)
-        .sections()
-        .find(|s| matches!(s.section_kind(), GoogleSectionKind::Notes))
-        .and_then(|s| s.body_text())
-}
-
-pub fn examples<'a>(result: &'a Parsed) -> Option<TextBlock<'a>> {
-    doc(result)
-        .sections()
-        .find(|s| matches!(s.section_kind(), GoogleSectionKind::Examples))
-        .and_then(|s| s.body_text())
+pub fn examples(result: &Parsed) -> Option<TextBlock<'_>> {
+    body_of(result, SectionKind::FreeText(FreeSectionKind::Examples))
 }

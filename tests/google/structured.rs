@@ -1,22 +1,22 @@
-//! Typed-accessor contract for Attributes, Methods, and See Also nodes.
+//! Typed-accessor contract for Attributes, Methods, and See Also entries.
 //! Exhaustive input coverage lives in tests/corpus/google/ + tests/snapshots.rs;
 //! alias→kind mapping is pinned by the table test in sections.rs.
 
 use super::*;
 
-/// GoogleAttribute accessor contract.
+/// Attributes entry accessor contract.
 #[test]
 fn test_attributes() {
     let docstring = "Summary.\n\nAttributes:\n    name (str): The name.\n    age (int): The age.";
     let result = parse_google(docstring);
     let a = attributes(&result);
     assert_eq!(a.len(), 2);
-    assert_eq!(a[0].name().text(), "name");
+    assert_eq!(a[0].name().unwrap().text(), "name");
     assert_eq!(a[0].type_annotation().unwrap().text(), "str");
-    assert_eq!(a[1].name().text(), "age");
+    assert_eq!(a[1].name().unwrap().text(), "age");
 }
 
-/// GoogleMethod accessor contract; method names keep their parenthesised
+/// Methods entry accessor contract; method names keep their parenthesised
 /// signature verbatim.
 #[test]
 fn test_methods_basic() {
@@ -24,12 +24,12 @@ fn test_methods_basic() {
     let result = parse_google(docstring);
     let m = methods(&result);
     assert_eq!(m.len(), 2);
-    assert_eq!(m[0].name().text(), "reset()");
+    assert_eq!(m[0].name().unwrap().text(), "reset()");
     assert_eq!(m[0].description().unwrap().text(), "Reset the state.");
-    assert_eq!(m[1].name().text(), "update(data)");
+    assert_eq!(m[1].name().unwrap().text(), "update(data)");
 }
 
-/// GoogleSeeAlsoItem accessor contract.
+/// See Also entry accessor contract.
 #[test]
 fn test_see_also_basic() {
     let docstring = "Summary.\n\nSee Also:\n    other_func: Does something else.";

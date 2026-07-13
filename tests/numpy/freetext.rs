@@ -9,7 +9,7 @@ use super::*;
 // Notes section — free-text body contract
 // =============================================================================
 
-/// CONTRACT: free-text sections expose their content via `body_text()`.
+/// CONTRACT: free-text sections expose their content via `Section::body()`.
 #[test]
 fn test_with_notes_section() {
     let docstring = r#"Function with notes.
@@ -28,7 +28,7 @@ This is an important note about the function.
 // See Also section
 // =============================================================================
 
-/// CONTRACT: NumPySeeAlsoItem accessors (names / description), including
+/// CONTRACT: See Also entry accessors (names / description), including
 /// comma-separated multi-name items.
 #[test]
 fn test_see_also_parsing() {
@@ -68,8 +68,8 @@ fn test_see_also_no_space_before_colon() {
 // References section
 // =============================================================================
 
-/// CONTRACT: NumPyReference accessors (number / content / directive_marker /
-/// brackets).
+/// CONTRACT: Citation accessors (label / description) plus the raw-tree
+/// punctuation (directive marker / brackets) around them.
 #[test]
 fn test_references_parsing() {
     let docstring = r#"Summary.
@@ -83,10 +83,15 @@ References
     let refs = references(&result);
     assert_eq!(refs.len(), 2);
     assert_eq!(refs[0].label().unwrap().text(), "1");
-    assert!(refs[0].content().unwrap().text().contains("Author A"));
-    assert_eq!(refs[0].directive_marker().unwrap().text(), "..");
-    assert!(refs[0].open_bracket().is_some());
-    assert!(refs[0].close_bracket().is_some());
+    assert!(refs[0].description().unwrap().text().contains("Author A"));
+    let cst0 = refs[0].syntax();
+    assert_eq!(
+        cst0.find_token(SyntaxKind::DIRECTIVE_MARKER)
+            .map(|t| t.text(result.source())),
+        Some("..")
+    );
+    assert!(cst0.find_token(SyntaxKind::OPEN_BRACKET).is_some());
+    assert!(cst0.find_token(SyntaxKind::CLOSE_BRACKET).is_some());
     assert_eq!(refs[1].label().unwrap().text(), "2");
-    assert!(refs[1].content().unwrap().text().contains("Author B"));
+    assert!(refs[1].description().unwrap().text().contains("Author B"));
 }

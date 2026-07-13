@@ -5,7 +5,7 @@
 
 use core::fmt;
 
-use google::GoogleSectionKind;
+use google::kind::GoogleSectionKind;
 
 pub mod google;
 pub mod numpy;
@@ -15,7 +15,6 @@ pub mod token_ref;
 pub(crate) mod trivia;
 pub mod unified;
 pub(crate) mod utils;
-pub mod visitor;
 
 pub use text_block::TextBlock;
 pub use token_ref::TokenRef;

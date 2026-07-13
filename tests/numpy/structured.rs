@@ -8,18 +8,18 @@ use super::*;
 // Attributes section
 // =============================================================================
 
-/// CONTRACT: NumPyAttribute accessors (name / type / colon / description).
+/// CONTRACT: attribute Entry accessors (name / type / colon / description).
 #[test]
 fn test_attributes_basic() {
     let docstring = "Summary.\n\nAttributes\n----------\nname : str\n    The name.\nage : int\n    The age.\n";
     let result = parse_numpy(docstring);
     let a = attributes(&result);
     assert_eq!(a.len(), 2);
-    assert_eq!(a[0].name().text(), "name");
+    assert_eq!(a[0].name().unwrap().text(), "name");
     assert_eq!(a[0].type_annotation().unwrap().text(), "str");
-    assert!(a[0].colon().is_some());
+    assert!(colon(&a[0]).is_some());
     assert_eq!(a[0].description().unwrap().text(), "The name.");
-    assert_eq!(a[1].name().text(), "age");
+    assert_eq!(a[1].name().unwrap().text(), "age");
     assert_eq!(a[1].type_annotation().unwrap().text(), "int");
 }
 
@@ -27,7 +27,7 @@ fn test_attributes_basic() {
 // Methods section
 // =============================================================================
 
-/// CONTRACT: NumPyMethod accessors (name / description); parens are part of
+/// CONTRACT: method Entry accessors (name / description); parens are part of
 /// the method name.
 #[test]
 fn test_methods_basic() {
@@ -36,9 +36,9 @@ fn test_methods_basic() {
     let result = parse_numpy(docstring);
     let m = methods(&result);
     assert_eq!(m.len(), 2);
-    assert_eq!(m[0].name().text(), "reset()");
+    assert_eq!(m[0].name().unwrap().text(), "reset()");
     assert_eq!(m[0].description().unwrap().text(), "Reset the state.");
-    assert_eq!(m[1].name().text(), "update(data)");
+    assert_eq!(m[1].name().unwrap().text(), "update(data)");
     assert_eq!(m[1].description().unwrap().text(), "Update with new data.");
 }
 
@@ -51,8 +51,8 @@ fn test_methods_with_colon() {
     let result = parse_numpy(docstring);
     let m = methods(&result);
     assert_eq!(m.len(), 1);
-    assert_eq!(m[0].name().text(), "reset()");
-    assert!(m[0].colon().is_some());
+    assert_eq!(m[0].name().unwrap().text(), "reset()");
+    assert!(colon(&m[0]).is_some());
     assert_eq!(m[0].description().unwrap().text(), "Reset the state.");
 }
 
@@ -68,9 +68,12 @@ fn test_unknown_section() {
     let result = parse_numpy(docstring);
     let s = all_sections(&result);
     assert_eq!(s.len(), 1);
-    assert_eq!(s[0].section_kind(), NumPySectionKind::Unknown);
-    assert_eq!(s[0].header().name().text(), "CustomSection");
-    let text = s[0].body_text();
+    assert_eq!(
+        s[0].kind(),
+        SectionKind::FreeText(FreeSectionKind::Unknown("CustomSection".to_owned()))
+    );
+    assert_eq!(s[0].header_name(), "CustomSection");
+    let text = s[0].body();
     assert!(text.is_some());
     assert!(text.unwrap().text().contains("Some custom content."));
 }

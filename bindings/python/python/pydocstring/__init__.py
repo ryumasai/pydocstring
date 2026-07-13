@@ -7,39 +7,11 @@ from ._pydocstring import Document
 from ._pydocstring import EditError
 from ._pydocstring import Edits
 from ._pydocstring import Entry
-from ._pydocstring import GoogleArg
-from ._pydocstring import GoogleAttribute
-from ._pydocstring import GoogleDeprecation
-from ._pydocstring import GoogleDirective
-from ._pydocstring import GoogleDocstring
-from ._pydocstring import GoogleException
-from ._pydocstring import GoogleMethod
-from ._pydocstring import GoogleReference
-from ._pydocstring import GoogleReturn
-from ._pydocstring import GoogleSection
-from ._pydocstring import GoogleSectionKind
-from ._pydocstring import GoogleSeeAlsoItem
-from ._pydocstring import GoogleWarning
-from ._pydocstring import GoogleYield
 from ._pydocstring import LineColumn
 from ._pydocstring import Match
 from ._pydocstring import Node
-from ._pydocstring import NumPyAttribute
-from ._pydocstring import NumPyDeprecation
-from ._pydocstring import NumPyDirective
-from ._pydocstring import NumPyDocstring
-from ._pydocstring import NumPyException
-from ._pydocstring import NumPyMethod
-from ._pydocstring import NumPyParameter
-from ._pydocstring import NumPyReference
-from ._pydocstring import NumPyReturns
-from ._pydocstring import NumPySection
-from ._pydocstring import NumPySectionKind
-from ._pydocstring import NumPySeeAlsoItem
-from ._pydocstring import NumPyWarning
-from ._pydocstring import NumPyYields
+from ._pydocstring import Parsed
 from ._pydocstring import PatternError
-from ._pydocstring import PlainDocstring
 from ._pydocstring import Section
 from ._pydocstring import SectionKind
 from ._pydocstring import Style
@@ -70,10 +42,9 @@ __all__ = [
     # ── Raw CST — the fidelity lens ───────────────────────────────────────
     "SyntaxKind",
     "Node",
+    "Parsed",
     # ── Section kinds ─────────────────────────────────────────────────────
     "SectionKind",
-    "GoogleSectionKind",
-    "NumPySectionKind",
     # ── Unified views — the style-independent read lens ───────────────────
     "Document",
     "Section",
@@ -86,36 +57,6 @@ __all__ = [
     "EditError",
     # ── Model IR (position-free); see pydocstring.model ────────────────────
     "model",
-    # ── Google CST wrappers ───────────────────────────────────────────────
-    "GoogleDocstring",
-    "GoogleSection",
-    "GoogleDeprecation",
-    "GoogleDirective",
-    "GoogleArg",
-    "GoogleReturn",
-    "GoogleYield",
-    "GoogleException",
-    "GoogleWarning",
-    "GoogleSeeAlsoItem",
-    "GoogleReference",
-    "GoogleAttribute",
-    "GoogleMethod",
-    # ── NumPy CST wrappers ────────────────────────────────────────────────
-    "NumPyDocstring",
-    "NumPySection",
-    "NumPyDeprecation",
-    "NumPyDirective",
-    "NumPyParameter",
-    "NumPyReturns",
-    "NumPyYields",
-    "NumPyException",
-    "NumPyWarning",
-    "NumPySeeAlsoItem",
-    "NumPyReference",
-    "NumPyAttribute",
-    "NumPyMethod",
-    # ── Plain CST wrapper ─────────────────────────────────────────────────
-    "PlainDocstring",
     # ── Pattern matching & rewriting ──────────────────────────────────────
     "Match",
     "Capture",

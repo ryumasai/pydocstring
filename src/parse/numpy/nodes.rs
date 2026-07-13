@@ -1,3 +1,12 @@
+//! **Internal.** Demoted from the public API in 0.4.0 (#119): the unified view
+//! (`parse::unified`) and the raw CST (`syntax`) are the public read lenses now.
+//! These wrappers survive only as the reading layer `to_model` is written
+//! against, and their surface is far wider than `to_model` uses — hence the
+//! blanket `dead_code` allow. #107 restructures the section processors into one
+//! shared block dispatcher, which is where this module dissolves; deleting the
+//! unreachable half now would only conflict with that work.
+#![allow(dead_code)]
+
 //! Typed wrappers for NumPy-style syntax nodes.
 //!
 //! Each wrapper pairs a `&SyntaxNode` with the [`Parsed`] result it came

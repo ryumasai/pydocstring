@@ -9,8 +9,8 @@ use super::*;
 // Parameters section — accessor contract
 // =============================================================================
 
-/// CONTRACT: NumPyParameter accessors (names / type / description) and
-/// NumPyReturns return_type on a canonical docstring.
+/// CONTRACT: parameter Entry accessors (names / type / description) and the
+/// return Entry's type annotation on a canonical docstring.
 #[test]
 fn test_with_parameters() {
     let docstring = r#"Calculate the sum of two numbers.
@@ -70,8 +70,8 @@ optional : int, optional
     let result = parse_numpy(docstring);
 
     assert_eq!(parameters(&result).len(), 2);
-    assert!(parameters(&result)[0].optional_marker().is_none());
-    assert!(parameters(&result)[1].optional_marker().is_some());
+    assert!(!parameters(&result)[0].is_optional());
+    assert!(parameters(&result)[1].is_optional());
     assert_eq!(parameters(&result)[1].type_annotation().map(|t| t.text()), Some("int"));
 }
 
@@ -191,7 +191,7 @@ fn test_enum_type_with_optional() {
     let params = parameters(&result);
     let p = &params[0];
 
-    assert!(p.optional_marker().is_some());
+    assert!(p.is_optional());
     assert_eq!(p.type_annotation().unwrap().text(), "{'C', 'F'}");
 }
 
@@ -204,8 +204,10 @@ fn test_enum_type_with_default() {
     let p = &params[0];
 
     assert_eq!(p.type_annotation().unwrap().text(), "{'C', 'F', 'A'}");
-    assert_eq!(p.default_keyword().unwrap().text(), "default");
-    assert!(p.default_separator().is_none());
+    let marker = p.defaults().next().expect("a `default …` marker");
+    assert_eq!(marker.keyword().text(), "default");
+    assert!(marker.separator().is_none());
+    assert_eq!(marker.value().unwrap().text(), "'C'");
     assert_eq!(p.default_value().unwrap().text(), "'C'");
 }
 
@@ -213,14 +215,14 @@ fn test_enum_type_with_default() {
 // Other Parameters / Receives — thin section-body contract
 // =============================================================================
 
-/// CONTRACT: an OtherParameters section exposes its entries via `parameters()`.
+/// CONTRACT: an OtherParameters section exposes its entries via `entries()`.
 #[test]
 fn test_other_parameters_section_body_variant() {
     let docstring = "Summary.\n\nOther Parameters\n----------------\nx : int\n    Extra.\n";
     let result = parse_numpy(docstring);
     let s = &all_sections(&result)[0];
-    assert_eq!(s.section_kind(), NumPySectionKind::OtherParameters);
-    let params: Vec<_> = s.parameters().collect();
+    assert_eq!(s.kind(), SectionKind::OtherParameters);
+    let params: Vec<_> = s.entries().collect();
     assert_eq!(params.len(), 1);
 }
 
@@ -298,5 +300,5 @@ fn test_defaultdict_type_not_default_marker() {
     assert_eq!(params.len(), 1);
     assert_eq!(params[0].type_annotation().unwrap().text(), "defaultdict");
     assert!(params[0].default_value().is_none());
-    assert!(params[0].default_keyword().is_none());
+    assert_eq!(params[0].defaults().count(), 0);
 }

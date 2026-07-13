@@ -8,7 +8,7 @@ use super::*;
 // Returns section
 // =============================================================================
 
-/// CONTRACT: NumPyReturns accessors (name / return_type / description).
+/// CONTRACT: return Entry accessors (name / type / description).
 #[test]
 fn test_parse_named_returns() {
     let docstring = r#"Compute values.
@@ -65,7 +65,7 @@ fn test_yields_basic() {
     assert_eq!(y[0].description().unwrap().text(), "The next value.");
 }
 
-/// CONTRACT: NumPyYields accessors (name / return_type / description).
+/// CONTRACT: yield Entry accessors (name / type / description).
 #[test]
 fn test_yields_named() {
     let docstring = "Summary.\n\nYields\n------\nvalue : str\n    The generated string.\n";

@@ -95,6 +95,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   of this kind are *present*?"), and now agree; `find_missing` remains the only
   accessor that returns a placeholder. Caught by CodeRabbit on
   [#127](https://github.com/ryumasai/pydocstring/pull/127).
+### Removed
+
+- **BREAKING: the per-style CST wrappers have left the public API**
+  ([#119](https://github.com/ryumasai/pydocstring/issues/119)). `GoogleArg`,
+  `GoogleSection`, `NumPyParameter`, `PlainDocstring`, `GoogleSectionKind`,
+  `NumPySectionKind` and the twenty-odd others were nominal sugar over a tree
+  that has no per-style structure. They derived the entry role a second time,
+  carried a panic-on-miscast path, and forced every new construct to be plumbed
+  through eight surfaces.
+
+  - **Python:** the 26 wrapper classes are gone. `parse()`, `parse_google()`,
+    `parse_numpy()` and `parse_plain()` all return a single **`Parsed`**
+    (`style`, `source`, `syntax`, `pretty_print()`, `to_model()`, `edit()`,
+    `replace()`, `replace_in()`, `findall()`, `findall_in()`) — no more
+    `isinstance` dance over three types.
+  - **Rust:** `parse::google::nodes`, `parse::numpy::nodes`,
+    `parse::plain::nodes` and the per-style `kind` modules are now
+    `pub(crate)`. `parse::visitor` (the typed `DocstringVisitor`) is **deleted**:
+    its only consumer was the Python `walk()`, which is now generic. The generic
+    `syntax::walk_tree` / `syntax::Visitor` were already there.
+
+  Read a docstring through the unified view (`Document` → `Section` → `Entry`),
+  the raw CST (`.syntax`), or the model (`to_model()`).
+
+- **BREAKING: `walk()` / `Visitor` are generic over the CST.** The per-style
+  hooks (`enter_google_arg`, `enter_numpy_parameter`, … — 52 of them) are
+  replaced by three: `enter_node(node, ctx)`, `leave_node(node, ctx)`,
+  `visit_token(token, ctx)`. Dispatch on `node.kind` / `token.kind`. `walk()`
+  now also accepts a `Node`, so a subtree can be walked.
+
+  ```python
+  class NameCollector(pydocstring.Visitor):
+      def visit_token(self, token, ctx):
+          if token.kind == pydocstring.SyntaxKind.NAME:
+              self.names.append(token.text)
+  ```
+
+  A deprecation cycle was considered and rejected: a deprecated-but-public
+  wrapper still has to be *maintained*, so the FIELD work in 0.5.0 would have
+  had to be plumbed through all 26 classes anyway, and the debt would have
+  survived the entire phase it hurts most. Breaking the public API once,
+  properly, beats breaking it twice.
 
 ### Changed
 

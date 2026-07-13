@@ -5,7 +5,7 @@
 use super::*;
 
 // =============================================================================
-// GoogleArg accessor contract
+// Parameter Entry accessor contract
 // =============================================================================
 
 #[test]
@@ -14,7 +14,7 @@ fn test_args_basic() {
     let result = parse_google(docstring);
     let a = args(&result);
     assert_eq!(a.len(), 1);
-    assert_eq!(a[0].name().text(), "x");
+    assert_eq!(a[0].name().unwrap().text(), "x");
     assert_eq!(a[0].type_annotation().unwrap().text(), "int");
     assert_eq!(a[0].description().unwrap().text(), "The value.");
 }
@@ -24,7 +24,7 @@ fn test_args_name_span() {
     let docstring = "Summary.\n\nArgs:\n    x (int): Value.";
     let result = parse_google(docstring);
     let arg = &args(&result)[0];
-    let name = arg.name();
+    let name = arg.name().unwrap();
     // "x" starts at byte offset 20 (line 3, col 4)
     assert_eq!(name.range().start(), TextSize::new(20));
     assert_eq!(name.range().end(), TextSize::new(name.range().start().raw() + 1));
@@ -36,8 +36,8 @@ fn test_args_no_bracket_fields_when_no_type() {
     let docstring = "Summary.\n\nArgs:\n    x: The value.";
     let result = parse_google(docstring);
     let a = &args(&result)[0];
-    assert!(a.open_bracket().is_none());
-    assert!(a.close_bracket().is_none());
+    assert!(a.syntax().find_token(SyntaxKind::OPEN_BRACKET).is_none());
+    assert!(a.syntax().find_token(SyntaxKind::CLOSE_BRACKET).is_none());
     assert!(a.type_annotation().is_none());
 }
 
@@ -55,7 +55,7 @@ fn test_args_multiple_names() {
     assert_eq!(a.len(), 1);
     let names: Vec<_> = a[0].names().map(|n| n.text()).collect();
     assert_eq!(names, vec!["x1", "x2"]);
-    assert_eq!(a[0].name().text(), "x1");
+    assert_eq!(a[0].name().unwrap().text(), "x1");
     assert_eq!(a[0].type_annotation().unwrap().text(), "int");
 }
 
@@ -81,11 +81,12 @@ fn test_args_default_value() {
     let docstring = "Summary.\n\nArgs:\n    x (int, optional, default 5): The value.";
     let result = parse_google(docstring);
     let a = args(&result);
-    assert_eq!(a[0].name().text(), "x");
+    assert_eq!(a[0].name().unwrap().text(), "x");
     assert_eq!(a[0].type_annotation().unwrap().text(), "int");
-    assert!(a[0].optional_marker().is_some());
-    assert_eq!(a[0].default_keyword().unwrap().text(), "default");
-    assert!(a[0].default_separator().is_none());
+    assert!(a[0].is_optional());
+    let default = a[0].defaults().next().expect("default marker");
+    assert_eq!(default.keyword().text(), "default");
+    assert!(default.separator().is_none());
     assert_eq!(a[0].default_value().unwrap().text(), "5");
 }
 
@@ -97,8 +98,9 @@ fn test_args_default_value_separator_forms() {
         let result = parse_google(&input);
         let a = args(&result);
         assert_eq!(a[0].type_annotation().unwrap().text(), "int", "{form}");
-        assert_eq!(a[0].default_keyword().unwrap().text(), "default");
-        assert_eq!(a[0].default_separator().unwrap().text(), sep);
+        let default = a[0].defaults().next().expect("default marker");
+        assert_eq!(default.keyword().text(), "default");
+        assert_eq!(default.separator().unwrap().text(), sep);
         assert_eq!(a[0].default_value().unwrap().text(), "5", "{form}");
     }
 }
@@ -113,7 +115,7 @@ fn test_args_no_space_after_colon() {
     let docstring = "Summary.\n\nArgs:\n    x:The value.";
     let result = parse_google(docstring);
     let a = args(&result);
-    assert_eq!(a[0].name().text(), "x");
+    assert_eq!(a[0].name().unwrap().text(), "x");
     assert_eq!(a[0].description().unwrap().text(), "The value.");
 }
 
@@ -123,7 +125,7 @@ fn test_args_extra_spaces_after_colon() {
     let docstring = "Summary.\n\nArgs:\n    x:   The value.";
     let result = parse_google(docstring);
     let a = args(&result);
-    assert_eq!(a[0].name().text(), "x");
+    assert_eq!(a[0].name().unwrap().text(), "x");
     assert_eq!(a[0].description().unwrap().text(), "The value.");
 }
 
@@ -148,7 +150,7 @@ fn test_args_description_on_next_line() {
     let docstring = "Summary.\n\nArgs:\n    x (int):\n        The description.";
     let result = parse_google(docstring);
     let a = args(&result);
-    assert_eq!(a[0].name().text(), "x");
+    assert_eq!(a[0].name().unwrap().text(), "x");
     assert_eq!(a[0].type_annotation().unwrap().text(), "int");
     assert_eq!(a[0].description().unwrap().text(), "The description.");
 }
@@ -160,9 +162,9 @@ fn test_args_varargs() {
     let result = parse_google(docstring);
     let a = args(&result);
     assert_eq!(a.len(), 2);
-    assert_eq!(a[0].name().text(), "*args");
+    assert_eq!(a[0].name().unwrap().text(), "*args");
     assert_eq!(a[0].description().unwrap().text(), "Positional args.");
-    assert_eq!(a[1].name().text(), "**kwargs");
+    assert_eq!(a[1].name().unwrap().text(), "**kwargs");
     assert_eq!(a[1].description().unwrap().text(), "Keyword args.");
 }
 
@@ -178,10 +180,23 @@ fn test_args_bracket_styles() {
         let result = parse_google(&input);
         let a = args(&result);
         assert_eq!(a.len(), 1, "brackets {open}{close}");
-        assert_eq!(a[0].name().text(), "x", "brackets {open}{close}");
+        assert_eq!(a[0].name().unwrap().text(), "x", "brackets {open}{close}");
         assert_eq!(a[0].type_annotation().unwrap().text(), "int", "brackets {open}{close}");
-        assert_eq!(a[0].open_bracket().unwrap().text(), open);
-        assert_eq!(a[0].close_bracket().unwrap().text(), close);
+        let syntax = a[0].syntax();
+        assert_eq!(
+            syntax
+                .find_token(SyntaxKind::OPEN_BRACKET)
+                .unwrap()
+                .text(result.source()),
+            open
+        );
+        assert_eq!(
+            syntax
+                .find_token(SyntaxKind::CLOSE_BRACKET)
+                .unwrap()
+                .text(result.source()),
+            close
+        );
         assert_eq!(
             a[0].description().unwrap().text(),
             "The value.",
@@ -199,9 +214,9 @@ fn test_args_optional() {
     let docstring = "Summary.\n\nArgs:\n    x (int, optional): The value.";
     let result = parse_google(docstring);
     let a = args(&result);
-    assert_eq!(a[0].name().text(), "x");
+    assert_eq!(a[0].name().unwrap().text(), "x");
     assert_eq!(a[0].type_annotation().unwrap().text(), "int");
-    assert!(a[0].optional_marker().is_some());
+    assert!(a[0].is_optional());
 }
 
 /// `(optional)` with no type: optional marker set, type absent.
@@ -210,13 +225,13 @@ fn test_optional_only_in_parens() {
     let docstring = "Summary.\n\nArgs:\n    x (optional): Value.";
     let result = parse_google(docstring);
     let a = args(&result);
-    assert_eq!(a[0].name().text(), "x");
+    assert_eq!(a[0].name().unwrap().text(), "x");
     assert!(a[0].type_annotation().is_none());
-    assert!(a[0].optional_marker().is_some());
+    assert!(a[0].is_optional());
 }
 
 // =============================================================================
-// Args-family section variants (contract: section.args() works for each kind)
+// Args-family section variants (contract: entries() works for each kind)
 // =============================================================================
 
 #[test]
@@ -224,8 +239,8 @@ fn test_keyword_args_section_body_variant() {
     let docstring = "Summary.\n\nKeyword Args:\n    k (str): Key.";
     let result = parse_google(docstring);
     let sections = all_sections(&result);
-    assert_eq!(sections[0].section_kind(), GoogleSectionKind::KeywordArgs);
-    assert_eq!(sections[0].args().count(), 1);
+    assert_eq!(sections[0].kind(), SectionKind::KeywordParameters);
+    assert_eq!(sections[0].entries().count(), 1);
 }
 
 #[test]
@@ -233,8 +248,8 @@ fn test_other_parameters_section_body_variant() {
     let docstring = "Summary.\n\nOther Parameters:\n    x (int): Extra.";
     let result = parse_google(docstring);
     let sections = all_sections(&result);
-    assert_eq!(sections[0].section_kind(), GoogleSectionKind::OtherParameters);
-    assert_eq!(sections[0].args().count(), 1);
+    assert_eq!(sections[0].kind(), SectionKind::OtherParameters);
+    assert_eq!(sections[0].entries().count(), 1);
 }
 
 #[test]
@@ -243,6 +258,6 @@ fn test_receives() {
     let result = parse_google(docstring);
     let r = receives(&result);
     assert_eq!(r.len(), 1);
-    assert_eq!(r[0].name().text(), "data");
+    assert_eq!(r[0].name().unwrap().text(), "data");
     assert_eq!(r[0].type_annotation().unwrap().text(), "bytes");
 }

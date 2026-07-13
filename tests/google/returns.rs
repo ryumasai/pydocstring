@@ -1,9 +1,9 @@
-//! Spec pins and typed-accessor contract for Returns (GoogleReturn) and Yields (GoogleYield).
+//! Spec pins and typed-accessor contract for Returns and Yields entries.
 //! Exhaustive input coverage lives in tests/corpus/google/ + tests/snapshots.rs.
 
 use super::*;
 
-/// GoogleReturn accessor contract.
+/// Returns entry accessor contract.
 #[test]
 fn test_returns_with_type() {
     let docstring = "Summary.\n\nReturns:\n    int: The result.";
@@ -34,7 +34,7 @@ fn test_returns_without_type() {
     assert_eq!(r.description().unwrap().text(), "The computed result.");
 }
 
-/// GoogleYield accessor contract.
+/// Yields entry accessor contract.
 #[test]
 fn test_yields() {
     let docstring = "Summary.\n\nYields:\n    int: The next value.";

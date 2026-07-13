@@ -8,19 +8,20 @@ use super::*;
 // Section-header alias → kind mapping (spec table)
 // =============================================================================
 
-/// Every recognised header alias maps to its GoogleSectionKind, and the header
+/// Every recognised header alias maps to its SectionKind, and the header
 /// name token preserves the source spelling.  This is the full alias table —
 /// an alias removed or remapped in the parser fails here explicitly.
 #[test]
 fn test_section_header_alias_kind_table() {
-    use GoogleSectionKind as K;
-    let cases: &[(&str, GoogleSectionKind)] = &[
-        ("Args", K::Args),
-        ("Arguments", K::Args),
-        ("Parameters", K::Args),
-        ("Params", K::Args),
-        ("Keyword Args", K::KeywordArgs),
-        ("Keyword Arguments", K::KeywordArgs),
+    use FreeSectionKind as F;
+    use SectionKind as K;
+    let cases: &[(&str, SectionKind)] = &[
+        ("Args", K::Parameters),
+        ("Arguments", K::Parameters),
+        ("Parameters", K::Parameters),
+        ("Params", K::Parameters),
+        ("Keyword Args", K::KeywordParameters),
+        ("Keyword Arguments", K::KeywordParameters),
         ("Other Parameters", K::OtherParameters),
         ("Receives", K::Receives),
         ("Receive", K::Receives),
@@ -36,32 +37,32 @@ fn test_section_header_alias_kind_table() {
         ("Attribute", K::Attributes),
         ("Methods", K::Methods),
         ("See Also", K::SeeAlso),
-        ("Note", K::Notes),
-        ("Notes", K::Notes),
-        ("Example", K::Examples),
-        ("Examples", K::Examples),
-        ("Todo", K::Todo),
+        ("Note", K::FreeText(F::Notes)),
+        ("Notes", K::FreeText(F::Notes)),
+        ("Example", K::FreeText(F::Examples)),
+        ("Examples", K::FreeText(F::Examples)),
+        ("Todo", K::FreeText(F::Todo)),
         ("References", K::References),
         // Singular "Warning" is the free-text admonition, NOT Warns.
-        ("Warning", K::Warnings),
-        ("Warnings", K::Warnings),
-        ("Attention", K::Attention),
-        ("Caution", K::Caution),
-        ("Danger", K::Danger),
-        ("Error", K::Error),
-        ("Hint", K::Hint),
-        ("Important", K::Important),
-        ("Tip", K::Tip),
-        ("Custom", K::Unknown),
+        ("Warning", K::FreeText(F::Warnings)),
+        ("Warnings", K::FreeText(F::Warnings)),
+        ("Attention", K::FreeText(F::Attention)),
+        ("Caution", K::FreeText(F::Caution)),
+        ("Danger", K::FreeText(F::Danger)),
+        ("Error", K::FreeText(F::Error)),
+        ("Hint", K::FreeText(F::Hint)),
+        ("Important", K::FreeText(F::Important)),
+        ("Tip", K::FreeText(F::Tip)),
+        ("Custom", K::FreeText(F::Unknown("Custom".to_owned()))),
     ];
     for (header, expected) in cases {
         let input = format!("Summary.\n\n{header}:\n    x: d.");
         let result = parse_google(&input);
         let sections = all_sections(&result);
         assert_eq!(sections.len(), 1, "header {header:?} should produce one section");
-        assert_eq!(sections[0].section_kind(), *expected, "header {header:?}");
+        assert_eq!(sections[0].kind(), *expected, "header {header:?}");
         assert_eq!(
-            sections[0].header().name().text(),
+            sections[0].header_name(),
             *header,
             "header name must preserve source spelling for {header:?}"
         );
@@ -86,8 +87,8 @@ fn test_section_order() {
     let result = parse_google(docstring);
     let sections = all_sections(&result);
     assert_eq!(sections.len(), 2);
-    assert_eq!(sections[0].header().name().text(), "Returns");
-    assert_eq!(sections[1].header().name().text(), "Args");
+    assert_eq!(sections[0].header_name(), "Returns");
+    assert_eq!(sections[1].header_name(), "Args");
 }
 
 // =============================================================================
@@ -98,9 +99,9 @@ fn test_section_order() {
 fn test_section_header_span() {
     let docstring = "Summary.\n\nArgs:\n    x: Value.";
     let result = parse_google(docstring);
-    let header = all_sections(&result)[0].header();
-    assert_eq!(header.name().text(), "Args");
-    assert_eq!(header.syntax().range().source_text(result.source()), "Args:");
+    let sections = all_sections(&result);
+    assert_eq!(sections[0].header_name(), "Args");
+    assert_eq!(header(&sections[0]).range().source_text(result.source()), "Args:");
 }
 
 #[test]
@@ -124,9 +125,12 @@ fn test_unknown_section_preserved() {
     let result = parse_google(docstring);
     let sections = all_sections(&result);
     assert_eq!(sections.len(), 1);
-    assert_eq!(sections[0].header().name().text(), "Custom");
-    assert_eq!(sections[0].section_kind(), GoogleSectionKind::Unknown);
-    assert_eq!(sections[0].body_text().unwrap().text(), "Some custom content.");
+    assert_eq!(sections[0].header_name(), "Custom");
+    assert_eq!(
+        sections[0].kind(),
+        SectionKind::FreeText(FreeSectionKind::Unknown("Custom".to_owned()))
+    );
+    assert_eq!(sections[0].body().unwrap().text(), "Some custom content.");
 }
 
 /// Multi-word unknown names followed by a colon are still section headers.
@@ -136,8 +140,8 @@ fn test_multiple_unknown_sections() {
     let result = parse_google(docstring);
     let sections = all_sections(&result);
     assert_eq!(sections.len(), 2);
-    assert_eq!(sections[0].header().name().text(), "Custom One");
-    assert_eq!(sections[1].header().name().text(), "Custom Two");
+    assert_eq!(sections[0].header_name(), "Custom One");
+    assert_eq!(sections[1].header_name(), "Custom Two");
 }
 
 // =============================================================================
@@ -192,37 +196,45 @@ Example:
 // SPEC: entry accessors are guarded by the section's kind (#77 review)
 // =============================================================================
 
-/// SPEC: all entries share the `ENTRY` node kind, so a mismatched accessor
-/// (`args()` on a Raises section) must return empty instead of wrapping the
-/// foreign entries — pre-unification behavior, and calling typed accessors
-/// on the results must not panic.
+/// SPEC: all entries share the `ENTRY` node kind, so an entry's role is its
+/// parent section's kind: a Raises entry is only ever reachable through the
+/// Raises lens, never as an arg / return / warning / … (pre-unification the
+/// per-role accessors were guarded by the section kind for the same reason),
+/// and reading it through a foreign role's accessors must not panic.
 #[test]
 fn spec_mismatched_entry_accessor_returns_empty() {
     let docstring = "Summary.\n\nRaises:\n    ValueError: If the value is bad.";
     let result = parse_google(docstring);
     let sections = all_sections(&result);
     let section = &sections[0];
-    assert_eq!(section.section_kind(), GoogleSectionKind::Raises);
+    assert_eq!(section.kind(), SectionKind::Raises);
 
-    // The matching accessor sees the entry…
-    assert_eq!(section.exceptions().count(), 1);
+    // The matching lens sees the entry…
+    assert_eq!(section.entries().count(), 1);
+    assert_eq!(raises(&result).len(), 1);
 
-    // …every mismatched accessor returns empty (collecting token accessors
-    // would panic in required_token if a foreign entry leaked through).
-    assert_eq!(section.args().count(), 0);
-    assert!(section.returns().is_none());
-    assert!(section.yields().is_none());
-    assert_eq!(section.warnings().count(), 0);
-    assert_eq!(section.see_also_items().count(), 0);
-    assert_eq!(section.attributes().count(), 0);
-    assert_eq!(section.methods().count(), 0);
-    assert_eq!(section.references().count(), 0);
+    // …and every other role's lens is empty (pre-unification, a token
+    // accessor would have panicked in required_token if a foreign entry
+    // leaked through).
+    assert_eq!(args(&result).len(), 0);
+    assert!(returns(&result).is_none());
+    assert!(yields(&result).is_none());
+    assert_eq!(warns(&result).len(), 0);
+    assert_eq!(see_also(&result).len(), 0);
+    assert_eq!(attributes(&result).len(), 0);
+    assert_eq!(methods(&result).len(), 0);
+    assert_eq!(references(&result).len(), 0);
 
-    // And the guard also separates the NAME-carrying roles from each other:
-    // attributes() on an Args section is empty.
+    // Reading the exception entry through the NAME-carrying accessors is
+    // total (no panic): a Raises entry carries a TYPE, not a NAME.
+    let entry = section.entries().next().unwrap();
+    assert!(entry.name().is_none());
+    assert_eq!(entry.type_annotation().unwrap().text(), "ValueError");
+
+    // And the same rule separates the NAME-carrying roles from each other:
+    // an Args entry never surfaces as an attribute or a method.
     let result = parse_google("Summary.\n\nArgs:\n    x (int): The value.");
-    let sections = all_sections(&result);
-    assert_eq!(sections[0].args().count(), 1);
-    assert_eq!(sections[0].attributes().count(), 0);
-    assert_eq!(sections[0].methods().count(), 0);
+    assert_eq!(args(&result).len(), 1);
+    assert_eq!(attributes(&result).len(), 0);
+    assert_eq!(methods(&result).len(), 0);
 }

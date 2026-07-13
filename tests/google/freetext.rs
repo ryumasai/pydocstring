@@ -25,8 +25,8 @@ fn test_example_section() {
 // References section
 // =============================================================================
 
-/// CONTRACT: GoogleReference accessors (number / content / directive_marker /
-/// brackets) for rST-marker entries `.. [N] content`.
+/// CONTRACT: Citation accessors (label / description) plus the raw-CST
+/// directive marker and brackets for rST-marker entries `.. [N] content`.
 #[test]
 fn test_references_rst_markers() {
     let docstring =
@@ -35,12 +35,19 @@ fn test_references_rst_markers() {
     let refs = references(&result);
     assert_eq!(refs.len(), 2);
     assert_eq!(refs[0].label().unwrap().text(), "1");
-    assert!(refs[0].content().unwrap().text().contains("Author A"));
-    assert_eq!(refs[0].directive_marker().unwrap().text(), "..");
-    assert!(refs[0].open_bracket().is_some());
-    assert!(refs[0].close_bracket().is_some());
+    assert!(refs[0].description().unwrap().text().contains("Author A"));
+    assert_eq!(
+        refs[0]
+            .syntax()
+            .find_token(SyntaxKind::DIRECTIVE_MARKER)
+            .unwrap()
+            .text(result.source()),
+        ".."
+    );
+    assert!(refs[0].syntax().find_token(SyntaxKind::OPEN_BRACKET).is_some());
+    assert!(refs[0].syntax().find_token(SyntaxKind::CLOSE_BRACKET).is_some());
     assert_eq!(refs[1].label().unwrap().text(), "2");
-    assert!(refs[1].content().unwrap().text().contains("Author B"));
+    assert!(refs[1].description().unwrap().text().contains("Author B"));
 }
 
 /// SPEC: a plain (non-directive) reference line is a content-only entry.
@@ -50,9 +57,9 @@ fn test_references_plain_line() {
     let result = parse_google(docstring);
     let refs = references(&result);
     assert_eq!(refs.len(), 1);
-    assert!(refs[0].directive_marker().is_none());
+    assert!(refs[0].syntax().find_token(SyntaxKind::DIRECTIVE_MARKER).is_none());
     assert!(refs[0].label().is_none());
-    assert_eq!(refs[0].content().unwrap().text(), "Author, Title, 2024.");
+    assert_eq!(refs[0].description().unwrap().text(), "Author, Title, 2024.");
 }
 
 /// SPEC: a more-indented continuation line extends the previous entry's content.
@@ -65,7 +72,7 @@ fn test_references_continuation_line() {
     assert_eq!(refs.len(), 1);
     assert_eq!(refs[0].label().unwrap().text(), "1");
     assert_eq!(
-        refs[0].content().unwrap().text(),
+        refs[0].description().unwrap().text(),
         "Author B, \"Title B\", 2021,\n        with a continuation line."
     );
 }

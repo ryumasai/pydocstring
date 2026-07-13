@@ -38,13 +38,14 @@ fn build_content_range(cursor: &LineCursor, first: Option<usize>, last: usize) -
 /// # Example
 ///
 /// ```rust
-/// use pydocstring::parse::plain::{parse_plain, nodes::PlainDocstring};
+/// use pydocstring::parse::plain::parse_plain;
+/// use pydocstring::parse::unified::Document;
 /// use pydocstring::syntax::SyntaxKind;
 ///
 /// let result = parse_plain("Summary.\n\nMore details here.");
 /// assert_eq!(result.root().kind(), SyntaxKind::DOCUMENT);
 ///
-/// let doc = PlainDocstring::cast(&result, result.root()).unwrap();
+/// let doc = Document::new(&result);
 /// assert_eq!(doc.summary().unwrap().text(), "Summary.");
 /// assert_eq!(doc.extended_summary().unwrap().text(), "More details here.");
 /// ```
