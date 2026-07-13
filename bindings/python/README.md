@@ -160,8 +160,10 @@ and a `$TYPE` under `Raises:`. `findall_in()` scopes a search the same way. Any
 
 The unified view is a *semantic* lens: it answers "is there a type?", and folds
 away punctuation, whitespace, and the parser's zero-length placeholders. When
-you need the tree exactly as parsed, go down to the CST with `.syntax` — from a
-parse result, or from any view:
+you need the tree exactly as parsed, go down to the CST with `.syntax`. It is on
+the parse result and on every *node-backed* view — `Document`, `Section`,
+`Entry`, `DefaultMarker`, `Directive`, `Citation` — but not on `TextBlock` or
+`Token`, which are already leaves of the tree:
 
 ```python
 from pydocstring import Document, SyntaxKind, parse

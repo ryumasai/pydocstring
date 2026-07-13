@@ -2064,6 +2064,24 @@ class TestRawCST:
         assert node.find_token(K.TYPE) is None
         assert node.find_missing(K.TYPE) is None
 
+    def test_tokens_excludes_missing_placeholders(self):
+        """`find_token` and `tokens` are the singular and plural of one question.
+
+        Both ask "which tokens of this kind are *present*?", so both exclude
+        zero-length placeholders; `find_missing` is the only door to one.
+        """
+        K = pydocstring.SyntaxKind
+        node = _document("Summary.\n\nArgs:\n    x (): V.\n").sections[0].entries[0].syntax
+
+        assert node.find_token(K.TYPE) is None
+        assert node.tokens(K.TYPE) == []
+        assert node.find_missing(K.TYPE) is not None
+
+        # A present token is reported by both.
+        assert present(node.find_token(K.NAME)).text == "x"
+        assert [t.text for t in node.tokens(K.NAME)] == ["x"]
+        assert node.find_missing(K.NAME) is None
+
     def test_children_mix_nodes_and_tokens_in_source_order(self):
         K = pydocstring.SyntaxKind
         entry = pydocstring.Document(pydocstring.parse(GOOGLE_SRC)).sections[0].entries[0]

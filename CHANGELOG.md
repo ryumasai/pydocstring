@@ -50,7 +50,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   silently reinterpret a docstring as another style.
 
 - **The raw CST is now available from Python** — `Node` and `SyntaxKind`, reached
-  with `.syntax` from a parse result or any unified view
+  with `.syntax` from a parse result or any node-backed view (`Document`,
+  `Section`, `Entry`, `DefaultMarker`, `Directive`, `Citation`)
   ([#126](https://github.com/ryumasai/pydocstring/issues/126)). `Token` grows a
   `kind`.
 
@@ -83,6 +84,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `remove_lines`, which only ever read its node's range. Needed by the Python
   binding, whose handle on a construct is a range; pinned equal to
   `remove_lines` for every node of the corpus.
+
+### Fixed
+
+- **`SyntaxNode::tokens` returned missing placeholders** (Rust; surfaced through
+  the new Python `Node.tokens`). `find_token` has always excluded zero-length
+  placeholders, but its plural form did not — so `tokens(SyntaxKind::TYPE)` on
+  `x ():` yielded the placeholder while `find_token` returned `None` for the same
+  node. The two are the singular and plural form of one question ("which tokens
+  of this kind are *present*?"), and now agree; `find_missing` remains the only
+  accessor that returns a placeholder. Caught by CodeRabbit on
+  [#127](https://github.com/ryumasai/pydocstring/pull/127).
 
 ### Changed
 
