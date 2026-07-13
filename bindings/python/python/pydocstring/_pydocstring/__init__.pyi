@@ -85,7 +85,9 @@ class Match:
     def __repr__(self) -> str: ...
 
 class Token:
-    """A text fragment plus its source byte range.  Has no ``kind`` field."""
+    """A text fragment plus its source byte range and :class:`SyntaxKind`."""
+    @property
+    def kind(self) -> SyntaxKind: ...
     @property
     def text(self) -> str: ...
     @property
@@ -427,6 +429,9 @@ class GoogleDocstring:
     @property
     def source(self) -> str: ...
     @property
+    def syntax(self) -> Node:
+        """The root CST node — the escape hatch down to the faithful lens."""
+    @property
     def style(self) -> Style: ...
     def pretty_print(self) -> str: ...
     def to_model(self) -> Docstring: ...
@@ -705,6 +710,9 @@ class NumPyDocstring:
     @property
     def source(self) -> str: ...
     @property
+    def syntax(self) -> Node:
+        """The root CST node — the escape hatch down to the faithful lens."""
+    @property
     def style(self) -> Style: ...
     def pretty_print(self) -> str: ...
     def to_model(self) -> Docstring: ...
@@ -764,6 +772,9 @@ class PlainDocstring:
     def extended_summary(self) -> TextBlock | None: ...
     @property
     def source(self) -> str: ...
+    @property
+    def syntax(self) -> Node:
+        """The root CST node — the escape hatch down to the faithful lens."""
     @property
     def style(self) -> Style: ...
     def pretty_print(self) -> str: ...
@@ -847,6 +858,89 @@ class SectionKind:
     UNKNOWN: SectionKind
     def __repr__(self) -> str: ...
 
+# ─── Raw CST — the fidelity lens ─────────────────────────────────────────────
+
+class SyntaxKind:
+    """The kind of a CST node or token.
+
+    ``UNKNOWN`` is a read-only result: the crate's ``SyntaxKind`` is
+    non-exhaustive, so a newer core can produce a kind this build has no member
+    for. It cannot be passed as a query argument.
+    """
+
+    NAME: SyntaxKind
+    TYPE: SyntaxKind
+    COLON: SyntaxKind
+    COMMA: SyntaxKind
+    DESCRIPTION: SyntaxKind
+    OPEN_BRACKET: SyntaxKind
+    CLOSE_BRACKET: SyntaxKind
+    OPTIONAL: SyntaxKind
+    SUMMARY: SyntaxKind
+    EXTENDED_SUMMARY: SyntaxKind
+    TEXT_LINE: SyntaxKind
+    WHITESPACE: SyntaxKind
+    NEWLINE: SyntaxKind
+    BLANK_LINE: SyntaxKind
+    UNDERLINE: SyntaxKind
+    DIRECTIVE_MARKER: SyntaxKind
+    DIRECTIVE_NAME: SyntaxKind
+    DOUBLE_COLON: SyntaxKind
+    ARGUMENT: SyntaxKind
+    DEFAULT_KEYWORD: SyntaxKind
+    DEFAULT_SEPARATOR: SyntaxKind
+    DEFAULT_VALUE: SyntaxKind
+    LABEL: SyntaxKind
+    DOCUMENT: SyntaxKind
+    SECTION: SyntaxKind
+    SECTION_HEADER: SyntaxKind
+    ENTRY: SyntaxKind
+    DIRECTIVE: SyntaxKind
+    CITATION: SyntaxKind
+    DEFAULT: SyntaxKind
+    PARAGRAPH: SyntaxKind
+    UNKNOWN: SyntaxKind
+    def __repr__(self) -> str: ...
+
+class Node:
+    """A node of the concrete syntax tree — the faithful lens.
+
+    Keeps every byte: punctuation, trivia, and the zero-length missing
+    placeholders the unified view deliberately hides. The tree's vocabulary is
+    style-independent, so one type walks any docstring.
+
+    Reach it from any unified view or parse result with ``.syntax``.
+    """
+    @property
+    def kind(self) -> SyntaxKind: ...
+    @property
+    def range(self) -> TextRange: ...
+    @property
+    def text(self) -> str:
+        """The raw source slice of this node's range."""
+    @property
+    def children(self) -> list[Node | Token]:
+        """Every child, in source order — a mix of nodes and tokens."""
+    def nodes(self, kind: SyntaxKind) -> list[Node]:
+        """Direct child nodes of ``kind``, in source order."""
+        ...
+    def tokens(self, kind: SyntaxKind) -> list[Token]:
+        """Direct child tokens of ``kind``. Missing placeholders are excluded."""
+        ...
+    def find_node(self, kind: SyntaxKind) -> Node | None: ...
+    def find_token(self, kind: SyntaxKind) -> Token | None:
+        """The first present (non-missing) direct child token of ``kind``."""
+        ...
+    def find_missing(self, kind: SyntaxKind) -> Token | None:
+        """The first *missing* (zero-length) direct child token of ``kind``.
+
+        This is what tells ``x ():`` — an empty type between brackets, so a
+        placeholder exists — apart from ``x:``, where the grammar produced no
+        type token at all. The placeholder's range is the insertion anchor.
+        """
+        ...
+    def __repr__(self) -> str: ...
+
 # ─── Unified views — the style-independent read lens ─────────────────────────
 
 class Document:
@@ -888,6 +982,9 @@ class Document:
     def edit(self) -> Edits:
         """Start an empty edit list anchored on this docstring."""
         ...
+    @property
+    def syntax(self) -> Node:
+        """The underlying CST node — the escape hatch down to the faithful lens."""
     def __repr__(self) -> str: ...
 
 class Section:
@@ -913,6 +1010,9 @@ class Section:
         """Free-text body, for sections carrying prose rather than entries."""
     @property
     def citations(self) -> list[Citation]: ...
+    @property
+    def syntax(self) -> Node:
+        """The underlying CST node — the escape hatch down to the faithful lens."""
     def __repr__(self) -> str: ...
 
 class Entry:
@@ -945,6 +1045,9 @@ class Entry:
     @property
     def default_value(self) -> Token | None:
         """The first ``default …`` value — first occurrence wins, as in the model."""
+    @property
+    def syntax(self) -> Node:
+        """The underlying CST node — the escape hatch down to the faithful lens."""
     def __repr__(self) -> str: ...
 
 class DefaultMarker:
@@ -957,6 +1060,9 @@ class DefaultMarker:
     def separator(self) -> Token | None: ...
     @property
     def value(self) -> Token | None: ...
+    @property
+    def syntax(self) -> Node:
+        """The underlying CST node — the escape hatch down to the faithful lens."""
     def __repr__(self) -> str: ...
 
 class Directive:
@@ -969,6 +1075,9 @@ class Directive:
     def argument(self) -> Token | None: ...
     @property
     def description(self) -> TextBlock | None: ...
+    @property
+    def syntax(self) -> Node:
+        """The underlying CST node — the escape hatch down to the faithful lens."""
     def __repr__(self) -> str: ...
 
 class Citation:
@@ -979,6 +1088,9 @@ class Citation:
     def label(self) -> Token | None: ...
     @property
     def description(self) -> TextBlock | None: ...
+    @property
+    def syntax(self) -> Node:
+        """The underlying CST node — the escape hatch down to the faithful lens."""
     def __repr__(self) -> str: ...
 
 # ─── Editing — anchored splice edits ─────────────────────────────────────────

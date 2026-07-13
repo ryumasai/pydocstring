@@ -23,6 +23,7 @@ from ._pydocstring import GoogleWarning
 from ._pydocstring import GoogleYield
 from ._pydocstring import LineColumn
 from ._pydocstring import Match
+from ._pydocstring import Node
 from ._pydocstring import NumPyAttribute
 from ._pydocstring import NumPyDeprecation
 from ._pydocstring import NumPyDirective
@@ -42,6 +43,7 @@ from ._pydocstring import PlainDocstring
 from ._pydocstring import Section
 from ._pydocstring import SectionKind
 from ._pydocstring import Style
+from ._pydocstring import SyntaxKind
 from ._pydocstring import TextBlock
 from ._pydocstring import TextRange
 from ._pydocstring import Token
@@ -65,6 +67,9 @@ __all__ = [
     "TextBlock",
     "Token",
     "Style",
+    # ── Raw CST — the fidelity lens ───────────────────────────────────────
+    "SyntaxKind",
+    "Node",
     # ── Section kinds ─────────────────────────────────────────────────────
     "SectionKind",
     "GoogleSectionKind",

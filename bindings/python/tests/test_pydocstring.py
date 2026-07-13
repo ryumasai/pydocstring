@@ -447,11 +447,17 @@ class TestToken:
         assert doc.summary is not None
         assert repr(doc.summary.lines[0]) == 'Token("Hello.")'
 
-    def test_no_kind_field(self):
+    def test_kind(self):
+        """Tokens carry their kind (#126).
+
+        They deliberately did not before: on a typed wrapper the field name
+        (`.name`, `.description`) already implied the kind, so `kind` was
+        redundant. That reasoning does not survive the raw CST lens, where a
+        token arrives from `node.children` with no field name attached to it.
+        """
         doc = pydocstring.parse_google("Summary.")
         assert doc.summary is not None
-        token = doc.summary.lines[0]
-        assert not hasattr(token, "kind"), "Token must not expose a 'kind' field"
+        assert doc.summary.lines[0].kind == pydocstring.SyntaxKind.TEXT_LINE
 
 
 class TestTextBlock:
@@ -2016,3 +2022,127 @@ class TestReplaceIn:
             parsed.replace_in(other.sections[0], "$NAME: $DESC", "x")
         with pytest.raises(ValueError):
             parsed.findall_in(other.sections[0], "$NAME: $DESC")
+
+
+# ─── Raw CST — the fidelity lens (#126) ──────────────────────────────────────
+
+
+class TestRawCST:
+    def test_the_tree_vocabulary_is_style_independent(self):
+        """The same kinds describe a Google and a NumPy entry."""
+        kinds = {}
+        for label, src in (("google", GOOGLE_SRC), ("numpy", NUMPY_SRC)):
+            entry = pydocstring.Document(pydocstring.parse(src)).sections[0].entries[0]
+            kinds[label] = entry.syntax.kind
+        assert kinds["google"] == kinds["numpy"] == pydocstring.SyntaxKind.ENTRY
+
+    def test_syntax_is_the_escape_hatch_from_the_semantic_lens(self):
+        entry = pydocstring.Document(pydocstring.parse(GOOGLE_SRC)).sections[0].entries[0]
+        assert entry.syntax.kind == pydocstring.SyntaxKind.ENTRY
+        assert entry.syntax.range.start == entry.range.start
+        assert entry.syntax.range.end == entry.range.end
+
+    def test_find_missing_distinguishes_an_empty_type_from_no_type(self):
+        """`x ():` has a zero-length TYPE placeholder; `x:` has no TYPE at all.
+
+        The unified view reports both as `type_annotation is None` — the raw CST
+        is what tells them apart, and the placeholder's range is the insertion
+        anchor for adding a type.
+        """
+        K = pydocstring.SyntaxKind
+
+        empty = pydocstring.Document(pydocstring.parse("Summary.\n\nArgs:\n    x (): V.\n"))
+        node = empty.sections[0].entries[0].syntax
+        assert node.find_token(K.TYPE) is None
+        placeholder = node.find_missing(K.TYPE)
+        assert placeholder is not None
+        assert placeholder.is_missing()
+        assert placeholder.range.is_empty()
+
+        absent = pydocstring.Document(pydocstring.parse("Summary.\n\nArgs:\n    x: V.\n"))
+        node = absent.sections[0].entries[0].syntax
+        assert node.find_token(K.TYPE) is None
+        assert node.find_missing(K.TYPE) is None
+
+    def test_tokens_excludes_missing_placeholders(self):
+        """`find_token` and `tokens` are the singular and plural of one question.
+
+        Both ask "which tokens of this kind are *present*?", so both exclude
+        zero-length placeholders; `find_missing` is the only door to one.
+        """
+        K = pydocstring.SyntaxKind
+        node = _document("Summary.\n\nArgs:\n    x (): V.\n").sections[0].entries[0].syntax
+
+        assert node.find_token(K.TYPE) is None
+        assert node.tokens(K.TYPE) == []
+        assert node.find_missing(K.TYPE) is not None
+
+        # A present token is reported by both.
+        assert present(node.find_token(K.NAME)).text == "x"
+        assert [t.text for t in node.tokens(K.NAME)] == ["x"]
+        assert node.find_missing(K.NAME) is None
+
+    def test_children_mix_nodes_and_tokens_in_source_order(self):
+        K = pydocstring.SyntaxKind
+        entry = pydocstring.Document(pydocstring.parse(GOOGLE_SRC)).sections[0].entries[0]
+        children = entry.syntax.children
+        assert [c.kind for c in children] == [
+            K.NAME,
+            K.WHITESPACE,
+            K.OPEN_BRACKET,
+            K.TYPE,
+            K.CLOSE_BRACKET,
+            K.COLON,
+            K.WHITESPACE,
+            K.DESCRIPTION,
+        ]
+        assert isinstance(children[-1], pydocstring.Node)
+        assert isinstance(children[0], pydocstring.Token)
+
+    def test_queries(self):
+        K = pydocstring.SyntaxKind
+        root = pydocstring.parse(GOOGLE_SRC).syntax
+        assert root.kind == K.DOCUMENT
+        section = present(root.find_node(K.SECTION))
+        assert len(section.nodes(K.ENTRY)) == 2
+        entry = section.nodes(K.ENTRY)[0]
+        assert present(entry.find_token(K.NAME)).text == "x"
+        assert present(entry.find_token(K.TYPE)).text == "int"
+        assert [t.text for t in entry.tokens(K.WHITESPACE)] == [" ", " "]
+        assert root.find_node(K.CITATION) is None
+
+    def test_node_text_is_the_raw_source_slice(self):
+        entry = pydocstring.Document(pydocstring.parse(GOOGLE_SRC)).sections[0].entries[0]
+        assert entry.syntax.text == "x (int): The value."
+
+    def test_the_tree_covers_every_byte(self):
+        """The coverage law — this is what makes the CST the *faithful* lens."""
+
+        def leaves(node, out):
+            for child in node.children:
+                if isinstance(child, pydocstring.Node):
+                    leaves(child, out)
+                elif not child.is_missing():
+                    out.append(child)
+
+        for src in (GOOGLE_SRC, NUMPY_SRC, "Just a summary.\n"):
+            tokens = []
+            leaves(pydocstring.parse(src).syntax, tokens)
+            assert "".join(t.text for t in tokens) == src
+
+    def test_unknown_cannot_be_used_as_a_query(self):
+        root = pydocstring.parse(GOOGLE_SRC).syntax
+        with pytest.raises(ValueError):
+            root.find_token(pydocstring.SyntaxKind.UNKNOWN)
+        with pytest.raises(ValueError):
+            root.nodes(pydocstring.SyntaxKind.UNKNOWN)
+
+    def test_token_kind(self):
+        entry = pydocstring.Document(pydocstring.parse(GOOGLE_SRC)).sections[0].entries[0]
+        assert present(entry.name).kind == pydocstring.SyntaxKind.NAME
+        assert present(entry.type_annotation).kind == pydocstring.SyntaxKind.TYPE
+
+    def test_repr(self):
+        entry = pydocstring.Document(pydocstring.parse(GOOGLE_SRC)).sections[0].entries[0]
+        assert repr(entry.syntax) == "Node(ENTRY, 20..39)"
+        assert repr(pydocstring.SyntaxKind.NAME) == "SyntaxKind.NAME"

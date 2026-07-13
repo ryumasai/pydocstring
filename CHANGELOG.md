@@ -49,6 +49,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `apply_reparsed()` re-parses with the **same** style — editing must not
   silently reinterpret a docstring as another style.
 
+- **The raw CST is now available from Python** — `Node` and `SyntaxKind`, reached
+  with `.syntax` from a parse result or any node-backed view (`Document`,
+  `Section`, `Entry`, `DefaultMarker`, `Directive`, `Citation`)
+  ([#126](https://github.com/ryumasai/pydocstring/issues/126)). `Token` grows a
+  `kind`.
+
+  Python previously had no generic node type at all: the only way into the tree
+  was `walk()`, which hands back the 26 per-style wrapper classes. But the tree's
+  vocabulary is already style-independent — a Google entry and a NumPy entry are
+  both `SyntaxKind.ENTRY` — so two classes replace twenty-six, and the result is
+  *more* capable.
+
+  This is the **faithful** lens: it keeps punctuation, trivia, and the zero-length
+  missing placeholders the unified view deliberately hides. It is what
+  distinguishes `x ():` (an empty type between brackets — a placeholder exists,
+  and its range is an insertion anchor) from `x:` (no type token at all), which
+  the semantic lens reports identically as `type_annotation is None`.
+
+  The read lenses are now what they should have been: **semantic** (unified view)
+  / **faithful** (raw CST) / **normalized** (model).
+
 - **Scoped pattern rewrites from Python** — `replace_in(anchor, pattern, template)`
   and `findall_in(anchor, pattern)`
   ([#118](https://github.com/ryumasai/pydocstring/issues/118)). Rust has had
@@ -63,6 +84,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `remove_lines`, which only ever read its node's range. Needed by the Python
   binding, whose handle on a construct is a range; pinned equal to
   `remove_lines` for every node of the corpus.
+
+### Fixed
+
+- **`SyntaxNode::tokens` returned missing placeholders** (Rust; surfaced through
+  the new Python `Node.tokens`). `find_token` has always excluded zero-length
+  placeholders, but its plural form did not — so `tokens(SyntaxKind::TYPE)` on
+  `x ():` yielded the placeholder while `find_token` returned `None` for the same
+  node. The two are the singular and plural form of one question ("which tokens
+  of this kind are *present*?"), and now agree; `find_missing` remains the only
+  accessor that returns a placeholder. Caught by CodeRabbit on
+  [#127](https://github.com/ryumasai/pydocstring/pull/127).
 
 ### Changed
 

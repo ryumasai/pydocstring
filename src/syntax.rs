@@ -340,10 +340,16 @@ impl SyntaxNode {
             .unwrap_or_else(|| panic!("required token {:?} not found in {:?}", kind, self.kind))
     }
 
-    /// Iterate over all token children with the given kind.
+    /// Iterate over the *present* token children with the given kind.
+    ///
+    /// Zero-length missing placeholders are excluded, exactly as
+    /// [`find_token`](SyntaxNode::find_token) excludes them — the two are the
+    /// plural and singular form of the same question. Reach a placeholder with
+    /// [`find_missing`](SyntaxNode::find_missing), which is the only accessor
+    /// that returns one.
     pub fn tokens(&self, kind: SyntaxKind) -> impl Iterator<Item = &SyntaxToken> {
         self.children.iter().filter_map(move |c| match c {
-            SyntaxElement::Token(t) if t.kind() == kind => Some(t),
+            SyntaxElement::Token(t) if t.kind() == kind && !t.is_missing() => Some(t),
             _ => None,
         })
     }
@@ -735,6 +741,28 @@ mod tests {
         SyntaxToken::new(SyntaxKind::TYPE, TextRange::new(TextSize::new(3), TextSize::new(3)))
             .pretty_fmt(source, 0, &mut out);
         assert_eq!(out, "TYPE: <missing>@3..3\n");
+    }
+
+    #[test]
+    fn test_token_accessors_partition_present_from_missing() {
+        // `find_token` and `tokens` are the singular and plural form of the same
+        // question — "which tokens of this kind are *present*?" — so both exclude
+        // zero-length placeholders. `find_missing` is the only door to one.
+        let present = SyntaxToken::new(SyntaxKind::NAME, TextRange::new(TextSize::new(0), TextSize::new(1)));
+        let missing = SyntaxToken::new(SyntaxKind::TYPE, TextRange::new(TextSize::new(3), TextSize::new(3)));
+        let node = SyntaxNode::new(
+            SyntaxKind::ENTRY,
+            TextRange::new(TextSize::new(0), TextSize::new(4)),
+            vec![SyntaxElement::Token(present), SyntaxElement::Token(missing)],
+        );
+
+        assert!(node.find_token(SyntaxKind::TYPE).is_none());
+        assert_eq!(node.tokens(SyntaxKind::TYPE).count(), 0);
+        assert!(node.find_missing(SyntaxKind::TYPE).is_some());
+
+        assert!(node.find_token(SyntaxKind::NAME).is_some());
+        assert_eq!(node.tokens(SyntaxKind::NAME).count(), 1);
+        assert!(node.find_missing(SyntaxKind::NAME).is_none());
     }
 
     #[test]
