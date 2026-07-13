@@ -26,9 +26,9 @@ const KNOWN_COVERAGE_FAILURES: &[&str] = &[];
 
 fn parse_for_style(style: &str, input: &str) -> Parsed {
     match style {
-        "google" => pydocstring::parse::google::parse_google(input),
-        "numpy" => pydocstring::parse::numpy::parse_numpy(input),
-        "plain" => pydocstring::parse::plain::parse_plain(input),
+        "google" => pydocstring::parse::parse_google(input),
+        "numpy" => pydocstring::parse::parse_numpy(input),
+        "plain" => pydocstring::parse::parse_plain(input),
         other => panic!("unknown corpus style directory: {other}"),
     }
 }
@@ -159,7 +159,7 @@ fn token_texts(node: &SyntaxNode, source: &str) -> Vec<(SyntaxKind, String)> {
 /// `NAME` tokens, in both styles.
 #[test]
 fn name_list_commas_are_comma_tokens() {
-    let google = pydocstring::parse::google::parse_google("Summary.\n\nArgs:\n    x1, x2 (int): The values.\n");
+    let google = pydocstring::parse::parse_google("Summary.\n\nArgs:\n    x1, x2 (int): The values.\n");
     let arg = google.root().find_node(SyntaxKind::SECTION).unwrap();
     let arg = arg.find_node(SyntaxKind::ENTRY).unwrap();
     let tokens = token_texts(arg, google.source());
@@ -177,8 +177,7 @@ fn name_list_commas_are_comma_tokens() {
         ]
     );
 
-    let numpy =
-        pydocstring::parse::numpy::parse_numpy("Summary.\n\nParameters\n----------\nx1, x2 : int\n    The values.\n");
+    let numpy = pydocstring::parse::parse_numpy("Summary.\n\nParameters\n----------\nx1, x2 : int\n    The values.\n");
     let param = numpy.root().find_node(SyntaxKind::SECTION).unwrap();
     let param = param.find_node(SyntaxKind::ENTRY).unwrap();
     let tokens = token_texts(param, numpy.source());
@@ -202,8 +201,7 @@ fn name_list_commas_are_comma_tokens() {
 /// both styles, exactly like parameters (#89).
 #[test]
 fn attribute_name_list_commas_are_comma_tokens() {
-    let google =
-        pydocstring::parse::google::parse_google("Summary.\n\nAttributes:\n    jac, hess (ndarray): Derivatives.\n");
+    let google = pydocstring::parse::parse_google("Summary.\n\nAttributes:\n    jac, hess (ndarray): Derivatives.\n");
     let entry = google.root().find_node(SyntaxKind::SECTION).unwrap();
     let entry = entry.find_node(SyntaxKind::ENTRY).unwrap();
     let tokens = token_texts(entry, google.source());
@@ -221,9 +219,8 @@ fn attribute_name_list_commas_are_comma_tokens() {
         ]
     );
 
-    let numpy = pydocstring::parse::numpy::parse_numpy(
-        "Summary.\n\nAttributes\n----------\njac, hess : ndarray\n    Derivatives.\n",
-    );
+    let numpy =
+        pydocstring::parse::parse_numpy("Summary.\n\nAttributes\n----------\njac, hess : ndarray\n    Derivatives.\n");
     assert!(
         check_coverage(&numpy).is_empty(),
         "coverage violated for multi-name numpy attribute"
@@ -252,7 +249,7 @@ fn attribute_name_list_commas_are_comma_tokens() {
 #[test]
 fn optional_marker_comma_is_a_comma_token() {
     let input = "Summary.\n\nArgs:\n    x (int, optional): The value.\n";
-    let parsed = pydocstring::parse::google::parse_google(input);
+    let parsed = pydocstring::parse::parse_google(input);
     let arg = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
     let arg = arg.find_node(SyntaxKind::ENTRY).unwrap();
     let tokens = token_texts(arg, parsed.source());
@@ -272,7 +269,7 @@ fn optional_marker_comma_is_a_comma_token() {
 
     // A bracket-internal comma is not a separator: no COMMA token.
     let input = "Summary.\n\nArgs:\n    x (Dict[str, int]): The value.\n";
-    let parsed = pydocstring::parse::google::parse_google(input);
+    let parsed = pydocstring::parse::parse_google(input);
     let arg = parsed.root().find_node(SyntaxKind::SECTION).unwrap();
     let arg = arg.find_node(SyntaxKind::ENTRY).unwrap();
     let tokens = token_texts(arg, parsed.source());
@@ -296,7 +293,7 @@ fn optional_marker_comma_is_a_comma_token() {
 #[test]
 fn repeated_default_markers_one_node_per_occurrence() {
     let input = "Summary.\n\nParameters\n----------\nx : int, default 1, default 2\n    Desc.\n";
-    let parsed = pydocstring::parse::numpy::parse_numpy(input);
+    let parsed = pydocstring::parse::parse_numpy(input);
     assert!(check_coverage(&parsed).is_empty(), "coverage violated: {input:?}");
 
     let entry = parsed
@@ -319,7 +316,7 @@ fn repeated_default_markers_one_node_per_occurrence() {
     assert_eq!(values, vec!["1", "2"]);
 
     let input = "Summary.\n\nArgs:\n    x (int, default 1, default 2): Desc.\n";
-    let parsed = pydocstring::parse::google::parse_google(input);
+    let parsed = pydocstring::parse::parse_google(input);
     assert!(check_coverage(&parsed).is_empty(), "coverage violated: {input:?}");
     let entry = parsed
         .root()
@@ -344,7 +341,7 @@ fn repeated_default_markers_one_node_per_occurrence() {
 #[test]
 fn repeated_optional_markers_one_token_per_occurrence() {
     let input = "Summary.\n\nParameters\n----------\nx : int, optional, optional\n    Desc.\n";
-    let parsed = pydocstring::parse::numpy::parse_numpy(input);
+    let parsed = pydocstring::parse::parse_numpy(input);
     assert!(check_coverage(&parsed).is_empty(), "coverage violated: {input:?}");
     let entry = parsed
         .root()
@@ -355,7 +352,7 @@ fn repeated_optional_markers_one_token_per_occurrence() {
     assert_eq!(entry.tokens(SyntaxKind::OPTIONAL).count(), 2);
 
     let input = "Summary.\n\nArgs:\n    x (int, optional, optional): Desc.\n";
-    let parsed = pydocstring::parse::google::parse_google(input);
+    let parsed = pydocstring::parse::parse_google(input);
     assert!(check_coverage(&parsed).is_empty(), "coverage violated: {input:?}");
     let entry = parsed
         .root()

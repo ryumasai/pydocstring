@@ -53,7 +53,7 @@ impl<'a> TextBlock<'a> {
 
     /// The source range of the block: from the start of the first content
     /// line's text to the end of the last content line's text.
-    pub fn range(&self) -> &'a TextRange {
+    pub fn range(&self) -> TextRange {
         self.node.range()
     }
 

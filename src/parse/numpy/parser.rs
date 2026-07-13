@@ -887,7 +887,7 @@ impl SectionBody {
 /// # Example
 ///
 /// ```rust
-/// use pydocstring::parse::numpy::parse_numpy;
+/// use pydocstring::parse::parse_numpy;
 /// use pydocstring::syntax::SyntaxKind;
 ///
 /// let input = "Summary.\n\nParameters\n----------\nx : int\n    The value.\n";

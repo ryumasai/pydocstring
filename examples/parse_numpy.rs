@@ -2,7 +2,7 @@
 //!
 //! Shows the raw docstring text, then the detailed parsed AST.
 
-use pydocstring::parse::numpy::parse_numpy;
+use pydocstring::parse::parse_numpy;
 use pydocstring::parse::unified::Document;
 
 fn main() {

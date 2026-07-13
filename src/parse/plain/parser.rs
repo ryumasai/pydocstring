@@ -38,7 +38,7 @@ fn build_content_range(cursor: &LineCursor, first: Option<usize>, last: usize) -
 /// # Example
 ///
 /// ```rust
-/// use pydocstring::parse::plain::parse_plain;
+/// use pydocstring::parse::parse_plain;
 /// use pydocstring::parse::unified::Document;
 /// use pydocstring::syntax::SyntaxKind;
 ///

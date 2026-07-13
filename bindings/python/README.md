@@ -15,7 +15,7 @@ Produces a **unified syntax tree** with **byte-precise source locations** on eve
 - **Full syntax tree** — builds a complete AST, not just extracted fields; traverse it with `walk()`
 - **Byte-precise source locations** — every view carries its exact byte range, for pinpoint diagnostics and as an anchor for edits
 - **Powered by Rust** — native extension with no Python runtime overhead
-- **Error-resilient** — never raises exceptions; malformed input still yields a best-effort tree
+- **Error-resilient parsing** — `parse*()` never raises; malformed input still yields a best-effort tree
 - **Style auto-detection** — hand it a docstring, get back `Style.GOOGLE`, `Style.NUMPY`, or `Style.PLAIN`
 
 ## Installation
@@ -305,13 +305,18 @@ class LocPrinter(Visitor):
 
 ### Source Locations
 
-All tokens carry byte-precise source ranges:
+Every view carries a byte-precise source range, so a read result is also an
+edit anchor. Ranges are values: they compare and hash by `(start, end)`.
 
 ```python
-doc = parse_google("Summary.\n\nArgs:\n    x (int): Value.")
-token = doc.summary
-print(token.range.start, token.range.end)  # 0 8
+doc = Document(parse_google("Summary.\n\nArgs:\n    x (int): Value."))
+summary = doc.summary
+print(summary.range.start, summary.range.end)  # 0 8
 ```
+
+The range is a **byte** range, not a code-point range — splice it with `Edits`
+rather than slicing it into a `str`, which cuts in the wrong place on
+non-ASCII input.
 
 ### Model IR (`pydocstring.model`)
 
@@ -423,8 +428,9 @@ print(numpy_text)  # Contains "Parameters\n----------"
 | `Citation`      | `label`, `description`, `range`                                                                       |
 
 Every accessor is optional, so no read raises for a role that does not carry
-that piece. `None` means "not present" — unlike the per-style wrappers below,
-these views do not surface zero-length missing placeholders.
+that piece. `None` means "not present": these views do not surface zero-length
+missing placeholders, so they cannot tell `x ():` from `x:`. That distinction
+lives in the raw CST below, which is what `find_missing()` is for.
 
 #### Raw CST — the fidelity lens
 
@@ -453,10 +459,19 @@ Start one with `parsed.edit()` or `doc.edit()`.
 | `Style`       | `GOOGLE`, `NUMPY`, `PLAIN` (enum)                                                                                                       |
 | `SectionKind` | `PARAMETERS`, `RETURNS`, `RAISES`, `NOTES`, … (24 variants — shared by `Section.kind` and the model)                                    |
 | `Token`       | `kind`, `text`, `range`, `is_missing()`                                                                                                 |
-| `TextRange`   | `start`, `end`, `is_empty()`                                                                                                            |
+| `TextRange`   | `start`, `end`, `is_empty()` — a value: compares and hashes by `(start, end)`                                                           |
 | `TextBlock`   | `text`, `logical_text`, `range`, `lines`, `is_missing()`                                                                                |
+| `LineColumn`  | `lineno` (1-based), `col` (0-based) — from `WalkContext.line_col(offset)`                                                               |
 | `Visitor`     | Base class; subclass and override any of `enter_node`, `leave_node`, `visit_token`                                                      |
 | `WalkContext` | `line_col(offset)` — passed as the second argument to every hook                                                                        |
+
+#### Pattern matching
+
+| Class          | Key members                                                                                   |
+|----------------|-----------------------------------------------------------------------------------------------|
+| `Match`        | `range`, `text`, `captures` (`dict[str, Capture]`) — one hit from `findall()` / `findall_in()` |
+| `Capture`      | `range`, `text`, `is_multi()` — what a `$NAME` (or `$$$NAME`) bound to, byte-exact             |
+| `PatternError` | Raised for a malformed pattern or template (a `ValueError`)                                   |
 
 #### Model IR — `pydocstring.model`
 
@@ -506,7 +521,7 @@ After changing the Rust source, re-run `uv run maturin develop --uv` to rebuild.
 
 ```bash
 uv run maturin build --release
-# Output: target/wheels/pydocstring-*.whl
+# Output: target/wheels/pydocstring_rs-*.whl
 ```
 
 ### Publish to PyPI

@@ -1,19 +1,20 @@
 """Type stubs for the native ``pydocstring._pydocstring`` extension module.
 
-Parses Google-style and NumPy-style Python docstrings into typed, traversable
-objects with source-location information suitable for linters and formatters.
+Parses Google-style and NumPy-style Python docstrings into a single ``Parsed``,
+read through three lenses: the style-independent ``Document`` view, the raw CST
+(``.syntax``), and the normalized model (``to_model()``). Every view keeps its
+byte range, so results double as edit anchors.
 
-Missing-value convention (uniform across the Google and NumPy CST wrappers):
+Missing values, and which lens shows them:
 
-* Fields documented as **"or missing-placeholder"** return a zero-length
-  placeholder object (``is_missing()`` is ``True``) when the surrounding
-  syntax marker is present but the content is absent (e.g. the description
-  in ``ValueError:``, or the type in ``x ():`` / ``x :``), and ``None``
-  when the parser emitted no placeholder at all (e.g. a Raises entry
-  without a colon). So these fields can still be ``None`` — check both.
-* Fields documented as **"None when absent"** are plain optionals and are
-  never a missing placeholder. This includes the ``description`` of
-  returns/yields entries in BOTH styles (symmetric by design).
+* On the ``Document`` view, ``None`` means **not present** — it is the semantic
+  lens, and it hides the parser's zero-length missing placeholders. It cannot
+  tell ``x ():`` from ``x:``, and that is deliberate.
+* The raw CST keeps them: ``Node.find_missing(kind)`` returns the placeholder
+  (``Token.is_missing()`` is ``True``, its range is zero-length) where the
+  syntax marker is present but the content is absent. That zero-length range is
+  the anchor to write the missing content at. ``Node.tokens(kind)`` and
+  ``find_token(kind)`` both exclude placeholders.
 """
 
 from __future__ import annotations
@@ -28,24 +29,37 @@ _VisitorT = TypeVar("_VisitorT", bound="Visitor")
 # ─── Core types ──────────────────────────────────────────────────────────────
 
 class TextRange:
-    """Byte range ``[start, end)`` within the source string."""
+    """Byte range ``[start, end)`` within the source string.
+
+    A value type: compares and hashes by ``(start, end)``. It is a **byte**
+    range, not a code-point range, so slicing it into a `str` is wrong for
+    non-ASCII sources — anchor an ``Edits`` on it instead.
+
+    The range carries no link back to the parse result it came from. Anchoring
+    an edit on a range from a *different* ``Parsed`` is a byte offset into a
+    different string: it will splice at the wrong place rather than raise.
+    """
 
     start: int
     end: int
     def is_empty(self) -> bool:
         """Return ``True`` when ``start == end`` (zero-length placeholder)."""
         ...
+    def __eq__(self, other: object) -> bool: ...
+    def __hash__(self) -> int: ...
     def __repr__(self) -> str: ...
 
 class LineColumn:
-    """1-based line number and 0-based column offset."""
+    """1-based line number and 0-based column offset. Compares by value."""
 
     lineno: int
     col: int
+    def __eq__(self, other: object) -> bool: ...
+    def __hash__(self) -> int: ...
     def __repr__(self) -> str: ...
 
 class WalkContext:
-    """Context passed to every ``enter_*`` method during a ``walk()`` call."""
+    """Context passed to every ``Visitor`` hook during a ``walk()`` call."""
     def line_col(self, offset: int) -> LineColumn: ...
     def __repr__(self) -> str: ...
 
@@ -262,6 +276,14 @@ class Node:
         type token at all. The placeholder's range is the insertion anchor.
         """
         ...
+    def __eq__(self, other: object) -> bool:
+        """Same kind, same range, same source text.
+
+        Accessors hand out a fresh wrapper on every access, so identity would
+        make even ``node == node`` false.
+        """
+        ...
+    def __hash__(self) -> int: ...
     def __repr__(self) -> str: ...
 
 # ─── Unified views — the style-independent read lens ─────────────────────────

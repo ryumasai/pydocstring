@@ -75,10 +75,11 @@
 //! simply contributes no matches, while the pattern's other readings match
 //! normally.
 //!
-//! - A reading with an **inexact site** (a metavariable amid literal prose
-//!   *inside* one `TEXT_LINE` token, [`MetaVarSite::is_exact`]` == false`)
-//!   is not matchable: sub-line text matching is regex territory and is
-//!   deferred. ([`MetaVarSite`]: crate::pattern::MetaVarSite)
+//! - A reading with an **inexact site** — a metavariable amid literal prose
+//!   *inside* one `TEXT_LINE` token, i.e. one whose
+//!   [`MetaVarSite::is_exact`](crate::pattern::MetaVarSite::is_exact) is
+//!   `false` — is not matchable: sub-line text matching is regex territory and
+//!   is deferred.
 //! - A reading with **two or more `$$$` holes in the same sibling list** is
 //!   not matchable: the split of the middle would be ambiguous. (#45
 //!   deliberately inventories such patterns instead of rejecting them, so
@@ -88,7 +89,7 @@
 //! # Candidate enumeration and grammar binding
 //!
 //! Each reading is tried against the target sites its
-//! [`FragmentKind`](crate::pattern::FragmentKind) and
+//! [`FragmentKind`] and
 //! [`Reading::section_kinds`] admit. Section roles are resolved with the
 //! same section-kind resolution the unified views use
 //! ([`Section::kind`](crate::parse::unified::Section::kind)):
@@ -272,8 +273,8 @@ impl<'t> CapturedElement<'t> {
     /// The source range of the captured element, in target coordinates.
     pub fn range(&self) -> TextRange {
         match self {
-            Self::Node(n) => *n.range(),
-            Self::Token(t) => *t.range(),
+            Self::Node(n) => n.range(),
+            Self::Token(t) => t.range(),
         }
     }
 }
@@ -411,7 +412,7 @@ impl<'t> Search<'t> {
             if self
                 .matches
                 .iter()
-                .any(|accepted| ranges_overlap(accepted.range, *node.range()))
+                .any(|accepted| ranges_overlap(accepted.range, node.range()))
             {
                 continue; // First match wins.
             }
@@ -425,7 +426,7 @@ impl<'t> Search<'t> {
             if let Some(captures) = unifier.unify_fragment(node) {
                 self.matches.push(Match {
                     source: self.target.source(),
-                    range: *node.range(),
+                    range: node.range(),
                     reading,
                     captures,
                 });
@@ -506,7 +507,7 @@ impl<'t> Unifier<'_, 't> {
                     mv,
                     Capture {
                         source: self.tsrc,
-                        range: *node.range(),
+                        range: node.range(),
                         multi,
                         elements: vec![CapturedElement::Node(node)],
                     },
@@ -602,7 +603,7 @@ impl<'t> Unifier<'_, 't> {
                 TextRange::new(position, position)
             }
             [first, .., last] => TextRange::new(first.range().start(), last.range().end()),
-            [only] => *only.range(),
+            [only] => only.range(),
         };
         self.bind(
             mv,
@@ -632,7 +633,7 @@ impl<'t> Unifier<'_, 't> {
                     mv,
                     Capture {
                         source: self.tsrc,
-                        range: *tc.range(),
+                        range: tc.range(),
                         multi: false,
                         elements: vec![captured(tc)],
                     },

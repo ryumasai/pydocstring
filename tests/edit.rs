@@ -31,9 +31,9 @@ use pydocstring::text::TextSize;
 
 fn parse_for_style(style: &str, input: &str) -> Parsed {
     match style {
-        "google" => pydocstring::parse::google::parse_google(input),
-        "numpy" => pydocstring::parse::numpy::parse_numpy(input),
-        "plain" => pydocstring::parse::plain::parse_plain(input),
+        "google" => pydocstring::parse::parse_google(input),
+        "numpy" => pydocstring::parse::parse_numpy(input),
+        "plain" => pydocstring::parse::parse_plain(input),
         other => panic!("unknown corpus style directory: {other}"),
     }
 }
@@ -247,7 +247,7 @@ fn boundary_inserts_order_around_replacement() {
 fn missing_placeholder_replacement_inserts_at_anchor() {
     // `x ()` has a zero-length TYPE placeholder between the brackets.
     let src = "Args:\n    x (): The x.\n";
-    let parsed = pydocstring::parse::google::parse_google(src);
+    let parsed = pydocstring::parse::parse_google(src);
 
     let entry = find_first(parsed.root(), SyntaxKind::ENTRY).unwrap();
     let placeholder = entry.find_missing(SyntaxKind::TYPE).unwrap();
@@ -269,7 +269,7 @@ fn missing_placeholder_replacement_inserts_at_anchor() {
     // ... and the reparse is exactly what parsing the target text yields.
     assert_eq!(
         reparsed,
-        pydocstring::parse::google::parse_google("Args:\n    x (int): The x.\n")
+        pydocstring::parse::parse_google("Args:\n    x (int): The x.\n")
     );
 }
 
@@ -291,7 +291,7 @@ fn find_first(node: &SyntaxNode, kind: SyntaxKind) -> Option<&SyntaxNode> {
 #[test]
 fn remove_lines_entry_google() {
     let src = "Summary.\n\nArgs:\n    x: First.\n    y: Second.\n\nReturns:\n    int: Result.\n";
-    let parsed = pydocstring::parse::google::parse_google(src);
+    let parsed = pydocstring::parse::parse_google(src);
 
     let entry = find_first(parsed.root(), SyntaxKind::ENTRY).unwrap();
     let mut edits = parsed.edit();
@@ -310,7 +310,7 @@ fn remove_lines_entry_google() {
 #[test]
 fn remove_lines_entry_numpy() {
     let src = "Summary.\n\nParameters\n----------\nx : int\n    First.\ny : str\n    Second.\n\nReturns\n-------\nint\n    Result.\n";
-    let parsed = pydocstring::parse::numpy::parse_numpy(src);
+    let parsed = pydocstring::parse::parse_numpy(src);
 
     // A multi-line entry: both its lines are removed, no debris remains.
     let entry = find_first(parsed.root(), SyntaxKind::ENTRY).unwrap();
@@ -332,7 +332,7 @@ fn remove_lines_entry_numpy() {
 #[test]
 fn remove_lines_section_consumes_trailing_blank_line_google() {
     let src = "Summary.\n\nArgs:\n    x: Desc.\n\nReturns:\n    int: Result.\n";
-    let parsed = pydocstring::parse::google::parse_google(src);
+    let parsed = pydocstring::parse::parse_google(src);
 
     let section = find_first(parsed.root(), SyntaxKind::SECTION).unwrap();
     let out = parsed.edit().remove_lines(section).apply().unwrap();
@@ -348,7 +348,7 @@ fn remove_lines_section_consumes_trailing_blank_line_google() {
 #[test]
 fn remove_lines_section_consumes_trailing_blank_line_numpy() {
     let src = "Summary.\n\nParameters\n----------\nx : int\n    Desc.\n\nReturns\n-------\nint\n    Result.\n";
-    let parsed = pydocstring::parse::numpy::parse_numpy(src);
+    let parsed = pydocstring::parse::parse_numpy(src);
 
     let section = find_first(parsed.root(), SyntaxKind::SECTION).unwrap();
     let out = parsed.edit().remove_lines(section).apply().unwrap();
@@ -364,7 +364,7 @@ fn remove_lines_section_consumes_trailing_blank_line_numpy() {
 fn remove_lines_consumes_exactly_one_blank_line() {
     // Two consecutive blank lines: only the first is consumed.
     let src = "Summary.\n\nArgs:\n    x: Desc.\n\n\nReturns:\n    int: Result.\n";
-    let parsed = pydocstring::parse::google::parse_google(src);
+    let parsed = pydocstring::parse::parse_google(src);
 
     let section = find_first(parsed.root(), SyntaxKind::SECTION).unwrap();
     let out = parsed.edit().remove_lines(section).apply().unwrap();
@@ -374,7 +374,7 @@ fn remove_lines_consumes_exactly_one_blank_line() {
 #[test]
 fn remove_lines_at_end_of_source_without_newline() {
     let src = "Summary.\n\nArgs:\n    x: Desc.";
-    let parsed = pydocstring::parse::google::parse_google(src);
+    let parsed = pydocstring::parse::parse_google(src);
 
     let entry = find_first(parsed.root(), SyntaxKind::ENTRY).unwrap();
     let out = parsed.edit().remove_lines(entry).apply().unwrap();
@@ -423,7 +423,7 @@ fn remove_lines_non_char_boundary_range_is_rejected_not_panicking() {
     use pydocstring::text::TextRange;
     use pydocstring::text::TextSize;
 
-    let parsed = pydocstring::parse::google::parse_google("Summary é.\n\nArgs:\n    x: D.\n");
+    let parsed = pydocstring::parse::parse_google("Summary é.\n\nArgs:\n    x: D.\n");
     // Offset 9 lands inside the two-byte 'é' (bytes 8..10).
     let bogus = SyntaxNode::new(
         SyntaxKind::ENTRY,
@@ -453,7 +453,7 @@ fn all_nodes<'a>(node: &'a SyntaxNode, out: &mut Vec<&'a SyntaxNode>) {
     }
 }
 
-/// `remove_lines(node)` is exactly `remove_lines_range(*node.range())` — the
+/// `remove_lines(node)` is exactly `remove_lines_range(node.range())` — the
 /// expansion only ever reads the node's range, and the blank-line step
 /// resolves against the whole tree. Pinned over the corpus, node by node, so
 /// the FFI surface (which can only hold a range) cannot drift from the
@@ -469,7 +469,7 @@ fn remove_lines_range_matches_remove_lines_for_every_node() {
 
         for node in nodes {
             let by_node = parsed.edit().remove_lines(node).apply().unwrap();
-            let by_range = parsed.edit().remove_lines_range(*node.range()).apply().unwrap();
+            let by_range = parsed.edit().remove_lines_range(node.range()).apply().unwrap();
             assert_eq!(
                 by_node,
                 by_range,

@@ -7,10 +7,9 @@
 //! # Usage
 //!
 //! ```rust
-//! use pydocstring::parse::google::{parse_google, to_model::to_model};
+//! use pydocstring::parse::parse;
 //!
-//! let parsed = parse_google("Summary.\n\nArgs:\n    x (int): The value.\n");
-//! let doc = to_model(&parsed).unwrap();
+//! let doc = parse("Summary.\n\nArgs:\n    x (int): The value.\n").to_model();
 //! assert_eq!(doc.summary.as_deref(), Some("Summary."));
 //! ```
 
@@ -57,7 +56,16 @@ impl Docstring {
 /// [`Block::Parameter`] under a `Raises` section — consistent with the CST's
 /// "permissive structure + documented interpretation" line; emitters render
 /// every block totally.
+///
+/// `#[non_exhaustive]`: build one with [`Section::new`] or one of the
+/// role-named constructors, not a struct literal, so that a future field is
+/// not a breaking change. The rest of the model IR is deliberately *not*
+/// `#[non_exhaustive]` — [`Docstring`], [`Parameter`] and the other entry
+/// types are values you construct to feed [`emit`](crate::emit), and sealing
+/// them would take struct-literal construction away with nothing to replace
+/// it.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[non_exhaustive]
 pub struct Section {
     /// The style-independent kind of this section.
     pub kind: SectionKind,

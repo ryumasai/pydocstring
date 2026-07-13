@@ -135,7 +135,7 @@ for section in doc.sections().filter(|s| s.kind() == SectionKind::Parameters) {
 The parse result is a tree of `SyntaxNode` (branches) and `SyntaxToken` (leaves), each tagged with a `SyntaxKind`. Use `pretty_print()` to visualize:
 
 ```rust
-use pydocstring::parse::google::parse_google;
+use pydocstring::parse::parse_google;
 
 let result = parse_google("Summary.\n\nArgs:\n    x (int): The value.");
 println!("{}", result.pretty_print());
@@ -167,7 +167,7 @@ Walk the tree with the `Visitor` trait for style-agnostic analysis:
 
 ```rust
 use pydocstring::syntax::{Visitor, walk_tree, SyntaxToken, SyntaxKind};
-use pydocstring::parse::google::parse_google;
+use pydocstring::parse::parse_google;
 
 struct NameCollector<'a> {
     source: &'a str,
@@ -193,14 +193,18 @@ assert_eq!(collector.names, vec!["Args", "x", "y"]);
 Convert any parsed docstring into a style-independent intermediate representation for analysis or transformation:
 
 ```rust
-use pydocstring::parse::google::{parse_google, to_model::to_model};
+use pydocstring::model::SectionKind;
+use pydocstring::parse::parse;
 
-let parsed = parse_google("Summary.\n\nArgs:\n    x (int): The value.\n");
-let doc = to_model(&parsed).unwrap();
+// `to_model()` dispatches on the parsed style, so this reads a NumPy
+// docstring just as well.
+let doc = parse("Summary.\n\nArgs:\n    x (int): The value.\n").to_model();
 
 assert_eq!(doc.summary.as_deref(), Some("Summary."));
 for section in &doc.sections {
-    if let pydocstring::model::Section::Parameters(params) = section {
+    if section.kind == SectionKind::Parameters {
+        // A section body is a flat sequence of blocks in source order.
+        let params: Vec<_> = section.blocks.iter().filter_map(|b| b.as_parameter()).collect();
         assert_eq!(params[0].names, vec!["x"]);
         assert_eq!(params[0].type_annotation.as_deref(), Some("int"));
     }
@@ -221,7 +225,7 @@ use pydocstring::emit::sphinx::emit_sphinx;
 
 let doc = Docstring {
     summary: Some("Brief summary.".into()),
-    sections: vec![Section::Parameters(vec![Parameter {
+    sections: vec![Section::parameters(vec![Parameter {
         names: vec!["x".into()],
         type_annotation: Some("int".into()),
         description: Some("The value.".into()),
@@ -253,12 +257,11 @@ assert!(indented.starts_with("    Brief summary."));
 Combine parsing and emitting to convert between styles:
 
 ```rust
-use pydocstring::parse::google::{parse_google, to_model::to_model};
+use pydocstring::parse::parse_google;
 use pydocstring::emit::EmitOptions;
 use pydocstring::emit::numpy::emit_numpy;
 
-let parsed = parse_google("Summary.\n\nArgs:\n    x (int): The value.\n");
-let doc = to_model(&parsed).unwrap();
+let doc = parse_google("Summary.\n\nArgs:\n    x (int): The value.\n").to_model();
 let numpy_text = emit_numpy(&doc, &EmitOptions::default());
 assert!(numpy_text.contains("Parameters\n----------"));
 ```

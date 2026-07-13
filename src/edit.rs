@@ -189,7 +189,7 @@ impl<'a> Edits<'a> {
     /// Use [`remove_lines`](Edits::remove_lines) to remove a node together
     /// with its lines.
     pub fn replace_node(&mut self, node: &SyntaxNode, text: impl Into<String>) -> &mut Self {
-        self.replace(*node.range(), text)
+        self.replace(node.range(), text)
     }
 
     /// Replace `token`'s exact span with `text`.
@@ -198,7 +198,7 @@ impl<'a> Edits<'a> {
     /// [`SyntaxToken::is_missing`]): replacing one inserts `text` at the
     /// anchor offset where the missing element belongs.
     pub fn replace_token(&mut self, token: &SyntaxToken, text: impl Into<String>) -> &mut Self {
-        self.replace(*token.range(), text)
+        self.replace(token.range(), text)
     }
 
     /// Delete `node` together with the whole line(s) it occupies.
@@ -221,7 +221,7 @@ impl<'a> Edits<'a> {
     ///
     /// The expanded extent is recorded as a single [`delete`](Edits::delete).
     pub fn remove_lines(&mut self, node: &SyntaxNode) -> &mut Self {
-        self.remove_lines_range(*node.range())
+        self.remove_lines_range(node.range())
     }
 
     /// Delete `range` together with the whole line(s) it occupies.

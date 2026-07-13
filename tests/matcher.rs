@@ -7,8 +7,8 @@ mod common;
 use pydocstring::matcher::Match;
 use pydocstring::model::SectionKind;
 use pydocstring::parse::Style;
-use pydocstring::parse::google::parse_google;
 use pydocstring::parse::parse;
+use pydocstring::parse::parse_google;
 use pydocstring::parse::unified::Document;
 use pydocstring::parse::unified::Section;
 use pydocstring::pattern::Pattern;
@@ -386,7 +386,7 @@ fn document_reading_policy() {
     // … but anchoring at the root explicitly uses the Document reading.
     let anchored = p.matches_in(&target, target.root());
     assert_eq!(anchored.len(), 1);
-    assert_eq!(anchored[0].range(), *target.root().range());
+    assert_eq!(anchored[0].range(), target.root().range());
 
     // A Document-only pattern participates in matches() (its only reading).
     let p = Pattern::new(Style::Plain, "Just a summary.").unwrap();
@@ -394,7 +394,7 @@ fn document_reading_policy() {
     assert_eq!(target.style(), Style::Plain);
     let matches = p.matches(&target);
     assert_eq!(matches.len(), 1);
-    assert_eq!(matches[0].range(), *target.root().range());
+    assert_eq!(matches[0].range(), target.root().range());
     assert!(p.matches(&parse("A different summary.")).is_empty());
 }
 

@@ -64,15 +64,15 @@ fn test_parse_dispatches_to_numpy() {
 
 #[test]
 fn spec_parsed_style_reports_the_parser_style() {
-    let google = pydocstring::parse::google::parse_google("Summary.\n\nArgs:\n    x: Desc.");
+    let google = pydocstring::parse::parse_google("Summary.\n\nArgs:\n    x: Desc.");
     assert_eq!(google.style(), Style::Google);
     assert_eq!(google.root().kind(), SyntaxKind::DOCUMENT);
 
-    let numpy = pydocstring::parse::numpy::parse_numpy("Summary.\n\nParameters\n----------\nx : int\n    Desc.");
+    let numpy = pydocstring::parse::parse_numpy("Summary.\n\nParameters\n----------\nx : int\n    Desc.");
     assert_eq!(numpy.style(), Style::NumPy);
     assert_eq!(numpy.root().kind(), SyntaxKind::DOCUMENT);
 
-    let plain = pydocstring::parse::plain::parse_plain("Just a summary.");
+    let plain = pydocstring::parse::parse_plain("Just a summary.");
     assert_eq!(plain.style(), Style::Plain);
     assert_eq!(plain.root().kind(), SyntaxKind::DOCUMENT);
 }
@@ -81,7 +81,7 @@ fn spec_parsed_style_reports_the_parser_style() {
 /// style-independent view reads a Google-parsed tree with no per-style step.
 #[test]
 fn spec_unified_view_reads_a_google_parsed_document_root() {
-    let parsed = pydocstring::parse::google::parse_google("Summary.\n\nArgs:\n    x: Desc.");
+    let parsed = pydocstring::parse::parse_google("Summary.\n\nArgs:\n    x: Desc.");
     assert_eq!(parsed.root().kind(), SyntaxKind::DOCUMENT);
     let doc = pydocstring::parse::unified::Document::new(&parsed);
     assert_eq!(doc.summary().unwrap().text(), "Summary.");

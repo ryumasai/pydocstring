@@ -2087,3 +2087,72 @@ class TestRawCST:
         entry = pydocstring.Document(pydocstring.parse(GOOGLE_SRC)).sections[0].entries[0]
         assert repr(entry.syntax) == "Node(ENTRY, 20..39)"
         assert repr(pydocstring.SyntaxKind.NAME) == "SyntaxKind.NAME"
+
+
+class TestValueSemantics:
+    """The types you compare and put in sets: ranges, kinds, nodes, tokens.
+
+    Views are handed out as a fresh wrapper on every access, so without
+    `__eq__` even `x == x` is False and a set of one range holds two elements.
+    `TextRange` is the edit-anchor type, so this is the sharp end of it.
+    """
+
+    def test_a_range_equals_itself_and_dedups(self):
+        entry = pydocstring.Document(pydocstring.parse(GOOGLE_SRC)).sections[0].entries[0]
+        assert entry.range == entry.range
+        assert len({entry.range, entry.range}) == 1
+
+    def test_ranges_compare_by_value(self):
+        doc = pydocstring.Document(pydocstring.parse(GOOGLE_SRC))
+        entry = doc.sections[0].entries[0]
+        assert entry.range == present(entry.syntax).range
+        assert entry.range != doc.sections[0].range
+
+    def test_a_node_equals_itself_and_dedups(self):
+        parsed = pydocstring.parse(GOOGLE_SRC)
+        assert parsed.syntax == parsed.syntax
+        assert len({parsed.syntax, parsed.syntax}) == 1
+
+    def test_line_column_compares_by_value(self):
+        class Positions(pydocstring.Visitor):
+            def __init__(self):
+                self.seen = []
+
+            def visit_token(self, token, ctx):
+                if token.kind == pydocstring.SyntaxKind.NAME:
+                    self.seen.append(ctx.line_col(token.range.start))
+
+        seen = pydocstring.walk(pydocstring.parse(GOOGLE_SRC), Positions()).seen
+        assert seen[0] == seen[0]
+        assert len(set(seen)) == len({(lc.lineno, lc.col) for lc in seen})
+
+    def test_kinds_never_compare_equal_to_bare_ints(self):
+        # `Style` has always refused int comparison; the two kind enums used to
+        # accept it, so `SectionKind.PARAMETERS == 0` was True. They agree now.
+        assert pydocstring.SectionKind.PARAMETERS != 0
+        assert pydocstring.SyntaxKind.NAME != 0
+        assert pydocstring.parse(GOOGLE_SRC).style != 0
+
+    def test_kinds_still_compare_to_each_other(self):
+        section = pydocstring.Document(pydocstring.parse(GOOGLE_SRC)).sections[0]
+        assert section.kind == pydocstring.SectionKind.PARAMETERS
+        assert section.kind != pydocstring.SectionKind.RETURNS
+        assert len({pydocstring.SectionKind.PARAMETERS, pydocstring.SectionKind.PARAMETERS}) == 1
+
+    def test_tokens_of_different_kinds_are_not_equal(self):
+        # `x (:` puts a missing TYPE and a missing CLOSE_BRACKET at the same
+        # zero-length offset. On text and range alone they compare equal and a
+        # set collapses them into one — `kind` is what keeps them apart.
+        entry = pydocstring.Document(pydocstring.parse("Summary.\n\nArgs:\n    x (:\n")).sections[0].entries[0]
+        type_ = present(entry.syntax.find_missing(pydocstring.SyntaxKind.TYPE))
+        bracket = present(entry.syntax.find_missing(pydocstring.SyntaxKind.CLOSE_BRACKET))
+
+        assert type_.range == bracket.range and type_.text == bracket.text
+        assert type_ != bracket
+        assert len({type_, bracket}) == 2
+
+    def test_public_types_report_their_public_module(self):
+        # Tracebacks and reprs should not leak the private `_pydocstring` name.
+        assert pydocstring.Style.__module__ == "pydocstring"
+        assert pydocstring.TextRange.__module__ == "pydocstring"
+        assert pydocstring.SectionKind.__module__ == "pydocstring"

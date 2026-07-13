@@ -16,7 +16,7 @@ pub use pydocstring::model::FreeSectionKind;
 pub use pydocstring::model::Section as ModelSection;
 pub use pydocstring::model::SectionKind;
 pub use pydocstring::parse::TextBlock;
-pub use pydocstring::parse::numpy::parse_numpy;
+pub use pydocstring::parse::parse_numpy;
 pub use pydocstring::parse::unified::Citation;
 pub use pydocstring::parse::unified::Directive;
 pub use pydocstring::parse::unified::Document;

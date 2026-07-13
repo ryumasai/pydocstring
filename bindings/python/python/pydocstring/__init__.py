@@ -1,3 +1,21 @@
+"""Parse Python docstrings — Google, NumPy, or neither — into one `Parsed`.
+
+Read it through three lenses, all of which keep byte ranges so their results
+double as edit anchors:
+
+* `Document(parsed)` — the style-independent semantic view (`Document` →
+  `Section` → `Entry`). `Args:` and `Parameters` are both
+  `SectionKind.PARAMETERS`, so a section's role is data, not a type to
+  dispatch on.
+* `parsed.syntax` — the raw CST, which keeps every byte, including the
+  zero-length placeholders the semantic view hides.
+* `parsed.to_model()` — the normalized, position-free IR that feeds the
+  `emit_*` functions.
+
+Edit through `parsed.edit()`: anchored byte-range splices, so everything an
+edit does not touch is preserved byte-for-byte.
+"""
+
 from . import model
 from ._pydocstring import Capture
 from ._pydocstring import Citation

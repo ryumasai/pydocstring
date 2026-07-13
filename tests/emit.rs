@@ -810,11 +810,10 @@ fn sphinx_emit_with_base_indent() {
 
 #[test]
 fn google_to_sphinx_conversion() {
-    use pydocstring::parse::google::parse_google;
-    use pydocstring::parse::google::to_model::to_model;
+    use pydocstring::parse::parse_google;
 
     let google_input = "Summary.\n\nArgs:\n    x (int): The value.\n\nReturns:\n    str: The result.";
-    let doc = to_model(&parse_google(google_input)).unwrap();
+    let doc = parse_google(google_input).to_model();
     let sphinx_output = emit_sphinx(&doc, &EmitOptions::default());
     assert!(sphinx_output.contains(":param x: The value.\n"));
     assert!(sphinx_output.contains(":type x: int\n"));
@@ -824,11 +823,10 @@ fn google_to_sphinx_conversion() {
 
 #[test]
 fn numpy_to_sphinx_conversion() {
-    use pydocstring::parse::numpy::parse_numpy;
-    use pydocstring::parse::numpy::to_model::to_model;
+    use pydocstring::parse::parse_numpy;
 
     let numpy_input = "Summary.\n\nParameters\n----------\nx : int\n    The value.\n";
-    let doc = to_model(&parse_numpy(numpy_input)).unwrap();
+    let doc = parse_numpy(numpy_input).to_model();
     let sphinx_output = emit_sphinx(&doc, &EmitOptions::default());
     assert!(sphinx_output.contains(":param x: The value.\n"));
     assert!(sphinx_output.contains(":type x: int\n"));
@@ -840,22 +838,20 @@ fn numpy_to_sphinx_conversion() {
 
 #[test]
 fn google_roundtrip_summary() {
-    use pydocstring::parse::google::parse_google;
-    use pydocstring::parse::google::to_model::to_model;
+    use pydocstring::parse::parse_google;
 
     let input = "Summary line.";
-    let doc = to_model(&parse_google(input)).unwrap();
+    let doc = parse_google(input).to_model();
     let output = emit_google(&doc, &EmitOptions::default());
     assert_eq!(output.trim(), input);
 }
 
 #[test]
 fn numpy_roundtrip_summary() {
-    use pydocstring::parse::numpy::parse_numpy;
-    use pydocstring::parse::numpy::to_model::to_model;
+    use pydocstring::parse::parse_numpy;
 
     let input = "Summary line.";
-    let doc = to_model(&parse_numpy(input)).unwrap();
+    let doc = parse_numpy(input).to_model();
     let output = emit_numpy(&doc, &EmitOptions::default());
     assert_eq!(output.trim(), input);
 }
@@ -869,11 +865,10 @@ fn numpy_roundtrip_summary() {
 /// of the `:attr:` lines must survive a parse → emit round-trip.
 #[test]
 fn numpy_roundtrip_rst_role_colons() {
-    use pydocstring::parse::numpy::parse_numpy;
-    use pydocstring::parse::numpy::to_model::to_model;
+    use pydocstring::parse::parse_numpy;
 
     let input = "Returns\n-------\nDescription with attributes:\n:attr:`~module.ClassName.attr1`\n    First attribute\n:attr:`~module.ClassName.attr2`\n    Second attribute\n";
-    let output = emit_numpy(&to_model(&parse_numpy(input)).unwrap(), &EmitOptions::default());
+    let output = emit_numpy(&parse_numpy(input).to_model(), &EmitOptions::default());
     assert!(
         output.contains("Description with attributes:"),
         "trailing colon eaten:\n{output}"
@@ -891,11 +886,10 @@ fn numpy_roundtrip_rst_role_colons() {
 /// Google Returns section with a leading `:attr:` rST role must keep its colon.
 #[test]
 fn google_roundtrip_rst_role_colons() {
-    use pydocstring::parse::google::parse_google;
-    use pydocstring::parse::google::to_model::to_model;
+    use pydocstring::parse::parse_google;
 
     let input = "Summary.\n\nReturns:\n    :attr:`~module.ClassName.attr1`\n        First attribute\n";
-    let output = emit_google(&to_model(&parse_google(input)).unwrap(), &EmitOptions::default());
+    let output = emit_google(&parse_google(input).to_model(), &EmitOptions::default());
     assert!(
         output.contains(":attr:`~module.ClassName.attr1`"),
         "leading colon eaten:\n{output}"
@@ -908,11 +902,10 @@ fn google_roundtrip_rst_role_colons() {
 
 #[test]
 fn google_to_numpy_conversion() {
-    use pydocstring::parse::google::parse_google;
-    use pydocstring::parse::google::to_model::to_model;
+    use pydocstring::parse::parse_google;
 
     let google_input = "Summary.\n\nArgs:\n    x (int): The value.";
-    let doc = to_model(&parse_google(google_input)).unwrap();
+    let doc = parse_google(google_input).to_model();
     let numpy_output = emit_numpy(&doc, &EmitOptions::default());
     assert!(numpy_output.contains("Parameters\n----------\n"));
     assert!(numpy_output.contains("x : int\n    The value.\n"));
@@ -920,11 +913,10 @@ fn google_to_numpy_conversion() {
 
 #[test]
 fn numpy_to_google_conversion() {
-    use pydocstring::parse::numpy::parse_numpy;
-    use pydocstring::parse::numpy::to_model::to_model;
+    use pydocstring::parse::parse_numpy;
 
     let numpy_input = "Summary.\n\nParameters\n----------\nx : int\n    The value.\n";
-    let doc = to_model(&parse_numpy(numpy_input)).unwrap();
+    let doc = parse_numpy(numpy_input).to_model();
     let google_output = emit_google(&doc, &EmitOptions::default());
     assert!(google_output.contains("Args:\n"));
     assert!(google_output.contains("    x (int): The value.\n"));

@@ -774,7 +774,7 @@ impl SectionBody {
 /// # Example
 ///
 /// ```rust
-/// use pydocstring::parse::google::parse_google;
+/// use pydocstring::parse::parse_google;
 /// use pydocstring::syntax::SyntaxKind;
 ///
 /// let input = "Summary.\n\nArgs:\n    x (int): The value.\n\nReturns:\n    int: The result.";

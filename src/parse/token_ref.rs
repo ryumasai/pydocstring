@@ -45,7 +45,7 @@ impl<'a> TokenRef<'a> {
     }
 
     /// The source range of this token.
-    pub fn range(&self) -> &'a TextRange {
+    pub fn range(&self) -> TextRange {
         self.token.range()
     }
 

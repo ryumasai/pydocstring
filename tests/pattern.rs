@@ -483,7 +483,7 @@ fn body_reading_multi_binds_whole_body() {
         // The site is the fragment root itself.
         assert_eq!(
             body.metavars()[0].site().range(),
-            *body.fragment().range(),
+            body.fragment().range(),
             "style {style}"
         );
     }
@@ -612,7 +612,7 @@ fn multi_standalone_line_lands_as_entry() {
         );
         assert_eq!(
             reading.metavars()[0].site().range(),
-            *reading.fragment().range(),
+            reading.fragment().range(),
             "role {kind:?} in {style}: the site is the fragment root"
         );
     }
@@ -795,7 +795,7 @@ fn law_sites_resolve_in_every_reading() {
                 let element = element_at(reading.parsed().root(), mv.site().path());
                 assert_eq!(element.kind(), mv.site().kind(), "pattern {:?}", pattern.text());
                 if mv.site().is_exact() {
-                    assert_eq!(*element.range(), mv.site().range(), "pattern {:?}", pattern.text());
+                    assert_eq!(element.range(), mv.site().range(), "pattern {:?}", pattern.text());
                 } else {
                     let (r, ph) = (element.range(), mv.site().range());
                     assert!(
@@ -827,7 +827,7 @@ fn law_fragment_byte_coverage_in_every_reading() {
 
     for pattern in pattern_test_set() {
         for reading in pattern.readings() {
-            let frag = *reading.fragment().range();
+            let frag = reading.fragment().range();
             let (fs, fe) = (usize::from(frag.start()), usize::from(frag.end()));
             let mut tokens = Vec::new();
             collect(reading.parsed().root(), &mut tokens);

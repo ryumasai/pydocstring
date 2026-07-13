@@ -54,7 +54,7 @@ fn attach(node: &mut SyntaxNode, source: &str) {
         }
     }
 
-    let mut ranges: Vec<TextRange> = old.iter().map(|c| *c.range()).collect();
+    let mut ranges: Vec<TextRange> = old.iter().map(|c| c.range()).collect();
     ranges.sort_by_key(|r| (r.start(), r.end()));
     let mut trivia: Vec<SyntaxElement> = Vec::new();
     let mut pos = usize::from(node.range().start());

@@ -20,6 +20,10 @@ fmt-check:
 lint:
     cargo clippy --all-targets -- -D warnings
 
+# Build the docs, failing on a broken intra-doc link
+doc:
+    RUSTDOCFLAGS="-D warnings" cargo doc --no-deps
+
 # Build the crate
 build:
     cargo build
@@ -94,7 +98,7 @@ py-ci: py-lint py-typecheck py-test
 # ---- Aggregates --------------------------------------------------------------
 
 # Everything CI runs: Rust format check, lint, tests + all Python checks
-ci: fmt-check lint test py-ci
+ci: fmt-check lint doc test py-ci
 
 # Checks run by the pre-commit hook (auto-formats Rust & Python, then lints)
 pre-commit: fmt lint py-fix

@@ -23,9 +23,9 @@ use std::fs;
 use common::corpus_cases;
 use common::corpus_name;
 use pydocstring::parse::Style;
-use pydocstring::parse::google::parse_google;
-use pydocstring::parse::numpy::parse_numpy;
 use pydocstring::parse::parse;
+use pydocstring::parse::parse_google;
+use pydocstring::parse::parse_numpy;
 use pydocstring::parse::unified::Document;
 use pydocstring::pattern::Pattern;
 use pydocstring::rewrite::RewriteError;
@@ -35,7 +35,7 @@ fn parse_for_style(style: &str, input: &str) -> Parsed {
     match style {
         "google" => parse_google(input),
         "numpy" => parse_numpy(input),
-        "plain" => pydocstring::parse::plain::parse_plain(input),
+        "plain" => pydocstring::parse::parse_plain(input),
         other => panic!("unknown corpus style directory: {other}"),
     }
 }
