@@ -1707,7 +1707,7 @@ class TestUnifiedView:
 
     def test_construction_rejects_a_non_docstring(self):
         with pytest.raises(TypeError):
-            pydocstring.Document("Summary.\n")
+            pydocstring.Document("Summary.\n")  # ty: ignore[invalid-argument-type]
 
     def test_accepts_a_style_forced_parse(self):
         doc = pydocstring.Document(pydocstring.parse_numpy(NUMPY_SRC))

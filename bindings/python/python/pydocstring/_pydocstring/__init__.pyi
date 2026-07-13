@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from typing import TypeVar
 
-from ._visitor import Visitor
+from .._visitor import Visitor
 from .model import Docstring
 
 _VisitorT = TypeVar("_VisitorT", bound="Visitor")

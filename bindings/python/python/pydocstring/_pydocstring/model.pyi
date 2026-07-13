@@ -9,7 +9,7 @@ and re-emit through it, but edit through the unified view instead.
 
 from __future__ import annotations
 
-from ._pydocstring import SectionKind as SectionKind
+from . import SectionKind as SectionKind
 
 class Directive:
     """A document-level rST directive (``.. name:: argument`` + body).
