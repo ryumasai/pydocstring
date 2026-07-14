@@ -64,6 +64,28 @@ impl PyTextRange {
     fn is_empty(&self) -> bool {
         self.start == self.end
     }
+    /// The slice of ``source`` this range covers.
+    ///
+    /// Use this rather than slicing the source yourself: the range is in
+    /// **bytes** and a Python ``str`` indexes by code point, so
+    /// ``source[r.start:r.end]`` cuts in the wrong place as soon as anything
+    /// upstream of the range is non-ASCII.
+    ///
+    /// Returns ``""`` for a range that is out of bounds, inverted, or splits a
+    /// character — all of which are reachable, since a range is just two numbers.
+    fn source_text(&self, source: &str) -> String {
+        TextRange::new(TextSize::new(self.start), TextSize::new(self.end))
+            .source_text(source)
+            .to_string()
+    }
+    /// The length of the range in bytes.
+    fn __len__(&self) -> usize {
+        self.end.saturating_sub(self.start) as usize
+    }
+    /// Whether a byte offset falls within ``[start, end)``.
+    fn __contains__(&self, offset: u32) -> bool {
+        self.start <= offset && offset < self.end
+    }
     fn __repr__(&self) -> String {
         format!("TextRange({}..{})", self.start, self.end)
     }
@@ -639,6 +661,31 @@ enum PySyntaxKind {
     /// it cannot be used as a query argument.
     #[pyo3(name = "UNKNOWN")]
     Unknown,
+}
+
+#[pymethods]
+impl PySyntaxKind {
+    /// The kind's name, e.g. ``"ENTRY"``.
+    #[getter]
+    fn name(&self) -> PyResult<&'static str> {
+        Ok(core_syntax_kind_of(*self)?.name())
+    }
+    /// Whether this kind is a branch of the tree (it has children).
+    fn is_node(&self) -> PyResult<bool> {
+        Ok(core_syntax_kind_of(*self)?.is_node())
+    }
+    /// Whether this kind is a leaf of the tree.
+    fn is_token(&self) -> PyResult<bool> {
+        Ok(core_syntax_kind_of(*self)?.is_token())
+    }
+    /// Whether this kind is trivia — whitespace, a newline, or a blank line.
+    ///
+    /// The CST keeps trivia because an edit has to; a *reader* usually wants to
+    /// skip it, and this is how. Without it a caller has to hard-code the set of
+    /// trivia kinds and re-derive it whenever the grammar grows one.
+    fn is_trivia(&self) -> PyResult<bool> {
+        Ok(core_syntax_kind_of(*self)?.is_trivia())
+    }
 }
 
 macro_rules! syntax_kind_map {
@@ -1270,6 +1317,15 @@ pyo3::create_exception!(
     pyo3::exceptions::PyValueError,
     "Raised by Edits.apply() when the edit list is invalid — a range is out of \
      bounds, or two edits overlap (a ValueError subclass)."
+);
+
+pyo3::create_exception!(
+    _pydocstring,
+    RewriteError,
+    pyo3::exceptions::PyValueError,
+    "Raised by replace()/replace_in() when a template names a metavariable the \
+     matched reading does not bind (a ValueError subclass). Rewrite failures used \
+     to arrive as a bare ValueError, unlike every other error in this API."
 );
 
 /// One recorded operation. Kept as an operation rather than a resolved splice
@@ -2696,7 +2752,7 @@ fn rewrite_replace(nr: &NodeRef, style: CoreStyle, pattern: &str, template: &str
     let pattern = build_pattern(style, pattern)?;
     nr.parsed
         .replace(&pattern, template)
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+        .map_err(|e| RewriteError::new_err(e.to_string()))
 }
 
 /// Shared implementation of ``doc.findall``.
@@ -2747,7 +2803,7 @@ fn rewrite_replace_in(
     let pattern = build_pattern(style, pattern)?;
     nr.parsed
         .replace_in(&pattern, anchor_nr.node(), template)
-        .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+        .map_err(|e| RewriteError::new_err(e.to_string()))
 }
 
 /// Shared implementation of ``doc.findall_in``.
@@ -3052,6 +3108,7 @@ fn _pydocstring(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Anchored splice edits (#117)
     m.add_class::<PyEdits>()?;
     m.add("EditError", m.py().get_type::<EditError>())?;
+    m.add("RewriteError", m.py().get_type::<RewriteError>())?;
     // Section vocabulary — shared by the unified view (`section.kind`) and the
     // model, so it stays at the top level and is re-exported from `model`.
     m.add_class::<PySectionKind>()?;

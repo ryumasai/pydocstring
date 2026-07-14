@@ -24,6 +24,10 @@ lint:
 doc:
     RUSTDOCFLAGS="-D warnings" cargo doc --no-deps
 
+# Every Rust public item must be exposed in Python, or excused in writing
+api-parity:
+    python3 scripts/api_parity.py
+
 # Build the crate
 build:
     cargo build
@@ -98,7 +102,7 @@ py-ci: py-lint py-typecheck py-test
 # ---- Aggregates --------------------------------------------------------------
 
 # Everything CI runs: Rust format check, lint, tests + all Python checks
-ci: fmt-check lint doc test py-ci
+ci: fmt-check lint doc test py-ci api-parity
 
 # Checks run by the pre-commit hook (auto-formats Rust & Python, then lints)
 pre-commit: fmt lint py-fix

@@ -63,6 +63,11 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      # rustdoc's JSON output is nightly-only, and the parity check reads it to
+      # enumerate the Rust surface.
+      - name: Install nightly (for rustdoc JSON)
+        uses: dtolnay/rust-toolchain@nightly
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
         with:
@@ -73,6 +78,11 @@ jobs:
 
       - name: Lint, type-check, and test
         run: just py-ci
+
+      # Runs here rather than in `test`: it needs the built extension module,
+      # which only this job has.
+      - name: Rust↔Python API parity
+        run: just api-parity
 
   # Report-only coverage: never gates the build (continue-on-error) and no
   # other job depends on it. Numbers land in the job log; the lcov file is
