@@ -10,8 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Closing the Rust↔Python capability gaps that surfaced while porting a real
 consumer — scverse-misc's Sphinx extension, which injects `.. version-deprecated::`
 directives into individual argument descriptions — onto the 0.4 edit API
-([#115](https://github.com/ryumasai/pydocstring/issues/115)). Nothing here is
-breaking.
+([#115](https://github.com/ryumasai/pydocstring/issues/115)).
+
+The two new capabilities are purely additive. One **behavior change** rides
+along with them: `LineColumn.col` is now a byte column in Python, as it always
+was in Rust. It only differs on a line containing a multi-byte character — see
+**Fixed**.
 
 ### Added
 
