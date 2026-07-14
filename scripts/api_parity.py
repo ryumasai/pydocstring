@@ -25,6 +25,8 @@ import sys
 import tomllib
 from pathlib import Path
 
+SECTIONS = ("functions", "types", "methods", "variants")
+
 ROOT = Path(__file__).resolve().parent.parent
 RUSTDOC_JSON = ROOT / "target" / "doc" / "pydocstring.json"
 ALLOWLIST = ROOT / "scripts" / "api_parity_allow.toml"
@@ -45,6 +47,10 @@ RENAMES = {
     "syntax::Parsed::root": "Parsed::syntax",
     # Rust splits node- and range-anchored removal; Python's handle is always a range.
     "edit::Edits::remove_lines_range": "Edits::remove_lines",
+    # The visitor hooks say what they visit in Python, where `enter`/`leave`
+    # alone would read as lifecycle methods on the visitor itself.
+    "syntax::Visitor::enter": "Visitor::enter_node",
+    "syntax::Visitor::leave": "Visitor::leave_node",
 }
 
 # Rust method names that map onto a Python protocol rather than a method.
@@ -127,8 +133,25 @@ def rust_surface(doc: dict) -> dict[str, set[str]]:
                 visit_module(item_id, qual)
         elif kind == "function":
             record("functions", item_id, qual)
-        elif kind in ("struct", "enum", "trait"):
+        elif kind == "trait":
             record("types", item_id, qual)
+            # A trait's own methods live in `items`. It has no `impls` field —
+            # `implementations` lists the *impl blocks* of it, which is a
+            # different question. Reading `impls` here silently collected
+            # nothing, so `Visitor`'s three hooks were invisible to this check.
+            for m_id in inner["trait"]["items"]:
+                m = get(m_id)
+                if m and m.get("name"):
+                    record("methods", m_id, f"{qual}::{m['name']}")
+        elif kind in ("struct", "enum"):
+            record("types", item_id, qual)
+            # Enum variants are API too: a `SyntaxKind` variant added in Rust and
+            # forgotten in Python does not fail anything — the binding maps an
+            # unrecognised kind to `UNKNOWN` — so nothing would ever say so.
+            for v_id in inner.get("enum", {}).get("variants", []):
+                v = get(v_id)
+                if v and v.get("name"):
+                    record("variants", v_id, f"{qual}::{v['name']}")
             for impl_id in inner[kind].get("impls", []):
                 impl = get(impl_id)
                 if not impl or impl["inner"]["impl"].get("trait") is not None:
@@ -140,7 +163,7 @@ def rust_surface(doc: dict) -> dict[str, set[str]]:
 
     visit_module(doc["root"], "")
 
-    surface: dict[str, set[str]] = {"functions": set(), "types": set(), "methods": set()}
+    surface: dict[str, set[str]] = {s: set() for s in SECTIONS}
     for (section, _), path in found.items():
         surface[section].add(path)
     return surface
@@ -157,7 +180,7 @@ import inspect, json
 import pydocstring
 from pydocstring import model
 
-out = {"functions": [], "types": [], "methods": []}
+out = {"functions": [], "types": [], "methods": [], "variants": []}
 for mod, prefix in ((pydocstring, ""), (model, "model.")):
     for name in getattr(mod, "__all__", []):
         obj = getattr(mod, name, None)
@@ -166,10 +189,14 @@ for mod, prefix in ((pydocstring, ""), (model, "model.")):
         if inspect.isclass(obj):
             out["types"].append(prefix + name)
             for attr in dir(obj):
-                # Dunders are private *except* the ones a Rust method maps onto:
-                # `new` is `__init__`, `len` is `__len__`, `contains` is
-                # `__contains__`. Those are the Python spelling, not an omission.
-                if not attr.startswith("_") or attr in PROTOCOL_METHODS:
+                if attr.startswith("_") and attr not in PROTOCOL_METHODS:
+                    continue
+                member = getattr(obj, attr, None)
+                # An enum member (SectionKind.PARAMETERS) or a complex-enum
+                # variant class (model.Block.Parameter) is a variant, not a method.
+                if isinstance(member, obj) or (inspect.isclass(member) and issubclass(member, obj)):
+                    out["variants"].append(f"{prefix}{name}::{attr}")
+                else:
                     out["methods"].append(f"{prefix}{name}::{attr}")
         elif callable(obj):
             out["functions"].append(prefix + name)
@@ -188,6 +215,10 @@ print(json.dumps(out))
 # ── Matching ─────────────────────────────────────────────────────────────────
 
 
+def _letters(name: str) -> str:
+    return "".join(c for c in name.lower() if c.isalpha())
+
+
 def candidates(section: str, rust_path: str) -> list[str]:
     """Python names that would satisfy this Rust item.
 
@@ -201,6 +232,15 @@ def candidates(section: str, rust_path: str) -> list[str]:
 
     parts = rust_path.split("::")
     in_model = parts[0] == "model"
+
+    if section == "variants":
+        enum_path, variant = "::".join(parts[:-1]), parts[-1]
+        enum_name = RENAMES.get(enum_path, enum_path.split("::")[-1])
+        if in_model and "." not in enum_name:
+            enum_name = f"model.{enum_name}"
+        # Rust `OtherParameters` is Python `OTHER_PARAMETERS` on a simple enum and
+        # `OtherParameters` on a complex one. Compare on letters alone.
+        return [f"{enum_name}::{variant}", f"{enum_name}::~{_letters(variant)}"]
 
     if section == "methods":
         type_path, method = "::".join(parts[:-1]), parts[-1]
@@ -244,26 +284,37 @@ def main() -> int:
 
     with ALLOWLIST.open("rb") as fh:
         data = tomllib.load(fh)
-    allow = {s: data.get(s, {}) for s in ("functions", "types", "methods")}
+    allow = {s: data.get(s, {}) for s in SECTIONS}
 
     missing: list[tuple[str, str]] = []
-    for section in ("functions", "types", "methods"):
+    for section in SECTIONS:
         for item in sorted(rust[section]):
             if item in allow[section]:
                 continue
-            if any(c in py[section] for c in candidates(section, item)):
+            # An excused type excuses its variants: the reason you gave for not
+            # exposing `SyntaxElement` is the reason its `Node`/`Token` variants
+            # are not exposed either.
+            if section == "variants" and "::".join(item.split("::")[:-1]) in allow["types"]:
+                continue
+            names = py[section]
+            if section == "variants":
+                names = names | {
+                    f"{n.split('::')[0]}::~{_letters(n.split('::')[1])}" for n in py[section]
+                }
+            if any(c in names for c in candidates(section, item)):
                 continue
             missing.append((section, item))
 
     stale = [
         (section, item)
-        for section in ("functions", "types", "methods")
+        for section in SECTIONS
         for item in sorted(set(allow[section]) - rust[section])
     ]
 
     total_rust = sum(len(v) for v in rust.values())
-    print(f"Rust surface : {total_rust} items "
-          f"({len(rust['functions'])} fns, {len(rust['types'])} types, {len(rust['methods'])} methods)")
+    print(f"Rust surface : {total_rust} items ({len(rust['functions'])} fns, "
+          f"{len(rust['types'])} types, {len(rust['methods'])} methods, "
+          f"{len(rust['variants'])} variants)")
     print(f"Excused      : {sum(len(v) for v in allow.values())}")
     print(f"Unaccounted  : {len(missing)}")
 

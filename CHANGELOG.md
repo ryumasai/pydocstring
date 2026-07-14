@@ -35,8 +35,13 @@ was in Rust. It only differs on a line containing a multi-byte character — see
   should be a decision someone wrote down. It also fails on a *stale* excuse, so
   the list cannot rot.
 
-  228 Rust items; 88 excused, in writing. Running it for the first time found
-  three real gaps, below.
+  It covers functions, types, methods, **enum variants** and trait methods.
+  Variants matter for the same reason the rest does: a `SyntaxKind` variant
+  added in Rust and forgotten in Python fails nothing today — the binding maps
+  an unrecognised kind to `UNKNOWN` — so nothing would ever say so.
+
+  311 Rust items; 94 excused, in writing. Running it for the first time found
+  four real gaps, below.
 
 - **`SyntaxKind.is_node()` / `.is_token()` / `.is_trivia()` / `.name` (Python)**
   — found by the parity check. Skipping trivia while walking the CST meant

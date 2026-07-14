@@ -122,3 +122,14 @@
 "model::Section::see_also" = "See model::Section::parameters."
 "model::Section::references" = "See model::Section::parameters."
 "model::Section::free_text" = "See model::Section::parameters."
+
+[variants]
+"model::SectionKind::FreeText" = "The wrapper variant Rust uses to nest FreeSectionKind. Python flattens it — `SectionKind.NOTES` etc. — so there is nothing to wrap. See model::FreeSectionKind."
+# The error enums are one Python exception class each; the variant is the
+# message, not a type a caller matches on. `except EditError` is the Python
+# spelling of `match EditError { .. }`.
+"edit::EditError::OutOfBounds" = "Python has the `EditError` class; the variant is carried in the message."
+"edit::EditError::Overlap" = "See edit::EditError::OutOfBounds."
+"pattern::PatternError::Unparsable" = "See edit::EditError::OutOfBounds."
+"rewrite::RewriteError::UnknownMetavar" = "See edit::EditError::OutOfBounds."
+"rewrite::RewriteError::Edit" = "See edit::EditError::OutOfBounds."
