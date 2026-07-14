@@ -70,7 +70,8 @@ edited = edits.apply()
 ```
 
 Everything outside that range is preserved byte-for-byte — the NumPy version
-keeps its indentation, the Google version keeps its `x (int): ` prefix.
+keeps its indentation, the Google version keeps its `x (int):` prefix and the
+space after it.
 
 > **A range is a byte range, and a Python `str` indexes by code point.** So
 > `source[r.start:r.end]` cuts in the wrong place as soon as anything upstream of
