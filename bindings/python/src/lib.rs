@@ -15,6 +15,7 @@ use pydocstring_core::parse::unified as uv;
 use pydocstring_core::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use pydocstring_core::text::TextRange;
 use pydocstring_core::text::TextSize;
+use pydocstring_core::text::LineIndex;
 
 use std::convert::{TryFrom, TryInto};
 use std::ops::Deref;
@@ -42,6 +43,20 @@ impl From<TextRange> for PyTextRange {
 
 #[pymethods]
 impl PyTextRange {
+    /// Build a range from two byte offsets, ``[start, end)``.
+    ///
+    /// Every range a view hands you is already one of these; this is for the
+    /// spans a view *doesn't* hand you — "from the end of this token to the end
+    /// of that one", say, which is otherwise inexpressible even though the CST
+    /// gives you both endpoints.
+    ///
+    /// Nothing is validated here: a range is just two numbers. ``Edits.apply()``
+    /// raises ``EditError`` for one that is out of bounds, inverted, or splits a
+    /// UTF-8 character.
+    #[new]
+    fn new(start: u32, end: u32) -> Self {
+        Self { start, end }
+    }
     /// Whether the range is empty (``start == end``).
     ///
     /// An empty range is used as a zero-length placeholder for tokens that are
@@ -70,16 +85,6 @@ impl PyLineColumn {
     fn __repr__(&self) -> String {
         format!("LineColumn(lineno={}, col={})", self.lineno, self.col)
     }
-}
-
-fn build_line_starts(source: &str) -> Vec<u32> {
-    let mut starts = vec![0u32];
-    for (i, b) in source.bytes().enumerate() {
-        if b == b'\n' {
-            starts.push((i + 1) as u32);
-        }
-    }
-    starts
 }
 
 // ─── NodeRef — lazy node addressing ─────────────────────────────────────────
@@ -449,6 +454,47 @@ impl PyParsed {
     #[getter]
     fn range(&self, py: Python<'_>) -> PyResult<Py<PyTextRange>> {
         self.nr.py_range(py)
+    }
+    /// Convert a byte offset into a ``LineColumn``.
+    ///
+    /// ``lineno`` is 1-based and ``col`` is the 0-based **byte** offset within
+    /// the line — the same convention as :attr:`ast.AST.col_offset`, and the
+    /// same as the Rust side.
+    ///
+    /// Being a byte column is what makes it compose with the rest of the API:
+    /// ``offset - col`` is the start of the line. It is **not** a display width
+    /// and **not** an indent — ``" " * col`` over-indents a line containing a
+    /// multi-byte character, and turns a tab into a space. Use ``line_indent()``
+    /// for that.
+    ///
+    /// Raises ``ValueError`` if the offset is past the end of the source.
+    fn line_col(&self, py: Python<'_>, offset: u32) -> PyResult<Py<PyLineColumn>> {
+        let source = self.nr.parsed.source();
+        line_col_of(py, source, &LineIndex::new(source), offset)
+    }
+    /// The leading whitespace of the line that ``offset`` falls on.
+    ///
+    /// This is the indent an edit anchored there has to match, handed back as
+    /// the literal characters to copy — the only form that survives both a
+    /// tab-indented docstring and a line whose text is not ASCII. A column
+    /// cannot express either.
+    ///
+    /// ```python
+    /// pad = parsed.line_indent(entry.range.start)
+    /// edits.replace(entry.description.range, f"{first}\n{pad}    {second}")
+    /// ```
+    ///
+    /// Raises ``ValueError`` if the offset is past the end of the source.
+    fn line_indent(&self, offset: u32) -> PyResult<&str> {
+        let parsed = &self.nr.parsed;
+        if offset as usize > parsed.source().len() {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "offset {} is out of bounds (source length: {})",
+                offset,
+                parsed.source().len()
+            )));
+        }
+        Ok(parsed.line_indent(TextSize::new(offset)))
     }
     /// The root CST node — the faithful lens.
     #[getter]
@@ -2799,44 +2845,47 @@ fn py_emit_sphinx(py: Python<'_>, doc: Py<PyModelDocstring>, base_indent: usize)
 
 // ─── WalkContext ─────────────────────────────────────────────────────────────
 
+/// Turn a byte offset into a `LineColumn`, the one way, for every caller.
+///
+/// `col` is the **UTF-8 byte offset within the line**, which is what
+/// `ast.col_offset` means and what the Rust `LineIndex` returns. Every offset
+/// in this API is a byte offset, so a column measured in anything else would
+/// not compose with them.
+fn line_col_of(py: Python<'_>, source: &str, index: &LineIndex, offset: u32) -> PyResult<Py<PyLineColumn>> {
+    if offset as usize > source.len() {
+        return Err(pyo3::exceptions::PyValueError::new_err(format!(
+            "offset {} is out of bounds (source length: {})",
+            offset,
+            source.len()
+        )));
+    }
+    let lc = index.line_col(TextSize::new(offset));
+    Py::new(
+        py,
+        PyLineColumn {
+            lineno: lc.lineno,
+            col: lc.col,
+        },
+    )
+}
+
 /// Context passed to every visitor method during a ``walk()`` call.
 ///
 /// Provides source-location helpers for the docstring currently being walked.
 #[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "WalkContext")]
 struct PyWalkContext {
     source: String,
-    line_starts: Vec<u32>,
+    index: LineIndex,
 }
 
 #[pymethods]
 impl PyWalkContext {
     /// Convert a byte offset into a ``LineColumn``.
     ///
-    /// Returns a 1-based line number and 0-based column offset.
+    /// ``lineno`` is 1-based and ``col`` is the 0-based **byte** offset within
+    /// the line — the same convention as :attr:`ast.AST.col_offset`.
     fn line_col(&self, py: Python<'_>, offset: u32) -> PyResult<Py<PyLineColumn>> {
-        let offset_usize = offset as usize;
-        if offset_usize > self.source.len() {
-            return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                "offset {} is out of bounds (source length: {})",
-                offset,
-                self.source.len()
-            )));
-        }
-        let line = self.line_starts.partition_point(|&s| s <= offset) - 1;
-        let line_start = self.line_starts[line] as usize;
-        if !self.source.is_char_boundary(offset_usize) || !self.source.is_char_boundary(line_start) {
-            return Err(pyo3::exceptions::PyValueError::new_err(
-                "offset is not on a UTF-8 character boundary",
-            ));
-        }
-        let col = self.source[line_start..offset_usize].chars().count() as u32;
-        Py::new(
-            py,
-            PyLineColumn {
-                lineno: line as u32 + 1,
-                col,
-            },
-        )
+        line_col_of(py, &self.source, &self.index, offset)
     }
     fn __repr__(&self) -> &'static str {
         "WalkContext(...)"
@@ -2950,8 +2999,8 @@ fn walk(py: Python<'_>, target: &Bound<'_, PyAny>, visitor: Py<PyAny>) -> PyResu
     };
 
     let source = nr.parsed.source().to_string();
-    let line_starts = build_line_starts(&source);
-    let ctx = Py::new(py, PyWalkContext { source, line_starts })?;
+    let index = LineIndex::new(&source);
+    let ctx = Py::new(py, PyWalkContext { source, index })?;
 
     walk_subtree(py, &nr, &visitor, &ctx, &active)?;
     Ok(visitor)

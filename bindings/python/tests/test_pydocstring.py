@@ -2156,3 +2156,139 @@ class TestValueSemantics:
         assert pydocstring.Style.__module__ == "pydocstring"
         assert pydocstring.TextRange.__module__ == "pydocstring"
         assert pydocstring.SectionKind.__module__ == "pydocstring"
+
+
+class TestLineCol:
+    """`line_col` is reachable outside `walk()`, and its column is a *byte* column.
+
+    Every offset in this API is a byte offset. A column measured in characters
+    would not compose with them — and it would disagree with `ast.col_offset`,
+    which is what a Python caller reasonably expects to match.
+    """
+
+    NON_ASCII = "Summary.\n\nArgs:\n    café (int): The value.\n"
+
+    def test_line_col_is_on_parsed(self):
+        parsed = pydocstring.parse(GOOGLE_SRC)
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        lc = parsed.line_col(entry.range.start)
+        assert (lc.lineno, lc.col) == (4, 4)
+
+    def test_col_is_a_byte_column_not_a_character_count(self):
+        parsed = pydocstring.parse(self.NON_ASCII)
+        raw = self.NON_ASCII.encode()
+        offset = raw.find(b"int")
+
+        byte_col = offset - (raw.rfind(b"\n", 0, offset) + 1)
+        char_col = len(raw[raw.rfind(b"\n", 0, offset) + 1 : offset].decode())
+        assert byte_col != char_col, "fixture must contain a multi-byte char before the offset"
+
+        assert parsed.line_col(offset).col == byte_col
+
+    def test_col_matches_ast_col_offset(self):
+        # The convention we promise in the docs, pinned against the reference.
+        import ast
+
+        src = "x = 'café' + zzz"
+        node = next(n for n in ast.walk(ast.parse(src)) if isinstance(n, ast.Name) and n.id == "zzz")
+        parsed = pydocstring.parse(src)
+        assert parsed.line_col(src.encode().find(b"zzz")).col == node.col_offset
+
+    def test_walk_context_and_parsed_agree(self):
+        class Cols(pydocstring.Visitor):
+            def __init__(self):
+                self.cols = []
+
+            def visit_token(self, token, ctx):
+                if token.kind == pydocstring.SyntaxKind.TYPE:
+                    self.cols.append((token.range.start, ctx.line_col(token.range.start).col))
+
+        parsed = pydocstring.parse(self.NON_ASCII)
+        seen = pydocstring.walk(parsed, Cols()).cols
+        assert seen
+        for offset, col in seen:
+            assert parsed.line_col(offset).col == col
+
+    def test_offset_past_the_end_raises(self):
+        with pytest.raises(ValueError):
+            pydocstring.parse(GOOGLE_SRC).line_col(10_000)
+
+
+class TestTextRangeConstruction:
+    """A `TextRange` can be built, so an edit is not limited to spans a view hands you."""
+
+    def test_a_constructed_range_splices(self):
+        # The span from the end of the `:` token to the end of the description —
+        # both endpoints come from the CST, but no single view covers it.
+        src = "Summary.\n\nArgs:\n    x (int): The value.\n"
+        parsed = pydocstring.parse(src)
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        colon = present(entry.syntax.find_token(pydocstring.SyntaxKind.COLON))
+
+        span = pydocstring.TextRange(colon.range.end, present(entry.description).range.end)
+        edits = parsed.edit()
+        edits.replace(span, " Replaced.")
+        assert edits.apply() == "Summary.\n\nArgs:\n    x (int): Replaced.\n"
+
+    def test_a_constructed_range_is_a_value(self):
+        assert pydocstring.TextRange(3, 7) == pydocstring.TextRange(3, 7)
+        assert len({pydocstring.TextRange(3, 7), pydocstring.TextRange(3, 7)}) == 1
+        assert pydocstring.TextRange(3, 3).is_empty()
+
+    @pytest.mark.parametrize(
+        ("start", "end"),
+        [
+            (0, 10_000),  # past the end
+            (20, 5),  # inverted
+            (0, 24),  # ends inside the `é` of `café` (bytes 23..25)
+        ],
+    )
+    def test_an_invalid_range_raises_rather_than_panicking(self, start, end):
+        # Ranges used to be unforgeable, so `apply()`'s validation was only ever
+        # fed spans the parser produced. It is now reachable.
+        parsed = pydocstring.parse("Summary.\n\nArgs:\n    café (int): v.\n")
+        edits = parsed.edit()
+        edits.replace(pydocstring.TextRange(start, end), "X")
+        with pytest.raises(pydocstring.EditError):
+            edits.apply()
+
+
+class TestLineIndent:
+    """The indent an edit has to match, as characters to copy — not as a count.
+
+    `" " * line_col(...).col` is the obvious thing to reach for and it is wrong
+    twice over: it turns a tab into a space, and it over-indents a line whose
+    text before the anchor is not ASCII. Neither shows up in an ASCII,
+    space-indented fixture, which is every fixture anyone writes.
+    """
+
+    def test_a_tab_indent_stays_a_tab(self):
+        parsed = pydocstring.parse("Summary.\n\nArgs:\n\tx (int): The value.\n")
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+
+        assert parsed.line_indent(entry.range.start) == "\t"
+        assert " " * parsed.line_col(entry.range.start).col == " "  # the trap
+
+    def test_a_mid_line_anchor_after_a_multibyte_char(self):
+        src = "Summary.\n\nArgs:\n    café (int): The value.\n"
+        parsed = pydocstring.parse(src)
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        desc = present(entry.description)
+
+        # The byte column counts `é` twice, so it is one wider than the text is.
+        col = parsed.line_col(desc.range.start).col
+        line = src.splitlines()[3]
+        assert col == line.index("The value.") + 1
+
+        # The indent of the *line* is unaffected — which is why an edit should
+        # anchor on it rather than on a column.
+        assert parsed.line_indent(desc.range.start) == "    "
+
+    def test_indent_of_an_unindented_line_is_empty(self):
+        parsed = pydocstring.parse("Summary.\n\nParameters\n----------\nx : int\n    v.\n")
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        assert parsed.line_indent(entry.range.start) == ""
+
+    def test_offset_past_the_end_raises(self):
+        with pytest.raises(ValueError):
+            pydocstring.parse(GOOGLE_SRC).line_indent(10_000)
