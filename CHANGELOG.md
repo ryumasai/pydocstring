@@ -26,6 +26,16 @@ was in Rust. It only differs on a line containing a multi-byte character — see
   indented, and to indent it you need the column of the anchor, so every caller
   was reduced to byte arithmetic over `parsed.source`.
 
+- **`Parsed.line_indent(offset)` (Rust and Python)** — the leading whitespace of
+  the line an offset falls on, as the literal characters to copy.
+
+  This is what an edit actually needs, and a column cannot express it.
+  `" " * line_col(...).col` is the obvious thing to reach for and it is wrong
+  twice over: it turns a **tab** into a space, and it over-indents a line whose
+  text before the anchor is not ASCII (a byte column counts `é` twice). Neither
+  shows up in an ASCII, space-indented fixture — which is every fixture anyone
+  writes.
+
 - **`TextRange(start, end)` is constructible from Python**
   ([#133](https://github.com/ryumasai/pydocstring/issues/133)). `replace()` and
   `delete()` take a `TextRange`, and Python could not make one — so an edit was

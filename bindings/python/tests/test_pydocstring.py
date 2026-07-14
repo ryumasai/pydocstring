@@ -2251,3 +2251,44 @@ class TestTextRangeConstruction:
         edits.replace(pydocstring.TextRange(start, end), "X")
         with pytest.raises(pydocstring.EditError):
             edits.apply()
+
+
+class TestLineIndent:
+    """The indent an edit has to match, as characters to copy — not as a count.
+
+    `" " * line_col(...).col` is the obvious thing to reach for and it is wrong
+    twice over: it turns a tab into a space, and it over-indents a line whose
+    text before the anchor is not ASCII. Neither shows up in an ASCII,
+    space-indented fixture, which is every fixture anyone writes.
+    """
+
+    def test_a_tab_indent_stays_a_tab(self):
+        parsed = pydocstring.parse("Summary.\n\nArgs:\n\tx (int): The value.\n")
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+
+        assert parsed.line_indent(entry.range.start) == "\t"
+        assert " " * parsed.line_col(entry.range.start).col == " "  # the trap
+
+    def test_a_mid_line_anchor_after_a_multibyte_char(self):
+        src = "Summary.\n\nArgs:\n    café (int): The value.\n"
+        parsed = pydocstring.parse(src)
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        desc = present(entry.description)
+
+        # The byte column counts `é` twice, so it is one wider than the text is.
+        col = parsed.line_col(desc.range.start).col
+        line = src.splitlines()[3]
+        assert col == line.index("The value.") + 1
+
+        # The indent of the *line* is unaffected — which is why an edit should
+        # anchor on it rather than on a column.
+        assert parsed.line_indent(desc.range.start) == "    "
+
+    def test_indent_of_an_unindented_line_is_empty(self):
+        parsed = pydocstring.parse("Summary.\n\nParameters\n----------\nx : int\n    v.\n")
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        assert parsed.line_indent(entry.range.start) == ""
+
+    def test_offset_past_the_end_raises(self):
+        with pytest.raises(ValueError):
+            pydocstring.parse(GOOGLE_SRC).line_indent(10_000)

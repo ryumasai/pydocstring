@@ -458,17 +458,43 @@ impl PyParsed {
     /// Convert a byte offset into a ``LineColumn``.
     ///
     /// ``lineno`` is 1-based and ``col`` is the 0-based **byte** offset within
-    /// the line — the same convention as :attr:`ast.AST.col_offset`.
+    /// the line — the same convention as :attr:`ast.AST.col_offset`, and the
+    /// same as the Rust side.
     ///
-    /// This is how you learn the indentation an edit has to match: the column
-    /// of a view's ``range.start`` *is* the column it sits at. Without it, the
-    /// only way to indent a multi-line splice is byte arithmetic over
-    /// ``source``.
+    /// Being a byte column is what makes it compose with the rest of the API:
+    /// ``offset - col`` is the start of the line. It is **not** a display width
+    /// and **not** an indent — ``" " * col`` over-indents a line containing a
+    /// multi-byte character, and turns a tab into a space. Use ``line_indent()``
+    /// for that.
     ///
     /// Raises ``ValueError`` if the offset is past the end of the source.
     fn line_col(&self, py: Python<'_>, offset: u32) -> PyResult<Py<PyLineColumn>> {
         let source = self.nr.parsed.source();
         line_col_of(py, source, &LineIndex::new(source), offset)
+    }
+    /// The leading whitespace of the line that ``offset`` falls on.
+    ///
+    /// This is the indent an edit anchored there has to match, handed back as
+    /// the literal characters to copy — the only form that survives both a
+    /// tab-indented docstring and a line whose text is not ASCII. A column
+    /// cannot express either.
+    ///
+    /// ```python
+    /// pad = parsed.line_indent(entry.range.start)
+    /// edits.replace(entry.description.range, f"{first}\n{pad}    {second}")
+    /// ```
+    ///
+    /// Raises ``ValueError`` if the offset is past the end of the source.
+    fn line_indent(&self, offset: u32) -> PyResult<&str> {
+        let parsed = &self.nr.parsed;
+        if offset as usize > parsed.source().len() {
+            return Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "offset {} is out of bounds (source length: {})",
+                offset,
+                parsed.source().len()
+            )));
+        }
+        Ok(parsed.line_indent(TextSize::new(offset)))
     }
     /// The root CST node — the faithful lens.
     #[getter]

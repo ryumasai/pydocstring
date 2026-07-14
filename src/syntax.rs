@@ -537,8 +537,45 @@ impl Parsed {
     /// Convert a byte offset to a [`LineColumn`] position.
     ///
     /// `lineno` is 1-based; `col` is the 0-based byte column within the line.
+    ///
+    /// `col` is a **byte** column, so it composes with every other offset in
+    /// this API (`offset - col` is the start of the line). It is *not* a
+    /// display width and *not* an indent: reconstructing indentation as
+    /// `" ".repeat(col)` over-indents a line containing a multi-byte character
+    /// and turns a tab into a space. Use [`line_indent`](Parsed::line_indent)
+    /// for that.
     pub fn line_col(&self, offset: crate::text::TextSize) -> LineColumn {
         self.line_index.line_col(offset)
+    }
+
+    /// The leading whitespace of the line that `offset` falls on.
+    ///
+    /// This is the indent an edit anchored there has to match, handed back as
+    /// the literal bytes to copy — which is the only form that survives both a
+    /// tab-indented docstring and a line whose text is not ASCII. A column
+    /// cannot express either: `" ".repeat(col)` replaces a tab with a space,
+    /// and counts a `é` twice.
+    ///
+    /// ```rust
+    /// use pydocstring::parse::parse;
+    /// use pydocstring::text::TextSize;
+    ///
+    /// let parsed = parse("Summary.\n\nArgs:\n\tx (int): The value.\n");
+    /// let x = parsed.source().find("x (int)").unwrap();
+    /// assert_eq!(parsed.line_indent(TextSize::new(x as u32)), "\t");
+    /// ```
+    pub fn line_indent(&self, offset: crate::text::TextSize) -> &str {
+        // Byte-wise throughout: `offset` may land inside a multi-byte character
+        // (a caller can build any TextRange), and `str` slicing would panic.
+        // A line start and a run of spaces/tabs are always char boundaries.
+        let bytes = self.source.as_bytes();
+        let offset = usize::from(offset).min(bytes.len());
+        let line_start = bytes[..offset].iter().rposition(|&b| b == b'\n').map_or(0, |i| i + 1);
+        let mut end = line_start;
+        while end < bytes.len() && (bytes[end] == b' ' || bytes[end] == b'\t') {
+            end += 1;
+        }
+        &self.source[line_start..end]
     }
 
     /// Produce a Biome-style pretty-printed representation of the tree.

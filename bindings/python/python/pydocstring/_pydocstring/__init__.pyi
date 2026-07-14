@@ -473,10 +473,22 @@ class Parsed:
     def syntax(self) -> Node:
         """The root CST node — the faithful lens."""
     def line_col(self, offset: int) -> LineColumn:
-        """Byte offset -> ``LineColumn`` (1-based line, 0-based byte column).
+        """Byte offset -> ``LineColumn`` (1-based line, 0-based **byte** column).
 
-        This is how you learn the indentation an edit has to match: the column
-        of a view's ``range.start`` *is* the column it sits at.
+        A byte column composes with the rest of the API — ``offset - col`` is
+        the start of the line. It is **not** a display width and **not** an
+        indent: ``" " * col`` over-indents a line containing a multi-byte
+        character and turns a tab into a space. Use ``line_indent()``.
+
+        Raises ``ValueError`` if the offset is past the end of the source.
+        """
+        ...
+    def line_indent(self, offset: int) -> str:
+        """The leading whitespace of the line ``offset`` falls on.
+
+        The indent an edit anchored there has to match, as the literal
+        characters to copy — the only form that survives a tab-indented
+        docstring and a non-ASCII line alike.
 
         Raises ``ValueError`` if the offset is past the end of the source.
         """
