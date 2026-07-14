@@ -325,7 +325,7 @@ impl<'a> Edits<'a> {
         let node = entry.syntax().nodes(SyntaxKind::DESCRIPTION).next();
         let indent = self.continuation_indent(entry, node);
         // NumPy has no inline description: it is always its own line.
-        let own_line = self.parsed.style() == Style::NumPy || text.contains('\n');
+        let own_line = self.numpy_entry_grammar() || text.contains('\n');
         let block = format!("\n{indent}{}", reindent(text, &indent));
 
         match node {
@@ -349,12 +349,13 @@ impl<'a> Edits<'a> {
             // nothing in the tree marks where one would go, so the grammar
             // does — which is the whole reason this method exists.
             None => {
-                let colon = match self.parsed.style() {
-                    // A NumPy description does not follow the colon; the colon
-                    // of `x : int` separates the name from the type.
-                    Style::NumPy => "",
-                    _ if entry.syntax().find_token(SyntaxKind::COLON).is_some() => "",
-                    _ => ":",
+                // A NumPy description does not follow the colon — the colon of
+                // `x : int` separates the name from the type — so it needs
+                // none. A Google one does, and the entry may not have one yet.
+                let colon = if self.numpy_entry_grammar() || entry.syntax().find_token(SyntaxKind::COLON).is_some() {
+                    ""
+                } else {
+                    ":"
                 };
                 let anchor = TextRange::new(entry.range().end(), entry.range().end());
                 let text = if own_line { block } else { format!(" {text}") };
@@ -452,7 +453,7 @@ impl<'a> Edits<'a> {
     /// assert_eq!(edits.apply().unwrap(), "S.\n\nArgs:\n    x (int): The value.\n");
     /// ```
     pub fn set_type(&mut self, entry: Entry<'_>, text: &str) -> &mut Self {
-        let numpy = self.parsed.style() == Style::NumPy;
+        let numpy = self.numpy_entry_grammar();
         let node = entry.syntax();
 
         if let Some(token) = node
@@ -488,6 +489,26 @@ impl<'a> Edits<'a> {
             format!("{text}: ")
         };
         self.insert(entry.range().start(), written)
+    }
+
+    /// Whether this parse result's entries follow the NumPy grammar — a
+    /// description on its own continuation line, a type after the colon — as
+    /// opposed to Google's inline `x (int): desc`.
+    ///
+    /// The `match` is **exhaustive on purpose**, even though [`Style`] is
+    /// `#[non_exhaustive]` to the outside world. Phase 5 adds Sphinx field
+    /// lists as a third style (#99), and their entry grammar is neither of
+    /// these two. A wildcard arm here would silently write Google's brackets
+    /// and colon into a field list; instead, adding a `Style` variant stops
+    /// this function from compiling and makes its author choose.
+    fn numpy_entry_grammar(&self) -> bool {
+        match self.parsed.style() {
+            Style::NumPy => true,
+            // Plain has no sections, so no entries, so no entry grammar: it is
+            // only ever reached through a hand-built tree, and Google's is the
+            // right guess for the shape of one.
+            Style::Google | Style::Plain => false,
+        }
     }
 
     /// The indent an entry's description continuation lines use.
