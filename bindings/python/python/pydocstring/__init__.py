@@ -30,6 +30,7 @@ from ._pydocstring import Match
 from ._pydocstring import Node
 from ._pydocstring import Parsed
 from ._pydocstring import PatternError
+from ._pydocstring import RewriteError
 from ._pydocstring import Section
 from ._pydocstring import SectionKind
 from ._pydocstring import Style
@@ -79,6 +80,7 @@ __all__ = [
     "Match",
     "Capture",
     "PatternError",
+    "RewriteError",
     # ── Visitor ───────────────────────────────────────────────────────────
     "Visitor",
     # ── Functions ─────────────────────────────────────────────────────────

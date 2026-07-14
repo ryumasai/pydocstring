@@ -127,15 +127,17 @@ impl TextRange {
 
     /// Extracts the corresponding slice from the source text.
     ///
-    /// Returns an empty string if the range is empty or offsets are out of bounds.
+    /// Returns an empty string if the range is empty, out of bounds, inverted,
+    /// or if an endpoint falls inside a multi-byte character.
+    ///
+    /// The bounds check is not paranoia: a `TextRange` is two numbers and can
+    /// be built by hand (the Python binding exposes the constructor), so this
+    /// is reachable. Indexing a `str` with a range that splits a character
+    /// panics — and a panic across the FFI boundary is an abort.
     pub fn source_text<'a>(&self, source: &'a str) -> &'a str {
         let start = self.start.0 as usize;
         let end = self.end.0 as usize;
-        if start <= end && end <= source.len() {
-            &source[start..end]
-        } else {
-            ""
-        }
+        source.get(start..end).unwrap_or("")
     }
 
     /// Grow this range's end to cover `other`.

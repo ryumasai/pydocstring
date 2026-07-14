@@ -480,3 +480,22 @@ fn remove_lines_range_matches_remove_lines_for_every_node() {
         }
     }
 }
+
+#[test]
+fn source_text_never_panics_on_a_hand_built_range() {
+    use pydocstring::text::TextRange;
+    use pydocstring::text::TextSize;
+
+    // A `TextRange` is two numbers, and since #133 the Python binding can build
+    // one, so every case below is reachable from user code. `&source[start..end]`
+    // panics on the last two — and a panic across the FFI boundary is an abort.
+    let src = "café";
+    let r = |a: u32, b: u32| TextRange::new(TextSize::new(a), TextSize::new(b));
+
+    assert_eq!(r(0, 2).source_text(src), "ca");
+    assert_eq!(r(0, 99).source_text(src), "", "out of bounds");
+    assert_eq!(r(3, 1).source_text(src), "", "inverted");
+    // Bytes 3..5 are the `é`, so 4 is inside it.
+    assert_eq!(r(0, 4).source_text(src), "", "end splits a character");
+    assert_eq!(r(4, 5).source_text(src), "", "start splits a character");
+}

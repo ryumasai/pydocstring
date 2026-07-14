@@ -1,0 +1,135 @@
+# Rust public items with no Python counterpart — each one excused on purpose.
+#
+# `just api-parity` fails on anything in the Rust surface that is neither exposed
+# in Python nor listed here. The point is that "not in Python" has to be a
+# decision someone wrote down: #115 was filed because three of them were not
+# decisions, they were oversights nobody could see.
+#
+# Adding an entry is cheap, and that is deliberate — but write the *reason*, not
+# a restatement. "Internal" is not a reason. Answer the question a Python user
+# would ask: what do I do instead?
+
+[functions]
+
+[types]
+"pattern::Pattern" = "Python takes a pattern *string* — `parsed.replace(pattern, template)`. The compiled Pattern and its reading machinery stay in Rust; exposing it means exposing Reading/MetaVar/MetaVarSite/FragmentKind too, for no capability the string does not already give."
+"pattern::Reading" = "See pattern::Pattern — the ambiguity machinery a pattern string hides."
+"pattern::MetaVar" = "See pattern::Pattern."
+"pattern::MetaVarSite" = "See pattern::Pattern."
+"pattern::FragmentKind" = "See pattern::Pattern."
+"matcher::CapturedElement" = "Python's `Capture` gives `range`/`text`/`is_multi`, which is what a capture is for. The node-or-token it bound to is reachable from the tree if anyone needs it."
+"syntax::SyntaxElement" = "Python flattens the node|token sum into `Node.children: list[Node | Token]`; `isinstance` is the idiom, so a wrapper enum would only get in the way."
+"text::TextSize" = "A newtype over u32. Python uses plain `int` offsets throughout."
+"text::LineIndex" = "The line-start lookup table. Python reaches it through `Parsed.line_col()` / `Parsed.line_indent()`, which is all it was ever for."
+"emit::EmitOptions" = "Python's `emit_*()` take the options as keyword arguments (`base_indent=`) — the Python spelling of an options struct."
+"model::FreeSectionKind" = "Rust models free-text sections as `SectionKind::FreeText(FreeSectionKind)`; Python flattens that to `SectionKind.NOTES` and friends. The nesting is a Rust structural detail, not a concept."
+
+[methods]
+# ── Constructors for things Python never builds by hand ──────────────────────
+"syntax::Parsed::new" = "A `Parsed` comes from a parser, never from a constructor."
+"syntax::SyntaxNode::new" = "Python reads the CST, it does not build trees. There is no way to produce one that satisfies the coverage/ordering invariants from Python, and no reason to want to."
+"syntax::SyntaxToken::new" = "See syntax::SyntaxNode::new."
+"parse::TokenRef::new" = "`TokenRef` is the Rust borrow; Python's `Token` is handed out by the tree."
+"text::TextSize::new" = "Python uses plain `int` offsets."
+"text::TextSize::raw" = "Python uses plain `int` offsets."
+"text::TextRange::from_offset_len" = "Python has `TextRange(start, end)`. An offset+len constructor is one subtraction away and would be a second way to say the same thing."
+"text::LineIndex::new" = "See text::LineIndex."
+"text::LineIndex::line_col" = "Exposed as `Parsed.line_col()`, which is where a caller actually holds one."
+"emit::EmitOptions::with_base_indent" = "See emit::EmitOptions — `emit_google(doc, base_indent=4)`."
+
+# ── Casting a CST node back up to a typed view ───────────────────────────────
+# Rust's views are `cast(parsed, node) -> Option<Self>`; Python's are reached
+# top-down (`Document(parsed).sections[i].entries[j]`). Going bottom-up — from a
+# `Node` you hold to the `Entry` view of it — is not possible from Python today.
+# A real asymmetry, and a small one: the raw CST answers every question the view
+# does, only without the semantic names.
+"parse::Entry::cast" = "Views are reached top-down from `Document`; the raw CST (`.syntax`) is the bottom-up lens. A Node -> view cast is not exposed."
+"parse::Section::cast" = "See parse::Entry::cast."
+"parse::Citation::cast" = "See parse::Entry::cast."
+"parse::Directive::cast" = "See parse::Entry::cast."
+"parse::DefaultMarker::cast" = "See parse::Entry::cast."
+"parse::TextBlock::cast" = "See parse::Entry::cast."
+"parse::TextBlock::can_cast" = "See parse::Entry::cast."
+
+# ── Present in Python under a different spelling ─────────────────────────────
+"parse::TextBlock::syntax" = "`TextBlock` and `Token` are leaves of the Python API by design (stated in the README): every *node-backed* view has `.syntax`, and a text block is a bag of lines, not somewhere you navigate from."
+"parse::TokenRef::syntax" = "See parse::TextBlock::syntax."
+"syntax::SyntaxNode::required_token" = "It panics when the token is absent. Python has `find_token()` returning `None` — and a panic across the FFI boundary is an abort, not an exception."
+"syntax::SyntaxNode::pretty_fmt" = "The formatting half of `Parsed.pretty_print()`, which is what Python calls."
+"syntax::SyntaxToken::pretty_fmt" = "See syntax::SyntaxNode::pretty_fmt."
+"edit::Edits::replace_node" = "Python's handle on a construct is a range: `edits.replace(node.range, text)` is the same edit, and `node.range` is right there."
+"edit::Edits::replace_token" = "See edit::Edits::replace_node."
+"edit::Edits::parsed" = "The caller already holds the `Parsed` it called `.edit()` on."
+"matcher::Capture::element" = "See matcher::CapturedElement."
+"matcher::Capture::elements" = "See matcher::CapturedElement."
+"matcher::CapturedElement::kind" = "See matcher::CapturedElement."
+"matcher::CapturedElement::range" = "See matcher::CapturedElement."
+"matcher::Match::reading" = "See pattern::Pattern."
+"syntax::SyntaxElement::kind" = "See syntax::SyntaxElement — Python has `Node.kind` and `Token.kind`."
+"syntax::SyntaxElement::range" = "See syntax::SyntaxElement."
+
+# ── The pattern machinery, wholesale ─────────────────────────────────────────
+"pattern::Pattern::new" = "See pattern::Pattern."
+"pattern::Pattern::text" = "See pattern::Pattern."
+"pattern::Pattern::style" = "See pattern::Pattern."
+"pattern::Pattern::parsed" = "See pattern::Pattern."
+"pattern::Pattern::fragment" = "See pattern::Pattern."
+"pattern::Pattern::fragment_kind" = "See pattern::Pattern."
+"pattern::Pattern::metavars" = "See pattern::Pattern."
+"pattern::Pattern::readings" = "See pattern::Pattern."
+"pattern::Pattern::reading_for" = "See pattern::Pattern."
+"pattern::Pattern::matches" = "Exposed as `parsed.findall(pattern)`."
+"pattern::Pattern::matches_in" = "Exposed as `parsed.findall_in(anchor, pattern)`."
+"pattern::Reading::fragment" = "See pattern::Pattern."
+"pattern::Reading::fragment_kind" = "See pattern::Pattern."
+"pattern::Reading::metavars" = "See pattern::Pattern."
+"pattern::Reading::parsed" = "See pattern::Pattern."
+"pattern::Reading::section_kinds" = "See pattern::Pattern."
+"pattern::MetaVar::name" = "See pattern::Pattern."
+"pattern::MetaVar::is_multi" = "See pattern::Pattern — `Capture.is_multi()` is the part a caller needs."
+"pattern::MetaVar::site" = "See pattern::Pattern."
+"pattern::MetaVarSite::is_exact" = "See pattern::Pattern."
+"pattern::MetaVarSite::kind" = "See pattern::Pattern."
+"pattern::MetaVarSite::parent_kind" = "See pattern::Pattern."
+"pattern::MetaVarSite::path" = "See pattern::Pattern."
+"pattern::MetaVarSite::range" = "See pattern::Pattern."
+
+# ── The model IR: Python spells construction and matching differently ────────
+# Rust's `Block` is a plain enum with `as_*()` accessors; PyO3 renders it as a
+# variant type, so Python matches with `isinstance` and reads `.value`. Same
+# capability, and the idiom Python users expect.
+"model::Block::as_paragraph" = "Python: `isinstance(block, model.Block.Paragraph)`, then `block.value`."
+"model::Block::as_parameter" = "See model::Block::as_paragraph."
+"model::Block::as_return" = "See model::Block::as_paragraph."
+"model::Block::as_exception" = "See model::Block::as_paragraph."
+"model::Block::as_attribute" = "See model::Block::as_paragraph."
+"model::Block::as_method" = "See model::Block::as_paragraph."
+"model::Block::as_see_also" = "See model::Block::as_paragraph."
+"model::Block::as_reference" = "See model::Block::as_paragraph."
+# The role-named constructors are sugar over `Section::new(kind, blocks)`, which
+# Python spells `model.Section(kind=..., blocks=[...])`. Every section is
+# constructible; only the shorthand is absent.
+"model::Section::parameters" = "Python: `model.Section(kind=SectionKind.PARAMETERS, blocks=[...])`."
+"model::Section::keyword_parameters" = "See model::Section::parameters."
+"model::Section::other_parameters" = "See model::Section::parameters."
+"model::Section::receives" = "See model::Section::parameters."
+"model::Section::returns" = "See model::Section::parameters."
+"model::Section::yields" = "See model::Section::parameters."
+"model::Section::raises" = "See model::Section::parameters."
+"model::Section::warns" = "See model::Section::parameters."
+"model::Section::attributes" = "See model::Section::parameters."
+"model::Section::methods" = "See model::Section::parameters."
+"model::Section::see_also" = "See model::Section::parameters."
+"model::Section::references" = "See model::Section::parameters."
+"model::Section::free_text" = "See model::Section::parameters."
+
+[variants]
+"model::SectionKind::FreeText" = "The wrapper variant Rust uses to nest FreeSectionKind. Python flattens it — `SectionKind.NOTES` etc. — so there is nothing to wrap. See model::FreeSectionKind."
+# The error enums are one Python exception class each; the variant is the
+# message, not a type a caller matches on. `except EditError` is the Python
+# spelling of `match EditError { .. }`.
+"edit::EditError::OutOfBounds" = "Python has the `EditError` class; the variant is carried in the message."
+"edit::EditError::Overlap" = "See edit::EditError::OutOfBounds."
+"pattern::PatternError::Unparsable" = "See edit::EditError::OutOfBounds."
+"rewrite::RewriteError::UnknownMetavar" = "See edit::EditError::OutOfBounds."
+"rewrite::RewriteError::Edit" = "See edit::EditError::OutOfBounds."

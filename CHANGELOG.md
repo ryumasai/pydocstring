@@ -19,12 +19,44 @@ was in Rust. It only differs on a line containing a multi-byte character — see
 
 ### Added
 
-- **`Parsed.line_col(offset)` (Python)**
-  ([#132](https://github.com/ryumasai/pydocstring/issues/132)). `line_col` used
-  to exist only on `WalkContext` — i.e. only *inside* a `walk()` hook, which is
-  not where editing happens. An edit that inserts a multi-line block has to be
-  indented, and to indent it you need the column of the anchor, so every caller
-  was reduced to byte arithmetic over `parsed.source`.
+- **CI now checks Rust↔Python API parity**
+  ([#134](https://github.com/ryumasai/pydocstring/issues/134)). #115 was filed
+  because three Rust capabilities had no Python counterpart. Closing those three
+  did not close *how they got there* — the bindings are hand-written, so every
+  new Rust item is opt-in for Python and nothing noticed when it wasn't taken
+  up. Two more (#132, #133) surfaced the moment a real consumer tried to use the
+  0.4 API, in a surface that had just been audited by hand.
+
+  `just api-parity` enumerates the Rust public surface from rustdoc's JSON —
+  reachability from the crate root, not `pub`, so a `pub fn` inside a
+  `pub(crate)` module correctly isn't API — and fails on any item that is
+  neither exposed in Python nor listed in `scripts/api_parity_allow.toml` **with
+  a reason**. The excuse list is as much the point as the check: "not in Python"
+  should be a decision someone wrote down. It also fails on a *stale* excuse, so
+  the list cannot rot.
+
+  It covers functions, types, methods, **enum variants** and trait methods.
+  Variants matter for the same reason the rest does: a `SyntaxKind` variant
+  added in Rust and forgotten in Python fails nothing today — the binding maps
+  an unrecognised kind to `UNKNOWN` — so nothing would ever say so.
+
+  311 Rust items; 94 excused, in writing. Running it for the first time found
+  four real gaps, below.
+
+- **`SyntaxKind.is_node()` / `.is_token()` / `.is_trivia()` / `.name` (Python)**
+  — found by the parity check. Skipping trivia while walking the CST meant
+  hard-coding which kinds are trivia and re-deriving that whenever the grammar
+  grew one.
+
+- **`TextRange.source_text(source)`, `len(range)`, `offset in range` (Python)**
+  — also found by the check. `source_text` is the one that matters: a range is a
+  **byte** range and a `str` indexes by code point, so `source[r.start:r.end]`
+  cuts in the wrong place on any non-ASCII input. That is the exact bug
+  CodeRabbit caught in the 0.4.0 README, and now the API has the correct thing
+  to reach for.
+
+- **`RewriteError` (Python)** — also found by the check. A failed rewrite raised
+  a bare `ValueError`, while every other error in the API has a named type.
 
 - **`Parsed.line_indent(offset)` (Rust and Python)** — the leading whitespace of
   the line an offset falls on, as the literal characters to copy.
@@ -35,6 +67,13 @@ was in Rust. It only differs on a line containing a multi-byte character — see
   text before the anchor is not ASCII (a byte column counts `é` twice). Neither
   shows up in an ASCII, space-indented fixture — which is every fixture anyone
   writes.
+
+- **`Parsed.line_col(offset)` (Python)**
+  ([#132](https://github.com/ryumasai/pydocstring/issues/132)). `line_col` used
+  to exist only on `WalkContext` — i.e. only *inside* a `walk()` hook, which is
+  not where editing happens. An edit that inserts a multi-line block has to be
+  indented, and to indent it you need the column of the anchor, so every caller
+  was reduced to byte arithmetic over `parsed.source`.
 
 - **`TextRange(start, end)` is constructible from Python**
   ([#133](https://github.com/ryumasai/pydocstring/issues/133)). `replace()` and
@@ -57,6 +96,13 @@ was in Rust. It only differs on a line containing a multi-byte character — see
   API is a byte offset, so a character column did not compose with any of them.
   It now matches both Rust and `ast.col_offset`, which is the convention a Python
   caller would expect (pinned by a test against `ast` itself).
+
+- **`TextRange::source_text` could panic on a hand-built range.** It bounds-checked
+  but did not check character boundaries, and `&source[start..end]` panics when an
+  endpoint falls inside a multi-byte character — an abort, across the FFI boundary.
+  Unreachable while ranges could only come from the parser; reachable the moment
+  this release made them constructible. It now returns `""`, like it already did
+  for an out-of-bounds range.
 
 - **`EditError`'s message no longer says "out of bounds" for a range that is in
   bounds.** The one error variant covers three cases — past the end, inverted,

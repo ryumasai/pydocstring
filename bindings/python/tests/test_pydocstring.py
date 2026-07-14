@@ -2292,3 +2292,87 @@ class TestLineIndent:
     def test_offset_past_the_end_raises(self):
         with pytest.raises(ValueError):
             pydocstring.parse(GOOGLE_SRC).line_indent(10_000)
+
+
+class TestSyntaxKindPredicates:
+    """Skipping trivia should not mean hard-coding which kinds are trivia."""
+
+    def test_node_and_token_predicates(self):
+        assert pydocstring.SyntaxKind.ENTRY.is_node()
+        assert not pydocstring.SyntaxKind.ENTRY.is_token()
+        assert pydocstring.SyntaxKind.NAME.is_token()
+        assert not pydocstring.SyntaxKind.NAME.is_node()
+
+    def test_trivia(self):
+        assert pydocstring.SyntaxKind.WHITESPACE.is_trivia()
+        assert pydocstring.SyntaxKind.NEWLINE.is_trivia()
+        assert pydocstring.SyntaxKind.BLANK_LINE.is_trivia()
+        assert not pydocstring.SyntaxKind.NAME.is_trivia()
+
+    def test_name(self):
+        assert pydocstring.SyntaxKind.ENTRY.name == "ENTRY"
+
+    def test_unknown_cannot_be_asked(self):
+        # Consistent with `Node.tokens(UNKNOWN)`: UNKNOWN is a read-only result
+        # standing in for a kind this binding does not know, so it has no answer.
+        with pytest.raises(ValueError):
+            pydocstring.SyntaxKind.UNKNOWN.is_trivia()
+
+    def test_skipping_trivia_is_now_one_call(self):
+        parsed = pydocstring.parse(GOOGLE_SRC)
+
+        class Names(pydocstring.Visitor):
+            def __init__(self):
+                self.kept = []
+
+            def visit_token(self, token, ctx):
+                if not token.kind.is_trivia():
+                    self.kept.append(token.kind.name)
+
+        kept = pydocstring.walk(parsed, Names()).kept
+        assert "WHITESPACE" not in kept
+        assert "NAME" in kept
+
+
+class TestTextRangeSlicing:
+    """`source_text` exists so that nobody slices a byte range into a `str`."""
+
+    NON_ASCII = "Summary.\n\nArgs:\n    café (int): The value.\n"
+
+    def test_source_text_is_correct_where_naive_slicing_is_not(self):
+        parsed = pydocstring.parse(self.NON_ASCII)
+        desc = present(pydocstring.Document(parsed).sections[0].entries[0].description)
+
+        assert desc.range.source_text(self.NON_ASCII) == "The value."
+        # The bug this method exists to prevent (the one CodeRabbit caught in #121):
+        assert self.NON_ASCII[desc.range.start : desc.range.end] != "The value."
+
+    def test_an_invalid_range_yields_an_empty_string_rather_than_crashing(self):
+        # A range is two numbers and can be built by hand, so this is reachable.
+        # Slicing a `str` in Rust with a range that splits a character panics —
+        # and a panic across the FFI boundary is an abort, not an exception.
+        assert pydocstring.TextRange(0, 24).source_text(self.NON_ASCII) == ""  # splits the `é`
+        assert pydocstring.TextRange(0, 9999).source_text(self.NON_ASCII) == ""
+        assert pydocstring.TextRange(20, 5).source_text(self.NON_ASCII) == ""
+
+    def test_len_and_contains(self):
+        parsed = pydocstring.parse(GOOGLE_SRC)
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        r = entry.range
+
+        assert len(r) == r.end - r.start
+        assert r.start in r
+        assert r.end not in r  # half-open: [start, end)
+        assert len(pydocstring.TextRange(7, 7)) == 0
+
+
+class TestRewriteError:
+    """Rewrite failures used to arrive as a bare `ValueError`, unlike every other error."""
+
+    def test_unbound_metavariable_in_a_template(self):
+        parsed = pydocstring.parse("Summary.\n\nArgs:\n    x: The value.\n")
+        with pytest.raises(pydocstring.RewriteError, match="MISSING"):
+            parsed.replace("$NAME: $DESC", "$MISSING")
+
+    def test_it_is_a_value_error(self):
+        assert issubclass(pydocstring.RewriteError, ValueError)

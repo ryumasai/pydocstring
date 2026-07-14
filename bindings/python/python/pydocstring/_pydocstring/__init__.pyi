@@ -52,6 +52,23 @@ class TextRange:
     def is_empty(self) -> bool:
         """Return ``True`` when ``start == end`` (zero-length placeholder)."""
         ...
+    def source_text(self, source: str) -> str:
+        """The slice of ``source`` this range covers.
+
+        Use this rather than slicing yourself: the range is in **bytes** and a
+        ``str`` indexes by code point, so ``source[r.start:r.end]`` cuts in the
+        wrong place as soon as anything upstream of the range is non-ASCII.
+
+        Returns ``""`` for a range that is out of bounds, inverted, or splits a
+        character — all reachable, since a range is just two numbers.
+        """
+        ...
+    def __len__(self) -> int:
+        """The length of the range, in bytes."""
+        ...
+    def __contains__(self, offset: int) -> bool:
+        """Whether a byte offset falls within ``[start, end)``."""
+        ...
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self) -> int: ...
     def __repr__(self) -> str: ...
@@ -79,6 +96,10 @@ class WalkContext:
 
 class PatternError(ValueError):
     """Raised when a pattern string has no valid reading."""
+
+class RewriteError(ValueError):
+    """Raised by ``replace()`` / ``replace_in()`` when a template names a
+    metavariable the matched reading does not bind."""
 
 class Capture:
     """A metavariable capture of a :class:`Match`.
@@ -251,6 +272,23 @@ class SyntaxKind:
     DEFAULT: SyntaxKind
     PARAGRAPH: SyntaxKind
     UNKNOWN: SyntaxKind
+    @property
+    def name(self) -> str:
+        """The kind's name, e.g. ``"ENTRY"``."""
+    def is_node(self) -> bool:
+        """Whether this kind is a branch of the tree (it has children)."""
+        ...
+    def is_token(self) -> bool:
+        """Whether this kind is a leaf of the tree."""
+        ...
+    def is_trivia(self) -> bool:
+        """Whether this kind is trivia — whitespace, a newline, or a blank line.
+
+        The CST keeps trivia because an edit has to; a *reader* usually wants to
+        skip it. Without this a caller hard-codes the set of trivia kinds and
+        re-derives it whenever the grammar grows one.
+        """
+        ...
     def __repr__(self) -> str: ...
 
 class Node:
