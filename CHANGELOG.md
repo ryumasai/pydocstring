@@ -5,6 +5,51 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Closing the Rust↔Python capability gaps that surfaced while porting a real
+consumer — scverse-misc's Sphinx extension, which injects `.. version-deprecated::`
+directives into individual argument descriptions — onto the 0.4 edit API
+([#115](https://github.com/ryumasai/pydocstring/issues/115)). Nothing here is
+breaking.
+
+### Added
+
+- **`Parsed.line_col(offset)` (Python)**
+  ([#132](https://github.com/ryumasai/pydocstring/issues/132)). `line_col` used
+  to exist only on `WalkContext` — i.e. only *inside* a `walk()` hook, which is
+  not where editing happens. An edit that inserts a multi-line block has to be
+  indented, and to indent it you need the column of the anchor, so every caller
+  was reduced to byte arithmetic over `parsed.source`.
+
+- **`TextRange(start, end)` is constructible from Python**
+  ([#133](https://github.com/ryumasai/pydocstring/issues/133)). `replace()` and
+  `delete()` take a `TextRange`, and Python could not make one — so an edit was
+  limited to spans some view happened to hand you. Rust never had that
+  restriction (`TextRange::new` is public), and the API was inconsistent with
+  itself: `insert(at, text)` takes a raw `int` offset, so it already trusted the
+  caller with arbitrary byte positions.
+
+  This makes spans like "from the end of the `:` token to the end of the
+  description" expressible — the CST gives you both endpoints, but no single
+  view covers the span between them.
+
+### Fixed
+
+- **BREAKING (Python, non-ASCII only): `LineColumn.col` is a byte column.** It
+  was a *character* count, while the Rust `LineIndex` returned a byte offset —
+  the same method name giving different numbers in the two languages, silently,
+  and only on lines containing a multi-byte character. Every other offset in the
+  API is a byte offset, so a character column did not compose with any of them.
+  It now matches both Rust and `ast.col_offset`, which is the convention a Python
+  caller would expect (pinned by a test against `ast` itself).
+
+- **`EditError`'s message no longer says "out of bounds" for a range that is in
+  bounds.** The one error variant covers three cases — past the end, inverted,
+  or an endpoint inside a multi-byte character — and reported all three as "out
+  of bounds". Now that ranges are constructible, callers actually reach the
+  latter two.
+
 ## [0.4.0] - 2026-07-13
 
 **The style-independent release** — phase 4 of the v2 roadmap
@@ -1059,6 +1104,7 @@ infrastructure ([#59](https://github.com/ryumasai/pydocstring/issues/59)).
 - Zero external crate dependencies
 - Python bindings via PyO3 (`pydocstring-rs`)
 
+[Unreleased]: https://github.com/ryumasai/pydocstring/compare/v0.4.0...HEAD
 [0.4.0]: https://github.com/ryumasai/pydocstring/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/ryumasai/pydocstring/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/ryumasai/pydocstring/compare/v0.2.0...v0.3.0

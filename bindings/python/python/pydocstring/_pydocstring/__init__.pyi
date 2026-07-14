@@ -42,6 +42,13 @@ class TextRange:
 
     start: int
     end: int
+    def __init__(self, start: int, end: int) -> None:
+        """Build a range from two byte offsets.
+
+        Every range a view hands you is already one of these; this is for the
+        spans a view *doesn't* hand you. Nothing is validated here — a range is
+        two numbers; ``Edits.apply()`` rejects an invalid one.
+        """
     def is_empty(self) -> bool:
         """Return ``True`` when ``start == end`` (zero-length placeholder)."""
         ...
@@ -50,7 +57,12 @@ class TextRange:
     def __repr__(self) -> str: ...
 
 class LineColumn:
-    """1-based line number and 0-based column offset. Compares by value."""
+    """1-based line number, 0-based **byte** column. Compares by value.
+
+    ``col`` is the UTF-8 byte offset within the line — the same convention as
+    :attr:`ast.AST.col_offset`. Every offset in this API is a byte offset, so a
+    column measured in characters would not compose with them.
+    """
 
     lineno: int
     col: int
@@ -60,7 +72,9 @@ class LineColumn:
 
 class WalkContext:
     """Context passed to every ``Visitor`` hook during a ``walk()`` call."""
-    def line_col(self, offset: int) -> LineColumn: ...
+    def line_col(self, offset: int) -> LineColumn:
+        """Byte offset -> ``LineColumn``. Same as ``Parsed.line_col``."""
+        ...
     def __repr__(self) -> str: ...
 
 class PatternError(ValueError):
@@ -458,6 +472,15 @@ class Parsed:
     @property
     def syntax(self) -> Node:
         """The root CST node — the faithful lens."""
+    def line_col(self, offset: int) -> LineColumn:
+        """Byte offset -> ``LineColumn`` (1-based line, 0-based byte column).
+
+        This is how you learn the indentation an edit has to match: the column
+        of a view's ``range.start`` *is* the column it sits at.
+
+        Raises ``ValueError`` if the offset is past the end of the source.
+        """
+        ...
     def pretty_print(self) -> str:
         """A debug rendering of the syntax tree."""
         ...

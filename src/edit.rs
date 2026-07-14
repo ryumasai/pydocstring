@@ -89,7 +89,11 @@ impl fmt::Display for EditError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Overlap { a, b } => write!(f, "overlapping edits at {a} and {b}"),
-            Self::OutOfBounds { range } => write!(f, "edit range {range} is out of bounds"),
+            Self::OutOfBounds { range } => write!(
+                f,
+                "edit range {range} is not a valid span of the source: it runs past the end, \
+                 its start is after its end, or an endpoint falls inside a multi-byte character"
+            ),
         }
     }
 }
