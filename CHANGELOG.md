@@ -12,10 +12,9 @@ consumer — scverse-misc's Sphinx extension, which injects `.. version-deprecat
 directives into individual argument descriptions — onto the 0.4 edit API
 ([#115](https://github.com/ryumasai/pydocstring/issues/115)).
 
-The two new capabilities are purely additive. One **behavior change** rides
-along with them: `LineColumn.col` is now a byte column in Python, as it always
-was in Rust. It only differs on a line containing a multi-byte character — see
-**Fixed**.
+Everything here is additive except one **behavior change**: `LineColumn.col` is
+now a byte column in Python, as it always was in Rust. It only differs on a line
+containing a multi-byte character — see **Fixed**.
 
 ### Added
 
@@ -57,6 +56,10 @@ was in Rust. It only differs on a line containing a multi-byte character — see
 
 - **`RewriteError` (Python)** — also found by the check. A failed rewrite raised
   a bare `ValueError`, while every other error in the API has a named type.
+
+- **`WalkContext.line_indent(offset)` (Python)** — a visitor is where you most
+  often need the indent an edit has to match, and it was the one place you could
+  not ask for it without closing over the `Parsed`.
 
 - **`Parsed.line_indent(offset)` (Rust and Python)** — the leading whitespace of
   the line an offset falls on, as the literal characters to copy.
@@ -103,6 +106,25 @@ was in Rust. It only differs on a line containing a multi-byte character — see
   Unreachable while ranges could only come from the parser; reachable the moment
   this release made them constructible. It now returns `""`, like it already did
   for an out-of-bounds range.
+
+- **An empty `TextRange` was falsy.** Adding `len(range)` without `__bool__` made
+  `bool(r)` false for a zero-length range — which is not "nothing", it is the
+  placeholder marking where a missing element goes, i.e. the anchor you insert
+  at. A caller guarding with `if r:` would have silently skipped exactly the
+  ranges the edit API exists to serve. (Caught in review, before the tag.)
+
+- **`offset in range` raised instead of answering.** `-1 in r` gave
+  `OverflowError` and `"x" in r` a `TypeError`; a membership test answers
+  `False` for something that could not be a member.
+
+- **`SyntaxKind.UNKNOWN.name` raised.** A property that raises is a trap in a log
+  line or a traceback. It now names itself. The three *predicates* still raise
+  for `UNKNOWN` — a kind this build does not know has no structure to report —
+  and the parity check above is what guarantees `UNKNOWN` cannot come out of a
+  parsed tree.
+
+- **`Parsed.line_col()` rebuilt the line index on every call**, an O(n) scan each
+  time — in the very loop it was added for. `Parsed` already caches one.
 
 - **`EditError`'s message no longer says "out of bounds" for a range that is in
   bounds.** The one error variant covers three cases — past the end, inverted,

@@ -133,3 +133,5 @@
 "pattern::PatternError::Unparsable" = "See edit::EditError::OutOfBounds."
 "rewrite::RewriteError::UnknownMetavar" = "See edit::EditError::OutOfBounds."
 "rewrite::RewriteError::Edit" = "See edit::EditError::OutOfBounds."
+
+[fields]

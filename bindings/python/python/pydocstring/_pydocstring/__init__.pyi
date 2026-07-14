@@ -66,8 +66,17 @@ class TextRange:
     def __len__(self) -> int:
         """The length of the range, in bytes."""
         ...
-    def __contains__(self, offset: int) -> bool:
-        """Whether a byte offset falls within ``[start, end)``."""
+    def __bool__(self) -> bool:
+        """Always ``True``.
+
+        Without this, ``__len__`` would make an **empty range falsy** — and an
+        empty range is the zero-length placeholder that marks where a missing
+        element goes, i.e. the anchor you insert at. Say ``is_empty()`` when you
+        mean empty.
+        """
+        ...
+    def __contains__(self, offset: object) -> bool:
+        """Whether a byte offset falls within ``[start, end)``. Never raises."""
         ...
     def __eq__(self, other: object) -> bool: ...
     def __hash__(self) -> int: ...
@@ -91,6 +100,12 @@ class WalkContext:
     """Context passed to every ``Visitor`` hook during a ``walk()`` call."""
     def line_col(self, offset: int) -> LineColumn:
         """Byte offset -> ``LineColumn``. Same as ``Parsed.line_col``."""
+        ...
+    def line_indent(self, offset: int) -> str:
+        """The leading whitespace of the line ``offset`` falls on.
+
+        Same as ``Parsed.line_indent``. A visitor is where you usually want it.
+        """
         ...
     def __repr__(self) -> str: ...
 
@@ -274,7 +289,7 @@ class SyntaxKind:
     UNKNOWN: SyntaxKind
     @property
     def name(self) -> str:
-        """The kind's name, e.g. ``"ENTRY"``."""
+        """The kind's name, e.g. ``"ENTRY"``. ``UNKNOWN`` names itself."""
     def is_node(self) -> bool:
         """Whether this kind is a branch of the tree (it has children)."""
         ...

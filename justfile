@@ -24,8 +24,13 @@ lint:
 doc:
     RUSTDOCFLAGS="-D warnings" cargo doc --no-deps
 
-# Every Rust public item must be exposed in Python, or excused in writing
-api-parity:
+# Every Rust public item must be exposed in Python, or excused in writing.
+#
+# Depends on py-dev: the check introspects the *installed* extension module, so
+# without a rebuild it reads the previous one. Proven, not theorised — deleting
+# `replace_in` from the bindings (the very method #115 was filed about) left this
+# check green. The Rust half regenerates its own rustdoc JSON for the same reason.
+api-parity: py-dev
     python3 scripts/api_parity.py
 
 # Build the crate

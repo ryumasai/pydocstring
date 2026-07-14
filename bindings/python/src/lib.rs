@@ -15,7 +15,6 @@ use pydocstring_core::parse::unified as uv;
 use pydocstring_core::syntax::{Parsed, SyntaxElement, SyntaxKind, SyntaxNode, SyntaxToken};
 use pydocstring_core::text::TextRange;
 use pydocstring_core::text::TextSize;
-use pydocstring_core::text::LineIndex;
 
 use std::convert::{TryFrom, TryInto};
 use std::ops::Deref;
@@ -82,9 +81,28 @@ impl PyTextRange {
     fn __len__(&self) -> usize {
         self.end.saturating_sub(self.start) as usize
     }
+    /// Always ``True``.
+    ///
+    /// Defining ``__len__`` without this would make an **empty range falsy** —
+    /// and an empty range is not nothing. It is the zero-length placeholder the
+    /// parser puts where a missing element would go: the anchor you insert at.
+    /// A caller guarding with ``if r:`` would silently skip exactly the ranges
+    /// the edit API exists to serve.
+    ///
+    /// Say ``r.is_empty()`` when you mean empty.
+    fn __bool__(&self) -> bool {
+        true
+    }
     /// Whether a byte offset falls within ``[start, end)``.
-    fn __contains__(&self, offset: u32) -> bool {
-        self.start <= offset && offset < self.end
+    ///
+    /// Never raises. `in` is a membership test, and a Python container answers
+    /// ``False`` for something that could not be a member rather than blowing up
+    /// on it — ``-1 in r`` and ``"x" in r`` are questions, not errors.
+    fn __contains__(&self, offset: &Bound<'_, PyAny>) -> bool {
+        match offset.extract::<u32>() {
+            Ok(offset) => self.start <= offset && offset < self.end,
+            Err(_) => false,
+        }
     }
     fn __repr__(&self) -> String {
         format!("TextRange({}..{})", self.start, self.end)
@@ -491,8 +509,7 @@ impl PyParsed {
     ///
     /// Raises ``ValueError`` if the offset is past the end of the source.
     fn line_col(&self, py: Python<'_>, offset: u32) -> PyResult<Py<PyLineColumn>> {
-        let source = self.nr.parsed.source();
-        line_col_of(py, source, &LineIndex::new(source), offset)
+        line_col_of(py, &self.nr.parsed, offset)
     }
     /// The leading whitespace of the line that ``offset`` falls on.
     ///
@@ -508,15 +525,7 @@ impl PyParsed {
     ///
     /// Raises ``ValueError`` if the offset is past the end of the source.
     fn line_indent(&self, offset: u32) -> PyResult<&str> {
-        let parsed = &self.nr.parsed;
-        if offset as usize > parsed.source().len() {
-            return Err(pyo3::exceptions::PyValueError::new_err(format!(
-                "offset {} is out of bounds (source length: {})",
-                offset,
-                parsed.source().len()
-            )));
-        }
-        Ok(parsed.line_indent(TextSize::new(offset)))
+        line_indent_of(&self.nr.parsed, offset)
     }
     /// The root CST node — the faithful lens.
     #[getter]
@@ -665,16 +674,28 @@ enum PySyntaxKind {
 
 #[pymethods]
 impl PySyntaxKind {
-    /// The kind's name, e.g. ``"ENTRY"``.
+    /// The kind's name, e.g. ``"ENTRY"``. ``UNKNOWN`` names itself.
+    ///
+    /// Total, unlike the predicates below: a name is what you print, and a
+    /// property that raises is a trap in a log line or a traceback.
     #[getter]
-    fn name(&self) -> PyResult<&'static str> {
-        Ok(core_syntax_kind_of(*self)?.name())
+    fn name(&self) -> &'static str {
+        match core_syntax_kind_of(*self) {
+            Ok(kind) => kind.name(),
+            Err(_) => "UNKNOWN",
+        }
     }
     /// Whether this kind is a branch of the tree (it has children).
+    ///
+    /// Raises ``ValueError`` for ``UNKNOWN``, which stands for a kind this build
+    /// does not know and so has no structure to report. It cannot come out of a
+    /// parsed tree: CI checks that every core `SyntaxKind` variant has a Python
+    /// member (`just api-parity`), so a kind the bindings have not mapped cannot
+    /// ship.
     fn is_node(&self) -> PyResult<bool> {
         Ok(core_syntax_kind_of(*self)?.is_node())
     }
-    /// Whether this kind is a leaf of the tree.
+    /// Whether this kind is a leaf of the tree. See ``is_node`` on ``UNKNOWN``.
     fn is_token(&self) -> PyResult<bool> {
         Ok(core_syntax_kind_of(*self)?.is_token())
     }
@@ -2901,21 +2922,30 @@ fn py_emit_sphinx(py: Python<'_>, doc: Py<PyModelDocstring>, base_indent: usize)
 
 // ─── WalkContext ─────────────────────────────────────────────────────────────
 
-/// Turn a byte offset into a `LineColumn`, the one way, for every caller.
-///
-/// `col` is the **UTF-8 byte offset within the line**, which is what
-/// `ast.col_offset` means and what the Rust `LineIndex` returns. Every offset
-/// in this API is a byte offset, so a column measured in anything else would
-/// not compose with them.
-fn line_col_of(py: Python<'_>, source: &str, index: &LineIndex, offset: u32) -> PyResult<Py<PyLineColumn>> {
-    if offset as usize > source.len() {
+/// Bounds-check an offset against the source, the one way, for every caller.
+fn check_offset(parsed: &Parsed, offset: u32) -> PyResult<()> {
+    if offset as usize > parsed.source().len() {
         return Err(pyo3::exceptions::PyValueError::new_err(format!(
             "offset {} is out of bounds (source length: {})",
             offset,
-            source.len()
+            parsed.source().len()
         )));
     }
-    let lc = index.line_col(TextSize::new(offset));
+    Ok(())
+}
+
+/// Turn a byte offset into a `LineColumn`.
+///
+/// `col` is the **UTF-8 byte offset within the line**, which is what
+/// `ast.col_offset` means and what the Rust `LineIndex` returns. Every offset in
+/// this API is a byte offset, so a column measured in anything else would not
+/// compose with them.
+///
+/// Goes through `Parsed`, which caches its `LineIndex`. Building a fresh one per
+/// call would be O(n) every time — in the very loop these methods exist to serve.
+fn line_col_of(py: Python<'_>, parsed: &Parsed, offset: u32) -> PyResult<Py<PyLineColumn>> {
+    check_offset(parsed, offset)?;
+    let lc = parsed.line_col(TextSize::new(offset));
     Py::new(
         py,
         PyLineColumn {
@@ -2925,13 +2955,20 @@ fn line_col_of(py: Python<'_>, source: &str, index: &LineIndex, offset: u32) -> 
     )
 }
 
+/// The leading whitespace of the line an offset falls on.
+fn line_indent_of(parsed: &Parsed, offset: u32) -> PyResult<&str> {
+    check_offset(parsed, offset)?;
+    Ok(parsed.line_indent(TextSize::new(offset)))
+}
+
 /// Context passed to every visitor method during a ``walk()`` call.
 ///
 /// Provides source-location helpers for the docstring currently being walked.
 #[pyclass(frozen, skip_from_py_object, module = "pydocstring", name = "WalkContext")]
 struct PyWalkContext {
-    source: String,
-    index: LineIndex,
+    // The `Parsed` itself, not a copy of its source plus a second line index: it
+    // already owns both, and `walk()` is handed an `Arc` of it anyway.
+    parsed: Arc<Parsed>,
 }
 
 #[pymethods]
@@ -2941,7 +2978,17 @@ impl PyWalkContext {
     /// ``lineno`` is 1-based and ``col`` is the 0-based **byte** offset within
     /// the line — the same convention as :attr:`ast.AST.col_offset`.
     fn line_col(&self, py: Python<'_>, offset: u32) -> PyResult<Py<PyLineColumn>> {
-        line_col_of(py, &self.source, &self.index, offset)
+        line_col_of(py, &self.parsed, offset)
+    }
+    /// The leading whitespace of the line that ``offset`` falls on.
+    ///
+    /// The same as ``Parsed.line_indent``. A visitor is where you most often want
+    /// it — "what indent must an edit anchored on this token match?" — and
+    /// without it here the hook has to close over the ``Parsed`` to answer.
+    ///
+    /// Raises ``ValueError`` if the offset is past the end of the source.
+    fn line_indent(&self, offset: u32) -> PyResult<&str> {
+        line_indent_of(&self.parsed, offset)
     }
     fn __repr__(&self) -> &'static str {
         "WalkContext(...)"
@@ -3054,9 +3101,12 @@ fn walk(py: Python<'_>, target: &Bound<'_, PyAny>, visitor: Py<PyAny>) -> PyResu
         visit_token: is_overridden(bound, "visit_token")?,
     };
 
-    let source = nr.parsed.source().to_string();
-    let index = LineIndex::new(&source);
-    let ctx = Py::new(py, PyWalkContext { source, index })?;
+    let ctx = Py::new(
+        py,
+        PyWalkContext {
+            parsed: Arc::clone(&nr.parsed),
+        },
+    )?;
 
     walk_subtree(py, &nr, &visitor, &ctx, &active)?;
     Ok(visitor)

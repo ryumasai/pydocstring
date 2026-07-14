@@ -22,10 +22,32 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
-import tomllib
 from pathlib import Path
 
-SECTIONS = ("functions", "types", "methods", "variants")
+if sys.version_info < (3, 11):  # tomllib
+    raise SystemExit("api_parity.py needs Python 3.11+ (tomllib)")
+
+import tomllib
+
+SECTIONS = ("functions", "types", "methods", "variants", "fields")
+
+# rustdoc's JSON schema is unstable and changes on nightly. Pin it: a silently
+# renamed field would shrink the surface to nothing and the check would go green.
+EXPECTED_FORMAT_VERSION = 60
+
+# The smallest surface that is not obviously a parsing failure. A check whose
+# failure mode is "0 items, all good" is worse than no check.
+MIN_SURFACE = 250
+
+# Item kinds that carry no API of their own.
+IGNORED_KINDS = {
+    "use",          # handled separately: a re-export makes its target reachable
+    "impl",         # visited through its type
+    "variant",      # visited through its enum
+    "struct_field", # visited through its struct
+    "assoc_type",   # part of a trait's contract, not a separate item
+    "assoc_const",
+}
 
 ROOT = Path(__file__).resolve().parent.parent
 RUSTDOC_JSON = ROOT / "target" / "doc" / "pydocstring.json"
@@ -55,7 +77,12 @@ RENAMES = {
 
 # Rust method names that map onto a Python protocol rather than a method.
 METHOD_RENAMES = {
-    "new": "__init__",
+    # PyO3 exposes `#[new]` as `__new__`, and a class that is deliberately not
+    # constructible has neither `__new__` nor `__init__` in its own `vars()`.
+    # (Matching against `__init__` would have been an unconditional pass: every
+    # PyO3 class inherits one from `object`, including the ones that raise
+    # "cannot create instances". That silently excused every `Type::new`.)
+    "new": "__new__",
     "len": "__len__",
     "contains": "__contains__",
 }
@@ -145,6 +172,13 @@ def rust_surface(doc: dict) -> dict[str, set[str]]:
                     record("methods", m_id, f"{qual}::{m['name']}")
         elif kind in ("struct", "enum"):
             record("types", item_id, qual)
+            # Public fields are API: `model::Parameter { names, type_annotation, … }`
+            # is constructed by hand on both sides. Adding a field in Rust and
+            # forgetting the PyO3 getter is the #115 failure mode exactly.
+            for f_id in inner.get("struct", {}).get("kind", {}).get("plain", {}).get("fields", []):
+                f = get(f_id)
+                if f and f.get("name") and is_public(f):
+                    record("fields", f_id, f"{qual}::{f['name']}")
             # Enum variants are API too: a `SyntaxKind` variant added in Rust and
             # forgotten in Python does not fail anything — the binding maps an
             # unrecognised kind to `UNKNOWN` — so nothing would ever say so.
@@ -160,6 +194,17 @@ def rust_surface(doc: dict) -> dict[str, set[str]]:
                     m = get(m_id)
                     if m and m.get("name") and is_public(m):
                         record("methods", m_id, f"{qual}::{m['name']}")
+        elif kind in IGNORED_KINDS:
+            pass
+        else:
+            # Never skip silently. A rustdoc kind this script does not know is a
+            # hole in the surface, and a hole in the surface is the whole thing
+            # this check exists to prevent. `type_alias`/`constant`/`static` were
+            # sailing straight through until this line existed.
+            raise SystemExit(
+                f"error: unhandled rustdoc item kind {kind!r} at {qual}.\n"
+                "Teach api_parity.py about it, or add it to IGNORED_KINDS with a reason."
+            )
 
     visit_module(doc["root"], "")
 
@@ -174,13 +219,13 @@ def rust_surface(doc: dict) -> dict[str, set[str]]:
 
 def python_surface() -> dict[str, set[str]]:
     """`__all__` of `pydocstring` and `pydocstring.model`, plus every public member."""
-    protocols = sorted(set(METHOD_RENAMES.values()))
+    protocols = sorted(set(METHOD_RENAMES.values()) | {"__init__"})
     code = f"PROTOCOL_METHODS = {protocols!r}\n" + r"""
 import inspect, json
 import pydocstring
 from pydocstring import model
 
-out = {"functions": [], "types": [], "methods": [], "variants": []}
+out = {"functions": [], "types": [], "methods": [], "variants": [], "fields": []}
 for mod, prefix in ((pydocstring, ""), (model, "model.")):
     for name in getattr(mod, "__all__", []):
         obj = getattr(mod, name, None)
@@ -191,13 +236,22 @@ for mod, prefix in ((pydocstring, ""), (model, "model.")):
             for attr in dir(obj):
                 if attr.startswith("_") and attr not in PROTOCOL_METHODS:
                     continue
+                # Only count a constructor the class actually defines.
+                if attr in ("__new__", "__init__") and attr not in vars(obj):
+                    continue
                 member = getattr(obj, attr, None)
                 # An enum member (SectionKind.PARAMETERS) or a complex-enum
                 # variant class (model.Block.Parameter) is a variant, not a method.
                 if isinstance(member, obj) or (inspect.isclass(member) and issubclass(member, obj)):
                     out["variants"].append(f"{prefix}{name}::{attr}")
-                else:
-                    out["methods"].append(f"{prefix}{name}::{attr}")
+                    continue
+                # A PyO3 `#[pyo3(get)]` field arrives as a getset descriptor; a
+                # method arrives as a function. A Rust field can be matched by
+                # either, since Python is free to expose it as a property.
+                qualified = f"{prefix}{name}::{attr}"
+                out["methods"].append(qualified)
+                if not callable(member):
+                    out["fields"].append(qualified)
         elif callable(obj):
             out["functions"].append(prefix + name)
 print(json.dumps(out))
@@ -242,6 +296,13 @@ def candidates(section: str, rust_path: str) -> list[str]:
         # `OtherParameters` on a complex one. Compare on letters alone.
         return [f"{enum_name}::{variant}", f"{enum_name}::~{_letters(variant)}"]
 
+    if section == "fields":
+        type_path, field = "::".join(parts[:-1]), parts[-1]
+        type_name = RENAMES.get(type_path, type_path.split("::")[-1])
+        if in_model and "." not in type_name:
+            type_name = f"model.{type_name}"
+        return [f"{type_name}::{field}"]
+
     if section == "methods":
         type_path, method = "::".join(parts[:-1]), parts[-1]
         type_name = RENAMES.get(type_path, type_path.split("::")[-1])
@@ -275,7 +336,17 @@ def rustdoc_json() -> dict:
     if not RUSTDOC_JSON.exists():
         print(f"error: rustdoc succeeded but {RUSTDOC_JSON.relative_to(ROOT)} is missing", file=sys.stderr)
         raise SystemExit(2)
-    return json.loads(RUSTDOC_JSON.read_text())
+
+    doc = json.loads(RUSTDOC_JSON.read_text())
+    if doc.get("format_version") != EXPECTED_FORMAT_VERSION:
+        raise SystemExit(
+            f"error: rustdoc JSON format_version is {doc.get('format_version')}, "
+            f"expected {EXPECTED_FORMAT_VERSION}.\n"
+            "The schema is unstable and a renamed field would silently shrink the "
+            "surface to nothing. Re-read the schema, update this script, then bump "
+            "EXPECTED_FORMAT_VERSION."
+        )
+    return doc
 
 
 def main() -> int:
@@ -291,10 +362,10 @@ def main() -> int:
         for item in sorted(rust[section]):
             if item in allow[section]:
                 continue
-            # An excused type excuses its variants: the reason you gave for not
-            # exposing `SyntaxElement` is the reason its `Node`/`Token` variants
-            # are not exposed either.
-            if section == "variants" and "::".join(item.split("::")[:-1]) in allow["types"]:
+            # An excused type excuses its variants and fields: the reason you
+            # gave for not exposing `SyntaxElement` is the reason its
+            # `Node`/`Token` variants are not exposed either.
+            if section in ("variants", "fields") and "::".join(item.split("::")[:-1]) in allow["types"]:
                 continue
             names = py[section]
             if section == "variants":
@@ -312,9 +383,16 @@ def main() -> int:
     ]
 
     total_rust = sum(len(v) for v in rust.values())
+    if total_rust < MIN_SURFACE:
+        raise SystemExit(
+            f"error: only {total_rust} Rust items found (expected at least {MIN_SURFACE}).\n"
+            "The surface did not shrink by 60 items overnight — the rustdoc schema moved, "
+            "or the traversal is broken. A check that passes on an empty surface is worse "
+            "than no check."
+        )
     print(f"Rust surface : {total_rust} items ({len(rust['functions'])} fns, "
           f"{len(rust['types'])} types, {len(rust['methods'])} methods, "
-          f"{len(rust['variants'])} variants)")
+          f"{len(rust['variants'])} variants, {len(rust['fields'])} fields)")
     print(f"Excused      : {sum(len(v) for v in allow.values())}")
     print(f"Unaccounted  : {len(missing)}")
 
