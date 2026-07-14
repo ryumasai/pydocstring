@@ -46,6 +46,7 @@
 
 use core::fmt;
 
+use crate::parse::Entry;
 use crate::parse::Style;
 use crate::syntax::Parsed;
 use crate::syntax::SyntaxElement;
@@ -275,6 +276,234 @@ impl<'a> Edits<'a> {
         self.delete(TextRange::new(TextSize::from(start), TextSize::from(end)))
     }
 
+    // ── Semantic edits ─────────────────────────────────────────────────
+
+    /// Replace `entry`'s description with `text`, or write one where the entry
+    /// has none.
+    ///
+    /// Unlike the splice methods this one needs no anchor: an entry with no
+    /// description has nothing to replace, and this places one — after the
+    /// colon in Google style, on its own continuation line in NumPy style,
+    /// adding the colon if the entry lacks it.
+    ///
+    /// # Placement
+    ///
+    /// A **single-line** `text` keeps the entry's existing shape: a Google
+    /// description written inline (`x (int): …`) stays inline, one written on
+    /// its own line stays there.
+    ///
+    /// A **multi-line** `text` is always placed on its own line, at the
+    /// entry's continuation indent, and its interior indentation is preserved
+    /// relative to that. Splicing a multi-line block inline would start it at
+    /// a column nobody controls — its second line would land *shallower than
+    /// its first*, which is malformed rST that only survives because napoleon
+    /// dedents a field body before docutils sees it.
+    ///
+    /// The continuation indent is read from the description's own second line
+    /// where there is one, so a docstring that continues at an unusual depth
+    /// keeps it. Only when the entry has no continuation line to read is it
+    /// derived as the entry's indent plus four spaces.
+    ///
+    /// ```rust
+    /// use pydocstring::parse::{parse, Document};
+    ///
+    /// let parsed = parse("S.\n\nArgs:\n    x (int): Old.\n    y (str):\n");
+    /// let doc = Document::new(&parsed);
+    /// let args = doc.sections().next().unwrap();
+    /// let mut entries = args.entries();
+    /// let (x, y) = (entries.next().unwrap(), entries.next().unwrap());
+    ///
+    /// let mut edits = parsed.edit();
+    /// edits.set_description(x, "New.");   // replaces, inline
+    /// edits.set_description(y, "Fresh."); // writes one where there was none
+    /// assert_eq!(
+    ///     edits.apply().unwrap(),
+    ///     "S.\n\nArgs:\n    x (int): New.\n    y (str): Fresh.\n",
+    /// );
+    /// ```
+    pub fn set_description(&mut self, entry: Entry<'_>, text: &str) -> &mut Self {
+        let node = entry.syntax().nodes(SyntaxKind::DESCRIPTION).next();
+        let indent = self.continuation_indent(entry, node);
+        // NumPy has no inline description: it is always its own line.
+        let own_line = self.parsed.style() == Style::NumPy || text.contains('\n');
+        let block = format!("\n{indent}{}", reindent(text, &indent));
+
+        match node {
+            // An existing description: replace it where it stands, unless the
+            // new text is a block that has to own its line.
+            Some(node) if !node.range().is_empty() => {
+                if own_line {
+                    self.replace(widened_node(entry, node), block)
+                } else {
+                    self.replace(node.range(), text)
+                }
+            }
+            // A zero-length DESCRIPTION placeholder (`x (int):`) — the anchor
+            // is already at the offset where a description belongs.
+            Some(placeholder) => {
+                let range = self.over_trailing_blanks(widened_node(entry, placeholder));
+                let text = if own_line { block } else { format!(" {text}") };
+                self.replace(range, text)
+            }
+            // No description node at all (`x`, `x (int)`, NumPy's `x : int`):
+            // nothing in the tree marks where one would go, so the grammar
+            // does — which is the whole reason this method exists.
+            None => {
+                let colon = match self.parsed.style() {
+                    // A NumPy description does not follow the colon; the colon
+                    // of `x : int` separates the name from the type.
+                    Style::NumPy => "",
+                    _ if entry.syntax().find_token(SyntaxKind::COLON).is_some() => "",
+                    _ => ":",
+                };
+                let anchor = TextRange::new(entry.range().end(), entry.range().end());
+                let text = if own_line { block } else { format!(" {text}") };
+                self.replace(self.over_trailing_blanks(anchor), format!("{colon}{text}"))
+            }
+        }
+    }
+
+    /// `range` extended forward over the spaces and tabs that follow it.
+    ///
+    /// The whitespace an author left after `x (int):` is not a child of the
+    /// entry — the ENTRY ends at the colon and the space belongs to the line —
+    /// so no walk over siblings can see it. Writing a description at that
+    /// anchor without consuming it would strand the space at the end of the
+    /// line. Used only where the anchor *is* the end of the line, so the run
+    /// this eats is always trailing whitespace.
+    fn over_trailing_blanks(&self, range: TextRange) -> TextRange {
+        let bytes = self.parsed.source().as_bytes();
+        let mut end = usize::from(range.end()).min(bytes.len());
+        while end < bytes.len() && (bytes[end] == b' ' || bytes[end] == b'\t') {
+            end += 1;
+        }
+        TextRange::new(range.start(), TextSize::from(end))
+    }
+
+    /// Insert `text` as a new paragraph before `entry`'s description, keeping
+    /// the description itself byte-for-byte.
+    ///
+    /// This is [`set_description`](Edits::set_description)'s placement applied
+    /// to a prepended block: `text` lands on its own line at the entry's
+    /// continuation indent, a blank line separates it from the existing
+    /// description, and the description's own bytes — including the interior
+    /// indentation of its continuation lines — are spliced back untouched
+    /// rather than re-rendered.
+    ///
+    /// An entry with no description gets `text` as its description, exactly as
+    /// [`set_description`](Edits::set_description) would write it.
+    ///
+    /// ```rust
+    /// use pydocstring::parse::{parse, Document};
+    ///
+    /// let parsed = parse("S.\n\nArgs:\n    x (int): Keep me.\n");
+    /// let doc = Document::new(&parsed);
+    /// let entry = doc.sections().next().unwrap().entries().next().unwrap();
+    ///
+    /// let mut edits = parsed.edit();
+    /// edits.prepend_to_description(entry, ".. deprecated:: 1.10\n   Use `y`.");
+    /// assert_eq!(
+    ///     edits.apply().unwrap(),
+    ///     "S.\n\nArgs:\n    x (int):\n        .. deprecated:: 1.10\n           Use `y`.\n\n        Keep me.\n",
+    /// );
+    /// ```
+    pub fn prepend_to_description(&mut self, entry: Entry<'_>, text: &str) -> &mut Self {
+        let node = entry
+            .syntax()
+            .nodes(SyntaxKind::DESCRIPTION)
+            .next()
+            .filter(|n| !n.range().is_empty());
+        let Some(node) = node else {
+            // Nothing to prepend to — the description is the text.
+            return self.set_description(entry, text);
+        };
+
+        let indent = self.continuation_indent(entry, Some(node));
+        // The block's own text already carries the indentation of its
+        // continuation lines; only its first line lost its indent to the
+        // range's start. So `indent + text` puts it back byte-for-byte, and
+        // no line of the author's prose is re-rendered.
+        let kept = node.range().source_text(self.parsed.source());
+        let range = widened_node(entry, node);
+        self.replace(
+            range,
+            format!("\n{indent}{}\n\n{indent}{kept}", reindent(text, &indent)),
+        )
+    }
+
+    /// Set `entry`'s type annotation to `text`, or write one where the entry
+    /// has none.
+    ///
+    /// A type that is present is replaced, and so is a zero-length placeholder
+    /// (`x ():`). Where the *marker itself* is absent — `x: The value.` has no
+    /// brackets to hold a type, and neither has NumPy's `x` — there is nothing
+    /// to anchor on, and this writes the marker too: `x (int): The value.` in
+    /// Google style, `x : int` in NumPy style.
+    ///
+    /// ```rust
+    /// use pydocstring::parse::{parse, Document};
+    ///
+    /// let parsed = parse("S.\n\nArgs:\n    x: The value.\n");
+    /// let doc = Document::new(&parsed);
+    /// let entry = doc.sections().next().unwrap().entries().next().unwrap();
+    ///
+    /// let mut edits = parsed.edit();
+    /// edits.set_type(entry, "int");
+    /// assert_eq!(edits.apply().unwrap(), "S.\n\nArgs:\n    x (int): The value.\n");
+    /// ```
+    pub fn set_type(&mut self, entry: Entry<'_>, text: &str) -> &mut Self {
+        let numpy = self.parsed.style() == Style::NumPy;
+        let node = entry.syntax();
+
+        if let Some(token) = node
+            .find_token(SyntaxKind::TYPE)
+            .or_else(|| node.find_missing(SyntaxKind::TYPE))
+        {
+            // A NumPy placeholder sits flush against the colon (`x :`), so it
+            // needs the separating space that Google's brackets already give.
+            if token.is_missing() && numpy {
+                return self.replace(widened_token(entry, token), format!(" {text}"));
+            }
+            return self.replace_token(token, text);
+        }
+
+        // No type marker at all: write one where the grammar puts it — after
+        // the *last* name, since an entry may declare several
+        // (`x, y (int)` / `x, y : int`), and the type annotates all of them.
+        if let Some(name) = node.tokens(SyntaxKind::NAME).last() {
+            let written = if numpy {
+                format!(" : {text}")
+            } else {
+                format!(" ({text})")
+            };
+            return self.insert(name.range().end(), written);
+        }
+
+        // No name either — a Google `Returns:` / `Raises:` entry that is all
+        // description (`The value.`), where the type is written in front of it.
+        let written = if numpy {
+            let indent = self.continuation_indent(entry, node.nodes(SyntaxKind::DESCRIPTION).next());
+            format!("{text}\n{indent}")
+        } else {
+            format!("{text}: ")
+        };
+        self.insert(entry.range().start(), written)
+    }
+
+    /// The indent an entry's description continuation lines use.
+    ///
+    /// A description is a list of lines, so ask its second one where it
+    /// starts: the entry's indent plus four spaces is a guess, and it is wrong
+    /// for a docstring that continues at another depth. The guess is the
+    /// fallback only for an entry with no continuation line to read.
+    fn continuation_indent(&self, entry: Entry<'_>, description: Option<&SyntaxNode>) -> String {
+        let second_line = description.and_then(|d| d.tokens(SyntaxKind::TEXT_LINE).nth(1));
+        match second_line {
+            Some(line) => self.parsed.line_indent(line.range().start()).to_string(),
+            None => format!("{}    ", self.parsed.line_indent(entry.range().start())),
+        }
+    }
+
     // ── Application ────────────────────────────────────────────────────
 
     /// Validate the edit list and splice it into a new source string.
@@ -345,6 +574,91 @@ impl<'a> Edits<'a> {
             Style::Plain => crate::parse::plain::parse_plain(&text),
         })
     }
+}
+
+/// `node`'s range, widened backwards over the trivia that separates it from
+/// its previous sibling. See [`widen_from`].
+fn widened_node(entry: Entry<'_>, node: &SyntaxNode) -> TextRange {
+    let index = entry
+        .syntax()
+        .children()
+        .iter()
+        .position(|child| matches!(child, SyntaxElement::Node(n) if core::ptr::eq(n, node)));
+    widen_from(entry, index, node.range())
+}
+
+/// `token`'s range, widened backwards over the trivia that separates it from
+/// its previous sibling. See [`widen_from`].
+fn widened_token(entry: Entry<'_>, token: &SyntaxToken) -> TextRange {
+    let index = entry
+        .syntax()
+        .children()
+        .iter()
+        .position(|child| matches!(child, SyntaxElement::Token(t) if core::ptr::eq(t, token)));
+    widen_from(entry, index, token.range())
+}
+
+/// Widen `range` backwards from the entry child at `index`, over the trivia
+/// tokens in front of it, consuming **at most one line break**.
+///
+/// This is what lets one code path serve both styles. A Google description is
+/// written inline (`x (int): desc`) and a NumPy one on its own line, and the
+/// tree says which: the siblings in front of the `DESCRIPTION` are
+/// `WHITESPACE` in the first, `NEWLINE` + `WHITESPACE` in the second. Eating
+/// them and re-emitting on a fresh line collapses the two into one edit.
+///
+/// One line break, not all of them, is what keeps that a rule rather than a
+/// guess: `NEWLINE` and `BLANK_LINE` are distinct kinds, so a blank line the
+/// author wrote in front of the description survives the widening.
+///
+/// This is deliberately **not** a public "widen over trivia" operation. It is
+/// the *entry* grammar, and it is correct only there: an extended summary is
+/// preceded by `BLANK_LINE` `NEWLINE`, where eating one line break would
+/// destroy the paragraph break, and a section body by `NEWLINE`, where it
+/// would pull the body onto the header's line.
+fn widen_from(entry: Entry<'_>, index: Option<usize>, range: TextRange) -> TextRange {
+    let Some(index) = index else {
+        // Not a child of this entry (a caller mixing trees). Leave the range
+        // as it is and let `apply` judge it.
+        return range;
+    };
+
+    let mut start = range.start();
+    let mut took_line_break = false;
+    for child in entry.syntax().children()[..index].iter().rev() {
+        let SyntaxElement::Token(token) = child else { break };
+        if !token.kind().is_trivia() {
+            break;
+        }
+        if matches!(token.kind(), SyntaxKind::NEWLINE | SyntaxKind::BLANK_LINE) {
+            if took_line_break {
+                break;
+            }
+            took_line_break = true;
+        }
+        start = token.range().start();
+    }
+    TextRange::new(start, range.end())
+}
+
+/// `text`'s continuation lines pushed under `indent`, its interior
+/// indentation kept relative to it.
+///
+/// The first line is placed by the caller — it follows the indent that is
+/// written before it — and a blank line is left blank rather than filled with
+/// trailing whitespace.
+fn reindent(text: &str, indent: &str) -> String {
+    let mut out = String::with_capacity(text.len());
+    for (i, line) in text.split('\n').enumerate() {
+        if i > 0 {
+            out.push('\n');
+            if !line.is_empty() {
+                out.push_str(indent);
+            }
+        }
+        out.push_str(line);
+    }
+    out
 }
 
 /// Find a `BLANK_LINE` token starting exactly at `at` anywhere in the tree,

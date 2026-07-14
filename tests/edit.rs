@@ -499,3 +499,235 @@ fn source_text_never_panics_on_a_hand_built_range() {
     assert_eq!(r(0, 4).source_text(src), "", "end splits a character");
     assert_eq!(r(4, 5).source_text(src), "", "start splits a character");
 }
+
+// =============================================================================
+// Semantic edits (#135)
+// =============================================================================
+//
+// The three methods own the entry grammar the caller would otherwise re-derive:
+// where a description may start (inline in Google, its own line in NumPy), what
+// its continuation indent is, and where a type or a description belongs when the
+// entry has no marker for one. The tables below are the whole shape matrix from
+// the tree — `x (int):` keeps a zero-length DESCRIPTION placeholder to anchor
+// on, while a bare `x` and NumPy's `x : int` have no description node at all.
+
+/// The first entry of the first section of `src`.
+fn first_entry<'a>(doc: &'a Document<'a>) -> pydocstring::parse::Entry<'a> {
+    doc.sections()
+        .next()
+        .expect("a section")
+        .entries()
+        .next()
+        .expect("an entry")
+}
+
+/// Apply one semantic edit to the first entry of `src`.
+fn semantic(src: &str, edit: impl FnOnce(&mut pydocstring::edit::Edits<'_>, pydocstring::parse::Entry<'_>)) -> String {
+    let parsed = parse(src);
+    let doc = Document::new(&parsed);
+    let mut edits = parsed.edit();
+    edit(&mut edits, first_entry(&doc));
+    edits.apply().expect("valid edit")
+}
+
+const GOOGLE: &str = "Summary.\n\nArgs:\n";
+const NUMPY: &str = "Summary.\n\nParameters\n----------\n";
+
+#[test]
+fn set_description_over_every_entry_shape() {
+    // (source entry, expected entry) — one line each, so the shape is the test.
+    let cases = [
+        // Google: an existing description is replaced where it stands.
+        (GOOGLE, "    x (int): Old.\n", "    x (int): New.\n"),
+        (GOOGLE, "    x: Old.\n", "    x: New.\n"),
+        // A zero-length DESCRIPTION placeholder is the anchor: `x (int):`.
+        (GOOGLE, "    x (int):\n", "    x (int): New.\n"),
+        (GOOGLE, "    x:\n", "    x: New.\n"),
+        // Whitespace the author left after the colon is absorbed, not doubled.
+        (GOOGLE, "    x (int): \n", "    x (int): New.\n"),
+        // No description node at all: the colon is written too, if absent.
+        (GOOGLE, "    x\n", "    x: New.\n"),
+        (GOOGLE, "    x (int)\n", "    x (int): New.\n"),
+        // NumPy: a description is always its own line, at the continuation indent.
+        (NUMPY, "x : int\n    Old.\n", "x : int\n    New.\n"),
+        (NUMPY, "x : int\n", "x : int\n    New.\n"),
+        (NUMPY, "x\n", "x\n    New.\n"),
+    ];
+    for (head, entry, expected) in cases {
+        let got = semantic(&format!("{head}{entry}"), |e, entry| {
+            e.set_description(entry, "New.");
+        });
+        assert_eq!(got, format!("{head}{expected}"), "set_description on {entry:?}");
+    }
+}
+
+#[test]
+fn set_description_multiline_text_always_gets_its_own_line() {
+    // Spliced inline, the second line of a block lands *shallower than its
+    // first* — malformed rST that only survives napoleon's field-body dedent.
+    // So a block owns its line, at the entry's continuation indent, with its
+    // interior indentation preserved relative to that.
+    let got = semantic(&format!("{GOOGLE}    x (int): Old.\n"), |e, entry| {
+        e.set_description(entry, ".. note::\n   Careful.");
+    });
+    assert_eq!(
+        got,
+        format!("{GOOGLE}    x (int):\n        .. note::\n           Careful.\n")
+    );
+
+    // A blank line inside the text stays blank — no trailing whitespace.
+    let got = semantic(&format!("{GOOGLE}    x (int): Old.\n"), |e, entry| {
+        e.set_description(entry, "One.\n\nTwo.");
+    });
+    assert_eq!(got, format!("{GOOGLE}    x (int):\n        One.\n\n        Two.\n"));
+}
+
+#[test]
+fn set_description_single_line_keeps_the_entry_shape() {
+    // A Google description written on its own line stays on its own line: there
+    // is a shape here, and replacing the text is not a reason to reflow it.
+    let src = format!("{GOOGLE}    x (int):\n        Old.\n");
+    let got = semantic(&src, |e, entry| {
+        e.set_description(entry, "New.");
+    });
+    assert_eq!(got, format!("{GOOGLE}    x (int):\n        New.\n"));
+}
+
+#[test]
+fn set_description_reads_the_continuation_indent_from_the_description() {
+    // `entry indent + 4` is a guess, and it is wrong for a docstring that
+    // continues at another depth. The block's second line is the evidence.
+    let src = format!("{GOOGLE}    x (int): Old.\n      Continued at six.\n");
+    let got = semantic(&src, |e, entry| {
+        e.set_description(entry, "A.\nB.");
+    });
+    assert_eq!(got, format!("{GOOGLE}    x (int):\n      A.\n      B.\n"));
+
+    // Tabs, likewise, are copied rather than counted.
+    let src = "Summary.\n\nArgs:\n\tx (int): Old.\n\t\tContinued.\n";
+    let got = semantic(src, |e, entry| {
+        e.set_description(entry, "A.\nB.");
+    });
+    assert_eq!(got, "Summary.\n\nArgs:\n\tx (int):\n\t\tA.\n\t\tB.\n");
+}
+
+#[test]
+fn prepend_to_description_keeps_the_description_byte_for_byte() {
+    // The kept description is spliced back verbatim — its continuation lines
+    // carry their own indentation and are not re-rendered.
+    let src = format!("{GOOGLE}    x (int): First.\n        Second.\n    y: Untouched.\n");
+    let got = semantic(&src, |e, entry| {
+        e.prepend_to_description(entry, ".. deprecated:: 1.10\n   Use `y`.");
+    });
+    assert_eq!(
+        got,
+        format!(
+            "{GOOGLE}    x (int):\n        .. deprecated:: 1.10\n           Use `y`.\n\n        \
+             First.\n        Second.\n    y: Untouched.\n"
+        )
+    );
+}
+
+#[test]
+fn prepend_to_description_survives_an_authors_blank_line() {
+    // NEWLINE and BLANK_LINE are distinct kinds, which is what makes "eat one
+    // line break" a rule and not a guess: the blank line the author wrote in
+    // front of the description is still there afterwards.
+    let src = format!("{NUMPY}x : int\n\n    Old.\n");
+    let got = semantic(&src, |e, entry| {
+        e.prepend_to_description(entry, "Note.");
+    });
+    assert_eq!(got, format!("{NUMPY}x : int\n\n    Note.\n\n    Old.\n"));
+}
+
+#[test]
+fn prepend_to_description_without_a_description_writes_one() {
+    let src = format!("{GOOGLE}    x (int):\n");
+    let got = semantic(&src, |e, entry| {
+        e.prepend_to_description(entry, "Note.");
+    });
+    assert_eq!(got, format!("{GOOGLE}    x (int): Note.\n"));
+}
+
+#[test]
+fn set_type_over_every_entry_shape() {
+    let cases = [
+        // Present, and the zero-length placeholder of `x ():` — both anchors.
+        (GOOGLE, "    x (str): D.\n", "    x (int): D.\n"),
+        (GOOGLE, "    x (): D.\n", "    x (int): D.\n"),
+        // No marker at all: the brackets are written too.
+        (GOOGLE, "    x: D.\n", "    x (int): D.\n"),
+        (GOOGLE, "    x\n", "    x (int)\n"),
+        // NumPy: `x : int`, and its placeholder sits flush against the colon.
+        (NUMPY, "x : str\n    D.\n", "x : int\n    D.\n"),
+        (NUMPY, "x :\n    D.\n", "x : int\n    D.\n"),
+        (NUMPY, "x\n    D.\n", "x : int\n    D.\n"),
+    ];
+    for (head, entry, expected) in cases {
+        let got = semantic(&format!("{head}{entry}"), |e, entry| {
+            e.set_type(entry, "int");
+        });
+        assert_eq!(got, format!("{head}{expected}"), "set_type on {entry:?}");
+    }
+}
+
+#[test]
+fn set_type_annotates_all_of_an_entrys_names() {
+    // An entry can declare several comma-separated names, and the type
+    // annotates all of them — so it is written after the *last* one.
+    let got = semantic(&format!("{GOOGLE}    x, y\n"), |e, entry| {
+        e.set_type(entry, "int");
+    });
+    assert_eq!(got, format!("{GOOGLE}    x, y (int)\n"));
+
+    let got = semantic(&format!("{NUMPY}x, y\n    D.\n"), |e, entry| {
+        e.set_type(entry, "int");
+    });
+    assert_eq!(got, format!("{NUMPY}x, y : int\n    D.\n"));
+}
+
+#[test]
+fn set_type_on_an_entry_that_is_all_description() {
+    // A Google `Returns:` entry carries no name — the type is written in front
+    // of the description it has.
+    let src = "Summary.\n\nReturns:\n    The value.\n";
+    let got = semantic(src, |e, entry| {
+        e.set_type(entry, "int");
+    });
+    assert_eq!(got, "Summary.\n\nReturns:\n    int: The value.\n");
+}
+
+#[test]
+fn semantic_edits_compose_with_splices_and_with_each_other() {
+    // Same `apply()`, same overlap detection: the semantic methods are splices.
+    let src = format!("{GOOGLE}    x: Old.\n    y (str): Keep.\n");
+    let parsed = parse(&src);
+    let doc = Document::new(&parsed);
+    let section = doc.sections().next().unwrap();
+    let mut entries = section.entries();
+    let (x, y) = (entries.next().unwrap(), entries.next().unwrap());
+
+    let mut edits = parsed.edit();
+    edits.set_type(x, "int");
+    edits.set_description(x, "New.");
+    edits.replace_node(y.description().unwrap().syntax(), "Also new.");
+    assert_eq!(
+        edits.apply().unwrap(),
+        format!("{GOOGLE}    x (int): New.\n    y (str): Also new.\n")
+    );
+}
+
+#[test]
+fn semantic_edits_on_overlapping_targets_are_rejected_not_silently_ordered() {
+    // Two edits over one description overlap, and `apply` says so rather than
+    // picking an order.
+    let src = format!("{GOOGLE}    x (int): Old.\n");
+    let parsed = parse(&src);
+    let doc = Document::new(&parsed);
+    let entry = first_entry(&doc);
+
+    let mut edits = parsed.edit();
+    edits.set_description(entry, "One.");
+    edits.prepend_to_description(entry, "Two.");
+    assert!(matches!(edits.apply(), Err(EditError::Overlap { .. })));
+}

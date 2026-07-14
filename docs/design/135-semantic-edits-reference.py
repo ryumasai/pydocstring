@@ -1,4 +1,4 @@
-"""Reference material for #135 (semantic edits) — NOT shipped, NOT imported.
+"""Reference material for #135 (semantic edits) — the derivation, kept as the oracle.
 
 This is scverse-misc's deprecation injection, ported onto the 0.4.1 splice API
 and verified through `sphinx.ext.napoleon` on eight cases (Google, NumPy, tabs,
@@ -7,13 +7,18 @@ neighbour, a blank line before the description, plain).
 
 It is kept because it *is* the specification for #135: every helper below is
 work the library should be doing, and each one was derived by hand and checked
-against the tree. The target is for all of this to collapse into
+against the tree. As of 0.4.2 all of it has collapsed into
 
     edits.prepend_to_description(entry, notice)
 
-with the same output, byte for byte.
+and this file is what proves that claim rather than asserting it:
+`bindings/python/tests/test_semantic_edits.py` imports the `inject()` below and
+requires the shipped API to reproduce its output **byte for byte** on all eight
+cases. So it is no longer dead reference text — it is the differential oracle,
+and it runs in CI. Do not delete it without deleting that test.
 
-Run it:  cd bindings/python && uv run python ../../docs/design/135-semantic-edits-reference.py
+Run it standalone:
+    cd bindings/python && uv run python ../../docs/design/135-semantic-edits-reference.py
 """
 
 from __future__ import annotations

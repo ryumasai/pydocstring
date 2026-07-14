@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+**Semantic edits** ([#135](https://github.com/ryumasai/pydocstring/issues/135)) —
+`Edits::set_description`, `Edits::prepend_to_description` and `Edits::set_type`,
+in Rust and Python. They take an *entry* rather than a range, which is what lets
+them own the two parts of an edit that belong to the grammar:
+
+- **Where a construct goes when the entry has none.** `find_missing()` only
+  anchors where a marker is present but its content is absent (`x ():`). Where
+  the marker itself is absent — `x: The value.` has no brackets to hold a type,
+  and neither has NumPy's `x` — there was nothing to anchor on, and the caller
+  had to re-derive placement the parser already knew. `set_type(entry, "int")`
+  now writes the marker too, in either style.
+- **The continuation indent.** Read from the description's own second line, not
+  computed: `entry indent + 4` is a guess, and it is wrong for a docstring that
+  continues at another depth or indents with tabs.
+
+A multi-line description is placed on its own line at that indent, because
+splicing a block inline after the `x (int):` prefix starts it at a column nobody
+chose and lands its body *shallower than its own marker* — rST that only survives
+because napoleon dedents a field body before docutils sees it. A single-line
+description keeps the entry's shape. `prepend_to_description` splices the existing
+description back byte-for-byte rather than re-rendering it.
+
+They compose with the splice API: same `apply()`, same overlap detection, same
+byte-for-byte preservation of everything untouched.
+
+This is the layer 0.4.0 consciously deferred, and the reason it exists is
+scverse-misc's Sphinx extension ([#115](https://github.com/ryumasai/pydocstring/issues/115)),
+whose deprecation injection was *expressible* on the 0.4.1 splice API but read
+like the implementation instead of the intent. Its ~25 lines of helpers — a
+trivia walk, indent arithmetic, a re-indent, an absent-description branch — are
+now one call, with byte-identical output on all eight cases it was verified
+against (the equivalence is a test:
+`bindings/python/tests/test_semantic_edits.py`).
+
 ## [0.4.1] - 2026-07-14
 
 Closing the Rust↔Python capability gaps that surfaced while porting a real

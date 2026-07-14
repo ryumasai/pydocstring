@@ -641,6 +641,56 @@ class Edits:
         trailing blank line if the tree has one there.
         """
         ...
+    def set_description(self, entry: Entry, text: str) -> None:
+        """Replace ``entry``'s description with ``text``, or write one where the
+        entry has none.
+
+        Needs no anchor: an entry with no description has nothing to replace, and
+        this places one — after the colon in Google style, on its own
+        continuation line in NumPy style, adding the colon if the entry lacks it.
+
+        A single-line ``text`` keeps the entry's shape, so a Google description
+        written inline stays inline. A multi-line one always gets its own line, at
+        the entry's continuation indent, with its interior indentation preserved:
+        spliced inline, its second line would land *shallower than its first* —
+        malformed rST that only survives because napoleon dedents a field body
+        before docutils sees it.
+
+        The continuation indent is read from the description's own second line
+        where there is one, so a docstring that continues at an unusual depth
+        keeps it.
+
+        Raises :class:`ValueError` if ``entry`` came from a different ``Parsed``.
+        """
+        ...
+    def prepend_to_description(self, entry: Entry, text: str) -> None:
+        """Insert ``text`` as a new paragraph before ``entry``'s description,
+        keeping the description itself byte-for-byte.
+
+        ``set_description()``'s placement applied to a prepended block: the text
+        lands on its own line at the entry's continuation indent, a blank line
+        separates it from the existing description, and the description's own
+        bytes — including the interior indentation of its continuation lines —
+        are spliced back untouched rather than re-rendered.
+
+        An entry with no description gets ``text`` as its description.
+
+        Raises :class:`ValueError` if ``entry`` came from a different ``Parsed``.
+        """
+        ...
+    def set_type(self, entry: Entry, text: str) -> None:
+        """Set ``entry``'s type annotation to ``text``, or write one where the
+        entry has none.
+
+        A type that is present is replaced, and so is a zero-length placeholder
+        (``x ():``). Where the *marker itself* is absent — ``x: The value.`` has
+        no brackets to hold a type, and neither has NumPy's ``x`` — there is
+        nothing to anchor on, and this writes the marker too: ``x (int): The
+        value.`` in Google style, ``x : int`` in NumPy style.
+
+        Raises :class:`ValueError` if ``entry`` came from a different ``Parsed``.
+        """
+        ...
     def apply(self) -> str:
         """Validate the edit list and splice it into a new source string.
 

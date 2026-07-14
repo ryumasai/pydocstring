@@ -1354,6 +1354,19 @@ pyo3::create_exception!(
 enum Splice {
     Replace(TextRange, String),
     RemoveLines(TextRange),
+    /// A semantic edit (#135): the entry it targets, addressed by the same
+    /// child-index path a `NodeRef` uses, and the text to write. Replayed
+    /// through the core method in `build()` — the grammar lives in one place,
+    /// and this side only records the intent.
+    Semantic(SemanticOp, Vec<u32>, String),
+}
+
+/// Which semantic edit a [`Splice::Semantic`] replays.
+#[derive(Clone, Copy)]
+enum SemanticOp {
+    SetDescription,
+    PrependToDescription,
+    SetType,
 }
 
 /// A list of pending edits anchored on one parse result.
@@ -1396,9 +1409,40 @@ impl PyEdits {
             match splice {
                 Splice::Replace(range, text) => edits.replace(*range, text.clone()),
                 Splice::RemoveLines(range) => edits.remove_lines_range(*range),
+                Splice::Semantic(op, path, text) => {
+                    // The path was resolved against this very `Parsed` when it
+                    // was recorded (see `entry_path`), so both the walk and the
+                    // cast are total here.
+                    let node = resolve_node_path(self.parsed.root(), path);
+                    let entry = uv::Entry::cast(&self.parsed, node).expect("path addresses an ENTRY node");
+                    match op {
+                        SemanticOp::SetDescription => edits.set_description(entry, text),
+                        SemanticOp::PrependToDescription => edits.prepend_to_description(entry, text),
+                        SemanticOp::SetType => edits.set_type(entry, text),
+                    }
+                }
             };
         }
         edits
+    }
+
+    /// The path addressing `entry`, checked to belong to *this* edit list's
+    /// parse result.
+    ///
+    /// A `TextRange` carries no provenance — anchoring one on a foreign
+    /// `Parsed` splices at the wrong offset, and that is a documented hazard of
+    /// a range being a value. A path is not a value: replaying one against
+    /// another tree would index into the wrong children and panic, and a panic
+    /// across the FFI boundary is an abort. So an entry from a different parse
+    /// result is rejected here, where the mistake is.
+    fn entry_path(&self, entry: &PyEntry) -> PyResult<Vec<u32>> {
+        if !Arc::ptr_eq(&self.parsed, &entry.nr.parsed) {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "entry belongs to a different Parsed than this Edits — anchor the edit on the \
+                 parse result it came from",
+            ));
+        }
+        Ok(entry.nr.path.clone())
     }
 }
 
@@ -1437,6 +1481,67 @@ impl PyEdits {
     /// blank line if the tree has one there.
     fn remove_lines(&mut self, range: &Bound<'_, PyTextRange>) {
         self.splices.push(Splice::RemoveLines(core_range(range)));
+    }
+
+    /// Replace ``entry``'s description with ``text``, or write one where the
+    /// entry has none.
+    ///
+    /// Needs no anchor: an entry with no description has nothing to replace,
+    /// and this places one — after the colon in Google style, on its own
+    /// continuation line in NumPy style, adding the colon if the entry lacks
+    /// it.
+    ///
+    /// A single-line ``text`` keeps the entry's shape: a Google description
+    /// written inline stays inline. A multi-line one is always placed on its
+    /// own line at the entry's continuation indent, with its interior
+    /// indentation preserved — spliced inline, its second line would land
+    /// *shallower than its first*, which is malformed rST that only survives
+    /// because napoleon dedents a field body before docutils sees it.
+    ///
+    /// The continuation indent is read from the description's own second line
+    /// where there is one, so a docstring that continues at an unusual depth
+    /// keeps it.
+    ///
+    /// Raises ``ValueError`` if ``entry`` came from a different ``Parsed``.
+    fn set_description(&mut self, entry: &PyEntry, text: String) -> PyResult<()> {
+        let path = self.entry_path(entry)?;
+        self.splices.push(Splice::Semantic(SemanticOp::SetDescription, path, text));
+        Ok(())
+    }
+
+    /// Insert ``text`` as a new paragraph before ``entry``'s description,
+    /// keeping the description itself byte-for-byte.
+    ///
+    /// ``set_description()``'s placement, applied to a prepended block: the
+    /// text lands on its own line at the entry's continuation indent, a blank
+    /// line separates it from the existing description, and the description's
+    /// own bytes — including the interior indentation of its continuation
+    /// lines — are spliced back untouched rather than re-rendered.
+    ///
+    /// An entry with no description gets ``text`` as its description.
+    ///
+    /// Raises ``ValueError`` if ``entry`` came from a different ``Parsed``.
+    fn prepend_to_description(&mut self, entry: &PyEntry, text: String) -> PyResult<()> {
+        let path = self.entry_path(entry)?;
+        self.splices
+            .push(Splice::Semantic(SemanticOp::PrependToDescription, path, text));
+        Ok(())
+    }
+
+    /// Set ``entry``'s type annotation to ``text``, or write one where the
+    /// entry has none.
+    ///
+    /// A type that is present is replaced, and so is a zero-length placeholder
+    /// (``x ():``). Where the *marker itself* is absent — ``x: The value.`` has
+    /// no brackets to hold a type, and neither has NumPy's ``x`` — there is
+    /// nothing to anchor on, and this writes the marker too: ``x (int): The
+    /// value.`` in Google style, ``x : int`` in NumPy style.
+    ///
+    /// Raises ``ValueError`` if ``entry`` came from a different ``Parsed``.
+    fn set_type(&mut self, entry: &PyEntry, text: String) -> PyResult<()> {
+        let path = self.entry_path(entry)?;
+        self.splices.push(Splice::Semantic(SemanticOp::SetType, path, text));
+        Ok(())
     }
     /// Validate the edit list and splice it into a new source string.
     ///

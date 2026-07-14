@@ -141,6 +141,63 @@ Editing must not silently reinterpret a docstring as another style, so
 `apply_reparsed()` re-parses with the original style even if the edited text
 would auto-detect differently.
 
+### Semantic edits
+
+The splices above are deliberately dumb: they move bytes, and where those bytes
+go is your problem. Two parts of that problem belong to the grammar, not to you —
+what an entry's continuation indent is, and where a description or a type goes in
+an entry that *has* none. `x (int):` leaves a zero-length placeholder to anchor
+on; a bare `x` leaves nothing at all, and NumPy writes its description on the next
+line rather than after the colon. Three methods own that:
+
+| Method                                | Effect                                                                     |
+|---------------------------------------|----------------------------------------------------------------------------|
+| `set_description(entry, text)`        | Replace the description, or write one where the entry has none.            |
+| `prepend_to_description(entry, text)` | Insert `text` as a paragraph in front of the description, keeping the description byte-for-byte. |
+| `set_type(entry, text)`               | Set the type, writing the marker itself (`(int)` / ` : int`) if it is absent. |
+
+They are splices like any other: same `apply()`, same overlap detection, same
+byte-for-byte preservation of everything they do not touch. They take an `entry`
+rather than a range — that is what lets them know the grammar — and raise
+`ValueError` if it came from a different `Parsed`.
+
+Injecting a deprecation notice into one argument's description, whatever style
+the docstring is written in:
+
+```python
+for section in doc.sections:
+    if section.kind == SectionKind.PARAMETERS:
+        for entry in section.entries:
+            if entry.name.text == "copy":
+                edits.prepend_to_description(entry, ".. deprecated:: 1.10\n   Use `inplace`.")
+```
+
+Each style keeps its own layout, and the argument's own prose is not re-rendered —
+it is the same bytes, moved:
+
+```text
+Args:                             Parameters
+    copy (bool):                  ----------
+        .. deprecated:: 1.10      copy : bool
+           Use `inplace`.             .. deprecated:: 1.10
+                                         Use `inplace`.
+        Return a copy.
+    x (int): The value.               Return a copy.
+                                  x : int
+                                      The value.
+```
+
+The block gets its own line because it has to. Spliced inline after the
+`copy (bool):` prefix, its body would land *shallower than its own directive
+marker* — rST that only survives because napoleon dedents a field body before
+docutils sees it. A single-line description has no such interior structure, so it
+stays where the author put it: `set_description(entry, "A copy.")` leaves
+`copy (bool): A copy.` inline.
+
+The continuation indent is read from the description's second line, never
+computed: `entry indent + 4` is a guess, and it is wrong for a docstring that
+continues at six, or indents with tabs.
+
 ### Scoped pattern rewrites
 
 `replace()` rewrites every match in the document, which is often too much — the
@@ -451,7 +508,9 @@ Reached with `.syntax`, from a parse result or from any unified view.
 
 | Class       | Members                                                                                  |
 |-------------|------------------------------------------------------------------------------------------|
-| `Edits`     | `replace(range, text)`, `insert(at, text)`, `delete(range)`, `remove_lines(range)`, `apply()`, `apply_reparsed()`, `len()` |
+| `Edits`     | Splices: `replace(range, text)`, `insert(at, text)`, `delete(range)`, `remove_lines(range)` |
+|             | Semantic: `set_description(entry, text)`, `prepend_to_description(entry, text)`, `set_type(entry, text)` |
+|             | `apply()`, `apply_reparsed()`, `len()`                                                   |
 | `EditError` | Raised by `apply()` for an out-of-bounds or overlapping edit (a `ValueError`)             |
 | `RewriteError` | Raised by `replace()` / `replace_in()` when a template names a metavariable the match does not bind (a `ValueError`) |
 
