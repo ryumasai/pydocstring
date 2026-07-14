@@ -62,16 +62,21 @@ Every view keeps its range, so the results double as edit anchors:
 entry = doc.sections[0].entries[0]
 r = entry.description.range
 
-raw = source.encode()
-edited = (raw[:r.start] + b"A better description." + raw[r.end:]).decode()
+r.source_text(source)          # -> "The value."   (what's there now)
+
+edits = parsed.edit()
+edits.replace(r, "A better description.")
+edited = edits.apply()
 ```
 
 Everything outside that range is preserved byte-for-byte — the NumPy version
-keeps its indentation, the Google version keeps its `x (int): ` prefix.
+keeps its indentation, the Google version keeps its `x (int):` prefix and the
+space after it.
 
-> **Ranges are byte offsets into the UTF-8 source, not character indices.** Slice
-> `source.encode()`, not `source`: with any non-ASCII character before the range,
-> `source[:r.start]` cuts in the wrong place.
+> **A range is a byte range, and a Python `str` indexes by code point.** So
+> `source[r.start:r.end]` cuts in the wrong place as soon as anything upstream of
+> the range is non-ASCII. Use `r.source_text(source)` to read and an `Edits` to
+> write; neither can get this wrong.
 
 Accessors on `Entry` are all optional (`name`, `type_annotation`,
 `description`, …), so reading an entry never raises for a role that does not
@@ -440,7 +445,7 @@ Reached with `.syntax`, from a parse result or from any unified view.
 |--------------|----------------------------------------------------------------------------------------------|
 | `Node`       | `kind`, `range`, `text`, `children`, `nodes(kind)`, `tokens(kind)`, `find_node(kind)`, `find_token(kind)`, `find_missing(kind)` |
 | `Token`      | `kind`, `text`, `range`, `is_missing()`                                                     |
-| `SyntaxKind` | `ENTRY`, `SECTION`, `NAME`, `TYPE`, `DESCRIPTION`, `COLON`, … (31 kinds, plus `UNKNOWN`)    |
+| `SyntaxKind` | `ENTRY`, `SECTION`, `NAME`, `TYPE`, `DESCRIPTION`, `COLON`, … (31 kinds, plus `UNKNOWN`); `name`, `is_node()`, `is_token()`, `is_trivia()` |
 
 #### Editing
 
@@ -448,6 +453,7 @@ Reached with `.syntax`, from a parse result or from any unified view.
 |-------------|------------------------------------------------------------------------------------------|
 | `Edits`     | `replace(range, text)`, `insert(at, text)`, `delete(range)`, `remove_lines(range)`, `apply()`, `apply_reparsed()`, `len()` |
 | `EditError` | Raised by `apply()` for an out-of-bounds or overlapping edit (a `ValueError`)             |
+| `RewriteError` | Raised by `replace()` / `replace_in()` when a template names a metavariable the match does not bind (a `ValueError`) |
 
 Start one with `parsed.edit()` or `doc.edit()`.
 
@@ -455,15 +461,15 @@ Start one with `parsed.edit()` or `doc.edit()`.
 
 | Class         | Key members                                                                                                                             |
 |---------------|------------------------------------------------------------------------------------------------------------------------------------------|
-| `Parsed`      | `style`, `source`, `syntax`, `range`, `pretty_print()`, `to_model()`, `edit()`, `replace()`, `replace_in()`, `findall()`, `findall_in()` |
+| `Parsed`      | `style`, `source`, `syntax`, `range`, `line_col(offset)`, `line_indent(offset)`, `pretty_print()`, `to_model()`, `edit()`, `replace()`, `replace_in()`, `findall()`, `findall_in()` |
 | `Style`       | `GOOGLE`, `NUMPY`, `PLAIN` (enum)                                                                                                       |
 | `SectionKind` | `PARAMETERS`, `RETURNS`, `RAISES`, `NOTES`, … (24 variants — shared by `Section.kind` and the model)                                    |
 | `Token`       | `kind`, `text`, `range`, `is_missing()`                                                                                                 |
-| `TextRange`   | `start`, `end`, `is_empty()` — a value: compares and hashes by `(start, end)`                                                           |
+| `TextRange`   | `TextRange(start, end)`; `start`, `end`, `is_empty()`, `source_text(source)`, `len(r)`, `offset in r` — a value: compares and hashes by `(start, end)` |
 | `TextBlock`   | `text`, `logical_text`, `range`, `lines`, `is_missing()`                                                                                |
-| `LineColumn`  | `lineno` (1-based), `col` (0-based) — from `WalkContext.line_col(offset)`                                                               |
+| `LineColumn`  | `lineno` (1-based), `col` (0-based **byte** column, as `ast.col_offset`) — from `Parsed.line_col()` or `WalkContext.line_col()`         |
 | `Visitor`     | Base class; subclass and override any of `enter_node`, `leave_node`, `visit_token`                                                      |
-| `WalkContext` | `line_col(offset)` — passed as the second argument to every hook                                                                        |
+| `WalkContext` | `line_col(offset)`, `line_indent(offset)` — passed as the second argument to every hook                                                 |
 
 #### Pattern matching
 

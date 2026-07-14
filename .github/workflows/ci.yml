@@ -64,9 +64,22 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       # rustdoc's JSON output is nightly-only, and the parity check reads it to
-      # enumerate the Rust surface.
+      # enumerate the Rust surface. Installing nightly makes it the default, so
+      # put stable back — the extension itself must build on stable.
       - name: Install nightly (for rustdoc JSON)
         uses: dtolnay/rust-toolchain@nightly
+
+      - name: Set stable as default
+        run: rustup default stable
+
+      - name: Cache cargo
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-py-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install uv
         uses: astral-sh/setup-uv@v7

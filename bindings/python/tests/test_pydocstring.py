@@ -2376,3 +2376,46 @@ class TestRewriteError:
 
     def test_it_is_a_value_error(self):
         assert issubclass(pydocstring.RewriteError, ValueError)
+
+
+class TestTextRangeTruthiness:
+    """An empty range is the insertion anchor, not "nothing"."""
+
+    def test_an_empty_range_is_truthy(self):
+        # `__len__` alone would make it falsy, and `if r:` would then silently
+        # skip the zero-length placeholder that marks where a missing element
+        # goes — the exact range the edit API exists to serve.
+        parsed = pydocstring.parse("Summary.\n\nArgs:\n    x (): Desc.\n")
+        entry = pydocstring.Document(parsed).sections[0].entries[0]
+        anchor = present(entry.syntax.find_missing(pydocstring.SyntaxKind.TYPE)).range
+
+        assert anchor.is_empty()
+        assert len(anchor) == 0
+        assert bool(anchor) is True
+
+    def test_contains_never_raises(self):
+        r = pydocstring.TextRange(2, 5)
+        assert (-1 in r) is False
+        assert (2**64 in r) is False
+        assert ("x" in r) is False
+        assert (3 in r) is True
+
+
+class TestUnknownKindIsPrintable:
+    def test_name_is_total(self):
+        # A property that raises is a trap in a log line or a traceback.
+        assert pydocstring.SyntaxKind.UNKNOWN.name == "UNKNOWN"
+
+
+class TestWalkContextLineIndent:
+    def test_a_visitor_can_ask_for_the_indent(self):
+        class Indents(pydocstring.Visitor):
+            def __init__(self):
+                self.seen = []
+
+            def visit_token(self, token, ctx):
+                if token.kind == pydocstring.SyntaxKind.NAME:
+                    self.seen.append(ctx.line_indent(token.range.start))
+
+        parsed = pydocstring.parse("Summary.\n\nArgs:\n\tx (int): v.\n")
+        assert "\t" in pydocstring.walk(parsed, Indents()).seen

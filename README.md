@@ -25,7 +25,7 @@ Python bindings are also available as [`pydocstring-rs`](https://pypi.org/projec
 
 ```toml
 [dependencies]
-pydocstring = "0.4.0"
+pydocstring = "0.4.1"
 ```
 
 ## Usage
@@ -270,8 +270,8 @@ assert!(numpy_text.contains("Parameters\n----------"));
 
 Find constructs with a `$NAME` / `$$$NAME` pattern and rewrite them with a
 template. Captured metavariables substitute the **original source bytes**, so
-everything you don't explicitly rewrite is preserved byte-for-byte — the issue
-The issue #26 use case of annotating one entry without reflowing the rest:
+everything you don't explicitly rewrite is preserved byte-for-byte — the #26 use
+case of annotating one entry without reflowing the rest:
 
 ```rust
 use pydocstring::parse::{parse, Style};
@@ -288,8 +288,8 @@ assert_eq!(
 );
 ```
 
-In Python the same lives on the docstring wrappers as `doc.replace(pattern, template)`
-and `doc.findall(pattern)`:
+Python has the same on `Parsed` — `parsed.replace(pattern, template)` and
+`parsed.findall(pattern)`:
 
 ```python
 import pydocstring
