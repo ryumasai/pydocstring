@@ -141,6 +141,98 @@ Editing must not silently reinterpret a docstring as another style, so
 `apply_reparsed()` re-parses with the original style even if the edited text
 would auto-detect differently.
 
+### Recipe: prepending a block to an entry's description
+
+The one editing job that is genuinely more than one splice: putting a *block*
+of rST — a `.. deprecated::` directive, say — in front of a parameter's
+description
+([#115](https://github.com/ryumasai/pydocstring/issues/115)).
+The work depends only on what you insert and what is already there:
+
+| you insert ↓ / the description is → | absent | on its own line (NumPy) | inline — `x (int): desc` (Google) |
+|-------------------------------------|--------|-------------------------|-----------------------------------|
+| **inline text** (prose)             | one `insert()` | one `insert()`  | one `insert()`                    |
+| **a block of rST**                  | easy branch    | easy branch     | **the hard branch**               |
+
+Five of six cells are easy. The hard one is a block in front of an *inline*
+description: spliced after `x (int): `, the block's first line lands at a
+column you do not control, and a directive's body then sits shallower than its
+own marker — malformed rST that only renders because napoleon dedents field
+bodies before docutils sees them. The fix is to take over the line after the
+colon — and every value this needs is a question the tree already answers:
+
+```python
+def _indented(block: str, indent: str) -> str:
+    """`block` with its continuation lines pushed under `indent`; empty lines
+    stay empty. The first line is placed by the caller."""
+    head, *rest = block.split("\n")
+    return "\n".join([head, *(indent + line if line else line for line in rest)])
+
+
+def prepend_to_description(parsed, edits, entry, block: str) -> None:
+    """Queue edits that put `block` (rST, e.g. a directive) in front of
+    `entry`'s description, in whichever shape the author wrote it."""
+    desc = entry.description
+    if desc is None:
+        # Nothing to displace: hang the block under the entry.
+        indent = parsed.line_indent(entry.range.start) + "    "
+        edits.insert(entry.syntax.range.end, "\n" + indent + _indented(block, indent))
+        return
+    indent = parsed.line_indent(desc.range.start)
+    if parsed.line_col(desc.range.start).col == len(indent.encode()):
+        # The description starts its own line (the NumPy shape): replace it in
+        # place. The bytes before it — the author's newline, blank line,
+        # indent — are never part of the edit.
+        edits.replace(desc.range, f"{_indented(block, indent)}\n\n{indent}{desc.text}")
+        return
+    # Inline description (the Google shape). A block after `x (int): ` would
+    # start at a column we don't control, so take over the line after the
+    # colon. The continuation indent comes from the description's second line
+    # if it has one; only a single-line inline description leaves nothing to
+    # ask, and there `entry indent + 4` is the convention.
+    if len(desc.lines) > 1:
+        indent = parsed.line_indent(desc.lines[1].range.start)
+    else:
+        indent = parsed.line_indent(entry.range.start) + "    "
+    colon = entry.syntax.find_token(SyntaxKind.COLON)
+    edits.replace(
+        TextRange(colon.range.end, desc.range.end),
+        f"\n{indent}{_indented(block, indent)}\n\n{indent}{desc.text}",
+    )
+```
+
+Drive it from the unified view, and the same loop serves both styles:
+
+```python
+parsed = parse(source)
+doc, edits = Document(parsed), parsed.edit()
+
+for section in doc.sections:
+    if section.kind == SectionKind.PARAMETERS:
+        for entry in section.entries:
+            if any(n.text == "copy" for n in entry.names):
+                notice = ".. deprecated:: 1.10.0\n   Use `inplace`."
+                prepend_to_description(parsed, edits, entry, notice)
+
+result = edits.apply()
+```
+
+This recipe is verified byte-for-byte against its runnable specification,
+[`docs/design/135-semantic-edits-reference.py`](../../docs/design/135-semantic-edits-reference.py),
+on nine cases — Google, NumPy, tabs, non-default continuation depths, a blank
+line before the description, an entry with no description, a non-ASCII
+neighbour — and its output is rendered through `sphinx.ext.napoleon` and
+checked as well-formed rST. A test also asserts this README block never
+drifts from the tested code (`tests/test_recipe_deprecation_injection.py`).
+
+Why a recipe and not an API: an earlier version *was* an API — implemented,
+reviewed, and withdrawn
+([#140](https://github.com/ryumasai/pydocstring/pull/140)) —
+because each method re-derived facts the tree already answers in one line,
+and hard-coded layout choices (inline vs. own line, blank lines) that
+napoleon renders identically, which makes them the caller's to make, not the
+library's.
+
 ### Scoped pattern rewrites
 
 `replace()` rewrites every match in the document, which is often too much — the
