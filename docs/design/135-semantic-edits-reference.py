@@ -1,10 +1,11 @@
 """Reference material for #135 (semantic edits) — NOT shipped as API.
 
 This is scverse-misc's deprecation injection, ported onto the 0.4.1 splice API
-and verified through `sphinx.ext.napoleon` on nine cases (Google, NumPy, tabs,
+and verified through `sphinx.ext.napoleon` on ten cases (Google, NumPy, tabs,
 a 6-space continuation indent, an entry with no description, a non-ASCII
 neighbour, a blank line before the description, a single-line description on
-its own line at a non-default depth, plain).
+its own line at a non-default depth, a multi-name entry with two deprecated
+arguments, plain).
 
 History: this file was written as the specification for an
 `edits.prepend_to_description(entry, notice)` API. That API was implemented,
@@ -83,9 +84,11 @@ def _detached(entry, block) -> pd.TextRange:
 
 
 def _indented(text: str, indent: str) -> str:
-    """`text`'s continuation lines pushed under `indent`. The first line is placed
-    by the caller, which is why it is left alone."""
-    return text.replace("\n", f"\n{indent}")
+    """`text`'s continuation lines pushed under `indent`; empty lines stay
+    empty rather than gaining trailing whitespace. The first line is placed by
+    the caller, which is why it is left alone."""
+    head, *rest = text.split("\n")
+    return "\n".join([head, *(indent + line if line else line for line in rest)])
 
 
 def prepend_to_description(parsed, edits, entry, text: str) -> None:
@@ -127,9 +130,18 @@ def inject(source: str, deprecations: list[Deprecation]) -> str:
             continue
         for entry in section.entries:
             names = [name.text for name in entry.names]
-            for dep in (d for d in deprecations if d.arg in names):
-                notice = f".. version-deprecated:: {dep.version}\n   {dep.message}"
-                prepend_to_description(parsed, edits, entry, notice)
+            notices = [
+                f".. version-deprecated:: {dep.version}\n   {dep.message}"
+                for dep in deprecations
+                if dep.arg in names
+            ]
+            if notices:
+                # One call per entry: a multi-name entry (`copy, deep : bool`)
+                # can match several deprecations, and a second call would queue
+                # an overlapping replace of the same description — which
+                # `apply()` rejects. Joined notices are sibling rST blocks, a
+                # blank line apart.
+                prepend_to_description(parsed, edits, entry, "\n\n".join(notices))
 
     return edits.apply()
 
@@ -156,9 +168,14 @@ CASES = [
      "S.\n\nParameters\n----------\ncopy : bool\n\n    Return a copy.\n"),
     ("single-line own-line desc at 6sp", "numpy",
      "S.\n\nParameters\n----------\ncopy : bool\n      Return a copy.\n"),
+    ("multi-name entry, two deprecated args", "numpy",
+     "S.\n\nParameters\n----------\ncopy, deep : bool\n    Return a copy.\n"),
     ("plain", "google", "Just a summary.\n"),
 ]
-DEPRECATIONS = [Deprecation("copy", "1.10.0", "Use `inplace`.")]
+DEPRECATIONS = [
+    Deprecation("copy", "1.10.0", "Use `inplace`."),
+    Deprecation("deep", "1.11.0", "Never copied anyway."),
+]
 
 
 def napoleon_ok(out: str, src: str, style: str) -> bool:
@@ -168,11 +185,12 @@ def napoleon_ok(out: str, src: str, style: str) -> bool:
 
     renderer = {"google": GoogleDocstring, "numpy": NumpyDocstring}[style]
     rendered = str(renderer(out, Config(napoleon_use_param=True)))
+    bodies = {dep.message for dep in DEPRECATIONS}
     marker, well_formed = None, True
     for line in out.splitlines():
         if ".. version-deprecated" in line:
             marker = line.find("..")
-        elif "Use `inplace`." in line and marker is not None:
+        elif marker is not None and any(body in line for body in bodies):
             well_formed &= (len(line) - len(line.lstrip())) > marker
     return well_formed and (
         ".. version-deprecated:: 1.10.0" in rendered if "copy" in src else True

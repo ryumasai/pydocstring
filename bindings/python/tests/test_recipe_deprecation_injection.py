@@ -49,9 +49,10 @@ REFERENCE = _load_reference()
 
 # --8<-- [start:recipe]
 def _indented(block: str, indent: str) -> str:
-    """`block` with its continuation lines pushed under `indent`.
-    The first line is placed by the caller."""
-    return block.replace("\n", "\n" + indent)
+    """`block` with its continuation lines pushed under `indent`; empty lines
+    stay empty. The first line is placed by the caller."""
+    head, *rest = block.split("\n")
+    return "\n".join([head, *(indent + line if line else line for line in rest)])
 
 
 def prepend_to_description(parsed, edits, entry, block: str) -> None:
@@ -100,9 +101,13 @@ def _inject(source: str, deprecations) -> str:
             continue
         for entry in section.entries:
             names = [name.text for name in entry.names]
-            for dep in (d for d in deprecations if d.arg in names):
-                notice = f".. version-deprecated:: {dep.version}\n   {dep.message}"
-                prepend_to_description(parsed, edits, entry, notice)
+            notices = [
+                f".. version-deprecated:: {dep.version}\n   {dep.message}" for dep in deprecations if dep.arg in names
+            ]
+            if notices:
+                # One call per entry — a second call would queue an
+                # overlapping replace of the same description.
+                prepend_to_description(parsed, edits, entry, "\n\n".join(notices))
     return edits.apply()
 
 

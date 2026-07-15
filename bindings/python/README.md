@@ -163,9 +163,10 @@ colon — and every value this needs is a question the tree already answers:
 
 ```python
 def _indented(block: str, indent: str) -> str:
-    """`block` with its continuation lines pushed under `indent`.
-    The first line is placed by the caller."""
-    return block.replace("\n", "\n" + indent)
+    """`block` with its continuation lines pushed under `indent`; empty lines
+    stay empty. The first line is placed by the caller."""
+    head, *rest = block.split("\n")
+    return "\n".join([head, *(indent + line if line else line for line in rest)])
 
 
 def prepend_to_description(parsed, edits, entry, block: str) -> None:
