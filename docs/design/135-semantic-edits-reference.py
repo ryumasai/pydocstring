@@ -1,17 +1,18 @@
-"""Reference material for #135 (semantic edits) — NOT shipped, NOT imported.
+"""Reference material for #135 (semantic edits) — NOT shipped as API.
 
 This is scverse-misc's deprecation injection, ported onto the 0.4.1 splice API
-and verified through `sphinx.ext.napoleon` on eight cases (Google, NumPy, tabs,
+and verified through `sphinx.ext.napoleon` on nine cases (Google, NumPy, tabs,
 a 6-space continuation indent, an entry with no description, a non-ASCII
-neighbour, a blank line before the description, plain).
+neighbour, a blank line before the description, a single-line description on
+its own line at a non-default depth, plain).
 
-It is kept because it *is* the specification for #135: every helper below is
-work the library should be doing, and each one was derived by hand and checked
-against the tree. The target is for all of this to collapse into
-
-    edits.prepend_to_description(entry, notice)
-
-with the same output, byte for byte.
+History: this file was written as the specification for an
+`edits.prepend_to_description(entry, notice)` API. That API was implemented,
+reviewed, and *withdrawn* (#140) — the operations mix grammar, style rendering,
+and layout taste, which belong to three different homes. What ships instead is
+the documented RECIPE in `bindings/python/README.md`, and this file is its
+oracle: `tests/test_recipe_deprecation_injection.py` asserts the recipe
+reproduces this implementation byte for byte on every case below.
 
 Run it:  cd bindings/python && uv run python ../../docs/design/135-semantic-edits-reference.py
 """
@@ -31,12 +32,19 @@ LINE_BREAKS = {pd.SyntaxKind.NEWLINE, pd.SyntaxKind.BLANK_LINE}
 
 
 def _body_indent(parsed, entry, block) -> str:
-    """The indent this description's own continuation lines use.
+    """The indent this description's body should continue at.
 
-    A `TextBlock` is a list of lines, so ask the second one where it starts.
-    `entry indent + 4` is a guess, and it is wrong for a docstring that
-    continues at another depth.
+    Ask the source, in order of how directly it answers: the description's own
+    first line, if the description starts one; otherwise its second line; only
+    a single-line *inline* description leaves nothing to ask, and there
+    `entry indent + 4` is the convention. Guessing earlier than that is wrong
+    for a docstring that continues at another depth (a 6-space one is in the
+    cases below — twice).
     """
+    first = block.lines[0].range.start
+    own = parsed.line_indent(first)
+    if parsed.line_col(first).col == len(own.encode()):
+        return own
     if len(block.lines) > 1:
         return parsed.line_indent(block.lines[1].range.start)
     return parsed.line_indent(entry.range.start) + "    "
@@ -126,41 +134,55 @@ def inject(source: str, deprecations: list[Deprecation]) -> str:
     return edits.apply()
 
 
-if __name__ == "__main__":
+# ── The nine verification cases ──────────────────────────────────────────────
+# Shared with tests/test_recipe_deprecation_injection.py, which uses them (and
+# `inject` above) as the oracle for the README recipe. The style tag keeps this
+# module importable without sphinx; the napoleon check below maps it.
+
+_PROSE = (
+    "\nReturns\n-------\nDescription with attributes:\n\n"
+    ":attr:`~anndata.AnnData.obsm`\n    tSNE coordinates.\n"
+)
+CASES = [
+    ("numpy + prose Returns (#26)", "numpy",
+     "S.\n\nParameters\n----------\ncopy : bool\n    Return a copy.\n    More.\n" + _PROSE),
+    ("google", "google", "S.\n\nArgs:\n    copy (bool): Return a copy.\n        More.\n"),
+    ("google, tabs", "google", "S.\n\nArgs:\n\tcopy (bool): Return a copy.\n\t\tMore.\n"),
+    ("6-space continuation", "google", "S.\n\nArgs:\n    copy (bool): Return a copy.\n      More.\n"),
+    ("no description", "google", "S.\n\nArgs:\n    copy (bool):\n"),
+    ("non-ASCII neighbour", "google",
+     "S.\n\nArgs:\n    café (str): The café.\n    copy (bool): Return a copy.\n"),
+    ("blank line before desc", "numpy",
+     "S.\n\nParameters\n----------\ncopy : bool\n\n    Return a copy.\n"),
+    ("single-line own-line desc at 6sp", "numpy",
+     "S.\n\nParameters\n----------\ncopy : bool\n      Return a copy.\n"),
+    ("plain", "google", "Just a summary.\n"),
+]
+DEPRECATIONS = [Deprecation("copy", "1.10.0", "Use `inplace`.")]
+
+
+def napoleon_ok(out: str, src: str, style: str) -> bool:
+    """The acceptance check: the directive renders, and its body sits deeper
+    than its own marker (well-formed rST, not merely napoleon-survivable)."""
     from sphinx.ext.napoleon import Config, GoogleDocstring, NumpyDocstring
 
-    cfg = Config(napoleon_use_param=True)
-    PROSE = (
-        "\nReturns\n-------\nDescription with attributes:\n\n"
-        ":attr:`~anndata.AnnData.obsm`\n    tSNE coordinates.\n"
+    renderer = {"google": GoogleDocstring, "numpy": NumpyDocstring}[style]
+    rendered = str(renderer(out, Config(napoleon_use_param=True)))
+    marker, well_formed = None, True
+    for line in out.splitlines():
+        if ".. version-deprecated" in line:
+            marker = line.find("..")
+        elif "Use `inplace`." in line and marker is not None:
+            well_formed &= (len(line) - len(line.lstrip())) > marker
+    return well_formed and (
+        ".. version-deprecated:: 1.10.0" in rendered if "copy" in src else True
     )
-    CASES = [
-        ("numpy + prose Returns (#26)", NumpyDocstring,
-         "S.\n\nParameters\n----------\ncopy : bool\n    Return a copy.\n    More.\n" + PROSE),
-        ("google", GoogleDocstring, "S.\n\nArgs:\n    copy (bool): Return a copy.\n        More.\n"),
-        ("google, tabs", GoogleDocstring, "S.\n\nArgs:\n\tcopy (bool): Return a copy.\n\t\tMore.\n"),
-        ("6-space continuation", GoogleDocstring, "S.\n\nArgs:\n    copy (bool): Return a copy.\n      More.\n"),
-        ("no description", GoogleDocstring, "S.\n\nArgs:\n    copy (bool):\n"),
-        ("non-ASCII neighbour", GoogleDocstring,
-         "S.\n\nArgs:\n    café (str): The café.\n    copy (bool): Return a copy.\n"),
-        ("blank line before desc", NumpyDocstring,
-         "S.\n\nParameters\n----------\ncopy : bool\n\n    Return a copy.\n"),
-        ("plain", GoogleDocstring, "Just a summary.\n"),
-    ]
-    deps = [Deprecation("copy", "1.10.0", "Use `inplace`.")]
+
+
+if __name__ == "__main__":
     failures = 0
-    for label, renderer, src in CASES:
-        out = inject(src, deps)
-        rendered = str(renderer(out, cfg))
-        marker, well_formed = None, True
-        for line in out.splitlines():
-            if ".. version-deprecated" in line:
-                marker = line.find("..")
-            elif "Use `inplace`." in line and marker is not None:
-                well_formed &= (len(line) - len(line.lstrip())) > marker
-        ok = well_formed and (
-            ".. version-deprecated:: 1.10.0" in rendered if "copy" in src else True
-        )
+    for label, style, src in CASES:
+        ok = napoleon_ok(inject(src, DEPRECATIONS), src, style)
         failures += not ok
         print(f"{'OK  ' if ok else 'FAIL'} {label}")
     print("\nPASS" if not failures else f"\n{failures} FAILED")
