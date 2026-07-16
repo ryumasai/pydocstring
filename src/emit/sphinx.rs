@@ -1,6 +1,7 @@
 //! Emit a [`Docstring`] as a Sphinx-style (reStructuredText) docstring.
 
 use super::EmitOptions;
+use super::push_separator;
 use crate::model::Attribute;
 use crate::model::Block;
 use crate::model::Directive;
@@ -67,22 +68,23 @@ pub fn emit_sphinx(doc: &Docstring, options: &EmitOptions) -> String {
         out.push('\n');
     }
 
-    // Extended summary
+    // Extended summary. Each later block is *separated* from what precedes
+    // it — a summary-less docstring must not open with a blank line (#152).
     if let Some(ref ext) = doc.extended_summary {
-        out.push('\n');
+        push_separator(&mut out);
         out.push_str(ext);
         out.push('\n');
     }
 
     // Directives (e.g. deprecation)
     for directive in &doc.directives {
-        out.push('\n');
+        push_separator(&mut out);
         emit_directive(&mut out, directive);
     }
 
     // Sections
     for section in &doc.sections {
-        out.push('\n');
+        push_separator(&mut out);
         emit_section(&mut out, section);
     }
 
@@ -288,7 +290,9 @@ fn emit_method_item(out: &mut String, m: &Method) {
     }
     if let Some(ref desc) = m.description {
         out.push_str(": ");
-        out.push_str(desc);
+        // Continuation lines align with the bullet's content column: at
+        // column 0 they would terminate the bullet list (#152).
+        emit_multiline(out, desc, 2);
     }
     out.push('\n');
 }
@@ -312,27 +316,21 @@ fn emit_reference(out: &mut String, r: &Reference) {
         out.push(']');
         if let Some(ref content) = r.content {
             out.push(' ');
-            out.push_str(content);
+            // Continuation lines must stay indented inside the citation
+            // body — at column 0 they would escape it (#152). Same rule as
+            // the NumPy emitter's reference continuations.
+            emit_multiline(out, content, 4);
         }
     } else if let Some(ref content) = r.content {
-        out.push_str(content);
+        emit_multiline(out, content, 4);
     }
     out.push('\n');
 }
 
-/// Sphinx: `.. name:: argument` directive (e.g. `.. deprecated:: 1.6.0`).
+/// Sphinx: `.. name:: argument` directive (e.g. `.. deprecated:: 1.6.0`) —
+/// the shared directive form, identical in every style.
 fn emit_directive(out: &mut String, directive: &Directive) {
-    out.push_str(".. ");
-    out.push_str(&directive.name);
-    out.push_str("::");
-    if let Some(ref argument) = directive.argument {
-        out.push(' ');
-        out.push_str(argument);
-    }
-    out.push('\n');
-    if let Some(ref desc) = directive.description {
-        emit_indented_body(out, desc, 4);
-    }
+    super::emit_directive(out, directive);
 }
 
 /// Free-text sections map to reStructuredText admonitions / rubrics.

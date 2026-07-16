@@ -1058,3 +1058,63 @@ fn sphinx_emit_adjacent_paragraphs_blank_line_separated() {
     );
     assert!(text.contains(".. note::\n\n    Notes body.\n"), "{text}");
 }
+
+// =============================================================================
+// #152: emit output must not break its own structure
+// =============================================================================
+
+/// A summary-less model emits its first block at line one: blocks are
+/// separated, not prefixed, so no emitter opens with a blank line.
+#[test]
+fn emit_summary_less_docstring_has_no_leading_blank_line() {
+    let doc = Docstring {
+        sections: vec![Section::parameters(vec![Parameter {
+            names: vec!["x".into()],
+            type_annotation: Some("int".into()),
+            description: Some("Value.".into()),
+            is_optional: false,
+            default_value: None,
+        }])],
+        ..Default::default()
+    };
+    let options = EmitOptions::default();
+    assert!(emit_google(&doc, &options).starts_with("Args:\n"));
+    assert!(emit_numpy(&doc, &options).starts_with("Parameters\n"));
+    assert!(emit_sphinx(&doc, &options).starts_with(":param x:"));
+}
+
+/// A multi-line method description stays inside its bullet: continuation
+/// lines at column 0 would terminate the rST bullet list.
+#[test]
+fn sphinx_emit_method_multiline_description_stays_in_the_bullet() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::methods(vec![Method {
+            name: "run".into(),
+            type_annotation: None,
+            description: Some("First line.\nSecond line.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, &EmitOptions::default());
+    assert!(text.contains("* run: First line.\n  Second line.\n"), "got:\n{text}");
+}
+
+/// Multi-line reference content stays inside its citation: continuation
+/// lines at column 0 would escape the rST citation body.
+#[test]
+fn sphinx_emit_reference_multiline_content_stays_in_the_citation() {
+    let doc = Docstring {
+        summary: Some("Summary.".into()),
+        sections: vec![Section::references(vec![Reference {
+            label: Some("1".into()),
+            content: Some("Author, Title.\nSecond line.".into()),
+        }])],
+        ..Default::default()
+    };
+    let text = emit_sphinx(&doc, &EmitOptions::default());
+    assert!(
+        text.contains(".. [1] Author, Title.\n    Second line.\n"),
+        "got:\n{text}"
+    );
+}

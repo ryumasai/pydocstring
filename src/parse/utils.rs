@@ -750,18 +750,30 @@ pub(crate) fn convert_multiline_with_indentation(text: &str) -> String {
     let mut lines = text.lines();
     if let Some(first_line) = lines.next() {
         lines
-            .map(|line| {
-                if description_indent >= line.len() {
-                    // empty line
-                    &line[0..0]
-                } else {
-                    line[description_indent..].trim_end()
-                }
-            })
+            .map(|line| strip_indent_bytes(line, description_indent).trim_end())
             .fold(first_line.trim_end().to_owned(), |a, b| a + "\n" + b)
     } else {
         String::new()
     }
+}
+
+/// Strip up to `max_bytes` of leading whitespace from `line`, whole
+/// characters only.
+///
+/// The byte budget comes from a minimum computed with `trim_start`, which
+/// strips *Unicode* whitespace — so on another line it can land inside a
+/// multi-byte whitespace character (e.g. NBSP). Slicing there panics; a
+/// character that would straddle the budget is kept instead (#141).
+fn strip_indent_bytes(line: &str, max_bytes: usize) -> &str {
+    let mut cut = 0;
+    for (i, c) in line.char_indices() {
+        let end = i + c.len_utf8();
+        if !c.is_whitespace() || end > max_bytes {
+            break;
+        }
+        cut = end;
+    }
+    &line[cut..]
 }
 
 // =============================================================================
@@ -1275,6 +1287,24 @@ mod tests {
            directive_option"
             ),
             "First line.\n\nDescription line.\nMore description.\n\n    Blockquote.\n    Another.\n\nSome text.\n\n.. directive:: option\n   directive_option"
+        );
+    }
+
+    /// The min indent is a *byte* count from `trim_start` (which strips
+    /// Unicode whitespace), so on another line it can land inside a
+    /// multi-byte whitespace character. This must dedent, not panic (#141).
+    #[test]
+    fn test_convert_multiline_multibyte_whitespace_indent() {
+        // Continuation indents: 4 bytes ("  " + 2-byte NBSP), 3 bytes.
+        // The 3-byte minimum falls inside the NBSP on the first line.
+        assert_eq!(
+            convert_multiline_with_indentation("first\n  \u{a0}deep\n   shallow"),
+            "first\n\u{a0}deep\nshallow"
+        );
+        // Whitespace-only lines still collapse to empty, whatever their width.
+        assert_eq!(
+            convert_multiline_with_indentation("first\n\u{a0}\u{a0}\u{a0}\n    text"),
+            "first\n\ntext"
         );
     }
 }

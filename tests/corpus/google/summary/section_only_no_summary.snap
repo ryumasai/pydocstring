@@ -22,6 +22,5 @@ DOCUMENT@0..25 {
   }
 }
 === EMIT ===
-
 Args:
     x (int): Value.

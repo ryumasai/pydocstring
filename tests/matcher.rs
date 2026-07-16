@@ -562,7 +562,9 @@ fn law_numpy_corpus_pattern_indent_is_irrelevant() {
 fn law_document_only_pattern_no_spurious_corpus_matches() {
     // Summary + section make it multi-block (no entry/body readings), and
     // the summary excludes the Section reading: Document reading only.
-    let text = "Zzz qqq unique summary.\n\nWww\n---\nqq : zz\n";
+    // The section name must be a *known* one: `parse` below auto-detects,
+    // and detection holds no opinion on unknown names (#142).
+    let text = "Zzz qqq unique summary.\n\nNotes\n---\nqq : zz\n";
     let p = Pattern::new(Style::NumPy, text).unwrap();
     assert_eq!(p.readings().len(), 1, "test premise: Document-only pattern");
 
