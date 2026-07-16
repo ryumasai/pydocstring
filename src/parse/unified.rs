@@ -56,8 +56,7 @@
 use crate::model::FreeSectionKind;
 use crate::model::SectionKind;
 use crate::parse::Style;
-use crate::parse::google::kind::GoogleSectionKind;
-use crate::parse::numpy::kind::NumPySectionKind;
+use crate::parse::kind::SectionName;
 use crate::parse::text_block::TextBlock;
 use crate::parse::text_block::find_text_block;
 use crate::parse::token_ref::TokenRef;
@@ -178,8 +177,8 @@ impl<'a> Section<'a> {
         let name = self.header_name();
         let lower = name.to_ascii_lowercase();
         match self.parsed.style() {
-            Style::Google => GoogleSectionKind::from_name(&lower).to_section_kind(name),
-            Style::NumPy => NumPySectionKind::from_name(&lower).to_section_kind(name),
+            Style::Google => SectionName::from_google_name(&lower).to_section_kind(name),
+            Style::NumPy => SectionName::from_numpy_name(&lower).to_section_kind(name),
             // Plain docstrings produce no SECTION nodes; unreachable in
             // practice, but total: report an unknown free-text section.
             _ => SectionKind::FreeText(FreeSectionKind::Unknown(name.to_owned())),

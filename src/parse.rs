@@ -12,14 +12,14 @@
 
 use core::fmt;
 
-use google::kind::GoogleSectionKind;
-use numpy::kind::NumPySectionKind;
+use kind::SectionName;
 use numpy::parser::is_underline;
 
 use crate::model::Docstring;
 use crate::syntax::Parsed;
 
 pub(crate) mod google;
+pub(crate) mod kind;
 pub(crate) mod numpy;
 pub(crate) mod plain;
 pub mod text_block;
@@ -185,7 +185,7 @@ pub fn detect_style(input: &str) -> Style {
         }
 
         // NumPy: known section name followed by a dash underline.
-        if NumPySectionKind::is_known(&trimmed.to_ascii_lowercase())
+        if SectionName::is_known_numpy(&trimmed.to_ascii_lowercase())
             && lines.get(i + 1).is_some_and(|next| is_underline(next.trim()))
         {
             return Style::NumPy;
@@ -194,7 +194,7 @@ pub fn detect_style(input: &str) -> Style {
         // Google: known section name, optionally followed by `:`. The name
         // is trimmed the way the parser trims it, so `Args :` detects too.
         let name = trimmed.strip_suffix(':').map_or(trimmed, str::trim_end);
-        if GoogleSectionKind::is_known(&name.to_ascii_lowercase()) {
+        if SectionName::is_known_google(&name.to_ascii_lowercase()) {
             return Style::Google;
         }
     }

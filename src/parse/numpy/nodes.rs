@@ -15,7 +15,7 @@
 //! `source` argument: `param.names().next().unwrap().text()`.
 
 use crate::parse::EntryRole;
-use crate::parse::numpy::kind::NumPySectionKind;
+use crate::parse::kind::SectionName;
 use crate::parse::text_block::TextBlock;
 use crate::parse::text_block::find_text_block;
 use crate::parse::token_ref::TokenRef;
@@ -129,9 +129,9 @@ impl<'a> NumPySection<'a> {
     }
 
     /// Determine the section kind from the header name text.
-    pub fn section_kind(&self) -> NumPySectionKind {
+    pub fn section_kind(&self) -> SectionName {
         let name_text = self.header().name().text();
-        NumPySectionKind::from_name(&name_text.to_ascii_lowercase())
+        SectionName::from_numpy_name(&name_text.to_ascii_lowercase())
     }
 
     /// Iterate over the `ENTRY` children when this section's entries have

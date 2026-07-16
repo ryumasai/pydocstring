@@ -15,7 +15,7 @@
 //! `source` argument: `arg.name().text()`.
 
 use crate::parse::EntryRole;
-use crate::parse::google::kind::GoogleSectionKind;
+use crate::parse::kind::SectionName;
 use crate::parse::text_block::TextBlock;
 use crate::parse::text_block::find_text_block;
 use crate::parse::token_ref::TokenRef;
@@ -196,9 +196,9 @@ impl<'a> GoogleSection<'a> {
     }
 
     /// Determine the section kind from the header name text.
-    pub fn section_kind(&self) -> GoogleSectionKind {
+    pub fn section_kind(&self) -> SectionName {
         let name_text = self.header().name().text();
-        GoogleSectionKind::from_name(&name_text.to_ascii_lowercase())
+        SectionName::from_google_name(&name_text.to_ascii_lowercase())
     }
 
     /// Iterate over the `ENTRY` children when this section's entries have

@@ -5,7 +5,7 @@
 
 use crate::cursor::LineCursor;
 use crate::cursor::indent_len;
-use crate::parse::numpy::kind::NumPySectionKind;
+use crate::parse::kind::SectionName;
 use crate::parse::utils::build_leading_token_entry;
 use crate::parse::utils::build_paragraph;
 use crate::parse::utils::build_text_block;
@@ -58,7 +58,7 @@ fn try_detect_header(cursor: &LineCursor) -> Option<SectionHeaderInfo> {
     let header_col = cursor.current_indent();
     let underline_col = indent_len(underline_line);
     let normalized = header_trimmed.to_ascii_lowercase();
-    let kind = NumPySectionKind::from_name(&normalized);
+    let kind = SectionName::from_numpy_name(&normalized);
 
     Some(SectionHeaderInfo {
         range: cursor.make_range(
@@ -75,7 +75,7 @@ fn try_detect_header(cursor: &LineCursor) -> Option<SectionHeaderInfo> {
 
 struct SectionHeaderInfo {
     range: TextRange,
-    kind: NumPySectionKind,
+    kind: SectionName,
     name: TextRange,
     underline: TextRange,
 }
@@ -539,20 +539,20 @@ enum SectionBody {
 }
 
 impl SectionBody {
-    fn new(kind: NumPySectionKind) -> Self {
+    fn new(kind: SectionName) -> Self {
         match kind {
-            NumPySectionKind::Parameters => Self::Parameters(Vec::new()),
-            NumPySectionKind::OtherParameters => Self::Parameters(Vec::new()),
-            NumPySectionKind::Receives => Self::Parameters(Vec::new()),
-            NumPySectionKind::KeywordParameters => Self::Parameters(Vec::new()),
-            NumPySectionKind::Returns => Self::Returns(Vec::new()),
-            NumPySectionKind::Yields => Self::Yields(Vec::new()),
-            NumPySectionKind::Raises => Self::Raises(Vec::new()),
-            NumPySectionKind::Warns => Self::Warns(Vec::new()),
-            NumPySectionKind::SeeAlso => Self::SeeAlso(Vec::new()),
-            NumPySectionKind::References => Self::References(Vec::new()),
-            NumPySectionKind::Attributes => Self::Attributes(Vec::new()),
-            NumPySectionKind::Methods => Self::Methods(Vec::new()),
+            SectionName::Parameters => Self::Parameters(Vec::new()),
+            SectionName::OtherParameters => Self::Parameters(Vec::new()),
+            SectionName::Receives => Self::Parameters(Vec::new()),
+            SectionName::KeywordParameters => Self::Parameters(Vec::new()),
+            SectionName::Returns => Self::Returns(Vec::new()),
+            SectionName::Yields => Self::Yields(Vec::new()),
+            SectionName::Raises => Self::Raises(Vec::new()),
+            SectionName::Warns => Self::Warns(Vec::new()),
+            SectionName::SeeAlso => Self::SeeAlso(Vec::new()),
+            SectionName::References => Self::References(Vec::new()),
+            SectionName::Attributes => Self::Attributes(Vec::new()),
+            SectionName::Methods => Self::Methods(Vec::new()),
             _ => Self::FreeText(None),
         }
     }
@@ -822,7 +822,7 @@ mod tests {
     fn test_try_detect_header() {
         let c1 = LineCursor::new("Parameters\n----------");
         assert!(try_detect_header(&c1).is_some());
-        assert_eq!(try_detect_header(&c1).unwrap().kind, NumPySectionKind::Parameters);
+        assert_eq!(try_detect_header(&c1).unwrap().kind, SectionName::Parameters);
 
         let c2 = LineCursor::new("just text\nmore text");
         assert!(try_detect_header(&c2).is_none());
@@ -837,7 +837,7 @@ mod tests {
         assert!(try_detect_header(&c5).is_some());
         c5.line = 3;
         assert!(try_detect_header(&c5).is_some());
-        assert_eq!(try_detect_header(&c5).unwrap().kind, NumPySectionKind::Returns);
+        assert_eq!(try_detect_header(&c5).unwrap().kind, SectionName::Returns);
     }
 
     #[test]

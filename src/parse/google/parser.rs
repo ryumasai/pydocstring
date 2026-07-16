@@ -5,7 +5,7 @@
 
 use crate::cursor::LineCursor;
 use crate::cursor::indent_len;
-use crate::parse::google::kind::GoogleSectionKind;
+use crate::parse::kind::SectionName;
 use crate::parse::utils::build_leading_token_entry;
 use crate::parse::utils::build_paragraph;
 use crate::parse::utils::build_text_block;
@@ -230,7 +230,7 @@ fn parse_entry_header(cursor: &LineCursor, parse_type: bool) -> EntryHeader {
 /// Parsed section header info (internal representation before building SyntaxNode).
 struct SectionHeaderInfo {
     range: TextRange,
-    kind: GoogleSectionKind,
+    kind: SectionName,
     name: TextRange,
     colon: Option<TextRange>,
     indent_columns: usize,
@@ -247,7 +247,7 @@ fn try_parse_section_header(cursor: &LineCursor) -> Option<SectionHeaderInfo> {
     let is_header = if has_colon {
         !name.contains(':') && name.chars().all(|c| c.is_alphanumeric() || c.is_ascii_whitespace())
     } else {
-        GoogleSectionKind::is_known(&name.to_ascii_lowercase())
+        SectionName::is_known_google(&name.to_ascii_lowercase())
     };
 
     if !is_header {
@@ -265,7 +265,7 @@ fn try_parse_section_header(cursor: &LineCursor) -> Option<SectionHeaderInfo> {
     };
 
     let normalized = header_name.to_ascii_lowercase();
-    let kind = GoogleSectionKind::from_name(&normalized);
+    let kind = SectionName::from_google_name(&normalized);
 
     Some(SectionHeaderInfo {
         range: cursor.current_trimmed_range(),
@@ -612,20 +612,20 @@ enum SectionBody {
 
 impl SectionBody {
     #[rustfmt::skip]
-    fn new(kind: GoogleSectionKind) -> Self {
+    fn new(kind: SectionName) -> Self {
         match kind {
-            GoogleSectionKind::Args => Self::Args(ArgRole::Arg, Vec::new()),
-            GoogleSectionKind::KeywordArgs => Self::Args(ArgRole::Arg, Vec::new()),
-            GoogleSectionKind::OtherParameters => Self::Args(ArgRole::Arg, Vec::new()),
-            GoogleSectionKind::Receives => Self::Args(ArgRole::Arg, Vec::new()),
-            GoogleSectionKind::Attributes => Self::Args(ArgRole::Attribute, Vec::new()),
-            GoogleSectionKind::Methods => Self::Args(ArgRole::Method, Vec::new()),
-            GoogleSectionKind::Returns => Self::Returns(ReturnsState::new()),
-            GoogleSectionKind::Yields => Self::Returns(ReturnsState::new()),
-            GoogleSectionKind::Raises => Self::Raises(Vec::new()),
-            GoogleSectionKind::Warns => Self::Warns(Vec::new()),
-            GoogleSectionKind::SeeAlso => Self::SeeAlso(Vec::new()),
-            GoogleSectionKind::References => Self::References(Vec::new()),
+            SectionName::Parameters => Self::Args(ArgRole::Arg, Vec::new()),
+            SectionName::KeywordParameters => Self::Args(ArgRole::Arg, Vec::new()),
+            SectionName::OtherParameters => Self::Args(ArgRole::Arg, Vec::new()),
+            SectionName::Receives => Self::Args(ArgRole::Arg, Vec::new()),
+            SectionName::Attributes => Self::Args(ArgRole::Attribute, Vec::new()),
+            SectionName::Methods => Self::Args(ArgRole::Method, Vec::new()),
+            SectionName::Returns => Self::Returns(ReturnsState::new()),
+            SectionName::Yields => Self::Returns(ReturnsState::new()),
+            SectionName::Raises => Self::Raises(Vec::new()),
+            SectionName::Warns => Self::Warns(Vec::new()),
+            SectionName::SeeAlso => Self::SeeAlso(Vec::new()),
+            SectionName::References => Self::References(Vec::new()),
             _ => Self::FreeText(None),
         }
     }
