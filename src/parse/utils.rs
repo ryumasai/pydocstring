@@ -624,10 +624,10 @@ pub(crate) fn try_parse_bracket_entry(text: &str) -> Option<BracketEntry<'_>> {
     })?;
 
     // The bracket must appear before any top-level colon.
-    if let Some(colon_pos) = find_entry_colon(text) {
-        if colon_pos < bracket_pos {
-            return None;
-        }
+    if let Some(colon_pos) = find_entry_colon(text)
+        && colon_pos < bracket_pos
+    {
+        return None;
     }
 
     let close_pos = find_matching_close(text, bracket_pos)?;
@@ -722,10 +722,10 @@ pub(crate) fn find_entry_open_bracket(text: &str) -> Option<usize> {
     })?;
 
     // The bracket must appear before any top-level colon.
-    if let Some(colon_pos) = find_entry_colon(text) {
-        if colon_pos < bracket_pos {
-            return None;
-        }
+    if let Some(colon_pos) = find_entry_colon(text)
+        && colon_pos < bracket_pos
+    {
+        return None;
     }
 
     Some(bracket_pos)
@@ -810,12 +810,12 @@ fn extend_last_ref_content(nodes: &mut [SyntaxElement], cont: TextRange) {
     if let Some(SyntaxElement::Node(node)) = nodes.last_mut() {
         let mut found_content = false;
         for child in node.children_mut() {
-            if let SyntaxElement::Node(n) = child {
-                if n.kind() == SyntaxKind::DESCRIPTION {
-                    extend_text_block(n, cont);
-                    found_content = true;
-                    break;
-                }
+            if let SyntaxElement::Node(n) = child
+                && n.kind() == SyntaxKind::DESCRIPTION
+            {
+                extend_text_block(n, cont);
+                found_content = true;
+                break;
             }
         }
         if !found_content {
@@ -836,11 +836,11 @@ pub(crate) fn process_reference_line(
     entry_indent: &mut Option<usize>,
 ) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_ref_content(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_ref_content(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);

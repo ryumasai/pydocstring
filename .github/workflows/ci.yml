@@ -55,6 +55,33 @@ jobs:
       - name: Run tests
         run: just test
 
+  # The README's MSRV badge has a job behind it: the crate must at least
+  # *check* on rust-version from Cargo.toml, or the badge rots silently.
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Rust 1.88 (MSRV)
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: "1.88"
+
+      - name: Install just
+        uses: extractions/setup-just@v4
+
+      - name: Cache cargo
+        uses: actions/cache@v6
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-msrv-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Check on MSRV
+        run: just msrv
+
   python-test:
     runs-on: ubuntu-latest
     steps:

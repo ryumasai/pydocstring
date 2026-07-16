@@ -33,6 +33,12 @@ doc:
 api-parity: py-dev
     python3 scripts/api_parity.py
 
+# Check the crate builds on the MSRV the README badge advertises (#151).
+# Requires the toolchain: `rustup toolchain install 1.88`. Keep the version in
+# lockstep with `rust-version` in Cargo.toml.
+msrv:
+    cargo +1.88 check --all-targets
+
 # Build the crate
 build:
     cargo build
@@ -101,8 +107,16 @@ py-coverage: py-dev
 py-typecheck: py-dev
     cd {{py_dir}} && uv run ty check
 
-# All Python checks CI runs: lint, type-check, tests
-py-ci: py-lint py-typecheck py-test
+# The .pyi stubs must match the built extension (#149): stubtest imports the
+# runtime module and diffs it against the stubs — signatures, members,
+# defaults. The stubs are the one hand-written mirror `api-parity` cannot see
+# (it checks existence Rust→Python, not stub accuracy), and `ty check` only
+# exercises the slices the tests happen to touch.
+py-stubtest: py-dev
+    cd {{py_dir}} && uv run python -m mypy.stubtest pydocstring._pydocstring
+
+# All Python checks CI runs: lint, type-check, stub-runtime parity, tests
+py-ci: py-lint py-typecheck py-stubtest py-test
 
 # ---- Aggregates --------------------------------------------------------------
 
