@@ -20,9 +20,11 @@ use crate::syntax::Parsed;
 
 pub(crate) mod google;
 pub(crate) mod kind;
+pub(crate) mod nodes;
 pub(crate) mod numpy;
 pub(crate) mod plain;
 pub mod text_block;
+pub(crate) mod to_model;
 pub mod token_ref;
 pub(crate) mod trivia;
 pub mod unified;
@@ -56,14 +58,7 @@ impl Parsed {
     /// assert_eq!(model.summary.as_deref(), Some("Summary."));
     /// ```
     pub fn to_model(&self) -> Docstring {
-        let model = match self.style() {
-            Style::Google => google::to_model::to_model(self),
-            Style::NumPy => numpy::to_model::to_model(self),
-            Style::Plain => plain::to_model::to_model(self),
-        };
-        // Each per-style converter returns `None` only on a style mismatch,
-        // which the dispatch above rules out.
-        model.expect("to_model dispatched on the parsed style")
+        to_model::to_model(self)
     }
 }
 

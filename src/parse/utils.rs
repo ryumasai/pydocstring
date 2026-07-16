@@ -32,16 +32,6 @@ pub(crate) fn convert_directives(parsed: &Parsed) -> Vec<crate::model::Directive
         .collect()
 }
 
-/// Whether a `DIRECTIVE` node's name token reads `deprecated`.
-///
-/// The typed deprecation accessors and the visitor's directive routing only
-/// recognize `deprecated`-named directives; other directive names are
-/// silently skipped for now.
-pub(crate) fn directive_is_deprecated(parsed: &Parsed, node: &SyntaxNode) -> bool {
-    node.find_token(SyntaxKind::DIRECTIVE_NAME)
-        .is_some_and(|t| t.text(parsed.source()) == "deprecated")
-}
-
 // =============================================================================
 // Text block builders (shared by all parsers)
 // =============================================================================
