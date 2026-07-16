@@ -418,11 +418,23 @@ fn numpy_section_reading_is_primary() {
 /// Section reading — entry tier first.
 #[test]
 fn colon_quirk_has_both_readings() {
-    let p = Pattern::new(Style::Google, "x:").unwrap();
+    // A KNOWN name with a colon reads both as an entry and as a section
+    // header; entry readings enumerate first.
+    let p = Pattern::new(Style::Google, "Returns:").unwrap();
     let kinds: Vec<FragmentKind> = p.readings().iter().map(|r| r.fragment_kind()).collect();
     let entry_pos = kinds.iter().position(|k| *k == FragmentKind::Entry).unwrap();
     let section_pos = kinds.iter().position(|k| *k == FragmentKind::Section).unwrap();
     assert!(entry_pos < section_pos, "entry readings enumerate before Section");
+
+    // An UNKNOWN name has no Section reading at all since #143: the parsers
+    // are napoleon-strict, so `x:` cannot be a section header — the pattern
+    // grammar follows the document grammar by construction.
+    let p = Pattern::new(Style::Google, "x:").unwrap();
+    let kinds: Vec<FragmentKind> = p.readings().iter().map(|r| r.fragment_kind()).collect();
+    assert!(
+        !kinds.contains(&FragmentKind::Section),
+        "unknown `x:` must not read as a section"
+    );
 
     let entry = primary(&p);
     assert!(entry.section_kinds().contains(&SectionKind::Parameters));

@@ -2848,16 +2848,45 @@ fn rewrite_findall_in(
 // Module functions
 // =============================================================================
 
+/// Build core ``ParseOptions`` from the ``custom_sections`` keyword.
+fn parse_options(custom_sections: Option<Vec<String>>) -> pydocstring_core::parse::ParseOptions {
+    let opts = pydocstring_core::parse::ParseOptions::new();
+    match custom_sections {
+        Some(names) => opts.with_custom_sections(names),
+        None => opts,
+    }
+}
+
 /// Parse a Google-style docstring.
+///
+/// By default only *known* section names are headers — prose ending in a
+/// colon stays prose, exactly as napoleon reads it. ``custom_sections``
+/// registers additional names (case-insensitively), like napoleon's
+/// ``napoleon_custom_sections``: a registered name parses as a free-text
+/// section carrying its header text
+/// (``SectionKind.FREE_TEXT`` / ``unknown_name``).
 #[pyfunction]
-fn parse_google(py: Python<'_>, input: &str) -> PyResult<Py<PyParsed>> {
-    build_parsed(py, pydocstring_core::parse::parse_google(input))
+#[pyo3(signature = (input, *, custom_sections=None))]
+fn parse_google(py: Python<'_>, input: &str, custom_sections: Option<Vec<String>>) -> PyResult<Py<PyParsed>> {
+    build_parsed(
+        py,
+        pydocstring_core::parse::parse_google_with(input, &parse_options(custom_sections)),
+    )
 }
 
 /// Parse a NumPy-style docstring.
+///
+/// By default only *known* section names are headers — a dash run underlines
+/// nothing else, exactly as napoleon reads it. ``custom_sections`` registers
+/// additional names (case-insensitively), like napoleon's
+/// ``napoleon_custom_sections``.
 #[pyfunction]
-fn parse_numpy(py: Python<'_>, input: &str) -> PyResult<Py<PyParsed>> {
-    build_parsed(py, pydocstring_core::parse::parse_numpy(input))
+#[pyo3(signature = (input, *, custom_sections=None))]
+fn parse_numpy(py: Python<'_>, input: &str, custom_sections: Option<Vec<String>>) -> PyResult<Py<PyParsed>> {
+    build_parsed(
+        py,
+        pydocstring_core::parse::parse_numpy_with(input, &parse_options(custom_sections)),
+    )
 }
 
 /// Parse a plain docstring (no section markers).

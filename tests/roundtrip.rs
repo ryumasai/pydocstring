@@ -53,6 +53,13 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     "numpy->google: numpy/returns/returns_multiline_description.txt",
     "numpy->google: numpy/returns/returns_no_spaces_around_colon.txt",
     "numpy->google: numpy/returns/yields_named.txt",
+    // #147 napoleon-strict headers: an unregistered underlined name is not
+    // a header, so its lines are absorbed into the preceding section as
+    // bare entries — exactly napoleon's reading of the same input. The
+    // absorbed name/dash/prose lines have no faithful Google spelling: a
+    // bare `Extra info.` parameter emits as `Extra info.:`, which re-parses
+    // with the colon.
+    "numpy->google: numpy/structured/unknown_section_with_known_sections.txt",
     //
     // ---- realworld corpus ----
     //
@@ -131,11 +138,10 @@ const KNOWN_CONVERSION_FAILURES: &[&str] = &[
     // Free-text fidelity through the google round trip:
     // numpy/where — a `::` literal block inside Notes loses its 4-space base
     // indent on google re-parse (plus the named-return limit).
-    // numpy/dtype — a numpy unknown section whose header is a signature line
-    // (`dtype(...)` underlined with `--` in the real docstring) has no valid
-    // google header form; its google spelling re-parses as summary text.
     "numpy->google: third_party/numpy/numpy/where.txt",
-    "numpy->google: third_party/numpy/numpy/dtype.txt",
+    // (numpy/dtype's entry was removed by #147: the signature line underlined
+    // with `--` no longer pseudo-parses as a section, so the conversion law
+    // holds again.)
     //
     // ---- scverse corpus (anndata / scanpy — the #26 reporters' ecosystem) ----
     //

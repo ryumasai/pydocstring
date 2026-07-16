@@ -10,3 +10,4 @@
 pub(crate) mod parser;
 
 pub use parser::parse_google;
+pub use parser::parse_google_with;

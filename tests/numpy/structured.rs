@@ -60,12 +60,16 @@ fn test_methods_with_colon() {
 // Unknown section
 // =============================================================================
 
-/// SPEC: an unrecognized header with a valid underline still forms a section
-/// (kind Unknown) instead of being swallowed into the previous section.
+/// SPEC: a *registered* custom header with a valid underline forms a section
+/// (kind Unknown) instead of being swallowed into the previous section; by
+/// default the same lines are prose (napoleon's line, #147).
 #[test]
 fn test_unknown_section() {
     let docstring = "Summary.\n\nCustomSection\n-------------\nSome custom content.\n";
-    let result = parse_numpy(docstring);
+    assert_eq!(all_sections(&parse_numpy(docstring)).len(), 0);
+
+    let opts = ParseOptions::new().with_custom_sections(["CustomSection"]);
+    let result = parse_numpy_with(docstring, &opts);
     let s = all_sections(&result);
     assert_eq!(s.len(), 1);
     assert_eq!(

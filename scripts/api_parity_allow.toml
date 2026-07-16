@@ -10,8 +10,13 @@
 # would ask: what do I do instead?
 
 [functions]
+"parse::parse_google_with" = "Folded into parse_google's custom_sections keyword. See parse::ParseOptions."
+"parse::parse_numpy_with" = "Folded into parse_numpy's custom_sections keyword. See parse::ParseOptions."
+
 
 [types]
+"parse::ParseOptions" = "Python spells the options as keywords: parse_google(src, custom_sections=[...]). A kwargs surface is the Python idiom; a builder object would be a Rust-ism."
+
 "pattern::Pattern" = "Python takes a pattern *string* — `parsed.replace(pattern, template)`. The compiled Pattern and its reading machinery stay in Rust; exposing it means exposing Reading/MetaVar/MetaVarSite/FragmentKind too, for no capability the string does not already give."
 "pattern::Reading" = "See pattern::Pattern — the ambiguity machinery a pattern string hides."
 "pattern::MetaVar" = "See pattern::Pattern."
@@ -25,6 +30,9 @@
 "model::FreeSectionKind" = "Rust models free-text sections as `SectionKind::FreeText(FreeSectionKind)`; Python flattens that to `SectionKind.NOTES` and friends. The nesting is a Rust structural detail, not a concept."
 
 [methods]
+"parse::ParseOptions::new" = "See parse::ParseOptions — keywords, not a builder."
+"parse::ParseOptions::with_custom_sections" = "See parse::ParseOptions — keywords, not a builder."
+
 # ── Constructors for things Python never builds by hand ──────────────────────
 "syntax::Parsed::new" = "A `Parsed` comes from a parser, never from a constructor."
 "syntax::SyntaxNode::new" = "Python reads the CST, it does not build trees. There is no way to produce one that satisfies the coverage/ordering invariants from Python, and no reason to want to."

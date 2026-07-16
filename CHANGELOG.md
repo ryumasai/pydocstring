@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Section-header recognition is napoleon-strict**
+  ([#143](https://github.com/ryumasai/pydocstring/issues/143),
+  [#147](https://github.com/ryumasai/pydocstring/issues/147)). Only *known*
+  section names are headers now: prose ending in a colon stays prose (Google),
+  and a dash run underlines nothing but a known name (NumPy) — a reST
+  transition in a docstring no longer splits it. This is exactly the line
+  napoleon draws, so it is testable against the spec; the napoleon
+  differential's divergence ledger shrank with it. Unknown names become
+  headers again by **opt-in registration**, mirroring napoleon's
+  `napoleon_custom_sections`: `ParseOptions::new().with_custom_sections([...])`
+  + `parse_google_with`/`parse_numpy_with` in Rust,
+  `parse_google(src, custom_sections=[...])` in Python.
+- **Zero-indent Google sections end at a blank line followed by a non-entry
+  line** ([#146](https://github.com/ryumasai/pydocstring/issues/146)).
+  Trailing prose after a zero-indent body used to be swallowed as a bogus
+  `Parameter`; it is a document-level paragraph now. A blank line followed by
+  an entry-shaped line (or a bare name owning an indented definition) still
+  continues the body, and free-text bodies still span paragraphs.
+- `detect_style` fires only on known section names, in both styles, so it can
+  no longer disagree with the parsers it dispatches to
+  ([#142](https://github.com/ryumasai/pydocstring/issues/142)).
+
 ## [0.4.1] - 2026-07-14
 
 Closing the Rust↔Python capability gaps that surfaced while porting a real

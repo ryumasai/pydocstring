@@ -259,12 +259,19 @@ fn test_all_section_kinds_exist() {
     assert_eq!(kinds.len(), 23);
 }
 
-/// CONTRACT: an unrecognised header name yields `FreeText(Unknown(name))`,
-/// carrying the header text as written; a known name (matched
+/// CONTRACT: a *registered* custom name yields `FreeText(Unknown(name))`,
+/// carrying the header text as written; unregistered unknown names are not
+/// headers at all (napoleon's line, #147); a known name (matched
 /// case-insensitively) yields its kind.
 #[test]
 fn test_section_kind_from_name_unknown() {
-    let result = parse_numpy("Summary.\n\nnonexistent\n-----------\nBody.\n");
+    let src = "Summary.\n\nnonexistent\n-----------\nBody.\n";
+
+    // Strict default: no section — the dash run underlines nothing known.
+    assert_eq!(all_sections(&parse_numpy(src)).len(), 0);
+
+    let opts = ParseOptions::new().with_custom_sections(["nonexistent"]);
+    let result = parse_numpy_with(src, &opts);
     assert_eq!(
         all_sections(&result)[0].kind(),
         SectionKind::FreeText(FreeSectionKind::Unknown("nonexistent".to_owned()))

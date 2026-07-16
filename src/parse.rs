@@ -32,7 +32,9 @@ pub mod unified;
 pub(crate) mod utils;
 
 pub use google::parse_google;
+pub use google::parse_google_with;
 pub use numpy::parse_numpy;
+pub use numpy::parse_numpy_with;
 pub use plain::parse_plain;
 pub use text_block::TextBlock;
 pub use token_ref::TokenRef;
@@ -64,8 +66,64 @@ impl Parsed {
 }
 
 // =============================================================================
-// Style
+// ParseOptions
 // =============================================================================
+
+/// Options for the style parsers.
+///
+/// Mirrors napoleon's `napoleon_custom_sections`: by default only *known*
+/// section names are headers — prose ending in a colon stays prose, and a
+/// dash run underlines nothing but a known name (#143/#147, napoleon's own
+/// line). An unknown name becomes a header only when registered here, and
+/// parses as a free-text section carrying its header text
+/// (`SectionKind::FreeText(FreeSectionKind::Unknown(name))`).
+///
+/// ```rust
+/// use pydocstring::parse::{ParseOptions, parse_google_with};
+/// use pydocstring::model::SectionKind;
+///
+/// let opts = ParseOptions::new().with_custom_sections(["Side Effects"]);
+/// let parsed = parse_google_with("Summary.\n\nSide Effects:\n    Logs.\n", &opts);
+/// let model = parsed.to_model();
+/// assert!(matches!(model.sections[0].kind, SectionKind::FreeText(_)));
+///
+/// // Unregistered, the same line is prose (napoleon-strict default):
+/// let plain = pydocstring::parse::parse_google("Summary.\n\nSide Effects:\n    Logs.\n");
+/// assert!(plain.to_model().sections.is_empty());
+/// ```
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ParseOptions {
+    /// Registered custom section names, lowercased.
+    custom_sections: Vec<String>,
+}
+
+impl ParseOptions {
+    /// Napoleon-strict defaults: known section names only.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Register section names to recognize in addition to the known set,
+    /// case-insensitively — napoleon's `napoleon_custom_sections`.
+    pub fn with_custom_sections<I, S>(mut self, names: I) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<str>,
+    {
+        self.custom_sections
+            .extend(names.into_iter().map(|s| s.as_ref().to_ascii_lowercase()));
+        self
+    }
+
+    /// Whether a **lowercased** name is a registered custom section.
+    pub(crate) fn is_custom_section(&self, lowercased_name: &str) -> bool {
+        self.custom_sections.iter().any(|s| s == lowercased_name)
+    }
+}
+
+// =============================================================================
+// Style
+// ==============================================================================
 
 /// Docstring style identifier.
 ///

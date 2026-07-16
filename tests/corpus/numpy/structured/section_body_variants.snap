@@ -102,7 +102,7 @@ DOCUMENT@0..387 {
   }
   NEWLINE: "\n"@214..215
   BLANK_LINE: "\n"@215..216
-  SECTION@216..248 {
+  SECTION@216..291 {
     SECTION_HEADER@216..233 {
       NAME: "See Also"@216..224
       NEWLINE: "\n"@224..225
@@ -118,18 +118,18 @@ DOCUMENT@0..387 {
         TEXT_LINE: "Desc."@243..248
       }
     }
-  }
-  NEWLINE: "\n"@248..249
-  BLANK_LINE: "\n"@249..250
-  SECTION@250..291 {
-    SECTION_HEADER@250..277 {
+    NEWLINE: "\n"@248..249
+    BLANK_LINE: "\n"@249..250
+    ENTRY@250..263 {
       NAME: "CustomSection"@250..263
-      NEWLINE: "\n"@263..264
-      UNDERLINE: "-------------"@264..277
+    }
+    NEWLINE: "\n"@263..264
+    ENTRY@264..277 {
+      NAME: "-------------"@264..277
     }
     NEWLINE: "\n"@277..278
-    DESCRIPTION@278..291 {
-      TEXT_LINE: "Some content."@278..291
+    ENTRY@278..291 {
+      NAME: "Some content."@278..291
     }
   }
   NEWLINE: "\n"@291..292
@@ -214,7 +214,6 @@ See Also
 --------
 func_a
     Desc.
-
 CustomSection
 -------------
 Some content.

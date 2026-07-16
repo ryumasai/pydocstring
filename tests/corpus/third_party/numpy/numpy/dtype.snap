@@ -1,26 +1,24 @@
 === CST ===
 DOCUMENT@0..2486 {
-  SECTION@0..303 {
-    SECTION_HEADER@0..50 {
-      NAME: "dtype(dtype, align=False, copy=False, **kwargs)"@0..47
-      NEWLINE: "\n"@47..48
-      UNDERLINE: "--"@48..50
-    }
-    NEWLINE: "\n"@50..51
-    BLANK_LINE: "\n"@51..52
-    DESCRIPTION@52..303 {
-      TEXT_LINE: "dtype(dtype, align=False, copy=False, [metadata])"@52..101
-      NEWLINE: "\n"@101..102
-      BLANK_LINE: "\n"@102..103
-      TEXT_LINE: "Create a data type object."@103..129
-      NEWLINE: "\n"@129..130
-      BLANK_LINE: "\n"@130..131
-      TEXT_LINE: "A numpy array is homogeneous, and contains elements described by a"@131..197
-      NEWLINE: "\n"@197..198
-      TEXT_LINE: "dtype object. A dtype object can be constructed from different"@198..260
-      NEWLINE: "\n"@260..261
-      TEXT_LINE: "combinations of fundamental numeric types."@261..303
-    }
+  SUMMARY@0..50 {
+    TEXT_LINE: "dtype(dtype, align=False, copy=False, **kwargs)"@0..47
+    NEWLINE: "\n"@47..48
+    TEXT_LINE: "--"@48..50
+  }
+  NEWLINE: "\n"@50..51
+  BLANK_LINE: "\n"@51..52
+  EXTENDED_SUMMARY@52..303 {
+    TEXT_LINE: "dtype(dtype, align=False, copy=False, [metadata])"@52..101
+    NEWLINE: "\n"@101..102
+    BLANK_LINE: "\n"@102..103
+    TEXT_LINE: "Create a data type object."@103..129
+    NEWLINE: "\n"@129..130
+    BLANK_LINE: "\n"@130..131
+    TEXT_LINE: "A numpy array is homogeneous, and contains elements described by a"@131..197
+    NEWLINE: "\n"@197..198
+    TEXT_LINE: "dtype object. A dtype object can be constructed from different"@198..260
+    NEWLINE: "\n"@260..261
+    TEXT_LINE: "combinations of fundamental numeric types."@261..303
   }
   NEWLINE: "\n"@303..304
   BLANK_LINE: "\n"@304..305
@@ -216,7 +214,8 @@ DOCUMENT@0..2486 {
 }
 === EMIT ===
 dtype(dtype, align=False, copy=False, **kwargs)
------------------------------------------------
+--
+
 dtype(dtype, align=False, copy=False, [metadata])
 
 Create a data type object.

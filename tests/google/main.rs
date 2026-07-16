@@ -11,8 +11,10 @@
 
 pub use pydocstring::model::FreeSectionKind;
 pub use pydocstring::model::SectionKind;
+pub use pydocstring::parse::ParseOptions;
 pub use pydocstring::parse::TextBlock;
 pub use pydocstring::parse::parse_google;
+pub use pydocstring::parse::parse_google_with;
 pub use pydocstring::parse::unified::Citation;
 pub use pydocstring::parse::unified::Directive;
 pub use pydocstring::parse::unified::Document;

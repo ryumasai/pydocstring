@@ -94,6 +94,34 @@ assert_eq!(detect_style("Just a summary."), Style::Plain);
 `Style::Plain` covers docstrings with no recognised section markers: summary-only,
 summary + extended summary, and unrecognised styles such as Sphinx.
 
+### Custom Sections
+
+Header recognition is napoleon-strict: only known section names are headers,
+so prose ending in a colon stays prose and a reST transition never splits a
+NumPy docstring. Unknown names become sections by explicit registration —
+napoleon's `custom_sections`, same idea:
+
+```rust
+use pydocstring::model::SectionKind;
+use pydocstring::parse::{ParseOptions, parse_google, parse_google_with};
+
+let src = "Summary.\n\nSide Effects:\n    Logs a warning.\n";
+
+// Default: not a known section name, so it reads as prose.
+assert!(parse_google(src).to_model().sections.is_empty());
+
+// Registered: a free-text section carrying its header text.
+let opts = ParseOptions::new().with_custom_sections(["Side Effects"]);
+let model = parse_google_with(src, &opts).to_model();
+assert!(matches!(model.sections[0].kind, SectionKind::FreeText(_)));
+```
+
+Python spells the registration as a keyword:
+
+```python
+doc = pydocstring.parse_google(src, custom_sections=["Side Effects"])
+```
+
 ### Unified Auto-Detecting Parser
 
 Use `parse()` to let the library detect the style and parse in one step:

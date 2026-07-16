@@ -161,6 +161,25 @@ pub(crate) trait Dialect {
 
     /// Whether a line at (or above) the header's indent closes the section.
     fn flush_by_indent(&self) -> bool;
+
+    /// Whether the cursor's line has entry shape for this dialect's entry
+    /// grammar (drives the blank-line close rule, #146). The default keeps
+    /// every line — NumPy sections run to the next header, blank lines
+    /// included, exactly as napoleon reads them.
+    fn line_starts_entry(&self, _cursor: &LineCursor) -> bool {
+        true
+    }
+}
+
+/// Whether the cursor's line owns a deeper-indented continuation line — a
+/// bare name/type whose definition follows (`foo()` + indented description
+/// is an entry, not prose).
+fn owns_continuation(cursor: &LineCursor) -> bool {
+    let next = cursor.line + 1;
+    next < cursor.total_lines() && {
+        let text = cursor.line_text(next);
+        !text.trim().is_empty() && crate::cursor::indent_columns(text) > cursor.current_indent_columns()
+    }
 }
 
 // =============================================================================
@@ -259,11 +278,18 @@ pub(crate) fn parse_document(input: &str, dialect: &dyn Dialect) -> Parsed {
     let mut para_first: Option<usize> = None;
     let mut para_last: usize = 0;
 
+    // Whether a blank line separates the current section's last body line
+    // from the cursor (drives the blank-line close rule, #146).
+    let mut saw_blank_in_section = false;
+
     while !cursor.is_eof() {
         // --- Blank lines split stray-line paragraphs (reST semantics) ---
         if cursor.current_trimmed().is_empty() {
             if let Some(first) = para_first.take() {
                 root_children.push(SyntaxElement::Node(build_paragraph(&cursor, first, para_last)));
+            }
+            if current_header.is_some() {
+                saw_blank_in_section = true;
             }
             cursor.advance();
             continue;
@@ -286,6 +312,7 @@ pub(crate) fn parse_document(input: &str, dialect: &dyn Dialect) -> Parsed {
             current_header = Some(header_info);
             entry_indent = None;
             body_is_deeper = None;
+            saw_blank_in_section = false;
             continue;
         }
 
@@ -317,6 +344,29 @@ pub(crate) fn parse_document(input: &str, dialect: &dyn Dialect) -> Parsed {
             }
         }
 
+        // --- Blank-line close (#146) ---
+        //
+        // In a body that is not strictly deeper than its header (the
+        // zero-indent leniency napoleon does not even read), a blank line
+        // followed by a base-indent line without entry shape ends the
+        // section: trailing prose is not a parameter. Entries bodies only —
+        // free-text bodies span paragraphs by design, and napoleon's NumPy
+        // sections run to the next header, blank lines included
+        // (`flush_by_indent` gates the rule to dialects that close early).
+        if dialect.flush_by_indent()
+            && saw_blank_in_section
+            && !matches!(body_is_deeper, Some(true))
+            && matches!(current_body, Some(SectionBody::Entries(..)))
+            && entry_indent.is_none_or(|base| cursor.current_indent_columns() <= base)
+            && !dialect.line_starts_entry(&cursor)
+            && !owns_continuation(&cursor)
+            && let Some(prev_header) = current_header.take()
+        {
+            let node = flush_section(&cursor, prev_header, current_body.take().unwrap());
+            root_children.push(SyntaxElement::Node(node));
+            body_is_deeper = None;
+        }
+
         // --- Body line or stray prose ---
         if let Some(body) = current_body.as_mut() {
             if dialect.flush_by_indent() && body_is_deeper.is_none() {
@@ -324,6 +374,7 @@ pub(crate) fn parse_document(input: &str, dialect: &dyn Dialect) -> Parsed {
                 body_is_deeper = Some(current_header.as_ref().is_some_and(|h| entry_l > h.indent_columns));
             }
             body.process_line(&cursor, &mut entry_indent);
+            saw_blank_in_section = false;
         } else {
             // Stray prose line: accumulate into the pending paragraph run
             // (consecutive lines separated only by a newline form one

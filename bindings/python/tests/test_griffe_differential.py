@@ -124,6 +124,14 @@ _PROSE_RETURNS = (
 )
 
 KNOWN_GRIFFE_DIVERGENCES: dict[str, str] = {
+    # #147 napoleon-strict headers: an unregistered underlined name is not a
+    # header, so its lines are absorbed into the preceding section — exactly
+    # napoleon's reading (that differential now matches here). griffe instead
+    # drops the lines entirely; the two oracles disagree, and napoleon is the
+    # spec.
+    "numpy/structured/unknown_section_with_known_sections.txt": (
+        "absorbed unknown-section lines: napoleon leaks them into :param: fields (we match); griffe drops them"
+    ),
     # ── our richer type brackets ─────────────────────────────────────────────
     "google/args/args_angle_bracket_type.txt": _BRACKET,
     "google/args/args_curly_bracket_type.txt": _BRACKET,

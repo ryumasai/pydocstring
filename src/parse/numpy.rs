@@ -10,3 +10,4 @@
 pub(crate) mod parser;
 
 pub use parser::parse_numpy;
+pub use parser::parse_numpy_with;

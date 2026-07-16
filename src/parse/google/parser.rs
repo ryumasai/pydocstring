@@ -4,6 +4,7 @@
 //! containing a tree of [`SyntaxNode`]s and [`SyntaxToken`]s.
 
 use crate::cursor::LineCursor;
+use crate::parse::ParseOptions;
 use crate::parse::dispatch::Dialect;
 use crate::parse::dispatch::HeaderMarker;
 use crate::parse::dispatch::SectionBody;
@@ -228,7 +229,7 @@ fn parse_entry_header(cursor: &LineCursor, parse_type: bool) -> EntryHeader {
 // Section header parsing
 // =============================================================================
 
-fn try_parse_section_header(cursor: &LineCursor) -> Option<SectionHeaderInfo> {
+fn try_parse_section_header(cursor: &LineCursor, options: &ParseOptions) -> Option<SectionHeaderInfo> {
     let trimmed = cursor.current_trimmed();
     let (name, has_colon) = extract_section_name(trimmed);
 
@@ -236,10 +237,16 @@ fn try_parse_section_header(cursor: &LineCursor) -> Option<SectionHeaderInfo> {
         return None;
     }
 
+    // napoleon's line (#143): only a *known* (or explicitly registered)
+    // section name is a header — prose ending in a colon stays prose. The
+    // colon-less spelling is a leniency for known names only.
+    let lower = name.to_ascii_lowercase();
     let is_header = if has_colon {
-        !name.contains(':') && name.chars().all(|c| c.is_alphanumeric() || c.is_ascii_whitespace())
+        !name.contains(':')
+            && name.chars().all(|c| c.is_alphanumeric() || c.is_ascii_whitespace())
+            && (SectionName::is_known_google(&lower) || options.is_custom_section(&lower))
     } else {
-        SectionName::is_known_google(&name.to_ascii_lowercase())
+        SectionName::is_known_google(&lower)
     };
 
     if !is_header {
@@ -575,9 +582,11 @@ fn process_method_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entr
 
 /// The Google dialect: `Name:` headers, indent-flushed sections, collapsed
 /// Returns/Yields bodies.
-struct GoogleDialect;
+struct GoogleDialect<'a> {
+    options: &'a ParseOptions,
+}
 
-impl Dialect for GoogleDialect {
+impl Dialect for GoogleDialect<'_> {
     fn style(&self) -> crate::parse::Style {
         crate::parse::Style::Google
     }
@@ -590,7 +599,7 @@ impl Dialect for GoogleDialect {
         if !may_be_header {
             return None;
         }
-        try_parse_section_header(cursor)
+        try_parse_section_header(cursor, self.options)
     }
 
     #[rustfmt::skip]
@@ -614,6 +623,14 @@ impl Dialect for GoogleDialect {
 
     fn flush_by_indent(&self) -> bool {
         true
+    }
+
+    /// Entry shape for the blank-line close rule (#146): a top-level colon
+    /// (`x: desc`, `x (int): desc`). Bare names owning an indented
+    /// definition are kept by the dispatcher's continuation lookahead.
+    fn line_starts_entry(&self, cursor: &LineCursor) -> bool {
+        find_entry_open_bracket(cursor.current_trimmed()).is_some()
+            || crate::parse::utils::find_entry_colon(cursor.current_trimmed()).is_some()
     }
 }
 
@@ -642,7 +659,13 @@ impl Dialect for GoogleDialect {
 /// assert_eq!(sections.len(), 2);
 /// ```
 pub fn parse_google(input: &str) -> Parsed {
-    crate::parse::dispatch::parse_document(input, &GoogleDialect)
+    parse_google_with(input, &ParseOptions::new())
+}
+
+/// Parse a Google-style docstring with explicit [`ParseOptions`] (e.g.
+/// registered custom sections).
+pub fn parse_google_with(input: &str, options: &ParseOptions) -> Parsed {
+    crate::parse::dispatch::parse_document(input, &GoogleDialect { options })
 }
 
 // =============================================================================
@@ -655,19 +678,26 @@ mod tests {
 
     fn is_header(text: &str) -> bool {
         let cursor = LineCursor::new(text);
-        try_parse_section_header(&cursor).is_some()
+        try_parse_section_header(&cursor, &ParseOptions::new()).is_some()
+    }
+
+    fn is_header_with(text: &str, options: &ParseOptions) -> bool {
+        let cursor = LineCursor::new(text);
+        try_parse_section_header(&cursor, options).is_some()
     }
 
     #[test]
     fn test_is_section_header() {
         assert!(is_header("Args:"));
-        assert!(is_header("NotASection:"));
         assert!(is_header("Returns:"));
-        assert!(is_header("Custom:"));
         assert!(is_header("args:"));
         assert!(is_header("RETURNS:"));
         assert!(!is_header("key: value:"));
-        assert!(is_header(
+        // napoleon's line (#143): unknown names — even colon-terminated
+        // prose — are headers only when registered as custom sections.
+        assert!(!is_header("NotASection:"));
+        assert!(!is_header("Custom:"));
+        assert!(!is_header(
             "This is a very long line that should not be a section header:"
         ));
         assert!(is_header("Args :"));
@@ -679,6 +709,18 @@ mod tests {
         assert!(is_header("See Also"));
         assert!(!is_header("NotASection"));
         assert!(!is_header("SomeWord"));
+    }
+
+    #[test]
+    fn test_custom_sections_opt_in() {
+        let opts = ParseOptions::new().with_custom_sections(["Custom", "Side Effects"]);
+        assert!(is_header_with("Custom:", &opts));
+        assert!(is_header_with("custom:", &opts)); // case-insensitive
+        assert!(is_header_with("Side Effects:", &opts));
+        // Registration does not extend the colon-less leniency …
+        assert!(!is_header_with("Custom", &opts));
+        // … and other unknown names stay prose.
+        assert!(!is_header_with("NotASection:", &opts));
     }
 
     fn header_from(text: &str) -> EntryHeader {
