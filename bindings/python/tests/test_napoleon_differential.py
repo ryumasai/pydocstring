@@ -95,7 +95,6 @@ _MORE_ALIASES = "we accept more header aliases than napoleon; extra aliased sect
 _ISSUE26_COLON = "issue #26: we strip the role colon from the description; napoleon keeps it"
 _KW_ALIAS = "'Keyword Parameters' is our alias; napoleon knows only 'Keyword Args'"
 _ISSUE26_ROLES = "issue #26: we keep rst-role colons; napoleon reflows them to a bullet blob"
-_UNKNOWN_SEC = "napoleon leaks unknown-section lines into :param: fields; we do not"
 _FIRE_NOCOLON = "malformed 'Returns' header (no colon): we recover it; napoleon needs the colon"
 
 KNOWN_NAPOLEON_DIVERGENCES: dict[str, str] = {
@@ -132,7 +131,6 @@ KNOWN_NAPOLEON_DIVERGENCES: dict[str, str] = {
     "numpy/raises/raises_colon_with_continuation.txt": _ISSUE26_COLON,
     "numpy/regressions/issue26_rst_roles.txt": _ISSUE26_ROLES,
     # ── napoleon quirks / spec-interpretation differences ────────────────────
-    "numpy/structured/unknown_section_with_known_sections.txt": _UNKNOWN_SEC,
     "third_party/fire/google/completion_membervisible.txt": _FIRE_NOCOLON,
     # ── NumPy anonymous-return prose: numpydoc reads a bare line as a type,
     #    napoleon reads it as a description (and strips a trailing colon) ──────

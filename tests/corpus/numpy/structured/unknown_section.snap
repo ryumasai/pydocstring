@@ -5,16 +5,12 @@ DOCUMENT@0..59 {
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  SECTION@10..58 {
-    SECTION_HEADER@10..37 {
-      NAME: "CustomSection"@10..23
-      NEWLINE: "\n"@23..24
-      UNDERLINE: "-------------"@24..37
-    }
+  EXTENDED_SUMMARY@10..58 {
+    TEXT_LINE: "CustomSection"@10..23
+    NEWLINE: "\n"@23..24
+    TEXT_LINE: "-------------"@24..37
     NEWLINE: "\n"@37..38
-    DESCRIPTION@38..58 {
-      TEXT_LINE: "Some custom content."@38..58
-    }
+    TEXT_LINE: "Some custom content."@38..58
   }
   NEWLINE: "\n"@58..59
 }

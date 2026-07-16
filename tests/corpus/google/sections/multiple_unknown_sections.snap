@@ -5,29 +5,17 @@ DOCUMENT@0..57 {
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  SECTION@10..32 {
-    SECTION_HEADER@10..21 {
-      NAME: "Custom One"@10..20
-      COLON: ":"@20..21
-    }
+  EXTENDED_SUMMARY@10..57 {
+    TEXT_LINE: "Custom One:"@10..21
     NEWLINE: "\n"@21..22
     WHITESPACE: "    "@22..26
-    DESCRIPTION@26..32 {
-      TEXT_LINE: "First."@26..32
-    }
-  }
-  NEWLINE: "\n"@32..33
-  BLANK_LINE: "\n"@33..34
-  SECTION@34..57 {
-    SECTION_HEADER@34..45 {
-      NAME: "Custom Two"@34..44
-      COLON: ":"@44..45
-    }
+    TEXT_LINE: "First."@26..32
+    NEWLINE: "\n"@32..33
+    BLANK_LINE: "\n"@33..34
+    TEXT_LINE: "Custom Two:"@34..45
     NEWLINE: "\n"@45..46
     WHITESPACE: "    "@46..50
-    DESCRIPTION@50..57 {
-      TEXT_LINE: "Second."@50..57
-    }
+    TEXT_LINE: "Second."@50..57
   }
 }
 === EMIT ===

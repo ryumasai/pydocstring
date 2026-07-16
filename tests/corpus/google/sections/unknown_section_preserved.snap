@@ -5,20 +5,15 @@ DOCUMENT@0..42 {
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  SECTION@10..42 {
-    SECTION_HEADER@10..17 {
-      NAME: "Custom"@10..16
-      COLON: ":"@16..17
-    }
+  EXTENDED_SUMMARY@10..42 {
+    TEXT_LINE: "Custom:"@10..17
     NEWLINE: "\n"@17..18
     WHITESPACE: "    "@18..22
-    DESCRIPTION@22..42 {
-      TEXT_LINE: "Some custom content."@22..42
-    }
+    TEXT_LINE: "Some custom content."@22..42
   }
 }
 === EMIT ===
 Summary.
 
 Custom:
-    Some custom content.
+Some custom content.

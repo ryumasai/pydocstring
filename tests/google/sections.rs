@@ -53,7 +53,6 @@ fn test_section_header_alias_kind_table() {
         ("Hint", K::FreeText(F::Hint)),
         ("Important", K::FreeText(F::Important)),
         ("Tip", K::FreeText(F::Tip)),
-        ("Custom", K::FreeText(F::Unknown("Custom".to_owned()))),
     ];
     for (header, expected) in cases {
         let input = format!("Summary.\n\n{header}:\n    x: d.");
@@ -119,10 +118,19 @@ fn test_section_span() {
 // Unknown sections
 // =============================================================================
 
+/// napoleon's line (#143): an unknown name — even colon-terminated — is
+/// prose by default; it becomes a section only when registered.
 #[test]
-fn test_unknown_section_preserved() {
+fn test_unknown_section_requires_registration() {
     let docstring = "Summary.\n\nCustom:\n    Some custom content.";
-    let result = parse_google(docstring);
+
+    // Strict default: prose, not a section (napoleon reads it the same way).
+    let strict = parse_google(docstring);
+    assert_eq!(all_sections(&strict).len(), 0);
+
+    // Registered: parses exactly as unknown sections always did.
+    let opts = ParseOptions::new().with_custom_sections(["Custom"]);
+    let result = parse_google_with(docstring, &opts);
     let sections = all_sections(&result);
     assert_eq!(sections.len(), 1);
     assert_eq!(sections[0].header_name(), "Custom");
@@ -133,11 +141,12 @@ fn test_unknown_section_preserved() {
     assert_eq!(sections[0].body().unwrap().text(), "Some custom content.");
 }
 
-/// Multi-word unknown names followed by a colon are still section headers.
+/// Multi-word registered names followed by a colon are section headers.
 #[test]
-fn test_multiple_unknown_sections() {
+fn test_multiple_custom_sections() {
     let docstring = "Summary.\n\nCustom One:\n    First.\n\nCustom Two:\n    Second.";
-    let result = parse_google(docstring);
+    let opts = ParseOptions::new().with_custom_sections(["Custom One", "Custom Two"]);
+    let result = parse_google_with(docstring, &opts);
     let sections = all_sections(&result);
     assert_eq!(sections.len(), 2);
     assert_eq!(sections[0].header_name(), "Custom One");
@@ -237,4 +246,55 @@ fn spec_mismatched_entry_accessor_returns_empty() {
     assert_eq!(args(&result).len(), 1);
     assert_eq!(attributes(&result).len(), 0);
     assert_eq!(methods(&result).len(), 0);
+}
+
+// =============================================================================
+// #146: zero-indent sections close at a blank line + non-entry line
+// =============================================================================
+
+/// Trailing prose after a blank line is not a parameter: it ends the
+/// zero-indent body instead of being swallowed (#146).
+#[test]
+fn test_zero_indent_section_closes_at_blank_plus_prose() {
+    let result = parse_google("Args:\nx: d.\n\nThis is trailing prose.\n");
+    let sections = all_sections(&result);
+    assert_eq!(sections.len(), 1);
+    let entries: Vec<_> = sections[0].entries().collect();
+    assert_eq!(entries.len(), 1);
+    assert_eq!(entries[0].name().unwrap().text(), "x");
+
+    // The prose is a document-level paragraph, not a Parameter.
+    let doc = Document::new(&result);
+    let paragraphs: Vec<_> = doc.paragraphs().collect();
+    assert_eq!(paragraphs.len(), 1);
+    assert_eq!(paragraphs[0].text(), "This is trailing prose.");
+}
+
+/// A blank line followed by an entry-shaped line continues the body …
+#[test]
+fn test_zero_indent_section_continues_over_blank_plus_entry() {
+    let result = parse_google("Args:\nx: d.\n\ny: e.\n");
+    let sections = all_sections(&result);
+    assert_eq!(sections.len(), 1);
+    assert_eq!(sections[0].entries().count(), 2);
+}
+
+/// … and so does a bare name that owns an indented definition.
+#[test]
+fn test_zero_indent_section_continues_over_blank_plus_defined_name() {
+    let result = parse_google("Methods:\nfoo()\n    Does bar.\n\nbaz()\n    Does qux.\n");
+    let sections = all_sections(&result);
+    assert_eq!(sections.len(), 1);
+    assert_eq!(sections[0].entries().count(), 2);
+}
+
+/// Free-text bodies are exempt: a zero-indent Notes section spans its
+/// paragraphs by design.
+#[test]
+fn test_zero_indent_free_text_spans_paragraphs() {
+    let result = parse_google("Notes:\nFirst paragraph.\n\nSecond paragraph.\n");
+    let sections = all_sections(&result);
+    assert_eq!(sections.len(), 1);
+    let body = sections[0].body().unwrap();
+    assert!(body.text().contains("Second paragraph."));
 }

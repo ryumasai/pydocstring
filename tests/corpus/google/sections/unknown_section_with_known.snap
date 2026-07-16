@@ -23,16 +23,11 @@ DOCUMENT@0..78 {
   }
   NEWLINE: "\n"@29..30
   BLANK_LINE: "\n"@30..31
-  SECTION@31..51 {
-    SECTION_HEADER@31..38 {
-      NAME: "Custom"@31..37
-      COLON: ":"@37..38
-    }
+  PARAGRAPH@31..51 {
+    TEXT_LINE: "Custom:"@31..38
     NEWLINE: "\n"@38..39
     WHITESPACE: "    "@39..43
-    DESCRIPTION@43..51 {
-      TEXT_LINE: "Content."@43..51
-    }
+    TEXT_LINE: "Content."@43..51
   }
   NEWLINE: "\n"@51..52
   BLANK_LINE: "\n"@52..53
@@ -58,9 +53,6 @@ Summary.
 
 Args:
     x: Value.
-
-Custom:
-    Content.
 
 Returns:
     int: Result.

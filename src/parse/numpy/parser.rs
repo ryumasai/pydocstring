@@ -5,6 +5,7 @@
 
 use crate::cursor::LineCursor;
 use crate::cursor::indent_len;
+use crate::parse::ParseOptions;
 use crate::parse::dispatch::Dialect;
 use crate::parse::dispatch::HeaderMarker;
 use crate::parse::dispatch::SectionBody;
@@ -42,7 +43,7 @@ pub(crate) fn is_underline(trimmed: &str) -> bool {
 ///
 /// A section header is a non-empty line immediately followed by a
 /// line consisting only of dashes. Does **not** advance the cursor.
-fn try_detect_header(cursor: &LineCursor) -> Option<SectionHeaderInfo> {
+fn try_detect_header(cursor: &LineCursor, options: &ParseOptions) -> Option<SectionHeaderInfo> {
     let header_trimmed = cursor.current_trimmed();
     if header_trimmed.is_empty() {
         return None;
@@ -60,6 +61,13 @@ fn try_detect_header(cursor: &LineCursor) -> Option<SectionHeaderInfo> {
     let underline_col = indent_len(underline_line);
     let normalized = header_trimmed.to_ascii_lowercase();
     let kind = SectionName::from_numpy_name(&normalized);
+
+    // napoleon's line (#147): a dash run underlines only a *known* (or
+    // explicitly registered) name. Anything else — a reST transition, a
+    // grid-table rule — stays body prose.
+    if kind == SectionName::Unknown && !options.is_custom_section(&normalized) {
+        return None;
+    }
 
     Some(SectionHeaderInfo {
         range: cursor.make_range(
@@ -529,15 +537,17 @@ fn process_method_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entr
 /// NumPy entries sit at the same indentation level as the section header
 /// (L = H = 0), so stray lines cannot be detected by indent or blank-line
 /// heuristics alone: sections end only when the next header is detected.
-struct NumPyDialect;
+struct NumPyDialect<'a> {
+    options: &'a ParseOptions,
+}
 
-impl Dialect for NumPyDialect {
+impl Dialect for NumPyDialect<'_> {
     fn style(&self) -> crate::parse::Style {
         crate::parse::Style::NumPy
     }
 
     fn try_header(&self, cursor: &LineCursor, _current: Option<&SectionHeaderInfo>) -> Option<SectionHeaderInfo> {
-        try_detect_header(cursor)
+        try_detect_header(cursor, self.options)
     }
 
     #[rustfmt::skip]
@@ -589,7 +599,13 @@ impl Dialect for NumPyDialect {
 /// assert_eq!(sections.len(), 1);
 /// ```
 pub fn parse_numpy(input: &str) -> Parsed {
-    crate::parse::dispatch::parse_document(input, &NumPyDialect)
+    parse_numpy_with(input, &ParseOptions::new())
+}
+
+/// Parse a NumPy-style docstring with explicit [`ParseOptions`] (e.g.
+/// registered custom sections).
+pub fn parse_numpy_with(input: &str, options: &ParseOptions) -> Parsed {
+    crate::parse::dispatch::parse_document(input, &NumPyDialect { options })
 }
 
 // =============================================================================
@@ -612,23 +628,29 @@ mod tests {
     #[test]
     fn test_try_detect_header() {
         let c1 = LineCursor::new("Parameters\n----------");
-        assert!(try_detect_header(&c1).is_some());
-        assert_eq!(try_detect_header(&c1).unwrap().kind, SectionName::Parameters);
+        assert!(try_detect_header(&c1, &ParseOptions::new()).is_some());
+        assert_eq!(
+            try_detect_header(&c1, &ParseOptions::new()).unwrap().kind,
+            SectionName::Parameters
+        );
 
         let c2 = LineCursor::new("just text\nmore text");
-        assert!(try_detect_header(&c2).is_none());
+        assert!(try_detect_header(&c2, &ParseOptions::new()).is_none());
 
         let c3 = LineCursor::new("\n----------");
-        assert!(try_detect_header(&c3).is_none());
+        assert!(try_detect_header(&c3, &ParseOptions::new()).is_none());
 
         let c4 = LineCursor::new("Only one line");
-        assert!(try_detect_header(&c4).is_none());
+        assert!(try_detect_header(&c4, &ParseOptions::new()).is_none());
 
         let mut c5 = LineCursor::new("Parameters\n----------\nx : int\nReturns\n-------");
-        assert!(try_detect_header(&c5).is_some());
+        assert!(try_detect_header(&c5, &ParseOptions::new()).is_some());
         c5.line = 3;
-        assert!(try_detect_header(&c5).is_some());
-        assert_eq!(try_detect_header(&c5).unwrap().kind, SectionName::Returns);
+        assert!(try_detect_header(&c5, &ParseOptions::new()).is_some());
+        assert_eq!(
+            try_detect_header(&c5, &ParseOptions::new()).unwrap().kind,
+            SectionName::Returns
+        );
     }
 
     #[test]

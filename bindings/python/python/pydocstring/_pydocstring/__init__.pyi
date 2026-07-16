@@ -722,12 +722,25 @@ def parse(input: str) -> Parsed:
     """Auto-detect the style and parse ``input``. Check ``.style`` for the result."""
     ...
 
-def parse_google(input: str) -> Parsed:
-    """Parse ``input`` as a Google-style docstring."""
+def parse_google(input: str, *, custom_sections: list[str] | None = None) -> Parsed:
+    """Parse ``input`` as a Google-style docstring.
+
+    By default only *known* section names are headers — prose ending in a
+    colon stays prose, exactly as napoleon reads it. ``custom_sections``
+    registers additional names (case-insensitively), like napoleon's
+    ``napoleon_custom_sections``: a registered name parses as a free-text
+    section carrying its header text.
+    """
     ...
 
-def parse_numpy(input: str) -> Parsed:
-    """Parse ``input`` as a NumPy-style docstring."""
+def parse_numpy(input: str, *, custom_sections: list[str] | None = None) -> Parsed:
+    """Parse ``input`` as a NumPy-style docstring.
+
+    By default only *known* section names are headers — a dash run underlines
+    nothing else, exactly as napoleon reads it. ``custom_sections`` registers
+    additional names (case-insensitively), like napoleon's
+    ``napoleon_custom_sections``.
+    """
     ...
 
 def parse_plain(input: str) -> Parsed:

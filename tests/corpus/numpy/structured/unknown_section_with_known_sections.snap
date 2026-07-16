@@ -5,7 +5,7 @@ DOCUMENT@0..78 {
   }
   NEWLINE: "\n"@8..9
   BLANK_LINE: "\n"@9..10
-  SECTION@10..50 {
+  SECTION@10..77 {
     SECTION_HEADER@10..31 {
       NAME: "Parameters"@10..20
       NEWLINE: "\n"@20..21
@@ -24,18 +24,18 @@ DOCUMENT@0..78 {
         TEXT_LINE: "Value."@44..50
       }
     }
-  }
-  NEWLINE: "\n"@50..51
-  BLANK_LINE: "\n"@51..52
-  SECTION@52..77 {
-    SECTION_HEADER@52..65 {
+    NEWLINE: "\n"@50..51
+    BLANK_LINE: "\n"@51..52
+    ENTRY@52..58 {
       NAME: "Custom"@52..58
-      NEWLINE: "\n"@58..59
-      UNDERLINE: "------"@59..65
+    }
+    NEWLINE: "\n"@58..59
+    ENTRY@59..65 {
+      NAME: "------"@59..65
     }
     NEWLINE: "\n"@65..66
-    DESCRIPTION@66..77 {
-      TEXT_LINE: "Extra info."@66..77
+    ENTRY@66..77 {
+      NAME: "Extra info."@66..77
     }
   }
   NEWLINE: "\n"@77..78
@@ -47,7 +47,6 @@ Parameters
 ----------
 x : int
     Value.
-
 Custom
 ------
 Extra info.
