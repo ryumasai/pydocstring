@@ -32,16 +32,6 @@ pub(crate) fn convert_directives(parsed: &Parsed) -> Vec<crate::model::Directive
         .collect()
 }
 
-/// Whether a `DIRECTIVE` node's name token reads `deprecated`.
-///
-/// The typed deprecation accessors and the visitor's directive routing only
-/// recognize `deprecated`-named directives; other directive names are
-/// silently skipped for now.
-pub(crate) fn directive_is_deprecated(parsed: &Parsed, node: &SyntaxNode) -> bool {
-    node.find_token(SyntaxKind::DIRECTIVE_NAME)
-        .is_some_and(|t| t.text(parsed.source()) == "deprecated")
-}
-
 // =============================================================================
 // Text block builders (shared by all parsers)
 // =============================================================================
@@ -624,10 +614,10 @@ pub(crate) fn try_parse_bracket_entry(text: &str) -> Option<BracketEntry<'_>> {
     })?;
 
     // The bracket must appear before any top-level colon.
-    if let Some(colon_pos) = find_entry_colon(text) {
-        if colon_pos < bracket_pos {
-            return None;
-        }
+    if let Some(colon_pos) = find_entry_colon(text)
+        && colon_pos < bracket_pos
+    {
+        return None;
     }
 
     let close_pos = find_matching_close(text, bracket_pos)?;
@@ -722,10 +712,10 @@ pub(crate) fn find_entry_open_bracket(text: &str) -> Option<usize> {
     })?;
 
     // The bracket must appear before any top-level colon.
-    if let Some(colon_pos) = find_entry_colon(text) {
-        if colon_pos < bracket_pos {
-            return None;
-        }
+    if let Some(colon_pos) = find_entry_colon(text)
+        && colon_pos < bracket_pos
+    {
+        return None;
     }
 
     Some(bracket_pos)
@@ -822,12 +812,12 @@ fn extend_last_ref_content(nodes: &mut [SyntaxElement], cont: TextRange) {
     if let Some(SyntaxElement::Node(node)) = nodes.last_mut() {
         let mut found_content = false;
         for child in node.children_mut() {
-            if let SyntaxElement::Node(n) = child {
-                if n.kind() == SyntaxKind::DESCRIPTION {
-                    extend_text_block(n, cont);
-                    found_content = true;
-                    break;
-                }
+            if let SyntaxElement::Node(n) = child
+                && n.kind() == SyntaxKind::DESCRIPTION
+            {
+                extend_text_block(n, cont);
+                found_content = true;
+                break;
             }
         }
         if !found_content {
@@ -848,11 +838,11 @@ pub(crate) fn process_reference_line(
     entry_indent: &mut Option<usize>,
 ) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_ref_content(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_ref_content(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
@@ -910,6 +900,94 @@ pub(crate) fn process_reference_line(
         cursor.current_trimmed_range(),
         cursor.current_trimmed_range(),
     )));
+}
+
+// =============================================================================
+// Entry-line machinery (shared by the NumPy and Google parsers)
+// =============================================================================
+
+/// The continuation guard every per-line entry processor opens with (#148).
+///
+/// A line indented deeper than the section's entry indent is a continuation
+/// of the previous entry's description, not a new entry; the first body line
+/// establishes that indent. Returns `true` when the line was consumed as a
+/// continuation — the caller stops.
+///
+/// (References bodies keep their own copy of this guard in
+/// [`process_reference_line`]: their continuation extends a `CITATION`'s
+/// content, not an `ENTRY`'s description.)
+pub(crate) fn entry_continuation_guard(
+    cursor: &LineCursor,
+    nodes: &mut [SyntaxElement],
+    entry_indent: &mut Option<usize>,
+) -> bool {
+    let indent_cols = cursor.current_indent_columns();
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_node_description(nodes, cursor.current_trimmed_range());
+        return true;
+    }
+    if entry_indent.is_none() {
+        *entry_indent = Some(indent_cols);
+    }
+    false
+}
+
+/// Extend the `DESCRIPTION` block of the last child node, or add one.
+///
+/// A zero-length missing placeholder is replaced entirely rather than
+/// extended: extending would keep the old (wrong) start offset.
+pub(crate) fn extend_last_node_description(nodes: &mut [SyntaxElement], cont: TextRange) {
+    if let Some(SyntaxElement::Node(node)) = nodes.last_mut() {
+        let mut found_desc = false;
+        for child in node.children_mut() {
+            if let SyntaxElement::Node(n) = child
+                && n.kind() == SyntaxKind::DESCRIPTION
+            {
+                if n.range().is_empty() {
+                    *n = text_block_single(SyntaxKind::DESCRIPTION, cont);
+                } else {
+                    extend_text_block(n, cont);
+                }
+                found_desc = true;
+                break;
+            }
+        }
+        if !found_desc {
+            node.push_child(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, cont)));
+        }
+        node.extend_range_to(cont.end());
+    }
+}
+
+/// Build an `ENTRY` led by a single token: `TYPE` for exceptions and
+/// warnings, `NAME` for methods — `[first, COLON?, DESCRIPTION?]`.
+///
+/// A colon with no description yields a zero-length `DESCRIPTION`
+/// placeholder, so callers can distinguish `Exc:` (missing description)
+/// from `Exc` (no colon, hence no obligation).
+pub(crate) fn build_leading_token_entry(
+    first_kind: SyntaxKind,
+    first: TextRange,
+    colon: Option<TextRange>,
+    first_desc: Option<TextRange>,
+    range: TextRange,
+) -> SyntaxNode {
+    let mut children = Vec::new();
+    children.push(SyntaxElement::Token(SyntaxToken::new(first_kind, first)));
+    if let Some(c) = colon {
+        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, c)));
+    }
+    if let Some(d) = first_desc {
+        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, d)));
+    } else if let Some(c) = colon {
+        children.push(SyntaxElement::Node(missing_text_block(
+            SyntaxKind::DESCRIPTION,
+            c.end(),
+        )));
+    }
+    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
 #[cfg(test)]

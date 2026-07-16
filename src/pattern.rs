@@ -453,33 +453,33 @@ impl Pattern {
         }
 
         // (c) The section reading: exactly one SECTION and nothing else.
-        if let [index] = content[..] {
-            if doc_parsed.root().children()[index].kind() == SyntaxKind::SECTION && check_coverage(&doc_parsed).is_ok()
-            {
-                let fragment_path = vec![index];
-                if let Ok(metavars) = locate_metavars(&doc_parsed, &occurrences, &fragment_path) {
-                    readings.push(Reading {
-                        parsed: doc_parsed.clone(),
-                        fragment_kind: FragmentKind::Section,
-                        fragment_path,
-                        section_kinds: Vec::new(),
-                        metavars,
-                    });
-                }
-            }
-        }
-
-        // (d) The document reading, always last.
-        if check_coverage(&doc_parsed).is_ok() {
-            if let Ok(metavars) = locate_metavars(&doc_parsed, &occurrences, &[]) {
+        if let [index] = content[..]
+            && doc_parsed.root().children()[index].kind() == SyntaxKind::SECTION
+            && check_coverage(&doc_parsed).is_ok()
+        {
+            let fragment_path = vec![index];
+            if let Ok(metavars) = locate_metavars(&doc_parsed, &occurrences, &fragment_path) {
                 readings.push(Reading {
-                    parsed: doc_parsed,
-                    fragment_kind: FragmentKind::Document,
-                    fragment_path: Vec::new(),
+                    parsed: doc_parsed.clone(),
+                    fragment_kind: FragmentKind::Section,
+                    fragment_path,
                     section_kinds: Vec::new(),
                     metavars,
                 });
             }
+        }
+
+        // (d) The document reading, always last.
+        if check_coverage(&doc_parsed).is_ok()
+            && let Ok(metavars) = locate_metavars(&doc_parsed, &occurrences, &[])
+        {
+            readings.push(Reading {
+                parsed: doc_parsed,
+                fragment_kind: FragmentKind::Document,
+                fragment_path: Vec::new(),
+                section_kinds: Vec::new(),
+                metavars,
+            });
         }
 
         if readings.is_empty() {

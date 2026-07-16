@@ -8,8 +8,6 @@
 //! [`parse_plain`](crate::parse::parse_plain) and
 //! [`Parsed::to_model`](crate::syntax::Parsed::to_model).
 
-pub(crate) mod nodes;
 pub(crate) mod parser;
-pub(crate) mod to_model;
 
 pub use parser::parse_plain;
