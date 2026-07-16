@@ -470,18 +470,18 @@ fn extend_last_node_description(nodes: &mut [SyntaxElement], cont: TextRange) {
     if let Some(SyntaxElement::Node(node)) = nodes.last_mut() {
         let mut found_desc = false;
         for child in node.children_mut() {
-            if let SyntaxElement::Node(n) = child {
-                if n.kind() == SyntaxKind::DESCRIPTION {
-                    if n.range().is_empty() {
-                        // Zero-length placeholder: replace the block entirely
-                        // rather than extending from the old (wrong) start.
-                        *n = text_block_single(SyntaxKind::DESCRIPTION, cont);
-                    } else {
-                        extend_text_block(n, cont);
-                    }
-                    found_desc = true;
-                    break;
+            if let SyntaxElement::Node(n) = child
+                && n.kind() == SyntaxKind::DESCRIPTION
+            {
+                if n.range().is_empty() {
+                    // Zero-length placeholder: replace the block entirely
+                    // rather than extending from the old (wrong) start.
+                    *n = text_block_single(SyntaxKind::DESCRIPTION, cont);
+                } else {
+                    extend_text_block(n, cont);
                 }
+                found_desc = true;
+                break;
             }
         }
         if !found_desc {
@@ -493,11 +493,11 @@ fn extend_last_node_description(nodes: &mut [SyntaxElement], cont: TextRange) {
 
 fn process_parameter_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_node_description(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_node_description(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
@@ -512,11 +512,11 @@ fn process_parameter_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, e
 
 fn process_returns_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_node_description(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_node_description(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
@@ -556,11 +556,11 @@ fn process_returns_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, ent
 
 fn process_yields_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_node_description(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_node_description(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
@@ -600,11 +600,11 @@ fn process_yields_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entr
 
 fn process_raises_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_node_description(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_node_description(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
@@ -643,11 +643,11 @@ fn process_raises_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entr
 
 fn process_warning_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_node_description(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_node_description(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
@@ -686,11 +686,11 @@ fn process_warning_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, ent
 
 fn process_see_also_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_node_description(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_node_description(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
@@ -731,11 +731,11 @@ fn process_see_also_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, en
 
 fn process_attribute_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_node_description(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_node_description(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
@@ -754,11 +754,11 @@ fn process_attribute_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, e
 
 fn process_method_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_node_description(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_node_description(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
