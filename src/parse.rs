@@ -18,6 +18,7 @@ use numpy::parser::is_underline;
 use crate::model::Docstring;
 use crate::syntax::Parsed;
 
+pub(crate) mod dispatch;
 pub(crate) mod google;
 pub(crate) mod kind;
 pub(crate) mod nodes;

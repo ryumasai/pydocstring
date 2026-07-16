@@ -5,10 +5,12 @@
 
 use crate::cursor::LineCursor;
 use crate::cursor::indent_len;
+use crate::parse::dispatch::Dialect;
+use crate::parse::dispatch::HeaderMarker;
+use crate::parse::dispatch::SectionBody;
+use crate::parse::dispatch::SectionHeaderInfo;
 use crate::parse::kind::SectionName;
 use crate::parse::utils::build_leading_token_entry;
-use crate::parse::utils::build_paragraph;
-use crate::parse::utils::build_text_block;
 use crate::parse::utils::entry_continuation_guard;
 use crate::parse::utils::find_term_colon;
 use crate::parse::utils::marker_syntax_elements;
@@ -17,7 +19,6 @@ use crate::parse::utils::process_reference_line;
 use crate::parse::utils::scan_type_markers;
 use crate::parse::utils::text_block_single;
 use crate::parse::utils::try_parse_bracket_entry;
-use crate::parse::utils::try_parse_directive;
 use crate::syntax::Parsed;
 use crate::syntax::SyntaxElement;
 use crate::syntax::SyntaxKind;
@@ -69,15 +70,13 @@ fn try_detect_header(cursor: &LineCursor) -> Option<SectionHeaderInfo> {
         ),
         kind,
         name: cursor.make_line_range(cursor.line, header_col, header_trimmed.len()),
-        underline: cursor.make_line_range(cursor.line + 1, underline_col, underline_trimmed.len()),
+        marker: HeaderMarker::Underline(cursor.make_line_range(
+            cursor.line + 1,
+            underline_col,
+            underline_trimmed.len(),
+        )),
+        indent_columns: cursor.current_indent_columns(),
     })
-}
-
-struct SectionHeaderInfo {
-    range: TextRange,
-    kind: SectionName,
-    name: TextRange,
-    underline: TextRange,
 }
 
 // =============================================================================
@@ -258,14 +257,6 @@ fn parse_name_list(text: &str, line_idx: usize, col_base: usize, cursor: &LineCu
 // =============================================================================
 // SyntaxNode builders
 // =============================================================================
-
-fn build_section_header_node(info: &SectionHeaderInfo) -> SyntaxNode {
-    let children = vec![
-        SyntaxElement::Token(SyntaxToken::new(SyntaxKind::NAME, info.name)),
-        SyntaxElement::Token(SyntaxToken::new(SyntaxKind::UNDERLINE, info.underline)),
-    ];
-    SyntaxNode::new(SyntaxKind::SECTION_HEADER, info.range, children)
-}
 
 fn build_parameter_node(parts: &ParamHeaderParts, range: TextRange) -> SyntaxNode {
     let mut children = Vec::new();
@@ -522,85 +513,54 @@ fn process_attribute_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, e
 }
 
 // =============================================================================
-// Section body kind tracking
+// The NumPy dialect
 // =============================================================================
 
-enum SectionBody {
-    Parameters(Vec<SyntaxElement>),
-    Returns(Vec<SyntaxElement>),
-    Yields(Vec<SyntaxElement>),
-    Raises(Vec<SyntaxElement>),
-    Warns(Vec<SyntaxElement>),
-    SeeAlso(Vec<SyntaxElement>),
-    References(Vec<SyntaxElement>),
-    Attributes(Vec<SyntaxElement>),
-    Methods(Vec<SyntaxElement>),
-    FreeText(Option<TextRange>),
+fn process_raises_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
+    process_leading_token_line(cursor, nodes, entry_indent, SyntaxKind::TYPE);
 }
 
-impl SectionBody {
-    fn new(kind: SectionName) -> Self {
+fn process_method_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
+    process_leading_token_line(cursor, nodes, entry_indent, SyntaxKind::NAME);
+}
+
+/// The NumPy dialect: underlined headers, one entry per body line.
+///
+/// NumPy entries sit at the same indentation level as the section header
+/// (L = H = 0), so stray lines cannot be detected by indent or blank-line
+/// heuristics alone: sections end only when the next header is detected.
+struct NumPyDialect;
+
+impl Dialect for NumPyDialect {
+    fn style(&self) -> crate::parse::Style {
+        crate::parse::Style::NumPy
+    }
+
+    fn try_header(&self, cursor: &LineCursor, _current: Option<&SectionHeaderInfo>) -> Option<SectionHeaderInfo> {
+        try_detect_header(cursor)
+    }
+
+    #[rustfmt::skip]
+    fn body(&self, kind: SectionName) -> SectionBody {
         match kind {
-            SectionName::Parameters => Self::Parameters(Vec::new()),
-            SectionName::OtherParameters => Self::Parameters(Vec::new()),
-            SectionName::Receives => Self::Parameters(Vec::new()),
-            SectionName::KeywordParameters => Self::Parameters(Vec::new()),
-            SectionName::Returns => Self::Returns(Vec::new()),
-            SectionName::Yields => Self::Yields(Vec::new()),
-            SectionName::Raises => Self::Raises(Vec::new()),
-            SectionName::Warns => Self::Warns(Vec::new()),
-            SectionName::SeeAlso => Self::SeeAlso(Vec::new()),
-            SectionName::References => Self::References(Vec::new()),
-            SectionName::Attributes => Self::Attributes(Vec::new()),
-            SectionName::Methods => Self::Methods(Vec::new()),
-            _ => Self::FreeText(None),
+            SectionName::Parameters => SectionBody::Entries(process_parameter_line, Vec::new()),
+            SectionName::OtherParameters => SectionBody::Entries(process_parameter_line, Vec::new()),
+            SectionName::Receives => SectionBody::Entries(process_parameter_line, Vec::new()),
+            SectionName::KeywordParameters => SectionBody::Entries(process_parameter_line, Vec::new()),
+            SectionName::Returns => SectionBody::Entries(process_return_like_line, Vec::new()),
+            SectionName::Yields => SectionBody::Entries(process_return_like_line, Vec::new()),
+            SectionName::Raises => SectionBody::Entries(process_raises_line, Vec::new()),
+            SectionName::Warns => SectionBody::Entries(process_raises_line, Vec::new()),
+            SectionName::SeeAlso => SectionBody::Entries(process_see_also_line, Vec::new()),
+            SectionName::References => SectionBody::Entries(process_reference_line, Vec::new()),
+            SectionName::Attributes => SectionBody::Entries(process_attribute_line, Vec::new()),
+            SectionName::Methods => SectionBody::Entries(process_method_line, Vec::new()),
+            _ => SectionBody::FreeText(None),
         }
     }
 
-    fn process_line(&mut self, cursor: &LineCursor, entry_indent: &mut Option<usize>) {
-        match self {
-            Self::Parameters(nodes) => process_parameter_line(cursor, nodes, entry_indent),
-            Self::Returns(nodes) => process_return_like_line(cursor, nodes, entry_indent),
-            Self::Yields(nodes) => process_return_like_line(cursor, nodes, entry_indent),
-            Self::Raises(nodes) => process_leading_token_line(cursor, nodes, entry_indent, SyntaxKind::TYPE),
-            Self::Warns(nodes) => process_leading_token_line(cursor, nodes, entry_indent, SyntaxKind::TYPE),
-            Self::SeeAlso(nodes) => process_see_also_line(cursor, nodes, entry_indent),
-            Self::References(nodes) => process_reference_line(cursor, nodes, entry_indent),
-            Self::Attributes(nodes) => process_attribute_line(cursor, nodes, entry_indent),
-            Self::Methods(nodes) => process_leading_token_line(cursor, nodes, entry_indent, SyntaxKind::NAME),
-            Self::FreeText(range) => {
-                let r = cursor.current_trimmed_range();
-                match range {
-                    Some(existing) => existing.extend(r),
-                    None => *range = Some(r),
-                }
-            }
-        }
-    }
-
-    fn into_children(self, source: &str) -> Vec<SyntaxElement> {
-        match self {
-            Self::Parameters(nodes) => nodes,
-            Self::Returns(nodes) => nodes,
-            Self::Yields(nodes) => nodes,
-            Self::Raises(nodes) => nodes,
-            Self::Warns(nodes) => nodes,
-            Self::SeeAlso(nodes) => nodes,
-            Self::References(nodes) => nodes,
-            Self::Attributes(nodes) => nodes,
-            Self::Methods(nodes) => nodes,
-            Self::FreeText(range) => {
-                if let Some(r) = range {
-                    vec![SyntaxElement::Node(build_text_block(
-                        SyntaxKind::DESCRIPTION,
-                        r,
-                        source,
-                    ))]
-                } else {
-                    vec![]
-                }
-            }
-        }
+    fn flush_by_indent(&self) -> bool {
+        false
     }
 }
 
@@ -629,176 +589,7 @@ impl SectionBody {
 /// assert_eq!(sections.len(), 1);
 /// ```
 pub fn parse_numpy(input: &str) -> Parsed {
-    let mut cursor = LineCursor::new(input);
-    let mut root_children: Vec<SyntaxElement> = Vec::new();
-
-    cursor.skip_blanks();
-    if cursor.is_eof() {
-        let mut root = SyntaxNode::new(SyntaxKind::DOCUMENT, cursor.full_range(), root_children);
-        crate::parse::trivia::attach_trivia(&mut root, input);
-        return Parsed::new(input.to_string(), root, crate::parse::Style::NumPy);
-    }
-
-    // --- Summary (all lines until blank line or section header) ---
-    if try_detect_header(&cursor).is_none() {
-        let trimmed = cursor.current_trimmed();
-        if !trimmed.is_empty() {
-            let start_line = cursor.line;
-            let start_col = cursor.current_indent();
-            let mut last_line = start_line;
-
-            while !cursor.is_eof() {
-                if try_detect_header(&cursor).is_some() {
-                    break;
-                }
-                let t = cursor.current_trimmed();
-                if t.is_empty() {
-                    break;
-                }
-                last_line = cursor.line;
-                cursor.advance();
-            }
-
-            let last_text = cursor.line_text(last_line);
-            let last_col = indent_len(last_text) + last_text.trim().len();
-            let range = cursor.make_range(start_line, start_col, last_line, last_col);
-            if !range.is_empty() {
-                root_children.push(SyntaxElement::Node(build_text_block(SyntaxKind::SUMMARY, range, input)));
-            }
-        }
-    }
-
-    cursor.skip_blanks();
-
-    // --- rST directives ---
-    // Any directive name is accepted (`deprecated`, `versionadded`, `note`,
-    // …) at this post-summary slot, and a run of consecutive directives is
-    // recognized (numpydoc stacks e.g. `.. deprecated::` and
-    // `.. versionadded::`). Block-level directives inside section bodies stay
-    // prose (deferred).
-    while !cursor.is_eof()
-        && try_detect_header(&cursor).is_none()
-        && let Some(node) = try_parse_directive(&mut cursor)
-    {
-        root_children.push(SyntaxElement::Node(node));
-        cursor.skip_blanks();
-    }
-
-    // --- Extended summary ---
-    if !cursor.is_eof() && try_detect_header(&cursor).is_none() {
-        let start_line = cursor.line;
-        let mut last_non_empty_line = cursor.line;
-        let mut has_content = false;
-
-        while !cursor.is_eof() {
-            if try_detect_header(&cursor).is_some() {
-                break;
-            }
-            let t = cursor.current_trimmed();
-            if !t.is_empty() {
-                last_non_empty_line = cursor.line;
-                has_content = true;
-            }
-            cursor.advance();
-        }
-
-        if has_content {
-            let first_line = cursor.line_text(start_line);
-            let first_col = indent_len(first_line);
-            let last_line = cursor.line_text(last_non_empty_line);
-            let last_col = indent_len(last_line) + last_line.trim().len();
-            let range = cursor.make_range(start_line, first_col, last_non_empty_line, last_col);
-            root_children.push(SyntaxElement::Node(build_text_block(
-                SyntaxKind::EXTENDED_SUMMARY,
-                range,
-                input,
-            )));
-        }
-    }
-
-    // --- Sections ---
-    let mut current_header: Option<SectionHeaderInfo> = None;
-    let mut current_body: Option<SectionBody> = None;
-    let mut entry_indent: Option<usize> = None;
-
-    // Pending run of stray prose lines (first line, last line): flushed as
-    // one PARAGRAPH node at a blank line, a section header, or EOF.
-    let mut para_first: Option<usize> = None;
-    let mut para_last: usize = 0;
-
-    while !cursor.is_eof() {
-        if cursor.current_trimmed().is_empty() {
-            // A blank line splits stray-line paragraphs (reST semantics).
-            if let Some(first) = para_first.take() {
-                root_children.push(SyntaxElement::Node(build_paragraph(&cursor, first, para_last)));
-            }
-            cursor.advance();
-            continue;
-        }
-
-        if let Some(header_info) = try_detect_header(&cursor) {
-            // Flush previous section
-            if let Some(prev_header) = current_header.take() {
-                let section_node = flush_section(&cursor, prev_header, current_body.take().unwrap());
-                root_children.push(SyntaxElement::Node(section_node));
-            }
-
-            // Flush a pending stray-line paragraph (a header line right
-            // after a stray run, with no blank line in between).
-            if let Some(first) = para_first.take() {
-                root_children.push(SyntaxElement::Node(build_paragraph(&cursor, first, para_last)));
-            }
-
-            current_body = Some(SectionBody::new(header_info.kind));
-            current_header = Some(header_info);
-            entry_indent = None;
-            cursor.line += 2; // skip header + underline
-            continue;
-        }
-
-        // NumPy entries sit at the same indentation level as the section header
-        // (L = H = 0), so stray lines cannot be detected by indent or blank-line
-        // heuristics alone.  Sections end only when the next header is detected.
-        if let Some(ref mut body) = current_body {
-            body.process_line(&cursor, &mut entry_indent);
-        } else {
-            // Stray prose line: accumulate into the pending paragraph run
-            // (consecutive lines separated only by a newline form one
-            // PARAGRAPH).
-            if para_first.is_none() {
-                para_first = Some(cursor.line);
-            }
-            para_last = cursor.line;
-        }
-
-        cursor.advance();
-    }
-
-    // Flush final section
-    if let Some(header) = current_header.take() {
-        let section_node = flush_section(&cursor, header, current_body.take().unwrap());
-        root_children.push(SyntaxElement::Node(section_node));
-    }
-
-    // Flush a pending stray-line paragraph at EOF
-    if let Some(first) = para_first.take() {
-        root_children.push(SyntaxElement::Node(build_paragraph(&cursor, first, para_last)));
-    }
-
-    let mut root = SyntaxNode::new(SyntaxKind::DOCUMENT, cursor.full_range(), root_children);
-    crate::parse::trivia::attach_trivia(&mut root, input);
-    Parsed::new(input.to_string(), root, crate::parse::Style::NumPy)
-}
-
-fn flush_section(cursor: &LineCursor, header: SectionHeaderInfo, body: SectionBody) -> SyntaxNode {
-    let header_start = header.range.start().raw() as usize;
-    let section_range = cursor.span_back_from_cursor(header_start);
-
-    let mut section_children = Vec::new();
-    section_children.push(SyntaxElement::Node(build_section_header_node(&header)));
-    section_children.extend(body.into_children(cursor.source()));
-
-    SyntaxNode::new(SyntaxKind::SECTION, section_range, section_children)
+    crate::parse::dispatch::parse_document(input, &NumPyDialect)
 }
 
 // =============================================================================
