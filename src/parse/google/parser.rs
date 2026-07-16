@@ -6,9 +6,10 @@
 use crate::cursor::LineCursor;
 use crate::cursor::indent_len;
 use crate::parse::google::kind::GoogleSectionKind;
+use crate::parse::utils::build_leading_token_entry;
 use crate::parse::utils::build_paragraph;
 use crate::parse::utils::build_text_block;
-use crate::parse::utils::extend_text_block;
+use crate::parse::utils::entry_continuation_guard;
 use crate::parse::utils::find_colon_ignoring_parens;
 use crate::parse::utils::find_entry_open_bracket;
 use crate::parse::utils::find_matching_close;
@@ -422,41 +423,6 @@ fn build_arg_node(role: ArgRole, header: &EntryHeader, range: TextRange, source:
 }
 
 /// Build a SyntaxNode for an exception entry.
-fn build_exception_node(header: &EntryHeader, range: TextRange) -> SyntaxNode {
-    let mut children = Vec::new();
-    children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TYPE, header.name)));
-    if let Some(colon) = header.colon {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, colon)));
-    }
-    if let Some(desc) = header.first_description {
-        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, desc)));
-    } else if let Some(colon) = header.colon {
-        children.push(SyntaxElement::Node(missing_text_block(
-            SyntaxKind::DESCRIPTION,
-            colon.end(),
-        )));
-    }
-    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
-}
-
-/// Build a SyntaxNode for a warning entry.
-fn build_warning_node(header: &EntryHeader, range: TextRange) -> SyntaxNode {
-    let mut children = Vec::new();
-    children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TYPE, header.name)));
-    if let Some(colon) = header.colon {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, colon)));
-    }
-    if let Some(desc) = header.first_description {
-        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, desc)));
-    } else if let Some(colon) = header.colon {
-        children.push(SyntaxElement::Node(missing_text_block(
-            SyntaxKind::DESCRIPTION,
-            colon.end(),
-        )));
-    }
-    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
-}
-
 /// Build a SyntaxNode for a see-also entry.
 fn build_see_also_node(header: &EntryHeader, range: TextRange, source: &str) -> SyntaxNode {
     let mut children = Vec::new();
@@ -506,49 +472,14 @@ fn build_content_range(cursor: &LineCursor, first: Option<usize>, last: usize) -
 // Per-line section body processors
 // =============================================================================
 
-/// Extend the DESCRIPTION block of the last child node, or add one.
-fn extend_last_node_description(nodes: &mut [SyntaxElement], cont: TextRange) {
-    if let Some(SyntaxElement::Node(node)) = nodes.last_mut() {
-        // Find or add description block, extend range
-        let mut found_desc = false;
-        for child in node.children_mut() {
-            if let SyntaxElement::Node(n) = child
-                && n.kind() == SyntaxKind::DESCRIPTION
-            {
-                if n.range().is_empty() {
-                    // Zero-length placeholder: replace the block entirely
-                    // rather than extending from the old (wrong) start.
-                    *n = text_block_single(SyntaxKind::DESCRIPTION, cont);
-                } else {
-                    extend_text_block(n, cont);
-                }
-                found_desc = true;
-                break;
-            }
-        }
-        if !found_desc {
-            node.push_child(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, cont)));
-        }
-        // Extend node range
-        node.extend_range_to(cont.end());
-    }
-}
-
 fn process_arg_line(
     cursor: &LineCursor,
     role: ArgRole,
     nodes: &mut Vec<SyntaxElement>,
     entry_indent: &mut Option<usize>,
 ) {
-    let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent
-        && indent_cols > base
-    {
-        extend_last_node_description(nodes, cursor.current_trimmed_range());
+    if entry_continuation_guard(cursor, nodes, entry_indent) {
         return;
-    }
-    if entry_indent.is_none() {
-        *entry_indent = Some(indent_cols);
     }
     let (header, entry_range) = parse_entry(cursor, role != ArgRole::Method);
     nodes.push(SyntaxElement::Node(build_arg_node(
@@ -559,46 +490,24 @@ fn process_arg_line(
     )));
 }
 
-fn process_exception_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
-    let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent
-        && indent_cols > base
-    {
-        extend_last_node_description(nodes, cursor.current_trimmed_range());
+/// One line of a Raises/Warns body: a TYPE-led entry (`Exc: desc`).
+fn process_typed_entry_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
+    if entry_continuation_guard(cursor, nodes, entry_indent) {
         return;
     }
-    if entry_indent.is_none() {
-        *entry_indent = Some(indent_cols);
-    }
     let (header, entry_range) = parse_entry(cursor, false);
-    nodes.push(SyntaxElement::Node(build_exception_node(&header, entry_range)));
-}
-
-fn process_warning_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
-    let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent
-        && indent_cols > base
-    {
-        extend_last_node_description(nodes, cursor.current_trimmed_range());
-        return;
-    }
-    if entry_indent.is_none() {
-        *entry_indent = Some(indent_cols);
-    }
-    let (header, entry_range) = parse_entry(cursor, false);
-    nodes.push(SyntaxElement::Node(build_warning_node(&header, entry_range)));
+    nodes.push(SyntaxElement::Node(build_leading_token_entry(
+        SyntaxKind::TYPE,
+        header.name,
+        header.colon,
+        header.first_description,
+        entry_range,
+    )));
 }
 
 fn process_see_also_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
-    let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent
-        && indent_cols > base
-    {
-        extend_last_node_description(nodes, cursor.current_trimmed_range());
+    if entry_continuation_guard(cursor, nodes, entry_indent) {
         return;
-    }
-    if entry_indent.is_none() {
-        *entry_indent = Some(indent_cols);
     }
     let (header, entry_range) = parse_entry(cursor, false);
     nodes.push(SyntaxElement::Node(build_see_also_node(
@@ -726,8 +635,8 @@ impl SectionBody {
         match self {
             Self::Args(role, nodes) => process_arg_line(cursor, *role, nodes, entry_indent),
             Self::Returns(state) => state.process_line(cursor),
-            Self::Raises(nodes) => process_exception_line(cursor, nodes, entry_indent),
-            Self::Warns(nodes) => process_warning_line(cursor, nodes, entry_indent),
+            Self::Raises(nodes) => process_typed_entry_line(cursor, nodes, entry_indent),
+            Self::Warns(nodes) => process_typed_entry_line(cursor, nodes, entry_indent),
             Self::SeeAlso(nodes) => process_see_also_line(cursor, nodes, entry_indent),
             Self::References(nodes) => process_reference_line(cursor, nodes, entry_indent),
             Self::FreeText(range) => {

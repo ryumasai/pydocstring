@@ -6,9 +6,10 @@
 use crate::cursor::LineCursor;
 use crate::cursor::indent_len;
 use crate::parse::numpy::kind::NumPySectionKind;
+use crate::parse::utils::build_leading_token_entry;
 use crate::parse::utils::build_paragraph;
 use crate::parse::utils::build_text_block;
-use crate::parse::utils::extend_text_block;
+use crate::parse::utils::entry_continuation_guard;
 use crate::parse::utils::find_term_colon;
 use crate::parse::utils::marker_syntax_elements;
 use crate::parse::utils::missing_text_block;
@@ -313,7 +314,11 @@ fn build_parameter_node(parts: &ParamHeaderParts, range: TextRange) -> SyntaxNod
     SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
-fn build_returns_node(
+/// Build a Returns/Yields `ENTRY`: `[NAME?, COLON?, TYPE?]`.
+///
+/// A colon with no type yields a zero-length `TYPE` placeholder so callers
+/// can distinguish `name :` (missing type) from `type` (no name/colon).
+fn build_return_entry_node(
     name: Option<TextRange>,
     colon: Option<TextRange>,
     return_type: Option<TextRange>,
@@ -329,85 +334,10 @@ fn build_returns_node(
     if let Some(rt) = return_type {
         children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TYPE, rt)));
     } else if let Some(c) = colon {
-        // Colon present but no return type: zero-length placeholder so callers
-        // can distinguish `name :` (missing type) from `type` (no name/colon).
         let missing_pos = c.end();
         children.push(SyntaxElement::Token(SyntaxToken::new(
             SyntaxKind::TYPE,
             TextRange::new(missing_pos, missing_pos),
-        )));
-    }
-    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
-}
-
-fn build_yields_node(
-    name: Option<TextRange>,
-    colon: Option<TextRange>,
-    return_type: Option<TextRange>,
-    range: TextRange,
-) -> SyntaxNode {
-    let mut children = Vec::new();
-    if let Some(n) = name {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::NAME, n)));
-    }
-    if let Some(c) = colon {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, c)));
-    }
-    if let Some(rt) = return_type {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TYPE, rt)));
-    } else if let Some(c) = colon {
-        // Colon present but no yield type: zero-length placeholder.
-        let missing_pos = c.end();
-        children.push(SyntaxElement::Token(SyntaxToken::new(
-            SyntaxKind::TYPE,
-            TextRange::new(missing_pos, missing_pos),
-        )));
-    }
-    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
-}
-
-fn build_exception_node(
-    exc_type: TextRange,
-    colon: Option<TextRange>,
-    first_desc: Option<TextRange>,
-    range: TextRange,
-) -> SyntaxNode {
-    let mut children = Vec::new();
-    children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TYPE, exc_type)));
-    if let Some(c) = colon {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, c)));
-    }
-    if let Some(d) = first_desc {
-        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, d)));
-    } else if let Some(c) = colon {
-        // Colon present but no description: zero-length placeholder so callers
-        // can distinguish `Exc:` (missing description) from `Exc` (no colon).
-        children.push(SyntaxElement::Node(missing_text_block(
-            SyntaxKind::DESCRIPTION,
-            c.end(),
-        )));
-    }
-    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
-}
-
-fn build_warning_node(
-    warn_type: TextRange,
-    colon: Option<TextRange>,
-    first_desc: Option<TextRange>,
-    range: TextRange,
-) -> SyntaxNode {
-    let mut children = Vec::new();
-    children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::TYPE, warn_type)));
-    if let Some(c) = colon {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, c)));
-    }
-    if let Some(d) = first_desc {
-        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, d)));
-    } else if let Some(c) = colon {
-        // Colon present but no description: zero-length placeholder.
-        children.push(SyntaxElement::Node(missing_text_block(
-            SyntaxKind::DESCRIPTION,
-            c.end(),
         )));
     }
     SyntaxNode::new(SyntaxKind::ENTRY, range, children)
@@ -442,68 +372,13 @@ fn build_see_also_node(
     SyntaxNode::new(SyntaxKind::ENTRY, range, children)
 }
 
-fn build_method_node(
-    name: TextRange,
-    colon: Option<TextRange>,
-    first_desc: Option<TextRange>,
-    range: TextRange,
-) -> SyntaxNode {
-    let mut children = Vec::new();
-    children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::NAME, name)));
-    if let Some(c) = colon {
-        children.push(SyntaxElement::Token(SyntaxToken::new(SyntaxKind::COLON, c)));
-    }
-    if let Some(d) = first_desc {
-        children.push(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, d)));
-    } else if let Some(c) = colon {
-        // Colon present but no description: zero-length placeholder.
-        children.push(SyntaxElement::Node(missing_text_block(
-            SyntaxKind::DESCRIPTION,
-            c.end(),
-        )));
-    }
-    SyntaxNode::new(SyntaxKind::ENTRY, range, children)
-}
-
 // =============================================================================
 // Per-line section body processors
 // =============================================================================
 
-fn extend_last_node_description(nodes: &mut [SyntaxElement], cont: TextRange) {
-    if let Some(SyntaxElement::Node(node)) = nodes.last_mut() {
-        let mut found_desc = false;
-        for child in node.children_mut() {
-            if let SyntaxElement::Node(n) = child
-                && n.kind() == SyntaxKind::DESCRIPTION
-            {
-                if n.range().is_empty() {
-                    // Zero-length placeholder: replace the block entirely
-                    // rather than extending from the old (wrong) start.
-                    *n = text_block_single(SyntaxKind::DESCRIPTION, cont);
-                } else {
-                    extend_text_block(n, cont);
-                }
-                found_desc = true;
-                break;
-            }
-        }
-        if !found_desc {
-            node.push_child(SyntaxElement::Node(text_block_single(SyntaxKind::DESCRIPTION, cont)));
-        }
-        node.extend_range_to(cont.end());
-    }
-}
-
 fn process_parameter_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
-    let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent
-        && indent_cols > base
-    {
-        extend_last_node_description(nodes, cursor.current_trimmed_range());
+    if entry_continuation_guard(cursor, nodes, entry_indent) {
         return;
-    }
-    if entry_indent.is_none() {
-        *entry_indent = Some(indent_cols);
     }
 
     let col = cursor.current_indent();
@@ -513,43 +388,48 @@ fn process_parameter_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, e
     nodes.push(SyntaxElement::Node(build_parameter_node(&parts, entry_range)));
 }
 
-fn process_returns_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
-    let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent
-        && indent_cols > base
-    {
-        extend_last_node_description(nodes, cursor.current_trimmed_range());
+/// Split an entry line on its term colon: `(lead, colon, rest)` ranges, with
+/// `rest` `None` when nothing follows the colon. `None` when the line has no
+/// term colon at all.
+fn split_on_term_colon(
+    cursor: &LineCursor,
+    col: usize,
+    trimmed: &str,
+) -> Option<(TextRange, TextRange, Option<TextRange>)> {
+    let colon_pos = find_term_colon(trimmed)?;
+    let lead = trimmed[..colon_pos].trim_end();
+    let after_colon = &trimmed[colon_pos + 1..];
+    let rest = after_colon.trim();
+    let ws_after = after_colon.len() - after_colon.trim_start().len();
+    let rest_col = col + colon_pos + 1 + ws_after;
+    Some((
+        cursor.make_line_range(cursor.line, col, lead.len()),
+        cursor.make_line_range(cursor.line, col + colon_pos, 1),
+        if rest.is_empty() {
+            None
+        } else {
+            Some(cursor.make_line_range(cursor.line, rest_col, rest.len()))
+        },
+    ))
+}
+
+/// One line of a Returns/Yields body: `name : type`, or a bare type.
+fn process_return_like_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
+    if entry_continuation_guard(cursor, nodes, entry_indent) {
         return;
-    }
-    if entry_indent.is_none() {
-        *entry_indent = Some(indent_cols);
     }
 
     let col = cursor.current_indent();
     let trimmed = cursor.current_trimmed();
 
-    let (name, colon, return_type) = if let Some(colon_pos) = find_term_colon(trimmed) {
-        let n = trimmed[..colon_pos].trim_end();
-        let after_colon = &trimmed[colon_pos + 1..];
-        let t = after_colon.trim();
-        let ws_after = after_colon.len() - after_colon.trim_start().len();
-        let type_col = col + colon_pos + 1 + ws_after;
-        (
-            Some(cursor.make_line_range(cursor.line, col, n.len())),
-            Some(cursor.make_line_range(cursor.line, col + colon_pos, 1)),
-            if t.is_empty() {
-                None
-            } else {
-                Some(cursor.make_line_range(cursor.line, type_col, t.len()))
-            },
-        )
-    } else {
+    let (name, colon, return_type) = match split_on_term_colon(cursor, col, trimmed) {
+        Some((lead, colon, rest)) => (Some(lead), Some(colon), rest),
         // Unnamed: type only (stored as TYPE)
-        (None, None, Some(cursor.current_trimmed_range()))
+        None => (None, None, Some(cursor.current_trimmed_range())),
     };
 
     let entry_range = cursor.current_trimmed_range();
-    nodes.push(SyntaxElement::Node(build_returns_node(
+    nodes.push(SyntaxElement::Node(build_return_entry_node(
         name,
         colon,
         return_type,
@@ -557,130 +437,30 @@ fn process_returns_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, ent
     )));
 }
 
-fn process_yields_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
-    let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent
-        && indent_cols > base
-    {
-        extend_last_node_description(nodes, cursor.current_trimmed_range());
+/// One line of a Raises/Warns/Methods body: an entry led by a single token
+/// (`TYPE` for exception and warning types, `NAME` for methods).
+fn process_leading_token_line(
+    cursor: &LineCursor,
+    nodes: &mut Vec<SyntaxElement>,
+    entry_indent: &mut Option<usize>,
+    first_kind: SyntaxKind,
+) {
+    if entry_continuation_guard(cursor, nodes, entry_indent) {
         return;
-    }
-    if entry_indent.is_none() {
-        *entry_indent = Some(indent_cols);
     }
 
     let col = cursor.current_indent();
     let trimmed = cursor.current_trimmed();
 
-    let (name, colon, return_type) = if let Some(colon_pos) = find_term_colon(trimmed) {
-        let n = trimmed[..colon_pos].trim_end();
-        let after_colon = &trimmed[colon_pos + 1..];
-        let t = after_colon.trim();
-        let ws_after = after_colon.len() - after_colon.trim_start().len();
-        let type_col = col + colon_pos + 1 + ws_after;
-        (
-            Some(cursor.make_line_range(cursor.line, col, n.len())),
-            Some(cursor.make_line_range(cursor.line, col + colon_pos, 1)),
-            if t.is_empty() {
-                None
-            } else {
-                Some(cursor.make_line_range(cursor.line, type_col, t.len()))
-            },
-        )
-    } else {
-        // Unnamed: type only (stored as TYPE)
-        (None, None, Some(cursor.current_trimmed_range()))
+    let (first, colon, first_desc) = match split_on_term_colon(cursor, col, trimmed) {
+        Some((lead, colon, rest)) => (lead, Some(colon), rest),
+        None => (cursor.current_trimmed_range(), None, None),
     };
 
     let entry_range = cursor.current_trimmed_range();
-    nodes.push(SyntaxElement::Node(build_yields_node(
-        name,
-        colon,
-        return_type,
-        entry_range,
-    )));
-}
-
-fn process_raises_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
-    let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent
-        && indent_cols > base
-    {
-        extend_last_node_description(nodes, cursor.current_trimmed_range());
-        return;
-    }
-    if entry_indent.is_none() {
-        *entry_indent = Some(indent_cols);
-    }
-
-    let col = cursor.current_indent();
-    let trimmed = cursor.current_trimmed();
-
-    let (exc_type, colon, first_desc) = if let Some(colon_pos) = find_term_colon(trimmed) {
-        let type_str = trimmed[..colon_pos].trim_end();
-        let after_colon = &trimmed[colon_pos + 1..];
-        let desc_str = after_colon.trim();
-        let ws_after = after_colon.len() - after_colon.trim_start().len();
-        let desc_col = col + colon_pos + 1 + ws_after;
-        (
-            cursor.make_line_range(cursor.line, col, type_str.len()),
-            Some(cursor.make_line_range(cursor.line, col + colon_pos, 1)),
-            if desc_str.is_empty() {
-                None
-            } else {
-                Some(cursor.make_line_range(cursor.line, desc_col, desc_str.len()))
-            },
-        )
-    } else {
-        (cursor.current_trimmed_range(), None, None)
-    };
-
-    let entry_range = cursor.current_trimmed_range();
-    nodes.push(SyntaxElement::Node(build_exception_node(
-        exc_type,
-        colon,
-        first_desc,
-        entry_range,
-    )));
-}
-
-fn process_warning_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
-    let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent
-        && indent_cols > base
-    {
-        extend_last_node_description(nodes, cursor.current_trimmed_range());
-        return;
-    }
-    if entry_indent.is_none() {
-        *entry_indent = Some(indent_cols);
-    }
-
-    let col = cursor.current_indent();
-    let trimmed = cursor.current_trimmed();
-
-    let (warn_type, colon, first_desc) = if let Some(colon_pos) = find_term_colon(trimmed) {
-        let type_str = trimmed[..colon_pos].trim_end();
-        let after_colon = &trimmed[colon_pos + 1..];
-        let desc_str = after_colon.trim();
-        let ws_after = after_colon.len() - after_colon.trim_start().len();
-        let desc_col = col + colon_pos + 1 + ws_after;
-        (
-            cursor.make_line_range(cursor.line, col, type_str.len()),
-            Some(cursor.make_line_range(cursor.line, col + colon_pos, 1)),
-            if desc_str.is_empty() {
-                None
-            } else {
-                Some(cursor.make_line_range(cursor.line, desc_col, desc_str.len()))
-            },
-        )
-    } else {
-        (cursor.current_trimmed_range(), None, None)
-    };
-
-    let entry_range = cursor.current_trimmed_range();
-    nodes.push(SyntaxElement::Node(build_warning_node(
-        warn_type,
+    nodes.push(SyntaxElement::Node(build_leading_token_entry(
+        first_kind,
+        first,
         colon,
         first_desc,
         entry_range,
@@ -688,15 +468,8 @@ fn process_warning_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, ent
 }
 
 fn process_see_also_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
-    let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent
-        && indent_cols > base
-    {
-        extend_last_node_description(nodes, cursor.current_trimmed_range());
+    if entry_continuation_guard(cursor, nodes, entry_indent) {
         return;
-    }
-    if entry_indent.is_none() {
-        *entry_indent = Some(indent_cols);
     }
 
     let col = cursor.current_indent();
@@ -733,15 +506,8 @@ fn process_see_also_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, en
 }
 
 fn process_attribute_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
-    let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent
-        && indent_cols > base
-    {
-        extend_last_node_description(nodes, cursor.current_trimmed_range());
+    if entry_continuation_guard(cursor, nodes, entry_indent) {
         return;
-    }
-    if entry_indent.is_none() {
-        *entry_indent = Some(indent_cols);
     }
 
     let col = cursor.current_indent();
@@ -753,49 +519,6 @@ fn process_attribute_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, e
     // list reaches the CST (dropping the later names violated the coverage
     // law, #89).
     nodes.push(SyntaxElement::Node(build_parameter_node(&parts, entry_range)));
-}
-
-fn process_method_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
-    let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent
-        && indent_cols > base
-    {
-        extend_last_node_description(nodes, cursor.current_trimmed_range());
-        return;
-    }
-    if entry_indent.is_none() {
-        *entry_indent = Some(indent_cols);
-    }
-
-    let col = cursor.current_indent();
-    let trimmed = cursor.current_trimmed();
-
-    let (name, colon, first_desc) = if let Some(colon_pos) = find_term_colon(trimmed) {
-        let n = trimmed[..colon_pos].trim_end();
-        let after_colon = &trimmed[colon_pos + 1..];
-        let desc_str = after_colon.trim();
-        let ws_after = after_colon.len() - after_colon.trim_start().len();
-        let desc_col = col + colon_pos + 1 + ws_after;
-        (
-            cursor.make_line_range(cursor.line, col, n.len()),
-            Some(cursor.make_line_range(cursor.line, col + colon_pos, 1)),
-            if desc_str.is_empty() {
-                None
-            } else {
-                Some(cursor.make_line_range(cursor.line, desc_col, desc_str.len()))
-            },
-        )
-    } else {
-        (cursor.current_trimmed_range(), None, None)
-    };
-
-    let entry_range = cursor.current_trimmed_range();
-    nodes.push(SyntaxElement::Node(build_method_node(
-        name,
-        colon,
-        first_desc,
-        entry_range,
-    )));
 }
 
 // =============================================================================
@@ -837,14 +560,14 @@ impl SectionBody {
     fn process_line(&mut self, cursor: &LineCursor, entry_indent: &mut Option<usize>) {
         match self {
             Self::Parameters(nodes) => process_parameter_line(cursor, nodes, entry_indent),
-            Self::Returns(nodes) => process_returns_line(cursor, nodes, entry_indent),
-            Self::Yields(nodes) => process_yields_line(cursor, nodes, entry_indent),
-            Self::Raises(nodes) => process_raises_line(cursor, nodes, entry_indent),
-            Self::Warns(nodes) => process_warning_line(cursor, nodes, entry_indent),
+            Self::Returns(nodes) => process_return_like_line(cursor, nodes, entry_indent),
+            Self::Yields(nodes) => process_return_like_line(cursor, nodes, entry_indent),
+            Self::Raises(nodes) => process_leading_token_line(cursor, nodes, entry_indent, SyntaxKind::TYPE),
+            Self::Warns(nodes) => process_leading_token_line(cursor, nodes, entry_indent, SyntaxKind::TYPE),
             Self::SeeAlso(nodes) => process_see_also_line(cursor, nodes, entry_indent),
             Self::References(nodes) => process_reference_line(cursor, nodes, entry_indent),
             Self::Attributes(nodes) => process_attribute_line(cursor, nodes, entry_indent),
-            Self::Methods(nodes) => process_method_line(cursor, nodes, entry_indent),
+            Self::Methods(nodes) => process_leading_token_line(cursor, nodes, entry_indent, SyntaxKind::NAME),
             Self::FreeText(range) => {
                 let r = cursor.current_trimmed_range();
                 match range {
