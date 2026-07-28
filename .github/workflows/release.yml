@@ -102,7 +102,7 @@ jobs:
 
       - name: Set up Python versions
         if: matrix.os != 'ubuntu-latest' || matrix.target == 'x86_64'
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: 3.14
 
