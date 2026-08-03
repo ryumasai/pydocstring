@@ -33,7 +33,7 @@ SECTIONS = ("functions", "types", "methods", "variants", "fields")
 
 # rustdoc's JSON schema is unstable and changes on nightly. Pin it: a silently
 # renamed field would shrink the surface to nothing and the check would go green.
-EXPECTED_FORMAT_VERSION = 60
+EXPECTED_FORMAT_VERSION = 61
 
 # The smallest surface that is not obviously a parsing failure. A check whose
 # failure mode is "0 items, all good" is worse than no check.
