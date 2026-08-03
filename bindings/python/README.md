@@ -62,7 +62,7 @@ Every view keeps its range, so the results double as edit anchors:
 entry = doc.sections[0].entries[0]
 r = entry.description.range
 
-r.source_text(source)          # -> "The value."   (what's there now)
+r.source_text(source)  # -> "The value."   (what's there now)
 
 edits = parsed.edit()
 edits.replace(r, "A better description.")
@@ -246,7 +246,7 @@ parsed = parse_google(source)
 doc = Document(parsed)
 args = next(s for s in doc.sections if s.kind == SectionKind.PARAMETERS)
 
-parsed.replace_in(args, "$NAME: $DESC", "$NAME: TODO")   # Raises: is untouched
+parsed.replace_in(args, "$NAME: $DESC", "$NAME: TODO")  # Raises: is untouched
 ```
 
 The anchor also selects the *reading*: the same shape is a `$NAME` under `Args:`
@@ -266,11 +266,11 @@ the parse result and on every *node-backed* view — `Document`, `Section`,
 from pydocstring import Document, SyntaxKind, parse
 
 entry = Document(parse(source)).sections[0].entries[0]
-node = entry.syntax                       # -> Node(ENTRY, ...)
+node = entry.syntax  # -> Node(ENTRY, ...)
 
-node.kind                                 # SyntaxKind.ENTRY
-node.children                             # [Token(NAME), Token(WHITESPACE), ..., Node(DESCRIPTION)]
-node.find_token(SyntaxKind.TYPE)          # the type token, if written
+node.kind  # SyntaxKind.ENTRY
+node.children  # [Token(NAME), Token(WHITESPACE), ..., Node(DESCRIPTION)]
+node.find_token(SyntaxKind.TYPE)  # the type token, if written
 ```
 
 The tree's vocabulary is style-independent — a Google entry and a NumPy entry are
@@ -280,8 +280,8 @@ The CST is what tells apart cases the semantic lens equates. Both of these repor
 `entry.type_annotation is None`, but they are not the same docstring:
 
 ```python
-node.find_missing(SyntaxKind.TYPE)   # x ():  -> a zero-length placeholder
-node.find_missing(SyntaxKind.TYPE)   # x:     -> None; no type token at all
+node.find_missing(SyntaxKind.TYPE)  # x ():  -> a zero-length placeholder
+node.find_missing(SyntaxKind.TYPE)  # x:     -> None; no type token at all
 ```
 
 A missing placeholder's range is an *insertion anchor*: `edits.replace(placeholder.range, "int")`
@@ -295,9 +295,9 @@ tree's non-missing leaves reproduces the input.
 ```python
 from pydocstring import detect_style, Style
 
-detect_style("Summary.\n\nArgs:\n    x: Desc.")       # Style.GOOGLE
+detect_style("Summary.\n\nArgs:\n    x: Desc.")  # Style.GOOGLE
 detect_style("Summary.\n\nParameters\n----------\n")  # Style.NUMPY
-detect_style("Just a summary.")                       # Style.PLAIN
+detect_style("Just a summary.")  # Style.PLAIN
 ```
 
 `Style.PLAIN` covers docstrings with no recognised section markers:
@@ -311,9 +311,9 @@ explicit parsers. They all return the same `Parsed`:
 ```python
 from pydocstring import parse_google, parse_numpy, parse_plain
 
-parse_google(source)   # read as Google, whatever it looks like
+parse_google(source)  # read as Google, whatever it looks like
 parse_numpy(source)
-parse_plain(source)    # no section markers; everything after the summary is extended_summary
+parse_plain(source)  # no section markers; everything after the summary is extended_summary
 ```
 
 Docstrings with no recognised section markers parse as plain. Unrecognised styles
@@ -371,6 +371,7 @@ alone are never called. Dispatch on `kind`:
 ```python
 from pydocstring import SyntaxKind, Visitor, parse, walk
 
+
 class NameCollector(Visitor):
     def __init__(self):
         self.names = []
@@ -378,6 +379,7 @@ class NameCollector(Visitor):
     def visit_token(self, token, ctx):
         if token.kind == SyntaxKind.NAME:
             self.names.append(token.text)
+
 
 print(walk(parse(source), NameCollector()).names)
 ```
@@ -434,9 +436,9 @@ for section in doc.sections:
         for block in section.blocks:
             if isinstance(block, Block.Parameter):
                 param = block.value
-                print(param.names)            # ["x"]
+                print(param.names)  # ["x"]
                 print(param.type_annotation)  # "int"
-                print(param.description)      # "The value."
+                print(param.description)  # "The value."
 ```
 
 A section body is a flat sequence of `Block`s in source order: prose
