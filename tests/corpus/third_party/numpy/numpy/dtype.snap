@@ -215,7 +215,6 @@ DOCUMENT@0..2486 {
   }
 }
 === EMIT ===
-
 dtype(dtype, align=False, copy=False, **kwargs)
 -----------------------------------------------
 dtype(dtype, align=False, copy=False, [metadata])

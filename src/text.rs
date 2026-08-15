@@ -48,22 +48,35 @@ impl From<TextSize> for usize {
 }
 
 impl From<usize> for TextSize {
+    /// # Panics
+    ///
+    /// Panics if `raw` does not fit in `u32`. Truncating instead would turn
+    /// an offset into a *different, in-bounds* offset — a silent
+    /// mis-splice — where a panic is a loud programmer error.
     fn from(raw: usize) -> Self {
-        Self(raw as u32)
+        Self(u32::try_from(raw).expect("offset overflows TextSize (u32)"))
     }
 }
 
 impl ops::Add for TextSize {
     type Output = Self;
+    /// # Panics
+    ///
+    /// Panics on overflow — in release builds too. Unchecked `+` would wrap
+    /// and propagate a corrupt offset instead.
     fn add(self, rhs: Self) -> Self {
-        Self(self.0 + rhs.0)
+        Self(self.0.checked_add(rhs.0).expect("TextSize addition overflowed"))
     }
 }
 
 impl ops::Sub for TextSize {
     type Output = Self;
+    /// # Panics
+    ///
+    /// Panics on underflow — in release builds too. Unchecked `-` would wrap
+    /// to a huge offset and propagate instead.
     fn sub(self, rhs: Self) -> Self {
-        Self(self.0 - rhs.0)
+        Self(self.0.checked_sub(rhs.0).expect("TextSize subtraction underflowed"))
     }
 }
 
@@ -103,8 +116,14 @@ impl TextRange {
     }
 
     /// Length of the range in bytes.
+    ///
+    /// Returns zero for an inverted range (end before start). A range is two
+    /// numbers and can be built by hand (the Python binding exposes the
+    /// constructor, and its `__len__` already saturates); underflowing here
+    /// would be a debug panic — an abort across the FFI boundary — and a
+    /// wrapped huge length in release.
     pub const fn len(self) -> TextSize {
-        TextSize::new(self.end.0 - self.start.0)
+        TextSize::new(self.end.0.saturating_sub(self.start.0))
     }
 
     /// Whether the range is empty.
@@ -118,7 +137,16 @@ impl TextRange {
     }
 
     /// Creates a range from an absolute byte offset and a length.
+    ///
+    /// # Panics
+    ///
+    /// Panics if `offset + len` does not fit in `u32`: `as u32` would
+    /// silently truncate both endpoints to different, in-bounds offsets.
     pub const fn from_offset_len(offset: usize, len: usize) -> Self {
+        assert!(
+            offset <= u32::MAX as usize && len <= u32::MAX as usize - offset,
+            "TextRange::from_offset_len overflows u32"
+        );
         Self {
             start: TextSize::new(offset as u32),
             end: TextSize::new((offset + len) as u32),
@@ -219,5 +247,48 @@ impl LineIndex {
             lineno: line as u32 + 1,
             col,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A range is two numbers and can be built by hand (the Python binding
+    /// exposes the constructor), so every accessor must handle an inverted
+    /// range gracefully — the same contract `source_text` already keeps.
+    #[test]
+    fn inverted_range_is_handled_gracefully() {
+        let inverted = TextRange::new(TextSize::new(20), TextSize::new(5));
+        assert_eq!(inverted.len(), TextSize::new(0));
+        assert!(!inverted.is_empty());
+        assert!(!inverted.contains(TextSize::new(10)));
+        assert_eq!(inverted.source_text("hello world, hello again"), "");
+    }
+
+    /// Arithmetic that would corrupt an offset must be loud in release
+    /// builds too, never a silent wrap.
+    #[test]
+    #[should_panic(expected = "TextSize subtraction underflowed")]
+    fn textsize_sub_underflow_panics() {
+        let _ = TextSize::new(1) - TextSize::new(2);
+    }
+
+    #[test]
+    #[should_panic(expected = "TextSize addition overflowed")]
+    fn textsize_add_overflow_panics() {
+        let _ = TextSize::new(u32::MAX) + TextSize::new(1);
+    }
+
+    #[test]
+    #[should_panic(expected = "overflows TextSize")]
+    fn textsize_from_oversized_usize_panics() {
+        let _ = TextSize::from(u32::MAX as usize + 1);
+    }
+
+    #[test]
+    #[should_panic(expected = "from_offset_len overflows")]
+    fn from_offset_len_overflow_panics() {
+        let _ = TextRange::from_offset_len(u32::MAX as usize, 1);
     }
 }

@@ -1637,8 +1637,11 @@ class TestUnifiedView:
         assert section.body.logical_text == "Some prose."
 
     def test_unknown_section_carries_its_header_text(self):
+        # Forced parser: the *parsers* accept unknown section names, while
+        # auto-detection fires only on known ones (#142), so `parse()` would
+        # read this as Plain.
         src = "Summary.\n\nFrobnicate\n----------\nSome prose.\n"
-        section = _document(src).sections[0]
+        section = pydocstring.Document(pydocstring.parse_numpy(src)).sections[0]
         assert section.kind == pydocstring.SectionKind.UNKNOWN
         assert section.unknown_name == "Frobnicate"
         assert section.header_name == "Frobnicate"

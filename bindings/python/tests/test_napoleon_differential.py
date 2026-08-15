@@ -369,14 +369,19 @@ def our_role_map(model: pydocstring.model.Docstring) -> dict[str, list[tuple]]:
 
 def corpus_cases():
     cases = []
+    rels = set()
     for txt in sorted(CORPUS.rglob("*.txt")):
-        parts = txt.relative_to(CORPUS).parts
-        style = parts[2] if parts[0] == "third_party" else parts[0]
+        relative = txt.relative_to(CORPUS)
+        style = relative.parts[2] if relative.parts[0] == "third_party" else relative.parts[0]
         if style not in PARSERS:  # napoleon only speaks google/numpy; skip plain
             continue
-        rel = str(txt.relative_to(CORPUS))
+        rel = relative.as_posix()  # allowlist keys use "/" on every platform
+        rels.add(rel)
         cases.append(pytest.param(txt, style, rel, id=rel))
     assert cases, f"no google/numpy corpus inputs found under {CORPUS}"
+    # A deleted/renamed fixture must not leave a silently-dead allowlist row.
+    orphaned = set(KNOWN_NAPOLEON_DIVERGENCES) - rels
+    assert not orphaned, f"KNOWN_NAPOLEON_DIVERGENCES entries without a corpus file: {sorted(orphaned)}"
     return cases
 
 

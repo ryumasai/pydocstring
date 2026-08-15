@@ -41,6 +41,16 @@ impl EmitOptions {
     }
 }
 
+/// Push the blank-line separator before a block — unless nothing precedes
+/// it. Blocks are *separated*, not prefixed: a docstring whose model has no
+/// summary must not open with a blank line (#152). Shared by all three
+/// emitters.
+pub(crate) fn push_separator(out: &mut String) {
+    if !out.is_empty() {
+        out.push('\n');
+    }
+}
+
 /// Emit `text`, indenting every non-empty continuation line (after the
 /// first) by `indent` spaces. Shared by all three emitters.
 pub(crate) fn emit_multiline_with_indentation(out: &mut String, text: &str, indent: usize) {

@@ -13,6 +13,8 @@
 use core::fmt;
 
 use google::kind::GoogleSectionKind;
+use numpy::kind::NumPySectionKind;
+use numpy::parser::is_underline;
 
 use crate::model::Docstring;
 use crate::syntax::Parsed;
@@ -138,11 +140,20 @@ pub(crate) enum EntryRole {
 /// Detect the docstring style from its content.
 ///
 /// Uses heuristics to identify the style:
-/// 1. **NumPy**: Section headers followed by `---` underlines
-/// 2. **Google**: Section headers ending with `:` (e.g., `Args:`, `Returns:`)
+/// 1. **NumPy**: a *known* section name followed by a dash underline
+///    (the parser's own underline rule)
+/// 2. **Google**: a *known* section name, with or without the trailing `:`
+///    (e.g., `Args:`, `Returns`) — exactly what the Google parser accepts
 /// 3. Falls back to [`Style::Plain`] if no style-specific patterns are found.
 ///    This includes summary-only docstrings and unrecognised styles such as
 ///    Sphinx.
+///
+/// Detection fires only on *known* section names, in both styles, so that
+/// it cannot disagree with the parser it dispatches to (#142): a reST
+/// transition or table rule in prose is not a NumPy underline, and a header
+/// spelling the Google parser accepts (`Args :`, bare `Args`) is not Plain.
+/// The parsers themselves accept unknown section names; detection, like
+/// napoleon, holds no opinion on those.
 ///
 /// The set of recognised styles may grow in minor releases (e.g. Sphinx
 /// field lists): input that detects as [`Style::Plain`] today may detect as
@@ -173,19 +184,18 @@ pub fn detect_style(input: &str) -> Style {
             continue;
         }
 
-        // NumPy: non-empty line followed by a line of 3+ dashes.
-        if let Some(next) = lines.get(i + 1) {
-            let next_trimmed = next.trim();
-            if !next_trimmed.is_empty() && next_trimmed.len() >= 3 && next_trimmed.bytes().all(|b| b == b'-') {
-                return Style::NumPy;
-            }
+        // NumPy: known section name followed by a dash underline.
+        if NumPySectionKind::is_known(&trimmed.to_ascii_lowercase())
+            && lines.get(i + 1).is_some_and(|next| is_underline(next.trim()))
+        {
+            return Style::NumPy;
         }
 
-        // Google: known section name ending with `:`.
-        if let Some(name) = trimmed.strip_suffix(':') {
-            if GoogleSectionKind::is_known(&name.to_ascii_lowercase()) {
-                return Style::Google;
-            }
+        // Google: known section name, optionally followed by `:`. The name
+        // is trimmed the way the parser trims it, so `Args :` detects too.
+        let name = trimmed.strip_suffix(':').map_or(trimmed, str::trim_end);
+        if GoogleSectionKind::is_known(&name.to_ascii_lowercase()) {
+            return Style::Google;
         }
     }
 
