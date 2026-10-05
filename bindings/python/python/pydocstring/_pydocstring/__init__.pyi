@@ -21,13 +21,53 @@ from __future__ import annotations
 
 from typing import TypeVar
 
+from typing_extensions import Self
+from typing_extensions import final
+
 from .._visitor import Visitor
+from . import model as model
 from .model import Docstring
+
+__all__ = [
+    "parse",
+    "parse_google",
+    "parse_numpy",
+    "parse_plain",
+    "detect_style",
+    "emit_google",
+    "emit_numpy",
+    "emit_sphinx",
+    "walk",
+    "Style",
+    "Parsed",
+    "TextRange",
+    "LineColumn",
+    "Token",
+    "TextBlock",
+    "WalkContext",
+    "Match",
+    "Capture",
+    "PatternError",
+    "SyntaxKind",
+    "Node",
+    "Document",
+    "Section",
+    "Entry",
+    "DefaultMarker",
+    "Directive",
+    "Citation",
+    "Edits",
+    "EditError",
+    "RewriteError",
+    "SectionKind",
+    "model",
+]
 
 _VisitorT = TypeVar("_VisitorT", bound="Visitor")
 
 # ─── Core types ──────────────────────────────────────────────────────────────
 
+@final
 class TextRange:
     """Byte range ``[start, end)`` within the source string.
 
@@ -42,7 +82,7 @@ class TextRange:
 
     start: int
     end: int
-    def __init__(self, start: int, end: int) -> None:
+    def __new__(cls, start: int, end: int) -> Self:
         """Build a range from two byte offsets.
 
         Every range a view hands you is already one of these; this is for the
@@ -75,13 +115,14 @@ class TextRange:
         mean empty.
         """
         ...
-    def __contains__(self, offset: object) -> bool:
+    def __contains__(self, offset: object, /) -> bool:
         """Whether a byte offset falls within ``[start, end)``. Never raises."""
         ...
-    def __eq__(self, other: object) -> bool: ...
+    def __eq__(self, other: object, /) -> bool: ...
     def __hash__(self) -> int: ...
     def __repr__(self) -> str: ...
 
+@final
 class LineColumn:
     """1-based line number, 0-based **byte** column. Compares by value.
 
@@ -92,10 +133,11 @@ class LineColumn:
 
     lineno: int
     col: int
-    def __eq__(self, other: object) -> bool: ...
+    def __eq__(self, other: object, /) -> bool: ...
     def __hash__(self) -> int: ...
     def __repr__(self) -> str: ...
 
+@final
 class WalkContext:
     """Context passed to every ``Visitor`` hook during a ``walk()`` call."""
     def line_col(self, offset: int) -> LineColumn:
@@ -116,6 +158,7 @@ class RewriteError(ValueError):
     """Raised by ``replace()`` / ``replace_in()`` when a template names a
     metavariable the matched reading does not bind."""
 
+@final
 class Capture:
     """A metavariable capture of a :class:`Match`.
 
@@ -132,6 +175,7 @@ class Capture:
         ...
     def __repr__(self) -> str: ...
 
+@final
 class Match:
     """One non-overlapping match of a pattern against a docstring."""
 
@@ -148,6 +192,7 @@ class Match:
         ...
     def __repr__(self) -> str: ...
 
+@final
 class Token:
     """A text fragment plus its source byte range and :class:`SyntaxKind`."""
     @property
@@ -164,10 +209,11 @@ class Token:
         Equivalent to ``token.range.is_empty()``.
         """
         ...
-    def __eq__(self, other: object) -> bool: ...
+    def __eq__(self, other: object, /) -> bool: ...
     def __hash__(self) -> int: ...
     def __repr__(self) -> str: ...
 
+@final
 class TextBlock:
     """A multi-line text content block wrapping one ``Token`` per content line.
 
@@ -195,6 +241,7 @@ class TextBlock:
         ...
     def __repr__(self) -> str: ...
 
+@final
 class Style:
     """Docstring style detected or used for emission.
 
@@ -207,11 +254,12 @@ class Style:
     PLAIN: Style
     def __str__(self) -> str: ...
     def __repr__(self) -> str: ...
-    def __eq__(self, other: object) -> bool: ...
+    def __eq__(self, other: object, /) -> bool: ...
     def __hash__(self) -> int: ...
 
 # ─── Section kinds ───────────────────────────────────────────────────────────
 
+@final
 class SectionKind:
     """Style-independent section kind.
 
@@ -247,6 +295,7 @@ class SectionKind:
 
 # ─── Raw CST — the fidelity lens ─────────────────────────────────────────────
 
+@final
 class SyntaxKind:
     """The kind of a CST node or token.
 
@@ -306,6 +355,7 @@ class SyntaxKind:
         ...
     def __repr__(self) -> str: ...
 
+@final
 class Node:
     """A node of the concrete syntax tree — the faithful lens.
 
@@ -343,7 +393,7 @@ class Node:
         type token at all. The placeholder's range is the insertion anchor.
         """
         ...
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: object, /) -> bool:
         """Same kind, same range, same source text.
 
         Accessors hand out a fresh wrapper on every access, so identity would
@@ -355,6 +405,7 @@ class Node:
 
 # ─── Unified views — the style-independent read lens ─────────────────────────
 
+@final
 class Document:
     """Style-independent view of a parsed docstring.
 
@@ -373,7 +424,7 @@ class Document:
     zero-length missing placeholders: ``None`` means "not present".
     """
 
-    def __init__(self, parsed: Parsed) -> None: ...
+    def __new__(cls, parsed: Parsed) -> Self: ...
     @property
     def range(self) -> TextRange: ...
     @property
@@ -399,6 +450,7 @@ class Document:
         """The underlying CST node — the escape hatch down to the faithful lens."""
     def __repr__(self) -> str: ...
 
+@final
 class Section:
     """Style-independent view of one section.
 
@@ -427,6 +479,7 @@ class Section:
         """The underlying CST node — the escape hatch down to the faithful lens."""
     def __repr__(self) -> str: ...
 
+@final
 class Entry:
     """Style-independent view of one entry: a parameter, return, yield,
     exception, warning, attribute, method, or "See Also" item.
@@ -462,6 +515,7 @@ class Entry:
         """The underlying CST node — the escape hatch down to the faithful lens."""
     def __repr__(self) -> str: ...
 
+@final
 class DefaultMarker:
     """One ``default …`` marker inside a type annotation."""
     @property
@@ -477,6 +531,7 @@ class DefaultMarker:
         """The underlying CST node — the escape hatch down to the faithful lens."""
     def __repr__(self) -> str: ...
 
+@final
 class Directive:
     """Style-independent view of a directive (e.g. ``.. deprecated:: 1.6.0``)."""
     @property
@@ -492,6 +547,7 @@ class Directive:
         """The underlying CST node — the escape hatch down to the faithful lens."""
     def __repr__(self) -> str: ...
 
+@final
 class Citation:
     """Style-independent view of a citation in a References section."""
     @property
@@ -507,6 +563,7 @@ class Citation:
 
 # ─── Parsed ──────────────────────────────────────────────────────────────────
 
+@final
 class Parsed:
     """A parsed docstring, whatever its style.
 
@@ -601,6 +658,7 @@ class EditError(ValueError):
     fine). A ``ValueError`` subclass.
     """
 
+@final
 class Edits:
     """A list of pending edits anchored on one parse result.
 

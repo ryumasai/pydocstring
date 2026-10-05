@@ -11,7 +11,7 @@ documentation = "https://docs.rs/pydocstring"
 readme = "README.md"
 keywords = ["python", "docstring", "parser", "google", "numpy"]
 categories = ["parser-implementations", "development-tools"]
-rust-version = "1.85"
+rust-version = "1.88"
 exclude = [".devcontainer/", ".githooks/", ".github/", "bindings/", "target/", "tests/"]
 
 [lib]

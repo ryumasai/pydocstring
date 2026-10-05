@@ -182,10 +182,10 @@ pub fn detect_style(input: &str) -> Style {
         }
 
         // Google: known section name ending with `:`.
-        if let Some(name) = trimmed.strip_suffix(':') {
-            if GoogleSectionKind::is_known(&name.to_ascii_lowercase()) {
-                return Style::Google;
-            }
+        if let Some(name) = trimmed.strip_suffix(':')
+            && GoogleSectionKind::is_known(&name.to_ascii_lowercase())
+        {
+            return Style::Google;
         }
     }
 

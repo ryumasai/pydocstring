@@ -79,104 +79,102 @@ fn parse_entry_header(cursor: &LineCursor, parse_type: bool) -> EntryHeader {
     let entry_start = cursor.substr_offset(trimmed);
 
     // --- Bracket entry: `name (type): desc` and variants ---
-    if parse_type {
-        if let Some(bracket_pos) = find_entry_open_bracket(trimmed) {
-            let name = trimmed[..bracket_pos].trim_end();
-            let name_span = TextRange::from_offset_len(entry_start, name.len());
-            let open_bracket = TextRange::from_offset_len(entry_start + bracket_pos, 1);
+    if parse_type && let Some(bracket_pos) = find_entry_open_bracket(trimmed) {
+        let name = trimmed[..bracket_pos].trim_end();
+        let name_span = TextRange::from_offset_len(entry_start, name.len());
+        let open_bracket = TextRange::from_offset_len(entry_start + bracket_pos, 1);
 
-            let close_pos = find_matching_close(trimmed, bracket_pos);
-            let (type_text, close_bracket, colon, first_description) = match close_pos {
-                Some(cp) => {
-                    // Bracket matched — check what follows.
-                    let cb = Some(TextRange::from_offset_len(entry_start + cp, 1));
-                    let after_close = &trimmed[cp + 1..];
-                    let after_trimmed = after_close.trim_start();
-                    if after_trimmed.starts_with(':') {
-                        // `:` confirmed → COLON + DESC
-                        let colon_abs = cp + 1 + (after_close.len() - after_trimmed.len());
-                        let colon_span = Some(TextRange::from_offset_len(entry_start + colon_abs, 1));
-                        let after_colon = &trimmed[colon_abs + 1..];
-                        let desc = after_colon.trim();
-                        let desc_span = if desc.is_empty() {
-                            None
-                        } else {
-                            let ws = after_colon.len() - after_colon.trim_start().len();
-                            Some(TextRange::from_offset_len(entry_start + colon_abs + 1 + ws, desc.len()))
-                        };
-                        (&trimmed[bracket_pos + 1..cp], cb, colon_span, desc_span)
-                    } else if !after_trimmed.is_empty() {
-                        // Text without colon → DESC (missing COLON)
-                        let ws = after_close.len() - after_trimmed.len();
-                        let desc_span = Some(TextRange::from_offset_len(
-                            entry_start + cp + 1 + ws,
-                            after_trimmed.len(),
-                        ));
-                        (&trimmed[bracket_pos + 1..cp], cb, None, desc_span)
+        let close_pos = find_matching_close(trimmed, bracket_pos);
+        let (type_text, close_bracket, colon, first_description) = match close_pos {
+            Some(cp) => {
+                // Bracket matched — check what follows.
+                let cb = Some(TextRange::from_offset_len(entry_start + cp, 1));
+                let after_close = &trimmed[cp + 1..];
+                let after_trimmed = after_close.trim_start();
+                if after_trimmed.starts_with(':') {
+                    // `:` confirmed → COLON + DESC
+                    let colon_abs = cp + 1 + (after_close.len() - after_trimmed.len());
+                    let colon_span = Some(TextRange::from_offset_len(entry_start + colon_abs, 1));
+                    let after_colon = &trimmed[colon_abs + 1..];
+                    let desc = after_colon.trim();
+                    let desc_span = if desc.is_empty() {
+                        None
                     } else {
-                        // Nothing after close bracket
-                        (&trimmed[bracket_pos + 1..cp], cb, None, None)
-                    }
+                        let ws = after_colon.len() - after_colon.trim_start().len();
+                        Some(TextRange::from_offset_len(entry_start + colon_abs + 1 + ws, desc.len()))
+                    };
+                    (&trimmed[bracket_pos + 1..cp], cb, colon_span, desc_span)
+                } else if !after_trimmed.is_empty() {
+                    // Text without colon → DESC (missing COLON)
+                    let ws = after_close.len() - after_trimmed.len();
+                    let desc_span = Some(TextRange::from_offset_len(
+                        entry_start + cp + 1 + ws,
+                        after_trimmed.len(),
+                    ));
+                    (&trimmed[bracket_pos + 1..cp], cb, None, desc_span)
+                } else {
+                    // Nothing after close bracket
+                    (&trimmed[bracket_pos + 1..cp], cb, None, None)
                 }
-                None => {
-                    // No matching close bracket — look for colon ignoring paren depth.
-                    if let Some(colon_abs) = find_colon_ignoring_parens(trimmed, bracket_pos + 1) {
-                        let type_raw = &trimmed[bracket_pos + 1..colon_abs];
-                        let colon_span = Some(TextRange::from_offset_len(entry_start + colon_abs, 1));
-                        let after_colon = &trimmed[colon_abs + 1..];
-                        let desc = after_colon.trim();
-                        let desc_span = if desc.is_empty() {
-                            None
-                        } else {
-                            let ws = after_colon.len() - after_colon.trim_start().len();
-                            Some(TextRange::from_offset_len(entry_start + colon_abs + 1 + ws, desc.len()))
-                        };
-                        (type_raw, None, colon_span, desc_span)
+            }
+            None => {
+                // No matching close bracket — look for colon ignoring paren depth.
+                if let Some(colon_abs) = find_colon_ignoring_parens(trimmed, bracket_pos + 1) {
+                    let type_raw = &trimmed[bracket_pos + 1..colon_abs];
+                    let colon_span = Some(TextRange::from_offset_len(entry_start + colon_abs, 1));
+                    let after_colon = &trimmed[colon_abs + 1..];
+                    let desc = after_colon.trim();
+                    let desc_span = if desc.is_empty() {
+                        None
                     } else {
-                        (&trimmed[bracket_pos + 1..], None, None, None)
-                    }
+                        let ws = after_colon.len() - after_colon.trim_start().len();
+                        Some(TextRange::from_offset_len(entry_start + colon_abs + 1 + ws, desc.len()))
+                    };
+                    (type_raw, None, colon_span, desc_span)
+                } else {
+                    (&trimmed[bracket_pos + 1..], None, None, None)
                 }
-            };
+            }
+        };
 
-            let type_trimmed = type_text.trim();
-            let leading_ws = type_text.len() - type_text.trim_start().len();
-            let type_offset = bracket_pos + 1 + leading_ws;
-            let scanned = scan_type_markers(type_trimmed);
-            let type_base = entry_start + type_offset;
+        let type_trimmed = type_text.trim();
+        let leading_ws = type_text.len() - type_text.trim_start().len();
+        let type_offset = bracket_pos + 1 + leading_ws;
+        let scanned = scan_type_markers(type_trimmed);
+        let type_base = entry_start + type_offset;
 
-            let type_span = if !scanned.clean_type.is_empty() {
-                Some(TextRange::from_offset_len(type_base, scanned.clean_type.len()))
-            } else {
-                None
-            };
+        let type_span = if !scanned.clean_type.is_empty() {
+            Some(TextRange::from_offset_len(type_base, scanned.clean_type.len()))
+        } else {
+            None
+        };
 
-            let type_info = Some(TypeInfo {
-                open_bracket,
-                r#type: type_span,
-                close_bracket,
-                commas: scanned
-                    .commas
-                    .iter()
-                    .map(|&r| TextRange::from_offset_len(type_base + r, 1))
-                    .collect(),
-                markers: marker_syntax_elements(&scanned.markers, type_base),
-            });
+        let type_info = Some(TypeInfo {
+            open_bracket,
+            r#type: type_span,
+            close_bracket,
+            commas: scanned
+                .commas
+                .iter()
+                .map(|&r| TextRange::from_offset_len(type_base + r, 1))
+                .collect(),
+            markers: marker_syntax_elements(&scanned.markers, type_base),
+        });
 
-            let range_end = first_description
-                .as_ref()
-                .map(|d| d.end())
-                .or_else(|| colon.as_ref().map(|c| c.end()))
-                .or_else(|| close_bracket.map(|cb| cb.end()))
-                .unwrap_or_else(|| TextRange::from_offset_len(entry_start, trimmed.len()).end());
+        let range_end = first_description
+            .as_ref()
+            .map(|d| d.end())
+            .or_else(|| colon.as_ref().map(|c| c.end()))
+            .or_else(|| close_bracket.map(|cb| cb.end()))
+            .unwrap_or_else(|| TextRange::from_offset_len(entry_start, trimmed.len()).end());
 
-            return EntryHeader {
-                range: TextRange::new(name_span.start(), range_end),
-                name: name_span,
-                type_info,
-                colon,
-                first_description,
-            };
-        }
+        return EntryHeader {
+            range: TextRange::new(name_span.start(), range_end),
+            name: name_span,
+            type_info,
+            colon,
+            first_description,
+        };
     }
 
     // --- `name: desc` ---
@@ -514,18 +512,18 @@ fn extend_last_node_description(nodes: &mut [SyntaxElement], cont: TextRange) {
         // Find or add description block, extend range
         let mut found_desc = false;
         for child in node.children_mut() {
-            if let SyntaxElement::Node(n) = child {
-                if n.kind() == SyntaxKind::DESCRIPTION {
-                    if n.range().is_empty() {
-                        // Zero-length placeholder: replace the block entirely
-                        // rather than extending from the old (wrong) start.
-                        *n = text_block_single(SyntaxKind::DESCRIPTION, cont);
-                    } else {
-                        extend_text_block(n, cont);
-                    }
-                    found_desc = true;
-                    break;
+            if let SyntaxElement::Node(n) = child
+                && n.kind() == SyntaxKind::DESCRIPTION
+            {
+                if n.range().is_empty() {
+                    // Zero-length placeholder: replace the block entirely
+                    // rather than extending from the old (wrong) start.
+                    *n = text_block_single(SyntaxKind::DESCRIPTION, cont);
+                } else {
+                    extend_text_block(n, cont);
                 }
+                found_desc = true;
+                break;
             }
         }
         if !found_desc {
@@ -543,11 +541,11 @@ fn process_arg_line(
     entry_indent: &mut Option<usize>,
 ) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_node_description(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_node_description(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
@@ -563,11 +561,11 @@ fn process_arg_line(
 
 fn process_exception_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_node_description(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_node_description(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
@@ -578,11 +576,11 @@ fn process_exception_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, e
 
 fn process_warning_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_node_description(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_node_description(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
@@ -593,11 +591,11 @@ fn process_warning_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, ent
 
 fn process_see_also_line(cursor: &LineCursor, nodes: &mut Vec<SyntaxElement>, entry_indent: &mut Option<usize>) {
     let indent_cols = cursor.current_indent_columns();
-    if let Some(base) = *entry_indent {
-        if indent_cols > base {
-            extend_last_node_description(nodes, cursor.current_trimmed_range());
-            return;
-        }
+    if let Some(base) = *entry_indent
+        && indent_cols > base
+    {
+        extend_last_node_description(nodes, cursor.current_trimmed_range());
+        return;
     }
     if entry_indent.is_none() {
         *entry_indent = Some(indent_cols);
