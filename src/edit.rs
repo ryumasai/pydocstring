@@ -212,7 +212,11 @@ impl<'a> Edits<'a> {
     ///
     /// 1. **Start** — moved back to the start of the node's first line if
     ///    every byte between the line start and the node is a space or tab
-    ///    (the leading indentation); otherwise left at the node start.
+    ///    (the leading indentation). A node that does not own its line start
+    ///    gets no line semantics: consuming its newline would join the next
+    ///    line into whatever precedes the node, so the node's exact range is
+    ///    recorded as a plain [`delete`](Edits::delete) and steps 2–3 are
+    ///    skipped.
     /// 2. **End** — trailing spaces/tabs after the node on its last line are
     ///    consumed together with that line's newline (`\n` or `\r\n`). If
     ///    the node ends the source without a newline, trailing whitespace up
@@ -247,11 +251,16 @@ impl<'a> Edits<'a> {
             return self.delete(range);
         }
 
-        // 1. Expand start over the first line's leading indentation.
+        // 1. Expand start over the first line's leading indentation. A node
+        //    that does not own its line start (content precedes it on the
+        //    line) gets no line semantics at all: consuming its trailing
+        //    newline would join the next line into the construct before it
+        //    (#144), so record a plain delete instead.
         let line_start = source[..start].rfind('\n').map_or(0, |i| i + 1);
-        if bytes[line_start..start].iter().all(|&b| b == b' ' || b == b'\t') {
-            start = line_start;
+        if !bytes[line_start..start].iter().all(|&b| b == b' ' || b == b'\t') {
+            return self.delete(range);
         }
+        start = line_start;
 
         // 2. Expand end over trailing spaces/tabs plus the line's newline.
         let mut scan = end;

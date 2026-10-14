@@ -54,20 +54,21 @@ pub fn emit_numpy(doc: &Docstring, options: &EmitOptions) -> String {
     // parsers (and numpydoc convention) only recognize a directive directly
     // after the summary.
     for directive in &doc.directives {
-        out.push('\n');
+        super::push_separator(&mut out);
         super::emit_directive(&mut out, directive);
     }
 
-    // Extended summary
+    // Extended summary. Each later block is *separated* from what precedes
+    // it — a summary-less docstring must not open with a blank line (#152).
     if let Some(ref ext) = doc.extended_summary {
-        out.push('\n');
+        super::push_separator(&mut out);
         out.push_str(ext);
         out.push('\n');
     }
 
     // Sections
     for section in &doc.sections {
-        out.push('\n');
+        super::push_separator(&mut out);
         emit_section(&mut out, section);
     }
 

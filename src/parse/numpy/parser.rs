@@ -29,7 +29,10 @@ use crate::text::TextRange;
 // =============================================================================
 
 /// Check if a trimmed line is a NumPy-style section underline (only dashes).
-fn is_underline(trimmed: &str) -> bool {
+///
+/// `pub(crate)` so [`detect_style`](crate::parse::detect_style) applies the
+/// same underline rule as the parser it dispatches to (#142).
+pub(crate) fn is_underline(trimmed: &str) -> bool {
     !trimmed.is_empty() && trimmed.bytes().all(|b| b == b'-')
 }
 

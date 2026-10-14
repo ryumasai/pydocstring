@@ -330,6 +330,31 @@ fn remove_lines_entry_numpy() {
 }
 
 #[test]
+fn remove_lines_range_mid_line_node_is_a_plain_delete() {
+    let src = "Summary.\n\nArgs:\n    x (int): Old description.\n    y: Stays.\n";
+    let parsed = pydocstring::parse::parse_google(src);
+    let doc = Document::new(&parsed);
+    let entry = doc.sections().next().unwrap().entries().next().unwrap();
+    let desc = entry.description().unwrap();
+
+    let mut edits = parsed.edit();
+    edits.remove_lines_range(desc.range());
+    let out = edits.apply().unwrap();
+    // The description does not own its line start, so it gets no line
+    // semantics: the newline survives and `y` keeps its own line. Consuming
+    // it would splice `y: Stays.` onto `x`'s header, and a reparse would
+    // silently read it as `x`'s description (#144).
+    assert_eq!(out, "Summary.\n\nArgs:\n    x (int): \n    y: Stays.\n");
+
+    let reparsed = edits.apply_reparsed().unwrap();
+    let doc = Document::new(&reparsed);
+    let section = doc.sections().next().unwrap();
+    assert_eq!(section.entries().count(), 2);
+    let names: Vec<_> = section.entries().map(|e| e.name().unwrap().text().to_owned()).collect();
+    assert_eq!(names, ["x", "y"]);
+}
+
+#[test]
 fn remove_lines_section_consumes_trailing_blank_line_google() {
     let src = "Summary.\n\nArgs:\n    x: Desc.\n\nReturns:\n    int: Result.\n";
     let parsed = pydocstring::parse::parse_google(src);

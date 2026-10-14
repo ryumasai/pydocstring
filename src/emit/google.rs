@@ -54,20 +54,21 @@ pub fn emit_google(doc: &Docstring, options: &EmitOptions) -> String {
     // parsers (and numpydoc convention) only recognize a directive directly
     // after the summary.
     for directive in &doc.directives {
-        out.push('\n');
+        super::push_separator(&mut out);
         super::emit_directive(&mut out, directive);
     }
 
-    // Extended summary
+    // Extended summary. Each later block is *separated* from what precedes
+    // it — a summary-less docstring must not open with a blank line (#152).
     if let Some(ref ext) = doc.extended_summary {
-        out.push('\n');
+        super::push_separator(&mut out);
         out.push_str(ext);
         out.push('\n');
     }
 
     // Sections
     for section in &doc.sections {
-        out.push('\n');
+        super::push_separator(&mut out);
         emit_section(&mut out, section);
     }
 
@@ -184,6 +185,11 @@ fn emit_parameter(out: &mut String, p: &Parameter) {
 }
 
 /// Google: `    type: Description.`
+///
+/// Named returns (a NumPy feature, `Return::name`) lose their name: Google
+/// style has no notation for it — napoleon reads `name : type` Returns
+/// entries only in NumPy docstrings. The loss is permanent and ledgered in
+/// `KNOWN_CONVERSION_FAILURES` (tests/roundtrip.rs).
 fn emit_return(out: &mut String, r: &Return) {
     out.push_str("    ");
     if let Some(ref ty) = r.type_annotation {

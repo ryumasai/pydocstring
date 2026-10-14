@@ -87,3 +87,41 @@ fn spec_unified_view_reads_a_google_parsed_document_root() {
     assert_eq!(doc.summary().unwrap().text(), "Summary.");
     assert_eq!(doc.sections().count(), 1);
 }
+
+// =============================================================================
+// #142: detection must not disagree with the parsers it dispatches to
+// =============================================================================
+
+/// A reST transition / markdown rule in prose is not a NumPy underline: only
+/// a *known* section name above the dashes flips detection.
+#[test]
+fn spec_dash_run_in_prose_is_not_numpy() {
+    let input = "Summary.\n\nSome prose.\n---------\n\nArgs:\n    x: Desc.";
+    assert_eq!(detect_style(input), Style::Google);
+
+    let no_google_marker = "Summary.\n\nSome prose.\n---------\n\nMore prose.";
+    assert_eq!(detect_style(no_google_marker), Style::Plain);
+}
+
+/// The Google parser trims the name (`Args :`) and accepts bare known names
+/// (`Args`); detection accepts exactly the same spellings.
+#[test]
+fn spec_google_header_spellings_the_parser_accepts_detect_google() {
+    assert_eq!(detect_style("Summary.\n\nArgs :\n    x: Desc."), Style::Google);
+    assert_eq!(detect_style("Summary.\n\nArgs\n    x: Desc."), Style::Google);
+}
+
+/// A known name above the underline detects NumPy with the parser's own
+/// underline rule — any run of dashes, not three-plus.
+#[test]
+fn spec_numpy_underline_rule_matches_the_parser() {
+    assert_eq!(detect_style("Summary.\n\nReturns\n-\nint\n    Desc."), Style::NumPy);
+}
+
+/// A bare known name followed by an underline is NumPy, not Google: the
+/// NumPy check wins on the same line.
+#[test]
+fn spec_underlined_known_name_prefers_numpy() {
+    let input = "Summary.\n\nReturns\n-------\nint\n    Desc.";
+    assert_eq!(detect_style(input), Style::NumPy);
+}
